@@ -2502,7 +2502,6 @@ function setOverride(dateStr, programId) {
     closeModal();
 }
  
-let pressTimer;
 let currentPressIndex = null;
 let hasMoved = false;
  
