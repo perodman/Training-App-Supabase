@@ -101,64 +101,80 @@ function renderHome() {
 // Ladda ALL data från Supabase vid appstart
 async function loadFromSupabase() {
     console.log("📥 Laddar data från Supabase...");
- 
+
     try {
+        // Steg 1: Logga in (om det inte redan har gjorts)
+        const email = 'din_email@example.com'; // Ersätt med din e-post
+        const password = 'ditt_lösenord'; // Ersätt med ditt lösenord
+
+        const { user, error: loginError } = await client.auth.signIn({ email, password });
+
+        if (loginError) {
+            console.error("❌ Inloggning misslyckades:", loginError);
+            return; // Avbryt om inloggningen misslyckas
+        }
+
+        console.log("✅ Inloggad som:", user);
+
+        // Steg 2: Hämta UUID för den inloggade användaren
+        const userId = user.id; // Hämta UUID
+
         // 1. Ladda workoutHistory
         const { historyData, error: historyError } = await client
             .from('workout_history')
             .select('*')
-            .eq('user_id', currentUserId)
-            .order('workout_date', { ascending: false }); // Ändra till 'workout_date'
- 
+            .eq('user_id', userId) // Använd UUID här
+            .order('workout_date', { ascending: false });
+
         if (historyError) throw historyError;
- 
+
         if (historyData && historyData.length > 0) {
-            workoutHistory = historyData.map(row => row.workout_data); // Ändra till 'workout_data'
+            workoutHistory = historyData.map(row => row.workout_data);
             console.log("✅ Träningshistorik laddad:", workoutHistory.length);
         }
- 
+
         // 2. Ladda calendarOverrides
         const { overridesData, error: overridesError } = await client
             .from('calendar_overrides')
             .select('*')
-            .eq('user_id', currentUserId)
+            .eq('user_id', userId)
             .single();
- 
+
         if (overridesError && overridesError.code !== 'PGRST116') throw overridesError;
- 
+
         if (overridesData) {
             calendarOverrides = overridesData.data;
             console.log("✅ Kalenderändringar laddade");
         }
- 
+
         // 3. Ladda activeDraft
         const { draftData, error: draftError } = await client
             .from('active_draft')
             .select('*')
-            .eq('user_id', currentUserId)
+            .eq('user_id', userId)
             .single();
- 
+
         if (draftError && draftError.code !== 'PGRST116') throw draftError;
- 
+
         if (draftData) {
             activeDraft = draftData.data;
             console.log("✅ Aktivt utkast laddat");
         }
- 
+
         // 4. Ladda customProgram
         const { programDataRow, error: programError } = await client
             .from('custom_program')
             .select('*')
-            .eq('user_id', currentUserId)
+            .eq('user_id', userId)
             .single();
- 
+
         if (programError && programError.code !== 'PGRST116') throw programError;
- 
+
         if (programDataRow) {
             programData = programDataRow.data;
             console.log("✅ Anpassat program laddat");
         }
- 
+
     } catch (error) {
         console.error("❌ Fel vid laddning från Supabase:", error);
         // Fallback till localStorage om Supabase misslyckas
