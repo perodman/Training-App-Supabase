@@ -2,8 +2,7 @@
 // SUPABASE INITIALISERING
 // ============================================================================
 const supabaseUrl = 'https://oixavkihfvbagzlyoocm.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9peGF2a2loZnZiYWd6bHlvb2NtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzYxNjM0NTksImV4cCI6MjA1MTczOTQ1OX0.CZhE5gMWaR7KbYYvdz8xJLuEPYO7KlXOjLqDC7wZhKw';
-
+const supabaseKey = 'sb_publishable_v6MqFHOeimJvtx-dZWFn1g_s0YOTUE8'; 
 const client = window.supabase.createClient(supabaseUrl, supabaseKey);
 
 // ============================================================================
