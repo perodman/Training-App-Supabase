@@ -101,77 +101,64 @@ function renderHome() {
 // Ladda ALL data från Supabase vid appstart
 async function loadFromSupabase() {
     console.log("📥 Laddar data från Supabase...");
-    
+ 
     try {
-        // 1. Ladda masterExercises
-        const { exercisesData, error: exercisesError } = await client
-            .from('master_exercises')
-            .select('*')
-            .eq('user_id', currentUserId);
-        
-        if (exercisesError) throw exercisesError;
-        
-        if (exercisesData && exercisesData.length > 0) {
-            masterExercises = exercisesData.map(row => row.data);
-            console.log("✅ Övningar laddade:", masterExercises.length);
-        }
-
-        // 2. Ladda workoutHistory
+        // 1. Ladda workoutHistory
         const { historyData, error: historyError } = await client
             .from('workout_history')
             .select('*')
             .eq('user_id', currentUserId)
             .order('date', { ascending: false });
-        
+ 
         if (historyError) throw historyError;
-        
+ 
         if (historyData && historyData.length > 0) {
             workoutHistory = historyData.map(row => row.data);
             console.log("✅ Träningshistorik laddad:", workoutHistory.length);
         }
-
-        // 3. Ladda calendarOverrides
+ 
+        // 2. Ladda calendarOverrides
         const { overridesData, error: overridesError } = await client
             .from('calendar_overrides')
             .select('*')
             .eq('user_id', currentUserId)
             .single();
-        
+ 
         if (overridesError && overridesError.code !== 'PGRST116') throw overridesError;
-        
+ 
         if (overridesData) {
             calendarOverrides = overridesData.data;
             console.log("✅ Kalenderändringar laddade");
         }
-
-        // 4. Ladda activeDraft
+ 
+        // 3. Ladda activeDraft
         const { draftData, error: draftError } = await client
             .from('active_draft')
             .select('*')
             .eq('user_id', currentUserId)
             .single();
-        
+ 
         if (draftError && draftError.code !== 'PGRST116') throw draftError;
-        
+ 
         if (draftData) {
             activeDraft = draftData.data;
             console.log("✅ Aktivt utkast laddat");
         }
-
-        // 5. Ladda customProgram
+ 
+        // 4. Ladda customProgram
         const { programDataRow, error: programError } = await client
             .from('custom_program')
             .select('*')
             .eq('user_id', currentUserId)
             .single();
-        
+ 
         if (programError && programError.code !== 'PGRST116') throw programError;
-        
+ 
         if (programDataRow) {
             programData = programDataRow.data;
             console.log("✅ Anpassat program laddat");
         }
-
+ 
     } catch (error) {
         console.error("❌ Fel vid laddning från Supabase:", error);
         // Fallback till localStorage om Supabase misslyckas
@@ -290,20 +277,22 @@ async function saveAll() {
 async function initApp() {
     // Ladda från Supabase först
     await loadFromSupabase();
-
+ 
     // Om ingen data finns i Supabase, ladda från program.json
     if (masterExercises.length === 0) {
         try {
-            const response = await fetch("program.json");
+            const response = await fetch("https://raw.githubusercontent.com/perodman/Training-App-Supabase/main/program.json");
             const json = await response.json();
             
             json.routine.forEach(p => {
                 p.exercises.forEach(ex => {
+                    // Kontrollera om övningen redan finns
                     if (!masterExercises.find(m => m.name === ex.name)) {
                         let animFile = "";
                         if (ex.name === "Deadlift") animFile = "Gemini_Generated_Image_sqtn3ksqtn3ksqtn.mp4";
                         if (ex.name === "Barbell Bench Press") animFile = "Skärmbild 2026-05-11 124104.mp4";
                         
+                        // Lägg till övningen i masterExercises
                         masterExercises.push({ 
                             ...ex, 
                             id: Date.now() + Math.random(),
@@ -313,8 +302,9 @@ async function initApp() {
                 });
             });
             
+            // Sätt programData om den inte redan är satt
             if (!programData) programData = json;
-            await saveAll();
+            await saveAll();  // Spara övningarna
         } catch (error) {
             console.error("❌ Kunde inte ladda program.json:", error);
         }
@@ -325,7 +315,7 @@ async function initApp() {
             if (ex.name === "Barbell Bench Press") ex.animation = "Skärmbild 2026-05-11 124104.mp4";
         });
     }
-
+ 
     // Återställ timer om det finns ett aktivt utkast
     if (activeDraft && activeDraft.isStarted) {
         secondsElapsed = activeDraft.secondsElapsed || 0;
@@ -335,8 +325,8 @@ async function initApp() {
             updateTimerDisplay();
         }
     }
-
-    renderHome();
+ 
+    renderHome();  // Rendera hemsidan
 }
 
 // Starta appen
