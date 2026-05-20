@@ -2,10 +2,9 @@
 const supabaseUrl = 'https://oixavkihfvbagzlyoocm.supabase.co';
 const supabaseKey = 'sb_publishable_v6MqFHOeimJvtx-dZWFn1g_s0YOTUE8'; 
 
-// Vi skapar klienten. Om 'supabase' redan finns definierad via HTML-scriptet,
-// så använder vi den direkt för att undvika "already declared"-felet.
-window.supabase = window.supabase || supabase;
-const client = supabase.createClient(supabaseUrl, supabaseKey);
+// Vi använder den globala 'supabase' som laddades via din HTML-script-tagg
+// Vi skapar klienten och sparar den i en variabel som heter 'client'
+const client = window.supabase.createClient(supabaseUrl, supabaseKey);
 
 // --- 2. DINA VARIABLER ---
 let masterExercises = [];
