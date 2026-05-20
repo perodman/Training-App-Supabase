@@ -103,11 +103,11 @@ async function loadFromSupabase() {
     console.log("📥 Laddar data från Supabase...");
 
     try {
-        // Steg 1: Logga in (om det inte redan har gjorts)
-        const email = 'per.odman@hotmail.com'; // Ersätt med din e-post
-        const password = 'Agn350dman07'; // Ersätt med ditt lösenord
+        // Steg 1: Logga in
+        const email = 'per.odman@hotmail.com'; // Din e-post
+        const password = 'Agn350dman07'; // Ditt lösenord
 
-        const { user, error: loginError } = await client.auth.signIn({ email, password });
+        const { user, error: loginError } = await client.auth.signInWithPassword({ email, password });
 
         if (loginError) {
             console.error("❌ Inloggning misslyckades:", loginError);
