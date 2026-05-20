@@ -43,7 +43,7 @@ async function loadMasterExercises() {
     console.log("📥 Laddar masterExercises från program.json...");
     
     try {
-        const response = await fetch('https://raw.githubusercontent.com/perodman/Training-App-Supabase/blob/main/program.json');
+        const response = await fetch('https://raw.githubusercontent.com/perodman/Training-App-Supabase/main/program.json');
         
         // Kontrollera att svaret är OK
         if (!response.ok) {
