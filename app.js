@@ -2539,6 +2539,33 @@ function cancelPress() {
     }
 }
 
+async function loadAll() {
+    console.log("📥 Laddar all data...");
+    
+    // Försök att ladda data från Supabase
+    await loadFromSupabase();
+ 
+    // Om ingen data finns, ladda från localStorage
+    if (masterExercises.length === 0) {
+        loadFromLocalStorage();
+    }
+    
+    // Återställ timer och UI
+    if (activeDraft) {
+        secondsElapsed = activeDraft.secondsElapsed || 0;
+        isTimerRunning = activeDraft.wasTimerRunning || false;
+        
+        if (isTimerRunning) {
+            startTimer();
+        }
+        
+        updateTimerDisplay();
+        updateTimerControls();
+    }
+ 
+    renderHome(); // Visa startsidan
+}
+
 // ============================================================================
 // INITIALISERING
 // ============================================================================
