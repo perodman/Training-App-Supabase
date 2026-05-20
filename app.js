@@ -105,7 +105,12 @@ async function loadFromSupabase() {
     try {
         // Steg 1: Logga in med GitHub
         console.log("📥 Försöker logga in med GitHub...");
-        const { user, error: loginError } = await client.auth.signInWithOAuth({ provider: 'github' });
+        const { user, error: loginError } = await client.auth.signInWithOAuth({
+            provider: 'github',
+            options: {
+                redirectTo: 'https://oixavkihfvbagzlyoocm.supabase.co/auth/v1/callback',
+            },
+        });
 
         if (loginError) {
             console.error("❌ Inloggning misslyckades:", loginError);
