@@ -1,0 +1,67 @@
+{
+
+  "routine": [
+
+    {
+
+      "id": "pass-a",
+
+      "name": "Pass A",
+
+      "exercises": [
+
+        { "name": "Leg Press", "target": "Ben", "defaultSets": 3, "description": "Pressa plattan kontrollerat bort från kroppen." },
+
+        { "name": "Barbell Bench Press", "target": "Bröst", "defaultSets": 3, "description": "Sänk stången till bröstet, pressa upp." },
+
+        { "name": "Pull-ups", "target": "Rygg", "defaultSets": 3, "description": "Dra dig upp tills hakan är över stången." },
+
+        { "name": "Seated DB Press", "target": "Axlar", "defaultSets": 3, "description": "Pressa hantlarna rakt upp." },
+
+        { "name": "Back Extensions", "target": "Ländrygg", "defaultSets": 3, "description": "Kontrollerad fällning i höften." },
+
+        { "name": "Front Delt Raises", "target": "Axlar", "defaultSets": 3, "description": "Lyft hantlarna framåt." },
+
+        { "name": "Preacher Curls", "target": "Biceps", "defaultSets": 3, "description": "Isolera biceps mot dynan." },
+
+        { "name": "Tricep Pushdowns", "target": "Triceps", "defaultSets": 3, "description": "Pressa ner stången." },
+
+        { "name": "Hanging Leg Raises", "target": "Bål", "defaultSets": 3, "description": "Lyft benen med magmusklerna." }
+
+      ]
+
+    },
+
+    {
+
+      "id": "pass-b",
+
+      "name": "Pass B",
+
+      "exercises": [
+
+        { "name": "Romanian DB Deadlifts", "target": "Ben", "defaultSets": 3, "description": "Känn stretchen i baksidan." },
+
+        { "name": "Incline DB Bench Press", "target": "Bröst", "defaultSets": 3, "description": "Lutande bänk för övre bröst." },
+
+        { "name": "Incline DB Rows", "target": "Rygg", "defaultSets": 3, "description": "Dra vikterna uppåt." },
+
+        { "name": "Cable Lateral Raises", "target": "Axlar", "defaultSets": 3, "description": "Dra åt sidan i kabelmaskin." },
+
+        { "name": "Lat Pulldowns", "target": "Rygg", "defaultSets": 3, "description": "Dra stången mot bröstet." },
+
+        { "name": "DB Rear Delt Rows", "target": "Axlar", "defaultSets": 3, "description": "Dra för baksida axlar." },
+
+        { "name": "Dumbbell Shrugs", "target": "Rygg", "defaultSets": 3, "description": "Dra upp axlarna mot öronen." },
+
+        { "name": "Incline DB Curls", "target": "Biceps", "defaultSets": 3, "description": "Stretcha biceps i bottenläget." },
+
+        { "name": "Cable Woodchoppers", "target": "Bål", "defaultSets": 3, "description": "Rotation för magen." }
+
+      ]
+
+    }
+
+  ]
+
+}
