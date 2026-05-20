@@ -104,8 +104,8 @@ async function loadFromSupabase() {
 
     try {
         // Steg 1: Logga in (om det inte redan har gjorts)
-        const email = 'din_email@example.com'; // Ersätt med din e-post
-        const password = 'ditt_lösenord'; // Ersätt med ditt lösenord
+        const email = 'per.odman@hotmail.com'; // Ersätt med din e-post
+        const password = 'Agn350dman07'; // Ersätt med ditt lösenord
 
         const { user, error: loginError } = await client.auth.signIn({ email, password });
 
