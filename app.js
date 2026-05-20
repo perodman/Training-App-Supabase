@@ -1403,7 +1403,7 @@ function addSelectedExercisesToFrittPass() {
             
             const history = getExerciseHistory(ex.name);
             if (history) {
-                activeDraft.data.push({ sets_JSON.parse(JSON.stringify(history)), isCompleted: false });
+                activeDraft.data.push({ sets_data: JSON.parse(JSON.stringify(history)), isCompleted: false });
             } else {
                 activeDraft.data.push({ 
                     sets_[
