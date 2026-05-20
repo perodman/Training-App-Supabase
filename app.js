@@ -1406,7 +1406,7 @@ function addSelectedExercisesToFrittPass() {
                 activeDraft.data.push({ sets_data: JSON.parse(JSON.stringify(history)), isCompleted: false });
             } else {
                 activeDraft.data.push({ 
-                    sets_[
+                    sets_data:[
                         { weight: "", reps: "" }, 
                         { weight: "", reps: "" }, 
                         { weight: "", reps: "" }
