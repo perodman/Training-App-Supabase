@@ -1516,7 +1516,7 @@ function finishWorkout() {
         exercises: activeDraft.workout.exercises.map((ex, i) => ({
             name: ex.name,
             target: ex.target,
-            sets_activeDraft.data[i].sets_data.filter(s => s.weight && s.reps)
+            activeDraft.data[i].sets_data.filter(s => s.weight && s.reps)
         })),
         totalTime: totalTime
     };
