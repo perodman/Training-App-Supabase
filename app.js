@@ -2534,3 +2534,347 @@ function handleTouchEnd(index, dateStr, programId, event) {
     
     currentPressIndex = null;
 }
+function cancelPress() {
+    if (pressTimer) {
+        clearTimeout(pressTimer);
+        pressTimer = null;
+    }
+}
+
+// ============================================================================
+// INITIALISERING
+// ============================================================================
+function initApp() {
+    loadAll();
+    
+    if (activeDraft) {
+        secondsElapsed = activeDraft.secondsElapsed || 0;
+        isTimerRunning = activeDraft.wasTimerRunning || false;
+        
+        if (isTimerRunning) {
+            startTimer();
+        }
+        
+        updateTimerDisplay();
+        updateTimerControls();
+    }
+    
+    renderHome();
+}
+
+// ============================================================================
+// STARTA APPEN
+// ============================================================================
+window.addEventListener('DOMContentLoaded', () => {
+    initApp();
+});
+
+// ============================================================================
+// PWA SERVICE WORKER REGISTRERING
+// ============================================================================
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+            .then(registration => {
+                console.log('Service Worker registrerad:', registration);
+            })
+            .catch(error => {
+                console.log('Service Worker registrering misslyckades:', error);
+            });
+    });
+}
+
+// ============================================================================
+// SPARA DATA VID STÄNGNING
+// ============================================================================
+window.addEventListener('beforeunload', () => {
+    if (activeDraft) {
+        activeDraft.secondsElapsed = secondsElapsed;
+        activeDraft.wasTimerRunning = isTimerRunning;
+        persistActiveWorkout();
+    }
+});
+
+// ============================================================================
+// FÖRHINDRA ZOOM PÅ DUBBELKLICK (MOBIL)
+// ============================================================================
+document.addEventListener('dblclick', (e) => {
+    e.preventDefault();
+}, { passive: false });
+
+// ============================================================================
+// HANTERA TILLBAKA-KNAPP
+// ============================================================================
+window.addEventListener('popstate', (e) => {
+    if (document.getElementById("modal").style.display === "flex") {
+        closeModal();
+    } else {
+        renderHome();
+    }
+});
+
+// ============================================================================
+// EXTRA HJÄLPFUNKTIONER
+// ============================================================================
+function setOverrideSilent(dateStr, programId) {
+    if (programId === 'none') {
+        calendarOverrides[dateStr] = 'none';
+    } else {
+        calendarOverrides[dateStr] = programId;
+    }
+    saveAll();
+}
+
+function getDayName(dayIndex) {
+    const days = ['Söndag', 'Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag'];
+    return days[dayIndex];
+}
+
+function getShortDayName(dayIndex) {
+    const days = ['Sön', 'Mån', 'Tis', 'Ons', 'Tor', 'Fre', 'Lör'];
+    return days[dayIndex];
+}
+
+function getMonthName(monthIndex) {
+    const months = [
+        'Januari', 'Februari', 'Mars', 'April', 'Maj', 'Juni',
+        'Juli', 'Augusti', 'September', 'Oktober', 'November', 'December'
+    ];
+    return months[monthIndex];
+}
+
+function formatDate(dateStr) {
+    const date = new Date(dateStr);
+    const day = date.getDate();
+    const month = getMonthName(date.getMonth());
+    const year = date.getFullYear();
+    return `${day} ${month} ${year}`;
+}
+
+function getTodayString() {
+    return new Date().toISOString().split('T')[0];
+}
+
+function isToday(dateStr) {
+    return dateStr === getTodayString();
+}
+
+function isFutureDate(dateStr) {
+    return new Date(dateStr) > new Date(getTodayString());
+}
+
+function isPastDate(dateStr) {
+    return new Date(dateStr) < new Date(getTodayString());
+}
+
+function getDaysInMonth(year, month) {
+    return new Date(year, month + 1, 0).getDate();
+}
+
+function getFirstDayOfMonth(year, month) {
+    return new Date(year, month, 1).getDay();
+}
+
+function addDays(dateStr, days) {
+    const date = new Date(dateStr);
+    date.setDate(date.getDate() + days);
+    return date.toISOString().split('T')[0];
+}
+
+function getWeekNumber(dateStr) {
+    const date = new Date(dateStr);
+    const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
+    const pastDaysOfYear = (date - firstDayOfYear) / 86400000;
+    return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+}
+
+function calculateStreak() {
+    if (workoutHistory.length === 0) return 0;
+    
+    const sortedDates = [...new Set(workoutHistory.map(w => w.date))].sort((a, b) => new Date(b) - new Date(a));
+    
+    let streak = 0;
+    let currentDate = getTodayString();
+    
+    for (let i = 0; i < sortedDates.length; i++) {
+        if (sortedDates[i] === currentDate) {
+            streak++;
+            currentDate = addDays(currentDate, -1);
+        } else if (new Date(sortedDates[i]) < new Date(currentDate)) {
+            break;
+        }
+    }
+    
+    return streak;
+}
+
+function getWorkoutsThisWeek() {
+    const today = new Date();
+    const startOfWeek = new Date(today);
+    startOfWeek.setDate(today.getDate() - today.getDay() + 1);
+    startOfWeek.setHours(0, 0, 0, 0);
+    
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 6);
+    endOfWeek.setHours(23, 59, 59, 999);
+    
+    return workoutHistory.filter(w => {
+        const workoutDate = new Date(w.date);
+        return workoutDate >= startOfWeek && workoutDate <= endOfWeek;
+    }).length;
+}
+
+function getWorkoutsThisMonth() {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth();
+    
+    return workoutHistory.filter(w => {
+        const workoutDate = new Date(w.date);
+        return workoutDate.getFullYear() === year && workoutDate.getMonth() === month;
+    }).length;
+}
+
+function getTotalVolume() {
+    let totalVolume = 0;
+    
+    workoutHistory.forEach(w => {
+        w.exercises.forEach(ex => {
+            if (ex.sets_data) {
+                ex.sets_data.forEach(set => {
+                    const weight = parseFloat(set.weight) || 0;
+                    const reps = parseInt(set.reps) || 0;
+                    totalVolume += weight * reps;
+                });
+            }
+        });
+    });
+    
+    return totalVolume;
+}
+
+function getAverageWorkoutDuration() {
+    if (workoutHistory.length === 0) return "0h 0m";
+    
+    let totalSeconds = 0;
+    let count = 0;
+    
+    workoutHistory.forEach(w => {
+        if (w.totalTime) {
+            const parts = w.totalTime.split(':');
+            if (parts.length === 3) {
+                totalSeconds += parseInt(parts[0]) * 3600 + parseInt(parts[1]) * 60 + parseInt(parts[2]);
+                count++;
+            }
+        }
+    });
+    
+    if (count === 0) return "0h 0m";
+    
+    const avgSeconds = Math.floor(totalSeconds / count);
+    const hrs = Math.floor(avgSeconds / 3600);
+    const mins = Math.floor((avgSeconds % 3600) / 60);
+    
+    return `${hrs}h ${mins}m`;
+}
+
+function getMostFrequentExercise() {
+    if (workoutHistory.length === 0) return "Ingen data";
+    
+    const exerciseFrequency = {};
+    
+    workoutHistory.forEach(w => {
+        w.exercises.forEach(ex => {
+            if (!exerciseFrequency[ex.name]) {
+                exerciseFrequency[ex.name] = 0;
+            }
+            exerciseFrequency[ex.name]++;
+        });
+    });
+    
+    let maxCount = 0;
+    let mostFrequent = "Ingen data";
+    
+    Object.entries(exerciseFrequency).forEach(([name, count]) => {
+        if (count > maxCount) {
+            maxCount = count;
+            mostFrequent = name;
+        }
+    });
+    
+    return `${mostFrequent} (${maxCount}x)`;
+}
+
+function getPersonalRecords() {
+    const records = {};
+    
+    workoutHistory.forEach(w => {
+        w.exercises.forEach(ex => {
+            if (ex.sets_data && ex.sets_data.length > 0) {
+                const maxWeight = Math.max(...ex.sets_data.map(s => parseFloat(s.weight) || 0));
+                
+                if (!records[ex.name] || maxWeight > records[ex.name].weight) {
+                    records[ex.name] = {
+                        weight: maxWeight,
+                        date: w.date
+                    };
+                }
+            }
+        });
+    });
+    
+    return records;
+}
+
+function showPersonalRecords() {
+    const records = getPersonalRecords();
+    const body = document.getElementById("modal-body");
+    
+    if (Object.keys(records).length === 0) {
+        body.innerHTML = `
+            <div style="text-align: center;">
+                <h3 style="margin-bottom: 15px;">Personliga Rekord 🏆</h3>
+                <div style="font-size: 48px; margin: 30px 0;">📊</div>
+                <p style="color: var(--text-light); font-size: 14px;">Inga personliga rekord registrerade än.</p>
+            </div>
+        `;
+        openModal();
+        return;
+    }
+    
+    const sortedRecords = Object.entries(records).sort((a, b) => b[1].weight - a[1].weight);
+    
+    body.innerHTML = `
+        <h3 style="text-align: center; margin-bottom: 20px;">Personliga Rekord 🏆</h3>
+        
+        <div style="display: flex; flex-direction: column; gap: 12px; max-height: 60vh; overflow-y: auto;">
+            ${sortedRecords.map(([name, record], idx) => `
+                <div class="card glass" style="padding: 15px; border-left: 3px solid ${idx === 0 ? '#fbbf24' : idx === 1 ? '#c0c0c0' : idx === 2 ? '#cd7f32' : 'var(--primary)'};">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <strong style="font-size: 14px; display: block; margin-bottom: 4px; color: var(--text);">
+                                ${idx < 3 ? ['🥇', '🥈', '🥉'][idx] : '🏋️'} ${name}
+                            </strong>
+                            <small style="font-size: 11px; color: var(--text-light);">${record.date}</small>
+                        </div>
+                        <div style="text-align: right;">
+                            <span style="font-size: 20px; font-weight: 800; color: var(--primary); display: block;">${record.weight} kg</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+    
+    openModal();
+}
+
+// ============================================================================
+// KONSOL-LOGG FÖR UTVECKLING
+// ============================================================================
+console.log('%c🏋️ GymTracker Pro v2.0 ', 'background: linear-gradient(90deg, #22d3ee, #3b82f6); color: white; font-size: 20px; padding: 10px 20px; border-radius: 8px; font-weight: bold;');
+console.log('%cApp initialiserad framgångsrikt!', 'color: #22c55e; font-size: 14px; font-weight: 600;');
+
+// ============================================================================
+// SLUT PÅ SCRIPT.JS
+// ============================================================================
