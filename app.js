@@ -1158,7 +1158,7 @@ function startWorkout(workout, existingData = null, date = null, isNewStart = fa
             if (history) {
                 return { sets_data: JSON.parse(JSON.stringify(history)), isCompleted: false };
             }
-            return { sets_[{ weight: "", reps: "" }, { weight: "", reps: "" }, { weight: "", reps: "" }], isCompleted: false };
+            return { sets_data:[{ weight: "", reps: "" }, { weight: "", reps: "" }, { weight: "", reps: "" }], isCompleted: false };
         });
     }
     
