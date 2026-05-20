@@ -103,15 +103,9 @@ async function loadFromSupabase() {
     console.log("📥 Laddar data från Supabase...");
 
     try {
-        // Steg 1: Logga in
-        const email = 'per.odman@hotmail.com'; // Din e-post
-        const password = 'Agn350dman07'; // Ditt lösenord
-
-        console.log("📥 Försöker logga in med e-post:", email);
-        const { user, error: loginError } = await client.auth.signInWithPassword({
-            email,
-            password,
-        });
+        // Steg 1: Logga in med GitHub
+        console.log("📥 Försöker logga in med GitHub...");
+        const { user, error: loginError } = await client.auth.signInWithOAuth({ provider: 'github' });
 
         if (loginError) {
             console.error("❌ Inloggning misslyckades:", loginError);
@@ -129,7 +123,7 @@ async function loadFromSupabase() {
         const userId = user.id; // Hämta UUID
 
         // 1. Ladda workoutHistory
-        const { data: historyData, error: historyError } = await client
+        const { historyData, error: historyError } = await client
             .from('workout_history')
             .select('*')
             .eq('user_id', userId) // Använd UUID här
@@ -143,7 +137,7 @@ async function loadFromSupabase() {
         }
 
         // 2. Ladda calendarOverrides
-        const { data: overridesData, error: overridesError } = await client
+        const { overridesData, error: overridesError } = await client
             .from('calendar_overrides')
             .select('*')
             .eq('user_id', userId)
@@ -157,7 +151,7 @@ async function loadFromSupabase() {
         }
 
         // 3. Ladda activeDraft
-        const { data: draftData, error: draftError } = await client
+        const { draftData, error: draftError } = await client
             .from('active_draft')
             .select('*')
             .eq('user_id', userId)
@@ -171,7 +165,7 @@ async function loadFromSupabase() {
         }
 
         // 4. Ladda customProgram
-        const { data: programDataRow, error: programError } = await client
+        const { programDataRow, error: programError } = await client
             .from('custom_program')
             .select('*')
             .eq('user_id', userId)
