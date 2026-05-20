@@ -38,6 +38,35 @@ let currentUserId = "default_user"; // Kan ersättas med Supabase Auth senare
 // SUPABASE DATAHANTERING
 // ============================================================================
 
+
+function renderHome() {
+    showView("home-view");
+    
+    // Punkt 1: Permanent avgränsande linje på startsidan
+    const homeView = document.getElementById("home-view");
+    const headerP = homeView.querySelector("header p");
+    
+    // Ta bort ev gamla kopior först för att undvika dubletter vid omladdning
+    homeView.querySelectorAll(".home-separator").forEach(s => s.remove());
+    
+    if (headerP) {
+        const sep = document.createElement("div");
+        sep.className = "separator home-separator";
+        sep.style.margin = "25px 0";
+        headerP.after(sep);
+    }
+
+    if(activeDraft) {
+        document.getElementById("draft-alert").classList.remove("hidden");
+        document.getElementById("start-new-btn").classList.add("hidden");
+        document.getElementById("resume-workout-btn").onclick = () => startWorkout(activeDraft.workout, activeDraft.data, activeDraft.date);
+    } else {
+        document.getElementById("start-new-btn").classList.remove("hidden");
+        document.getElementById("draft-alert").classList.add("hidden");
+    }
+}
+
+
 // Ladda ALL data från Supabase vid appstart
 async function loadFromSupabase() {
     console.log("📥 Laddar data från Supabase...");
