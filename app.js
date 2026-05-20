@@ -1,9 +1,25 @@
-// ============================================================================
+// ===========================================================================
 // SUPABASE INITIALISERING
-// ============================================================================
+// ===========================================================================
 const supabaseUrl = 'https://oixavkihfvbagzlyoocm.supabase.co';
 const supabaseKey = 'sb_publishable_v6MqFHOeimJvtx-dZWFn1g_s0YOTUE8'; 
 const client = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+// Hämta användar-ID efter inloggning
+let currentUserId = null;
+
+async function checkUser() {
+    const { data: { user } } = await client.auth.getUser();
+    if (user) {
+        currentUserId = user.id;
+        console.log("Inloggad som:", user.email);
+    } else {
+        console.log("Inte inloggad. Klicka på inloggningsknappen.");
+    }
+}
+
+// Kör denna direkt när appen laddas
+checkUser();
 
 // ============================================================================
 // GLOBALA VARIABLER
@@ -34,9 +50,25 @@ let temporarySelectedExercises = [];
 // User ID (för multi-user support i framtiden)
 let currentUserId = "default_user"; // Kan ersättas med Supabase Auth senare
 
+
+// ============================================================================
+// INLOGGNINGSFUNKTIONEN
+// ============================================================================
+
+async function loginWithGitHub() {
+    const { error } = await client.auth.signInWithOAuth({
+        provider: 'github',
+        options: {
+            redirectTo: window.location.origin // Skickar tillbaka användaren hit efter inlogg
+        }
+    });
+    if (error) console.error("Inloggningsfel:", error.message);
+}
+
 // ============================================================================
 // SUPABASE DATAHANTERING
 // ============================================================================
+
 
 // Ladda masterExercises från program.json vid appstart
 async function loadMasterExercises() {
