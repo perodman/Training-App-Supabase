@@ -60,10 +60,6 @@ let hasScrolled = false;
 // Temporär övningsval
 let temporarySelectedExercises = [];
 
-// User ID - Uppdateras dynamiskt via Supabase Auth efter inloggning
-let currentUserId = null;
-
-
 // ============================================================================
 // INLOGGNINGSFUNKTIONEN
 // ============================================================================
