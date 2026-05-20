@@ -1,17 +1,20 @@
 // --- 1. SUPABASE INITIALISERING ---
 const supabaseUrl = 'https://oixavkihfvbagzlyoocm.supabase.co';
 const supabaseKey = 'sb_publishable_v6MqFHOeimJvtx-dZWFn1g_s0YOTUE8'; 
-const supabase = supabaseClient.createClient(supabaseUrl, supabaseKey);
+
+// Vi skapar variabeln 'supabase' här. 
+// OBS: Vi använder 'supabase.createClient' istället för 'supabaseClient.createClient'
+const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
 // --- 2. DINA VARIABLER ---
 let masterExercises = [];
 let workoutHistory = [];
 
-// --- 3. HÄMTA DATA FRÅN SUPABASE (Istället för LocalStorage) ---
+// --- 3. HÄMTA DATA FRÅN SUPABASE ---
 async function loadData() {
     console.log("Hämtar data från Supabase...");
     
-    // Vi hämtar data från tabellen 'workouts' (som vi skapade tidigare)
+    // Vi hämtar data från tabellen 'workouts'
     const { data, error } = await supabase
         .from('workouts')
         .select('*');
@@ -26,7 +29,7 @@ async function loadData() {
     }
 }
 
-// --- 4. SPARA DATA TILL SUPABASE (Istället för LocalStorage) ---
+// --- 4. SPARA DATA TILL SUPABASE ---
 async function saveWorkoutToSupabase(workout) {
     const { data, error } = await supabase
         .from('workouts')
