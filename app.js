@@ -147,7 +147,6 @@ function renderHome() {
 
 // Ladda ALL data från Supabase vid appstart
 async function loadFromSupabase() {
-    // Om vi inte har något ID, avbryt (vi kan inte hämta data för en anonym användare)
     if (!currentUserId) {
         console.log("⚠️ Ingen inloggad användare, laddar från lokal lagring.");
         loadFromLocalStorage();
@@ -171,37 +170,38 @@ async function loadFromSupabase() {
         }
 
         // 2. Ladda calendarOverrides
-        const { data: overridesData, error: overridesError } = await client
+        const { data: overridesArray, error: overridesError } = await client
             .from('calendar_overrides')
             .select('*')
-            .eq('user_id', currentUserId)
-            .single();
+            .eq('user_id', currentUserId);
 
-        if (overridesError && overridesError.code !== 'PGRST116') throw overridesError;
+        if (overridesError) throw overridesError;
+        const overridesData = overridesArray && overridesArray.length > 0 ? overridesArray[0] : null;
         if (overridesData) {
             calendarOverrides = overridesData.data;
         }
 
         // 3. Ladda activeDraft
-        const { data: draftData, error: draftError } = await client
+        const { data: draftDataArray, error: draftError } = await client
             .from('active_draft')
             .select('*')
-            .eq('user_id', currentUserId)
-            .single();
-
-        if (draftError && draftError.code !== 'PGRST116') throw draftError;
+            .eq('user_id', currentUserId);
+        
+        if (draftError) throw draftError;
+        const draftData = draftDataArray && draftDataArray.length > 0 ? draftDataArray[0] : null;
+        
         if (draftData) {
             activeDraft = draftData.data;
         }
 
         // 4. Ladda customProgram
-        const { data: programDataRow, error: programError } = await client
+        const { data: programDataArray, error: programError } = await client
             .from('custom_program')
             .select('*')
-            .eq('user_id', currentUserId)
-            .single();
+            .eq('user_id', currentUserId);
 
-        if (programError && programError.code !== 'PGRST116') throw programError;
+        if (programError) throw programError;
+        const programDataRow = programDataArray && programDataArray.length > 0 ? programDataArray[0] : null;
         if (programDataRow) {
             programData = programDataRow.data;
         }
