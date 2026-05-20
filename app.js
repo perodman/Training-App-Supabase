@@ -10,15 +10,28 @@ let currentUserId = null;
 
 async function checkUser() {
     const { data: { user } } = await client.auth.getUser();
+    const loginBtn = document.getElementById('login-btn');
+    
     if (user) {
         currentUserId = user.id;
         console.log("Inloggad som:", user.email);
+        
+        // Uppdatera knappen för inloggad status
+        if (loginBtn) {
+            loginBtn.innerText = "Inloggad";
+            loginBtn.style.opacity = "0.6"; // Gör den lite tonad
+            loginBtn.onclick = null; // Inaktivera klick
+        }
     } else {
-        console.log("Inte inloggad. Klicka på inloggningsknappen.");
+        console.log("Inte inloggad.");
+        if (loginBtn) {
+            loginBtn.innerText = "Logga in";
+            loginBtn.onclick = loginWithGitHub;
+        }
     }
 }
 
-// Kör denna direkt när appen laddas
+// Kör vid start
 checkUser();
 
 // ============================================================================
