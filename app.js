@@ -320,63 +320,7 @@ async function saveAll() {
 // ============================================================================
 // INITIALISERING
 // ============================================================================
-async function initApp() {
-    // Ladda från Supabase först
-    await loadFromSupabase();
- 
-    // Om ingen data finns i Supabase, ladda från program.json
-    if (masterExercises.length === 0) {
-        try {
-            const response = await fetch("https://raw.githubusercontent.com/perodman/Training-App-Supabase/main/program.json");
-            const json = await response.json();
-            
-            json.routine.forEach(p => {
-                p.exercises.forEach(ex => {
-                    // Kontrollera om övningen redan finns
-                    if (!masterExercises.find(m => m.name === ex.name)) {
-                        let animFile = "";
-                        if (ex.name === "Deadlift") animFile = "Gemini_Generated_Image_sqtn3ksqtn3ksqtn.mp4";
-                        if (ex.name === "Barbell Bench Press") animFile = "Skärmbild 2026-05-11 124104.mp4";
-                        
-                        // Lägg till övningen i masterExercises
-                        masterExercises.push({ 
-                            ...ex, 
-                            id: Date.now() + Math.random(),
-                            animation: animFile 
-                        });
-                    }
-                });
-            });
-            
-            // Sätt programData om den inte redan är satt
-            if (!programData) programData = json;
-            await saveAll();  // Spara övningarna
-        } catch (error) {
-            console.error("❌ Kunde inte ladda program.json:", error);
-        }
-    } else {
-        // Uppdatera animationer för befintliga övningar
-        masterExercises.forEach(ex => {
-            if (ex.name === "Deadlift") ex.animation = "Gemini_Generated_Image_sqtn3ksqtn3ksqtn.mp4";
-            if (ex.name === "Barbell Bench Press") ex.animation = "Skärmbild 2026-05-11 124104.mp4";
-        });
-    }
- 
-    // Återställ timer om det finns ett aktivt utkast
-    if (activeDraft && activeDraft.isStarted) {
-        secondsElapsed = activeDraft.secondsElapsed || 0;
-        if (activeDraft.wasTimerRunning) {
-            startTimer();
-        } else {
-            updateTimerDisplay();
-        }
-    }
- 
-    renderHome();  // Rendera hemsidan
-}
 
-// Starta appen
-initApp();
 
 // ============================================================================
 // VIEW-HANTERING
@@ -2665,30 +2609,10 @@ async function loadAll() {
 // ============================================================================
 // INITIALISERING
 // ============================================================================
-function initApp() {
-    loadAll();
-    
-    if (activeDraft) {
-        secondsElapsed = activeDraft.secondsElapsed || 0;
-        isTimerRunning = activeDraft.wasTimerRunning || false;
-        
-        if (isTimerRunning) {
-            startTimer();
-        }
-        
-        updateTimerDisplay();
-        updateTimerControls();
-    }
-    
-    renderHome();
-}
 
 // ============================================================================
 // STARTA APPEN
 // ============================================================================
-window.addEventListener('DOMContentLoaded', () => {
-    initApp();
-});
 
 // ============================================================================
 // PWA SERVICE WORKER REGISTRERING
@@ -3016,3 +2940,56 @@ console.log('%cApp initialiserad framgångsrikt!', 'color: #22c55e; font-size: 1
 // ============================================================================
 // SLUT PÅ SCRIPT.JS
 // ============================================================================
+
+// ============================================================================
+// HUVUDFUNKTION: INITAPP (Den enda du ska ha)
+// ============================================================================
+async function initApp() {
+    console.log("🚀 Initierar app...");
+
+    // 1. Ladda data (Supabase eller JSON)
+    await loadFromSupabase();
+    
+    // 2. Om ingen data finns, ladda från program.json
+    if (masterExercises.length === 0) {
+        try {
+            const response = await fetch("https://raw.githubusercontent.com/perodman/Training-App-Supabase/main/program.json");
+            const json = await response.json();
+            
+            json.routine.forEach(p => {
+                p.exercises.forEach(ex => {
+                    if (!masterExercises.find(m => m.name === ex.name)) {
+                        let animFile = ex.name === "Deadlift" ? "Gemini_Generated_Image_sqtn3ksqtn3ksqtn.mp4" : 
+                                       ex.name === "Barbell Bench Press" ? "Skärmbild 2026-05-11 124104.mp4" : "";
+                        masterExercises.push({ ...ex, id: Date.now() + Math.random(), animation: animFile });
+                    }
+                });
+            });
+            if (!programData) programData = json;
+            await saveAll();
+        } catch (error) {
+            console.error("❌ Kunde inte ladda program.json:", error);
+        }
+    }
+
+    // 3. Hantera timer och drafts
+    if (activeDraft && activeDraft.isStarted) {
+        secondsElapsed = activeDraft.secondsElapsed || 0;
+        activeDraft.wasTimerRunning ? startTimer() : updateTimerDisplay();
+        updateTimerControls(); // Lagt till denna för att knappar ska uppdateras
+    }
+
+    // 4. Rendera gränssnittet
+    renderHome(); 
+    console.log("✅ Appen är redo!");
+}
+
+// ============================================================================
+// ENDA STARTPUNKTEN (Ligger sist i filen)
+// ============================================================================
+document.addEventListener('DOMContentLoaded', async () => {
+    console.log("🚀 DOM laddad, väntar på auth...");
+    await checkUser();     // Vänta på Supabase Auth
+    await initApp();       // Kör den sammanslagna initieringen
+    showView('home-view'); // Visa startsidan
+});
