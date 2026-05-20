@@ -2,9 +2,10 @@
 const supabaseUrl = 'https://oixavkihfvbagzlyoocm.supabase.co';
 const supabaseKey = 'sb_publishable_v6MqFHOeimJvtx-dZWFn1g_s0YOTUE8'; 
 
-// Vi skapar variabeln 'supabase' här. 
-// OBS: Vi använder 'supabase.createClient' istället för 'supabaseClient.createClient'
-const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+// Vi skapar klienten. Om 'supabase' redan finns definierad via HTML-scriptet,
+// så använder vi den direkt för att undvika "already declared"-felet.
+window.supabase = window.supabase || supabase;
+const client = supabase.createClient(supabaseUrl, supabaseKey);
 
 // --- 2. DINA VARIABLER ---
 let masterExercises = [];
@@ -14,8 +15,7 @@ let workoutHistory = [];
 async function loadData() {
     console.log("Hämtar data från Supabase...");
     
-    // Vi hämtar data från tabellen 'workouts'
-    const { data, error } = await supabase
+    const { data, error } = await client
         .from('workouts')
         .select('*');
 
@@ -24,14 +24,12 @@ async function loadData() {
     } else {
         console.log("Data hämtad!", data);
         workoutHistory = data; 
-        // Här kan du anropa din funktion som ritar upp din vy
-        // renderHome(); 
     }
 }
 
 // --- 4. SPARA DATA TILL SUPABASE ---
 async function saveWorkoutToSupabase(workout) {
-    const { data, error } = await supabase
+    const { data, error } = await client
         .from('workouts')
         .insert([{ workout_data: workout }]);
 
