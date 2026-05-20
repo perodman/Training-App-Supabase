@@ -38,6 +38,37 @@ let currentUserId = "default_user"; // Kan ersättas med Supabase Auth senare
 // SUPABASE DATAHANTERING
 // ============================================================================
 
+// Ladda masterExercises från program.json vid appstart
+async function loadMasterExercises() {
+    console.log("📥 Laddar masterExercises från program.json...");
+    
+    try {
+        const response = await fetch('https://raw.githubusercontent.com/perodman/Training-App-Supabase/blob/main/program.json');
+        
+        // Kontrollera att svaret är OK
+        if (!response.ok) {
+            throw new Error('Nätverksfel: ' + response.status);
+        }
+        
+        // Hämta JSON-datan
+        const data = await response.json();
+        
+        // Extrahera övningar
+        if (data.routine && data.routine.length > 0) {
+            masterExercises = data.routine.flatMap(routine => routine.exercises);
+            console.log("✅ Övningar laddade:", masterExercises.length);
+        } else {
+            console.error("❌ Inga övningar hittades i program.json.");
+        }
+
+    } catch (error) {
+        console.error("❌ Fel vid laddning från program.json:", error);
+        // Hantera fel här, om nödvändigt
+    }
+}
+
+// Anropa funktionen för att ladda datan
+loadMasterExercises();
 
 function renderHome() {
     showView("home-view");
