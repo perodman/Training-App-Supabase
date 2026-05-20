@@ -1506,20 +1506,20 @@ function finishWorkout() {
     pauseTimer();
     
     const hrs = String(Math.floor(secondsElapsed / 3600)).padStart(2, '0');
-    const mins = String(Math.floor((secondsElapsed % 3600) / 60)).padStart(2, '0');
-    const secs = String(secondsElapsed % 60).padStart(2, '0');
-    const totalTime = `${hrs}:${mins}:${secs}`;
-    
-    const loggedWorkout = {
-        date: activeDraft.date,
-        programName: activeDraft.workout.name,
-        exercises: activeDraft.workout.exercises.map((ex, i) => ({
-            name: ex.name,
-            target: ex.target,
-            activeDraft.data[i].sets_data.filter(s => s.weight && s.reps)
-        })),
-        totalTime: totalTime
-    };
+const mins = String(Math.floor((secondsElapsed % 3600) / 60)).padStart(2, '0');
+const secs = String(secondsElapsed % 60).padStart(2, '0');
+const totalTime = `${hrs}:${mins}:${secs}`;
+
+const loggedWorkout = {
+    date: activeDraft.date,
+    programName: activeDraft.workout.name,
+    exercises: activeDraft.workout.exercises.map((ex, i) => ({
+        name: ex.name,
+        target: ex.target,
+        sets: activeDraft.data[i].sets_data.filter(s => s.weight && s.reps)
+    })),
+    totalTime: totalTime
+};
     
     workoutHistory.push(loggedWorkout);
     
