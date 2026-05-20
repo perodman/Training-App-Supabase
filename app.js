@@ -2990,15 +2990,21 @@ function showPersonalRecords() {
     openModal();
 }
 
-// Vänta tills hela HTML-dokumentet har laddats
-document.addEventListener('DOMContentLoaded', () => {
-    console.log("DOM laddad, startar checkUser...");
-    checkUser();
+// 1. Ändra din DOMContentLoaded till detta:
+document.addEventListener('DOMContentLoaded', async () => {
+    console.log("🚀 DOM laddad, väntar på auth...");
     
-    // Lyssna på inloggnings-event för att uppdatera UI när man kommer tillbaka från GitHub
-    client.auth.onAuthStateChange((event, session) => {
-        checkUser();
-    });
+    // Vänta tills vi vet om vi är inloggade eller inte
+    await checkUser();
+    
+    // Nu när vi vet status, hämta rätt data (från Supabase om inloggad)
+    await loadFromSupabase();
+    
+    // Initiera knappar och vyer först NÄR datan är på plats
+    initApp(); 
+    showView('home-view');
+    
+    console.log("✅ Appen är redo!");
 });
 
 // ============================================================================
