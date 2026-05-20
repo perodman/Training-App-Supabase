@@ -1156,7 +1156,7 @@ function startWorkout(workout, existingData = null, date = null, isNewStart = fa
         dataObj = workout.exercises.map(ex => {
             const history = getExerciseHistory(ex.name);
             if (history) {
-                return { sets_JSON.parse(JSON.stringify(history)), isCompleted: false };
+                return { sets_data: JSON.parse(JSON.stringify(history)), isCompleted: false };
             }
             return { sets_[{ weight: "", reps: "" }, { weight: "", reps: "" }, { weight: "", reps: "" }], isCompleted: false };
         });
