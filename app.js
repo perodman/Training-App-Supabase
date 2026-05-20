@@ -107,11 +107,20 @@ async function loadFromSupabase() {
         const email = 'per.odman@hotmail.com'; // Din e-post
         const password = 'Agn350dman07'; // Ditt lösenord
 
-        const { user, error: loginError } = await client.auth.signInWithPassword({ email, password });
+        console.log("📥 Försöker logga in med e-post:", email);
+        const { user, error: loginError } = await client.auth.signInWithPassword({
+            email,
+            password,
+        });
 
         if (loginError) {
             console.error("❌ Inloggning misslyckades:", loginError);
             return; // Avbryt om inloggningen misslyckas
+        }
+
+        if (!user) {
+            console.error("❌ Inloggning misslyckades: Användaren är undefined");
+            return; // Avbryt om användaren är undefined
         }
 
         console.log("✅ Inloggad som:", user);
@@ -120,7 +129,7 @@ async function loadFromSupabase() {
         const userId = user.id; // Hämta UUID
 
         // 1. Ladda workoutHistory
-        const { historyData, error: historyError } = await client
+        const { data: historyData, error: historyError } = await client
             .from('workout_history')
             .select('*')
             .eq('user_id', userId) // Använd UUID här
@@ -134,7 +143,7 @@ async function loadFromSupabase() {
         }
 
         // 2. Ladda calendarOverrides
-        const { overridesData, error: overridesError } = await client
+        const { data: overridesData, error: overridesError } = await client
             .from('calendar_overrides')
             .select('*')
             .eq('user_id', userId)
@@ -148,7 +157,7 @@ async function loadFromSupabase() {
         }
 
         // 3. Ladda activeDraft
-        const { draftData, error: draftError } = await client
+        const { data: draftData, error: draftError } = await client
             .from('active_draft')
             .select('*')
             .eq('user_id', userId)
@@ -162,7 +171,7 @@ async function loadFromSupabase() {
         }
 
         // 4. Ladda customProgram
-        const { programDataRow, error: programError } = await client
+        const { data: programDataRow, error: programError } = await client
             .from('custom_program')
             .select('*')
             .eq('user_id', userId)
