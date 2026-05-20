@@ -154,92 +154,67 @@ function renderHome() {
 
 // Ladda ALL data från Supabase vid appstart
 async function loadFromSupabase() {
-    console.log("📥 Laddar data från Supabase...");
+    // Om vi inte har något ID, avbryt (vi kan inte hämta data för en anonym användare)
+    if (!currentUserId) {
+        console.log("⚠️ Ingen inloggad användare, laddar från lokal lagring.");
+        loadFromLocalStorage();
+        return;
+    }
+
+    console.log("📥 Laddar data från Supabase för användare:", currentUserId);
 
     try {
-        // Steg 1: Logga in med GitHub
-        console.log("📥 Försöker logga in med GitHub...");
-        const { user, error: loginError } = await client.auth.signInWithOAuth({
-            provider: 'github',
-            options: {
-                redirectTo: 'https://oixavkihfvbagzlyoocm.supabase.co/auth/v1/callback',
-            },
-        });
-
-        if (loginError) {
-            console.error("❌ Inloggning misslyckades:", loginError);
-            return; // Avbryt om inloggningen misslyckas
-        }
-
-        if (!user) {
-            console.error("❌ Inloggning misslyckades: Användaren är undefined");
-            return; // Avbryt om användaren är undefined
-        }
-
-        console.log("✅ Inloggad som:", user);
-
-        // Steg 2: Hämta UUID för den inloggade användaren
-        const userId = user.id; // Hämta UUID
-
         // 1. Ladda workoutHistory
-        const { historyData, error: historyError } = await client
+        const { data: historyData, error: historyError } = await client
             .from('workout_history')
             .select('*')
-            .eq('user_id', userId) // Använd UUID här
+            .eq('user_id', currentUserId)
             .order('workout_date', { ascending: false });
 
         if (historyError) throw historyError;
-
-        if (historyData && historyData.length > 0) {
+        if (historyData) {
             workoutHistory = historyData.map(row => row.workout_data);
             console.log("✅ Träningshistorik laddad:", workoutHistory.length);
         }
 
         // 2. Ladda calendarOverrides
-        const { overridesData, error: overridesError } = await client
+        const { data: overridesData, error: overridesError } = await client
             .from('calendar_overrides')
             .select('*')
-            .eq('user_id', userId)
+            .eq('user_id', currentUserId)
             .single();
 
         if (overridesError && overridesError.code !== 'PGRST116') throw overridesError;
-
         if (overridesData) {
             calendarOverrides = overridesData.data;
-            console.log("✅ Kalenderändringar laddade");
         }
 
         // 3. Ladda activeDraft
-        const { draftData, error: draftError } = await client
+        const { data: draftData, error: draftError } = await client
             .from('active_draft')
             .select('*')
-            .eq('user_id', userId)
+            .eq('user_id', currentUserId)
             .single();
 
         if (draftError && draftError.code !== 'PGRST116') throw draftError;
-
         if (draftData) {
             activeDraft = draftData.data;
-            console.log("✅ Aktivt utkast laddat");
         }
 
         // 4. Ladda customProgram
-        const { programDataRow, error: programError } = await client
+        const { data: programDataRow, error: programError } = await client
             .from('custom_program')
             .select('*')
-            .eq('user_id', userId)
+            .eq('user_id', currentUserId)
             .single();
 
         if (programError && programError.code !== 'PGRST116') throw programError;
-
         if (programDataRow) {
             programData = programDataRow.data;
-            console.log("✅ Anpassat program laddat");
         }
 
     } catch (error) {
         console.error("❌ Fel vid laddning från Supabase:", error);
-        // Fallback till localStorage om Supabase misslyckas
         loadFromLocalStorage();
     }
 }
