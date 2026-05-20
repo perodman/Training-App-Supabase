@@ -60,8 +60,8 @@ let hasScrolled = false;
 // Temporär övningsval
 let temporarySelectedExercises = [];
 
-// User ID (för multi-user support i framtiden)
-let currentUserId = "default_user"; // Kan ersättas med Supabase Auth senare
+// User ID - Uppdateras dynamiskt via Supabase Auth efter inloggning
+let currentUserId = null;
 
 
 // ============================================================================
@@ -114,6 +114,15 @@ async function loadMasterExercises() {
 
 // Anropa funktionen för att ladda datan
 loadMasterExercises();
+
+async function saveWorkout(workoutData) {
+    const { data, error } = await client
+        .from('workout_history')
+        .insert([{ 
+            ...workoutData, 
+            user_id: currentUserId // Använd den dynamiska variabeln!
+        }]);
+}
 
 function renderHome() {
     showView("home-view");
