@@ -2993,3 +2993,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     await initApp();       // Kör den sammanslagna initieringen
     showView('home-view'); // Visa startsidan
 });
+
+// Lägg till denna funktion längst ner i din app.js
+async function initializeApp() {
+    console.log("🚀 Initierar app...");
+    
+    // 1. Kolla inloggning
+    await checkUser();
+    
+    // 2. Ladda data från Supabase
+    await loadFromSupabase();
+    
+    // 3. Ladda program.json (detta är vad din gamla kod gjorde)
+    const response = await fetch("program.json");
+    const json = await response.json();
+    programData = json; 
+    
+    // 4. Visa startsidan
+    renderHome(); 
+    console.log("✅ Appen är redo!");
+}
+
+// Kör appen när sidan har laddats klart
+document.addEventListener('DOMContentLoaded', initializeApp);
