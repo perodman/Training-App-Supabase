@@ -108,12 +108,12 @@ async function loadFromSupabase() {
             .from('workout_history')
             .select('*')
             .eq('user_id', currentUserId)
-            .order('date', { ascending: false });
+            .order('workout_date', { ascending: false }); // Ändra till 'workout_date'
  
         if (historyError) throw historyError;
  
         if (historyData && historyData.length > 0) {
-            workoutHistory = historyData.map(row => row.data);
+            workoutHistory = historyData.map(row => row.workout_data); // Ändra till 'workout_data'
             console.log("✅ Träningshistorik laddad:", workoutHistory.length);
         }
  
