@@ -31,9 +31,6 @@ async function checkUser() {
     }
 }
 
-// Kör vid start
-checkUser();
-
 // ============================================================================
 // GLOBALA VARIABLER
 // ============================================================================
@@ -2992,6 +2989,17 @@ function showPersonalRecords() {
     
     openModal();
 }
+
+// Vänta tills hela HTML-dokumentet har laddats
+document.addEventListener('DOMContentLoaded', () => {
+    console.log("DOM laddad, startar checkUser...");
+    checkUser();
+    
+    // Lyssna på inloggnings-event för att uppdatera UI när man kommer tillbaka från GitHub
+    client.auth.onAuthStateChange((event, session) => {
+        checkUser();
+    });
+});
 
 // ============================================================================
 // KONSOL-LOGG FÖR UTVECKLING
