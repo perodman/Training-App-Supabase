@@ -7,7 +7,7 @@ async function loadUserData() {
 
     try {
         // Ladda custom_program
-        const { programData, error: programError } = await supabase
+        const { data : programData, error: programError } = await supabase
             .from('custom_program')
             .select('data')
             .eq('user_id', currentUser.id)
@@ -27,7 +27,7 @@ async function loadUserData() {
         }
 
         // Ladda workout_history
-        const { historyData, error: historyError } = await supabase
+        const { data : historyData, error: historyError } = await supabase
             .from('workout_history')
             .select('*')
             .eq('user_id', currentUser.id)
@@ -45,7 +45,7 @@ async function loadUserData() {
         }
 
         // Ladda calendar_overrides
-        const { calendarData, error: calendarError } = await supabase
+        const { data : calendarData, error: calendarError } = await supabase
             .from('calendar_overrides')
             .select('data')
             .eq('user_id', currentUser.id)
@@ -60,7 +60,7 @@ async function loadUserData() {
         }
 
         // Ladda active_draft
-        const { draftData, error: draftError } = await supabase
+        const { data : draftData, error: draftError } = await supabase
             .from('active_draft')
             .select('data')
             .eq('user_id', currentUser.id)
@@ -125,7 +125,7 @@ async function saveCustomProgram() {
         masterExercises: masterExercises
     };
 
-    const { existing } = await supabase
+    const { data : existing } = await supabase
         .from('custom_program')
         .select('id')
         .eq('user_id', currentUser.id)
@@ -170,7 +170,7 @@ async function saveWorkoutHistory(workout) {
 async function saveCalendarOverrides() {
     if (!currentUser) return;
 
-    const { existing } = await supabase
+    const { data : existing } = await supabase
         .from('calendar_overrides')
         .select('id')
         .eq('user_id', currentUser.id)
@@ -195,7 +195,7 @@ async function saveCalendarOverrides() {
 async function saveActiveDraft() {
     if (!currentUser) return;
 
-    const { existing } = await supabase
+    const { data : existing } = await supabase
         .from('active_draft')
         .select('id')
         .eq('user_id', currentUser.id)
