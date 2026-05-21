@@ -60,6 +60,22 @@
 
       ]
 
+    },
+
+    {
+
+      "id": "test-a",
+
+      "name": "Test A",
+
+      "exercises": [
+
+        { "name": "Testövning 1", "target": "Ben", "defaultSets": 3, "description": "Känn stretchen i baksidan." },
+
+        { "name": "Testövning 2", "target": "Rygg", "defaultSets": 4, "description": "Lutande bänk för övre bröst." }
+
+      ]
+
     }
 
   ]
