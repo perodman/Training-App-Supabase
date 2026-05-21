@@ -134,14 +134,14 @@ async function saveCustomProgram() {
     if (existing) {
         const { error } = await supabase
             .from('custom_program')
-            .update({ dataToSave })
+            .update({ data:dataToSave })
             .eq('user_id', currentUser.id);
 
         if (error) console.error('Fel vid uppdatering av program:', error);
     } else {
         const { error } = await supabase
             .from('custom_program')
-            .insert([{ user_id: currentUser.id, dataToSave }]);
+            .insert([{ user_id: currentUser.id, data:dataToSave }]);
 
         if (error) console.error('Fel vid skapande av program:', error);
     }
@@ -179,14 +179,14 @@ async function saveCalendarOverrides() {
     if (existing) {
         const { error } = await supabase
             .from('calendar_overrides')
-            .update({ calendarOverrides })
+            .update({ data : calendarOverrides })
             .eq('user_id', currentUser.id);
 
         if (error) console.error('Fel vid uppdatering av kalender:', error);
     } else {
         const { error } = await supabase
             .from('calendar_overrides')
-            .insert([{ user_id: currentUser.id, calendarOverrides }]);
+            .insert([{ user_id: currentUser.id, data : calendarOverrides }]);
 
         if (error) console.error('Fel vid skapande av kalender:', error);
     }
@@ -206,14 +206,14 @@ async function saveActiveDraft() {
     if (existing) {
         const { error } = await supabase
             .from('active_draft')
-            .update({ draftData })
+            .update({ draft_data : draftData })
             .eq('user_id', currentUser.id);
 
         if (error) console.error('Fel vid uppdatering av utkast:', error);
     } else {
         const { error } = await supabase
             .from('active_draft')
-            .insert([{ user_id: currentUser.id, draftData }]);
+            .insert([{ user_id: currentUser.id, draft_data : draftData }]);
 
         if (error) console.error('Fel vid skapande av utkast:', error);
     }
