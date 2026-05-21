@@ -146,68 +146,48 @@ function renderHome() {
 
 // Ladda ALL data från Supabase vid appstart
 async function loadFromSupabase() {
-    if (!currentUserId) {
-        console.log("⚠️ Ingen inloggad användare, laddar från lokal lagring.");
-        loadFromLocalStorage();
-        return;
-    }
+    if (!currentUserId) return loadFromLocalStorage();
 
-    console.log("📥 Laddar data från Supabase för användare:", currentUserId);
+    console.log("📥 Laddar data från Supabase...");
 
     try {
-        // 1. Ladda workoutHistory
+        // 1. Ladda workoutHistory (Denna är OK med array)
         const { data: historyData, error: historyError } = await client
             .from('workout_history')
-            .select('*')
+            .select('workout_data')
             .eq('user_id', currentUserId)
             .order('workout_date', { ascending: false });
 
         if (historyError) throw historyError;
-        if (historyData) {
-            workoutHistory = historyData.map(row => row.workout_data);
-            console.log("✅ Träningshistorik laddad:", workoutHistory.length);
-        }
+        workoutHistory = historyData ? historyData.map(row => row.workout_data) : [];
+        console.log("✅ Träningshistorik laddad:", workoutHistory.length);
 
-        // 2. Ladda calendarOverrides
-        const { data: overridesArray, error: overridesError } = await client
+        // 2. Ladda calendarOverrides (Ta bort .single() för att undvika krasch om tom)
+        const { data: ovData, error: ovError } = await client
             .from('calendar_overrides')
-            .select('*')
+            .select('data')
             .eq('user_id', currentUserId);
-
-        if (overridesError) throw overridesError;
-        const overridesData = overridesArray && overridesArray.length > 0 ? overridesArray[0] : null;
-        if (overridesData) {
-            calendarOverrides = overridesData.data;
-        }
+        
+        if (ovData && ovData.length > 0) calendarOverrides = ovData[0].data;
 
         // 3. Ladda activeDraft
-        const { data: draftDataArray, error: draftError } = await client
+        const { data: adData, error: adError } = await client
             .from('active_draft')
-            .select('*')
+            .select('data')
             .eq('user_id', currentUserId);
-        
-        if (draftError) throw draftError;
-        const draftData = draftDataArray && draftDataArray.length > 0 ? draftDataArray[0] : null;
-        
-        if (draftData) {
-            activeDraft = draftData.data;
-        }
+            
+        if (adData && adData.length > 0) activeDraft = adData[0].data;
 
         // 4. Ladda customProgram
-        const { data: programDataArray, error: programError } = await client
+        const { data: cpData, error: cpError } = await client
             .from('custom_program')
-            .select('*')
+            .select('data')
             .eq('user_id', currentUserId);
-
-        if (programError) throw programError;
-        const programDataRow = programDataArray && programDataArray.length > 0 ? programDataArray[0] : null;
-        if (programDataRow) {
-            programData = programDataRow.data;
-        }
+            
+        if (cpData && cpData.length > 0) programData = cpData[0].data;
 
     } catch (error) {
         console.error("❌ Fel vid laddning från Supabase:", error);
-        loadFromLocalStorage();
     }
 }
 
