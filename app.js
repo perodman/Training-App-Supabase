@@ -2866,4 +2866,8 @@ async function initApp() {
 }
 
 // Starta appen när sidan laddats
-window.addEventListener('load', initApp);
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    initApp();
+} else {
+    window.addEventListener('DOMContentLoaded', initApp);
+}
