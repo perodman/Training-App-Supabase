@@ -2633,20 +2633,7 @@ async function loadAll() {
 // STARTA APPEN
 // ============================================================================
 
-// ============================================================================
-// PWA SERVICE WORKER REGISTRERING
-// ============================================================================
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
-            .then(registration => {
-                console.log('Service Worker registrerad:', registration);
-            })
-            .catch(error => {
-                console.log('Service Worker registrering misslyckades:', error);
-            });
-    });
-}
+
 
 // ============================================================================
 // SPARA DATA VID STÄNGNING
