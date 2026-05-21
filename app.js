@@ -2850,7 +2850,7 @@ async function initApp() {
     }
 
     renderHome(); 
-    showView('home-view');
+    // showView('home-view') borttagen härifrån eftersom renderHome redan gör detta
 
     // Koppla menyknappar
     const menuButtons = document.querySelectorAll('[onclick*="showView"]');
