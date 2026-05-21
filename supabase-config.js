@@ -10,7 +10,7 @@ const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let currentUser = null;
 
 async function initAuth() {
-    const { { session } } = await supabase.auth.getSession();
+    const { data: { session } } = await supabase.auth.getSession();
     
     if (session) {
         currentUser = session.user;
