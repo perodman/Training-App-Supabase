@@ -15,12 +15,10 @@ async function checkUser() {
     if (user) {
         currentUserId = user.id;
         console.log("Inloggad som:", user.email);
-        
-        // Uppdatera knappen för inloggad status
         if (loginBtn) {
             loginBtn.innerText = "Inloggad";
-            loginBtn.style.opacity = "0.6"; // Gör den lite tonad
-            loginBtn.onclick = null; // Inaktivera klick
+            loginBtn.style.opacity = "0.6";
+            loginBtn.onclick = null;
         }
     } else {
         console.log("Inte inloggad.");
@@ -41,6 +39,7 @@ let activeDraft = null;
 let calendarOverrides = {};
 let currentViewDate = new Date();
 let currentExerciseCategory = "Ben";
+let isAppInitialized = false;
 
 // Timer-variabler
 let timerInterval = null;
@@ -332,25 +331,16 @@ function showView(id) {
         return;
     }
     
-    // 1. Göm alla andra vyer
     document.querySelectorAll(".view").forEach(v => v.classList.add("hidden"));
-    
-    // 2. Visa den valda vyn
     target.classList.remove("hidden");
     
-    // 3. Trigger animation
+    // Trigger animation
     target.style.animation = 'none';
-    target.offsetHeight; // Trigger reflow
+    target.offsetHeight; 
     target.style.animation = null;
     
-    // 4. LÄGG TILL DETTA: Säkerställ att huvudmenyn alltid är synlig
     const menu = document.getElementById("main-menu");
     if (menu) menu.classList.remove("hidden");
-    
-    // 5. Återkoppla klick-event (om du har lagt till attachMenuListeners)
-    if (typeof attachMenuListeners === 'function') {
-        attachMenuListeners();
-    }
     
     window.scrollTo(0, 0);
     console.log("Visar vy:", id);
@@ -2868,7 +2858,6 @@ function getMostFrequentExercise() {
 // ===========================================================================
 
 async function initApp() {
-    // Säkra att vi bara kör detta en gång
     if (window.isAppInitialized) return;
     window.isAppInitialized = true;
     
@@ -2882,7 +2871,6 @@ async function initApp() {
             const response = await fetch("program.json");
             const json = await response.json();
             programData = json;
-            // ... (din logik för att fylla masterExercises)
             await saveAll();
         } catch (err) {
             console.error("Kunde inte ladda program.json", err);
@@ -2894,29 +2882,21 @@ async function initApp() {
         activeDraft.wasTimerRunning ? startTimer() : updateTimerDisplay();
     }
 
-    // 1. Rendera först
     renderHome(); 
-    
-    // 2. Visa startvyn
     showView('home-view');
 
-    // 3. TVINGA menyknappar att fungera (detta gör vi HÄR för att knappar ska finnas)
+    // Koppla menyknappar
     const menuButtons = document.querySelectorAll('[onclick*="showView"]');
     menuButtons.forEach(btn => {
         btn.addEventListener('click', function(e) {
-            // Hämta view-id från onclick-attributet
             const attr = this.getAttribute('onclick');
             const viewId = attr.match(/'([^']+)'/)[1];
             showView(viewId);
         });
     });
 
-    console.log("✅ Appen är redo och knappar är kopplade!");
+    console.log("✅ Appen är redo!");
 }
 
-// Kör igång när sidan är helt laddad
-if (document.readyState === 'complete') {
-    initApp();
-} else {
-    window.addEventListener('load', initApp);
-}
+// Starta appen när sidan laddats
+window.addEventListener('load', initApp);
