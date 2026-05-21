@@ -2868,6 +2868,7 @@ function getMostFrequentExercise() {
 // ===========================================================================
 
 async function initApp() {
+    // Säkra att vi bara kör detta en gång
     if (window.isAppInitialized) return;
     window.isAppInitialized = true;
     
@@ -2876,7 +2877,6 @@ async function initApp() {
     await checkUser();
     await loadFromSupabase();
     
-    // Om vi inte har masterExercises, ladda JSON
     if (masterExercises.length === 0) {
         try {
             const response = await fetch("program.json");
@@ -2894,10 +2894,29 @@ async function initApp() {
         activeDraft.wasTimerRunning ? startTimer() : updateTimerDisplay();
     }
 
+    // 1. Rendera först
     renderHome(); 
+    
+    // 2. Visa startvyn
     showView('home-view');
-    console.log("✅ Appen är redo!");
+
+    // 3. TVINGA menyknappar att fungera (detta gör vi HÄR för att knappar ska finnas)
+    const menuButtons = document.querySelectorAll('[onclick*="showView"]');
+    menuButtons.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            // Hämta view-id från onclick-attributet
+            const attr = this.getAttribute('onclick');
+            const viewId = attr.match(/'([^']+)'/)[1];
+            showView(viewId);
+        });
+    });
+
+    console.log("✅ Appen är redo och knappar är kopplade!");
 }
 
-// Kör igång allt när DOM är redo
-document.addEventListener('DOMContentLoaded', initApp);
+// Kör igång när sidan är helt laddad
+if (document.readyState === 'complete') {
+    initApp();
+} else {
+    window.addEventListener('load', initApp);
+}
