@@ -326,27 +326,6 @@ function showView(id) {
     console.log("Visar vy:", id);
 }
 
-function attachMenuListeners() {
-    console.log("🛠 Kopplar om menyknappar...");
-    // Vi hittar alla knappar som har ett onclick-attribut med showView
-    const buttons = document.querySelectorAll('[onclick*="showView"]');
-    
-    buttons.forEach(btn => {
-        // Vi tar bort det gamla inlineskriptet för att undvika dubbla klick
-        btn.removeAttribute('onclick');
-        
-        btn.addEventListener('click', function() {
-            // Hämta ID:t från knappen (du behöver se till att knapparna har t.ex. data-view="home-view")
-            // Om du vill behålla din nuvarande struktur, läs av ett ID eller data-attribut
-            const view = this.getAttribute('data-target');
-            if (view) {
-                showView(view);
-            } else {
-                console.warn("Knapp saknar data-target:", this);
-            }
-        });
-    });
-}
 
 function closeModal() {
     document.getElementById("workout-modal").classList.add("hidden");
@@ -2861,25 +2840,51 @@ async function initApp() {
 
     renderHome(); 
 
-    // Koppla menyknappar genom att rensa onclick och styra via JS istället
-    const menuButtons = document.querySelectorAll('[onclick*="showView"]');
-    menuButtons.forEach(btn => {
-        // 1. Hämta viewId från det befintliga onclick-attributet
-        const attr = btn.getAttribute('onclick');
-        const match = attr.match(/'([^']+)'/);
-        const viewId = match ? match[1] : null;
+   // ======================================================================
+// MENYKNAPPAR
+// ======================================================================
 
-        if (viewId) {
-            // 2. Ta bort onclick för att undvika konflikt
-            btn.removeAttribute('onclick');
-            
-            // 3. Lägg till det rena eventet
-            btn.addEventListener('click', function(e) {
-                e.preventDefault(); // Hindrar ev. standardbeteende
-                showView(viewId);
-            });
-        }
+// ÖVNINGAR
+document.getElementById("view-exercises-btn")
+    ?.addEventListener("click", () => {
+
+        console.log("Klick på övningar");
+
+        filterExercises("Ben");
+        showView("exercises-view");
     });
+
+// PROGRAM
+document.getElementById("view-programs-btn")
+    ?.addEventListener("click", () => {
+
+        console.log("Klick på program");
+
+        renderProgramView();
+        showView("programs-view");
+    });
+
+// KALENDER
+document.getElementById("calendar-mode")
+    ?.addEventListener("click", () => {
+
+        console.log("Klick på kalender");
+
+        renderCalendar();
+        showView("calendar-view");
+    });
+
+// STATISTIK
+document.getElementById("stats-mode")
+    ?.addEventListener("click", () => {
+
+        console.log("Klick på statistik");
+
+        renderStats();
+        showView("stats-view");
+    });
+
+console.log("✅ Menyknappar inkopplade");
 
     console.log("✅ Appen är redo!");
 }
