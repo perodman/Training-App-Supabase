@@ -7,7 +7,7 @@ async function loadUserData() {
 
     try {
         // Ladda custom_program
-        const { data : programData, error: programError } = await supabase
+        const { data : programData, error: programError } = await supabaseClient
             .from('custom_program')
             .select('data')
             .eq('user_id', currentUser.id)
@@ -27,7 +27,7 @@ async function loadUserData() {
         }
 
         // Ladda workout_history
-        const { data : historyData, error: historyError } = await supabase
+        const { data : historyData, error: historyError } = await supabaseClient
             .from('workout_history')
             .select('*')
             .eq('user_id', currentUser.id)
@@ -45,7 +45,7 @@ async function loadUserData() {
         }
 
         // Ladda calendar_overrides
-        const { data : calendarData, error: calendarError } = await supabase
+        const { data : calendarData, error: calendarError } = await supabaseClient
             .from('calendar_overrides')
             .select('data')
             .eq('user_id', currentUser.id)
@@ -60,7 +60,7 @@ async function loadUserData() {
         }
 
         // Ladda active_draft
-        const { data : draftData, error: draftError } = await supabase
+        const { data : draftData, error: draftError } = await supabaseClient
             .from('active_draft')
             .select('data')
             .eq('user_id', currentUser.id)
@@ -125,21 +125,21 @@ async function saveCustomProgram() {
         masterExercises: masterExercises
     };
 
-    const { data : existing } = await supabase
+    const { data : existing } = await supabaseClient
         .from('custom_program')
         .select('id')
         .eq('user_id', currentUser.id)
         .single();
 
     if (existing) {
-        const { error } = await supabase
+        const { error } = await supabaseClient
             .from('custom_program')
             .update({ data:dataToSave })
             .eq('user_id', currentUser.id);
 
         if (error) console.error('Fel vid uppdatering av program:', error);
     } else {
-        const { error } = await supabase
+        const { error } = await supabaseClient
             .from('custom_program')
             .insert([{ user_id: currentUser.id, data:dataToSave }]);
 
@@ -150,7 +150,7 @@ async function saveCustomProgram() {
 async function saveWorkoutHistory(workout) {
     if (!currentUser) return;
 
-    const { error } = await supabase
+    const { error } = await supabaseClient
         .from('workout_history')
         .insert([{
             user_id: currentUser.id,
@@ -170,21 +170,21 @@ async function saveWorkoutHistory(workout) {
 async function saveCalendarOverrides() {
     if (!currentUser) return;
 
-    const { data : existing } = await supabase
+    const { data : existing } = await supabaseClient
         .from('calendar_overrides')
         .select('id')
         .eq('user_id', currentUser.id)
         .single();
 
     if (existing) {
-        const { error } = await supabase
+        const { error } = await supabaseClient
             .from('calendar_overrides')
             .update({ data : calendarOverrides })
             .eq('user_id', currentUser.id);
 
         if (error) console.error('Fel vid uppdatering av kalender:', error);
     } else {
-        const { error } = await supabase
+        const { error } = await supabaseClient
             .from('calendar_overrides')
             .insert([{ user_id: currentUser.id, data : calendarOverrides }]);
 
@@ -195,7 +195,7 @@ async function saveCalendarOverrides() {
 async function saveActiveDraft() {
     if (!currentUser) return;
 
-    const { data : existing } = await supabase
+    const { data : existing } = await supabaseClient
         .from('active_draft')
         .select('id')
         .eq('user_id', currentUser.id)
@@ -204,14 +204,14 @@ async function saveActiveDraft() {
     const draftData = activeDraft || {};
 
     if (existing) {
-        const { error } = await supabase
+        const { error } = await supabaseClient
             .from('active_draft')
             .update({ draft_data : draftData })
             .eq('user_id', currentUser.id);
 
         if (error) console.error('Fel vid uppdatering av utkast:', error);
     } else {
-        const { error } = await supabase
+        const { error } = await supabaseClient
             .from('active_draft')
             .insert([{ user_id: currentUser.id, draft_data : draftData }]);
 
@@ -225,7 +225,7 @@ async function deleteWorkoutFromHistory(date, idx) {
     const filtered = workoutHistory.filter(w => w.date === date);
     const item = filtered[idx];
     
-    const { error } = await supabase
+    const { error } = await supabaseClient
         .from('workout_history')
         .delete()
         .eq('user_id', currentUser.id)
@@ -242,7 +242,7 @@ async function deleteWorkoutFromHistory(date, idx) {
 async function clearActiveDraft() {
     if (!currentUser) return;
  
-    const { error } = await supabase
+    const { error } = await supabaseClient
         .from('active_draft')
         .update({ draft_data : null })
         .eq('user_id', currentUser.id);
