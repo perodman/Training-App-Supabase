@@ -1,24 +1,68 @@
 <!DOCTYPE html>
 <html lang="sv">
 <head>
-    <meta http-equiv="Service-Worker" content="none">
-    
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>LIFT Tracker Pro</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@800;900&family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
 </head>
 <body ontouchstart="">
-    <div class="global-header">
-        <div id="global-home" class="circle-ctrl"> 🏠 </div>
-        <div id="auth-container">
-            <button id="login-btn" onclick="loginWithGitHub()" class="mode-btn glass" style="padding: 5px 15px; font-size: 12px;">Logga in</button>
+    <div id="auth-view" class="view">
+        <div class="hero-section">
+            <h1 class="main-title">LIFT</h1>
+            <div class="subtitle-container">
+                <span class="line"></span>
+                <p class="subtitle">Elevate Your Strength</p>
+                <span class="line"></span>
+            </div>
+        </div>
+        
+        <div class="separator"></div>
+
+        <div class="card glass" style="padding: 30px; margin: 20px;">
+            <h3 style="text-align:center; margin-bottom:25px; color:var(--primary);">Logga in</h3>
+            
+            <input type="email" id="login-email" class="log-input" placeholder="E-post" style="margin-bottom:15px;">
+            <input type="password" id="login-password" class="log-input" placeholder="Lösenord" style="margin-bottom:20px;">
+            
+            <button id="login-btn" class="mode-btn blue" style="width:100%; margin-bottom:15px;">
+                <span class="btn-main-text">Logga in 🔐</span>
+            </button>
+
+            <div class="separator" style="margin: 20px 0;"></div>
+
+            <button id="github-login-btn" class="mode-btn glass-border" style="width:100%; margin-bottom:15px;">
+                <span class="btn-main-text">Logga in med GitHub 🐙</span>
+            </button>
+
+            <button id="show-register-btn" class="mode-btn glass-border" style="width:100%;">
+                <span class="btn-main-text">Skapa konto ✨</span>
+            </button>
+        </div>
+
+        <div id="register-card" class="card glass hidden" style="padding: 30px; margin: 20px;">
+            <h3 style="text-align:center; margin-bottom:25px; color:var(--primary);">Skapa konto</h3>
+            
+            <input type="email" id="register-email" class="log-input" placeholder="E-post" style="margin-bottom:15px;">
+            <input type="password" id="register-password" class="log-input" placeholder="Lösenord (minst 6 tecken)" style="margin-bottom:20px;">
+            
+            <button id="register-btn" class="mode-btn green" style="width:100%; margin-bottom:15px;">
+                <span class="btn-main-text">Registrera 🚀</span>
+            </button>
+
+            <button id="back-to-login-btn" class="mode-btn glass-border" style="width:100%;">
+                <span class="btn-main-text">Tillbaka till inloggning</span>
+            </button>
         </div>
     </div>
 
-    <div class="app-container">
+    <div class="global-header hidden" id="global-header">
+        <div id="global-home" class="circle-ctrl">🏠</div>
+        <div id="global-logout" class="circle-ctrl" style="right:75px;">🚪</div>
+    </div>
+
+    <div class="app-container hidden" id="app-container">
         <div id="home-view" class="view">
             <div class="hero-section">
                 <h1 class="main-title">LIFT</h1>
@@ -77,9 +121,9 @@
             <h2 class="section-title modern-header">Träningsschema</h2>
             <div id="calendar-info-box"></div>
             <div class="calendar-nav">
-                <button onclick="changeMonth(-1)" class="nav-arrow"> ❮ </button>
+                <button onclick="changeMonth(-1)" class="nav-arrow">❮</button>
                 <h2 id="month-label" onclick="openMonthPicker()" style="cursor:pointer;"></h2>
-                <button onclick="changeMonth(1)" class="nav-arrow"> ❯ </button>
+                <button onclick="changeMonth(1)" class="nav-arrow">❯</button>
             </div>
             <div class="card calendar-card glass-light">
                 <div class="calendar-weekdays">
@@ -97,12 +141,23 @@
         <div id="exercises-view" class="view hidden">
             <h2 class="section-title modern-header">Övningar</h2>
             <div id="category-menu" class="category-grid">
-                <button class="cat-btn glass" data-cat="Ben" onclick="filterExercises('Ben')"><span class="cat-icon"> 🦵 </span> Ben</button>
-                <button class="cat-btn glass" data-cat="Bröst" onclick="filterExercises('Bröst')"><span class="cat-icon"> 🏋️ </span> Bröst</button>
-                <button class="cat-btn glass" data-cat="Rygg" onclick="filterExercises('Rygg')"><span class="cat-icon"> 🪵 </span> Rygg</button>
-                <button class="cat-btn glass" data-cat="Axlar" onclick="filterExercises('Axlar')"><span class="cat-icon"> 👐 </span> Axlar</button>
-                <button class="cat-btn glass" data-cat="Armar" onclick="filterExercises('Armar')"><span class="cat-icon"> 💪 </span> Armar</button>
-                <button class="cat-btn glass" data-cat="Bål" onclick="filterExercises('Bål')"><span class="cat-icon"> 🧘 </span> Bål</button>
+                <button class="cat-btn glass" data-cat="Ben" onclick="filterExercises('Ben')"><span class="cat-icon">🦵</span> Ben</button>
+                <button class="cat-btn glass" data-cat="Bröst" onclick="filterExercises('Bröst')"><span class="cat-icon">🏋️</span> Bröst</button>
+                <button class="cat-btn glass" data-cat="Rygg" onclick="filterExercises('Rygg')"><span class="cat-icon">🪵</span> Rygg</button>
+                <button class="cat-btn glass" data-cat="Axlar" onclick="filterExercises('Axlar')"><span class="cat-icon">👐</span> Axlar</button>
+                <button class="cat-btn glass" data-cat="Armar" onclick="filterExercises('Armar')"><span class="cat-icon">💪</span> Armar</button>
+                <button class="cat-btn glass" data-cat="Bål" onclick="filterExercises('Bål')"><span class="cat-icon">🧘</span> Bål</button>
+            </div>
+            <div style="display: flex; align-items: center; gap: 15px; margin: 35px 0 20px 0; opacity: 0.8;">
+                <div style="flex-grow: 1; height: 1px; background: linear-gradient(to right, transparent, var(--primary), transparent);"></div>
+                <div style="width: 8px; height: 8px; background: var(--primary); transform: rotate(45deg); border-radius: 2px; box-shadow: 0 0 10px var(--primary);"></div>
+                <div style="flex-grow: 1; height: 1px; background: linear-gradient(to left, transparent, var(--primary), transparent);"></div>
+            </div>
+            <div style="display: flex; justify-content: flex-end; margin-bottom: 15px; padding-right: 17px;">
+                <button class="add-inline-btn" onclick="openCreateExerciseModal()" 
+                        style="position: static; transform: none; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-size: 17px; padding: 0; line-height: 1;">
+                    +
+                </button>
             </div>
             <div id="exercise-results" class="exercise-bank-list"></div>
         </div>
@@ -111,6 +166,7 @@
             <h2 class="section-title modern-header">Träningsprogram</h2>
             <div id="pass-selector-list" class="program-modern-grid"></div>
             <div id="program-details-area" class="hidden">
+                <div class="separator" style="margin: 30px 0;"></div>
                 <div id="program-exercise-list" class="card glass-modern"></div>
             </div>
             <button id="add-custom-pass-btn" class="mode-btn glass-border" style="margin-top:20px;">+ Skapa Nytt Pass</button>
@@ -128,7 +184,9 @@
             <h2 id="active-title" class="section-title modern-header" style="margin-bottom:10px;"></h2>
             <div class="card glass" style="margin-bottom: 20px; padding: 15px;">
                 <div id="workout-timer" class="timer-display">00:00:00</div>
-                <button id="timer-toggle-btn" class="mode-btn glass-border">Pausa ⏸️</button>
+                <div style="display: flex; gap: 10px;">
+                    <button id="timer-toggle-btn" class="mode-btn glass-border" style="margin-bottom:0; padding:10px;">Pausa ⏸️</button>
+                </div>
             </div>
             <div id="exercise-list"></div>
             <div class="workout-footer">
@@ -138,7 +196,14 @@
         </div>
     </div>
 
-    <script async src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script defer src="app.js?v=1.0.1"></script>
+    <div id="workout-modal" class="modal hidden">
+        <div class="modal-content">
+            <div id="modal-body"></div>
+            <button class="mode-btn glass-border" onclick="closeModal()" style="margin-top: 25px;">Stäng</button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="app.js?v=2.0.0"></script>
 </body>
 </html>
