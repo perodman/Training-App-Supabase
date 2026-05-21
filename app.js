@@ -982,8 +982,23 @@ function setOverrideSilent(dateStr, programId) {
 // PROGRAM/PASS-HANTERING
 // ============================================================================
 function renderProgramView(selectedIdx = null) {
-    const list = document.getElementById("program-list");
+    // ÄNDRAD: Hittar nu rätt ID baserat på din HTML ("pass-selector-list")
+    const list = document.getElementById("pass-selector-list");
+    
+    if (!list) {
+        console.warn("Elementet 'pass-selector-list' hittades inte i DOM:en.");
+        return;
+    }
+    
     list.innerHTML = "";
+    
+    // SÄKERHETSSPÄRR: Om programData inte har laddats från Supabase/LocalStorage än
+    if (!programData || !programData.routine) {
+        console.warn("programData.routine är inte redo än.");
+        list.innerHTML = "<p style='padding:15px;'>Laddar program...</p>";
+        showView("programs-view");
+        return;
+    }
     
     programData.routine.forEach((p, i) => {
         const div = document.createElement("div");
