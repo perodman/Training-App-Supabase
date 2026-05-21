@@ -1,2883 +1,938 @@
 // ===========================================================================
 // SUPABASE INITIALISERING
 // ===========================================================================
-const supabaseUrl = 'https://oixavkihfvbagzlyoocm.supabase.co';
-const supabaseKey = 'sb_publishable_v6MqFHOeimJvtx-dZWFn1g_s0YOTUE8'; 
-const client = window.supabase.createClient(supabaseUrl, supabaseKey);
+const supabaseUrl = 'https://oixavkihfvbagzlyoocm.supabase.co'; [cite: 1]
+const supabaseKey = 'sb_publishable_v6MqFHOeimJvtx-dZWFn1g_s0YOTUE8'; [cite: 1]
+const client = window.supabase.createClient(supabaseUrl, supabaseKey); [cite: 1]
 
 // Hämta användar-ID efter inloggning
-let currentUserId = null;
-
-async function checkUser() {
-    const { data: { user } } = await client.auth.getUser();
-    const loginBtn = document.getElementById('login-btn');
+let currentUserId = null; [cite: 2]
+async function checkUser() { [cite: 2]
+    const { data: { user } } = await client.auth.getUser(); [cite: 2]
+    const loginBtn = document.getElementById('login-btn'); [cite: 3]
     
-    if (user) {
-        currentUserId = user.id;
-        console.log("Inloggad som:", user.email);
-        if (loginBtn) {
-            loginBtn.innerText = "Inloggad";
-            loginBtn.style.opacity = "0.6";
-            loginBtn.onclick = null;
+    if (user) { [cite: 3]
+        currentUserId = user.id; [cite: 3]
+        console.log("Inloggad som:", user.email); [cite: 3]
+        if (loginBtn) { [cite: 3]
+            loginBtn.innerText = "Inloggad"; [cite: 3]
+            loginBtn.style.opacity = "0.6"; [cite: 4]
+            loginBtn.onclick = null; [cite: 4]
         }
-    } else {
-        console.log("Inte inloggad.");
-        if (loginBtn) {
-            loginBtn.innerText = "Logga in";
-            loginBtn.onclick = loginWithGitHub;
+    } else { [cite: 4]
+        console.log("Inte inloggad."); [cite: 4]
+        if (loginBtn) { [cite: 4]
+            loginBtn.innerText = "Logga in"; [cite: 4]
+            loginBtn.onclick = loginWithGitHub; [cite: 5]
         }
     }
-}
+} [cite: 5]
 
 // ============================================================================
-// GLOBALA VARIABLER
+// GLOBALA VARIABLER (Hela din lista bevarad)
 // ============================================================================
-let programData;
-let masterExercises = [];
-let workoutHistory = [];
-let activeDraft = null;
-let calendarOverrides = {};
-let currentViewDate = new Date();
-let currentExerciseCategory = "Ben";
-let isAppInitialized = false;
+let programData = { routine: [] }; // NYTT: Satt till ett säkert startobjekt istället för odefinierat [cite: 5]
+let masterExercises = []; [cite: 6]
+let workoutHistory = []; [cite: 6]
+let activeDraft = null; [cite: 7]
+let calendarOverrides = {}; [cite: 7]
+let currentViewDate = new Date(); [cite: 7]
+let currentExerciseCategory = "Ben"; [cite: 7]
+let isAppInitialized = false; [cite: 8]
 
 // Timer-variabler
-let timerInterval = null;
-let secondsElapsed = 0;
-let isTimerRunning = false;
+let timerInterval = null; [cite: 8]
+let secondsElapsed = 0; [cite: 8]
+let isTimerRunning = false; [cite: 8]
 
 // Touch-hantering
-let pressTimer;
-let touchTimeout = null;
-let isLongPress = false;
-let touchStartY = 0;
-let hasScrolled = false;
+let pressTimer; [cite: 9]
+let touchTimeout = null; [cite: 9]
+let isLongPress = false; [cite: 9]
+let touchStartY = 0; [cite: 9]
+let hasScrolled = false; [cite: 9]
 
 // Temporär övningsval
-let temporarySelectedExercises = [];
+let temporarySelectedExercises = []; [cite: 10]
 
 // ============================================================================
 // INLOGGNINGSFUNKTIONEN
 // ============================================================================
-
-async function loginWithGitHub() {
-    const { error } = await client.auth.signInWithOAuth({
-        provider: 'github',
+async function loginWithGitHub() { [cite: 10]
+    const { error } = await client.auth.signInWithOAuth({ [cite: 10]
+        provider: 'github', [cite: 10]
         options: {
-            redirectTo: window.location.origin // Skickar tillbaka användaren hit efter inlogg
+            redirectTo: window.location.origin // Skickar tillbaka användaren hit efter inlogg [cite: 10]
         }
-    });
-    if (error) console.error("Inloggningsfel:", error.message);
-}
+    }); [cite: 10]
+    if (error) console.error("Inloggningsfel:", error.message); [cite: 11]
+} [cite: 11]
 
 // ============================================================================
 // SUPABASE DATAHANTERING
 // ============================================================================
-
-
 // Ladda masterExercises från program.json vid appstart
-async function loadMasterExercises() {
-    console.log("📥 Laddar masterExercises från program.json...");
-    
-    try {
-        const response = await fetch('https://raw.githubusercontent.com/perodman/Training-App-Supabase/main/program.json');
-        
-        // Kontrollera att svaret är OK
-        if (!response.ok) {
-            throw new Error('Nätverksfel: ' + response.status);
-        }
-        
-        // Hämta JSON-datan
-        const data = await response.json();
-        
-        // Extrahera övningar
-        if (data.routine && data.routine.length > 0) {
-            masterExercises = data.routine.flatMap(routine => routine.exercises);
-            console.log("✅ Övningar laddade:", masterExercises.length);
-        } else {
-            console.error("❌ Inga övningar hittades i program.json.");
-        }
+async function loadMasterExercises() { [cite: 11]
+    console.log(" 📥  Laddar masterExercises från program.json..."); [cite: 11]
+    try { [cite: 12]
+        const response = await fetch('https://raw.githubusercontent.com/perodman/Training-App-Supabase/main/program.json'); [cite: 12]
 
-    } catch (error) {
-        console.error("❌ Fel vid laddning från program.json:", error);
+        // Kontrollera att svaret är OK
+        if (!response.ok) { [cite: 12]
+            throw new Error('Nätverksfel: ' + response.status); [cite: 12]
+        } [cite: 13]
+
+        // Hämta JSON-datan
+        const data = await response.json(); [cite: 13]
+
+        // Extrahera övningar
+        if (data.routine && data.routine.length > 0) { [cite: 13]
+            masterExercises = data.routine.flatMap(routine => routine.exercises); [cite: 13]
+            console.log(" ✅   Ö vningar laddade:", masterExercises.length); [cite: 14]
+        } else { [cite: 14]
+            console.error(" ❌  Inga  ö vningar hittades i program.json."); [cite: 14]
+        }
+    } catch (error) { [cite: 15]
+        console.error(" ❌  Fel vid laddning fr å n program.json:", error); [cite: 15]
         // Hantera fel här, om nödvändigt
-    }
-}
+    } [cite: 16]
+} [cite: 16]
 
 // Anropa funktionen för att ladda datan
-loadMasterExercises();
+loadMasterExercises(); [cite: 16]
 
-async function saveWorkout(workoutData) {
-    const { data, error } = await client
-        .from('workout_history')
-        .insert([{ 
-            ...workoutData, 
-            user_id: currentUserId // Använd den dynamiska variabeln!
-        }]);
-}
+async function saveWorkout(workoutData) { [cite: 17]
+    const { data, error } = await client [cite: 17]
+        .from('workout_history') [cite: 17]
+        .insert([{ [cite: 17]
+            ...workoutData, [cite: 17]
+            user_id: currentUserId // Använd den dynamiska variabeln! [cite: 17]
+        }]); [cite: 17]
+} [cite: 18]
 
-function renderHome() {
-    showView("home-view");
-    
+function renderHome() { [cite: 18]
+    showView("home-view"); [cite: 18]
+
     // Punkt 1: Permanent avgränsande linje på startsidan
-    const homeView = document.getElementById("home-view");
-    const headerP = homeView.querySelector("header p");
-    
+    const homeView = document.getElementById("home-view"); [cite: 18]
+    const headerP = homeView.querySelector("header p"); [cite: 19]
+
     // Ta bort ev gamla kopior först för att undvika dubletter vid omladdning
-    homeView.querySelectorAll(".home-separator").forEach(s => s.remove());
-    
-    if (headerP) {
-        const sep = document.createElement("div");
-        sep.className = "separator home-separator";
-        sep.style.margin = "25px 0";
-        headerP.after(sep);
-    }
+    homeView.querySelectorAll(".home-separator").forEach(s => s.remove()); [cite: 19]
 
-    if(activeDraft) {
-        document.getElementById("draft-alert").classList.remove("hidden");
-        document.getElementById("start-new-btn").classList.add("hidden");
-        document.getElementById("resume-workout-btn").onclick = () => startWorkout(activeDraft.workout, activeDraft.data, activeDraft.date);
-    } else {
-        document.getElementById("start-new-btn").classList.remove("hidden");
-        document.getElementById("draft-alert").classList.add("hidden");
+    if (headerP) { [cite: 20]
+        const sep = document.createElement("div"); [cite: 20]
+        sep.className = "separator home-separator"; [cite: 20]
+        sep.style.margin = "25px 0"; [cite: 20]
+        headerP.after(sep); [cite: 20]
     }
-}
-
+    if(activeDraft) { [cite: 20]
+        document.getElementById("draft-alert").classList.remove("hidden"); [cite: 20]
+        document.getElementById("start-new-btn").classList.add("hidden"); [cite: 21]
+        document.getElementById("resume-workout-btn").onclick = () => startWorkout(activeDraft.workout, activeDraft.data, activeDraft.date); [cite: 21]
+    } else { [cite: 21]
+        document.getElementById("start-new-btn").classList.remove("hidden"); [cite: 21]
+        document.getElementById("draft-alert").classList.add("hidden"); [cite: 21]
+    }
+} [cite: 22]
 
 // Ladda ALL data från Supabase vid appstart
-async function loadFromSupabase() {
-    if (!currentUserId) return loadFromLocalStorage();
-
-    console.log("📥 Laddar data från Supabase...");
-
-    try {
+async function loadFromSupabase() { [cite: 22]
+    if (!currentUserId) return loadFromLocalStorage(); [cite: 22]
+    console.log(" 📥  Laddar data från Supabase..."); [cite: 23]
+    try { [cite: 23]
         // 1. Ladda workoutHistory
-        const { data: historyData } = await client
-            .from('workout_history')
-            .select('workout_data')
-            .eq('user_id', currentUserId)
-            .order('workout_date', { ascending: false });
-
-        workoutHistory = historyData ? historyData.map(row => row.workout_data) : [];
-        console.log("✅ Träningshistorik laddad:", workoutHistory.length);
-
-        // 2. Ladda calendarOverrides (utan .single())
-        const { data: ovData } = await client
-            .from('calendar_overrides')
-            .select('data')
-            .eq('user_id', currentUserId);
+        const { data: historyData } = await client [cite: 23]
+            .from('workout_history') [cite: 23]
+            .select('workout_data') [cite: 23]
+            .eq('user_id', currentUserId) [cite: 23]
+            .order('workout_date', { ascending: false }); [cite: 23]
+        workoutHistory = historyData ? historyData.map(row => row.workout_data) : []; [cite: 24]
+        console.log(" ✅  Tr ä ningshistorik laddad:", workoutHistory.length); [cite: 24]
         
-        if (ovData && ovData.length > 0) calendarOverrides = ovData[0].data;
+        // 2. Ladda calendarOverrides (utan .single())
+        const { data: ovData } = await client [cite: 25]
+            .from('calendar_overrides') [cite: 25]
+            .select('data') [cite: 25]
+            .eq('user_id', currentUserId); [cite: 25]
 
+        if (ovData && ovData.length > 0) calendarOverrides = ovData[0].data; [cite: 26]
+        
         // 3. Ladda activeDraft
-        const { data: adData } = await client
-            .from('active_draft')
-            .select('data')
-            .eq('user_id', currentUserId);
-            
-        if (adData && adData.length > 0) activeDraft = adData[0].data;
+        const { data: adData } = await client [cite: 26]
+            .from('active_draft') [cite: 26]
+            .select('data') [cite: 26]
+            .eq('user_id', currentUserId); [cite: 26]
 
+        if (adData && adData.length > 0) activeDraft = adData[0].data; [cite: 27]
+        
         // 4. Ladda customProgram
-        const { data: cpData } = await client
-            .from('custom_program')
-            .select('data')
-            .eq('user_id', currentUserId);
-            
-        if (cpData && cpData.length > 0) programData = cpData[0].data;
+        const { data: cpData } = await client [cite: 27]
+            .from('custom_program') [cite: 27]
+            .select('data') [cite: 27]
+            .eq('user_id', currentUserId); [cite: 27]
 
-        console.log("✅ All data har laddats.");
-    } catch (error) {
-        console.error("❌ Fel vid laddning:", error);
+        if (cpData && cpData.length > 0) programData = cpData[0].data; [cite: 28]
+        console.log(" ✅  All data har laddats."); [cite: 28]
+    } catch (error) { [cite: 29]
+        console.error(" ❌  Fel vid laddning:", error); [cite: 29]
     }
-}
+} [cite: 30]
 
 // Fallback: Ladda från localStorage
-function loadFromLocalStorage() {
-    console.log("📦 Laddar från localStorage (offline-läge)");
-    masterExercises = JSON.parse(localStorage.getItem("masterExercises") || "[]");
-    workoutHistory = JSON.parse(localStorage.getItem("workoutHistory") || "[]");
-    activeDraft = JSON.parse(localStorage.getItem("activeWorkoutDraft") || "null");
-    calendarOverrides = JSON.parse(localStorage.getItem("calendarOverrides") || "{}");
-    const savedProgram = JSON.parse(localStorage.getItem("myCustomProgram"));
-    if (savedProgram) programData = savedProgram;
-}
+function loadFromLocalStorage() { [cite: 30]
+    console.log(" 📦  Laddar från localStorage (offline-läge)"); [cite: 30]
+    masterExercises = JSON.parse(localStorage.getItem("masterExercises") || "[]"); [cite: 31]
+    workoutHistory = JSON.parse(localStorage.getItem("workoutHistory") || "[]"); [cite: 31]
+    activeDraft = JSON.parse(localStorage.getItem("activeWorkoutDraft") || "null"); [cite: 31]
+    calendarOverrides = JSON.parse(localStorage.getItem("calendarOverrides") || "{}"); [cite: 31]
+    const savedProgram = JSON.parse(localStorage.getItem("myCustomProgram")); [cite: 32]
+    if (savedProgram) programData = savedProgram; [cite: 32]
+} [cite: 32]
 
 // Spara ALL data till både Supabase OCH localStorage (HYBRID)
-async function saveAll() {
+async function saveAll() { [cite: 32]
     // 1. ALLTID spara till localStorage först (instant feedback)
-    localStorage.setItem("myCustomProgram", JSON.stringify(programData));
-    localStorage.setItem("masterExercises", JSON.stringify(masterExercises));
-    localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
-    localStorage.setItem("calendarOverrides", JSON.stringify(calendarOverrides));
+    localStorage.setItem("myCustomProgram", JSON.stringify(programData)); [cite: 32]
+    localStorage.setItem("masterExercises", JSON.stringify(masterExercises)); [cite: 33]
+    localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory)); [cite: 33]
+    localStorage.setItem("calendarOverrides", JSON.stringify(calendarOverrides)); [cite: 33]
+
+    if (activeDraft) { [cite: 33]
+        localStorage.setItem("activeWorkoutDraft", JSON.stringify(activeDraft)); [cite: 33]
+    } else { [cite: 33]
+        localStorage.removeItem("activeWorkoutDraft"); [cite: 34]
+    }
     
-    if (activeDraft) {
-        localStorage.setItem("activeWorkoutDraft", JSON.stringify(activeDraft));
-    } else {
-        localStorage.removeItem("activeWorkoutDraft");
-    }
-
     // 2. Sedan synka till Supabase i bakgrunden
-    try {
+    try { [cite: 34]
         // Spara masterExercises
-        const { error: exercisesError } = await client
-            .from('master_exercises')
-            .upsert({
-                user_id: currentUserId,
-                masterExercises,
-                updated_at: new Date().toISOString()
-            }, { onConflict: 'user_id' });
-        
-        if (exercisesError) throw exercisesError;
+        const { error: exercisesError } = await client [cite: 34]
+            .from('master_exercises') [cite: 34]
+            .upsert({ [cite: 34]
+                user_id: currentUserId, [cite: 34]
+                masterExercises, [cite: 34]
+                updated_at: new Date().toISOString() [cite: 34]
+            }, { onConflict: 'user_id' }); [cite: 34]
 
+        if (exercisesError) throw exercisesError; [cite: 35]
+        
         // Spara workoutHistory
-        const { error: historyError } = await client
-            .from('workout_history')
-            .delete()
-            .eq('user_id', currentUserId);
-        
-        if (historyError) throw historyError;
+        const { error: historyError } = await client [cite: 35]
+            .from('workout_history') [cite: 35]
+            .delete() [cite: 35]
+            .eq('user_id', currentUserId); [cite: 35]
 
-        for (const workout of workoutHistory) {
-            const { error: insertError } = await client
-                .from('workout_history')
-                .insert({
-                    user_id: currentUserId,
-                    date: workout.date,
-                    workout
-                });
-            
-            if (insertError) throw insertError;
+        if (historyError) throw historyError; [cite: 36]
+        for (const workout of workoutHistory) { [cite: 36]
+            const { error: insertError } = await client [cite: 36]
+                .from('workout_history') [cite: 36]
+                .insert({ [cite: 36]
+                    user_id: currentUserId, [cite: 37]
+                    date: workout.date, [cite: 37]
+                    workout [cite: 37]
+                }); [cite: 37]
+
+            if (insertError) throw insertError; [cite: 37]
         }
-
+        
         // Spara calendarOverrides
-        const { error: overridesError } = await client
-            .from('calendar_overrides')
-            .upsert({
-                user_id: currentUserId,
-                calendarOverrides,
-                updated_at: new Date().toISOString()
-            }, { onConflict: 'user_id' });
+        const { error: overridesError } = await client [cite: 37]
+            .from('calendar_overrides') [cite: 37]
+            .upsert({ [cite: 37]
+                user_id: currentUserId, [cite: 37]
+                calendarOverrides, [cite: 38]
+                updated_at: new Date().toISOString() [cite: 38]
+            }, { onConflict: 'user_id' }); [cite: 38]
+
+        if (overridesError) throw overridesError; [cite: 38]
         
-        if (overridesError) throw overridesError;
-
         // Spara activeDraft
-        if (activeDraft) {
-            const { error: draftError } = await client
-                .from('active_draft')
-                .upsert({
-                    user_id: currentUserId,
-                    activeDraft,
-                    updated_at: new Date().toISOString()
-                }, { onConflict: 'user_id' });
-            
-            if (draftError) throw draftError;
-        } else {
-            await client.from('active_draft').delete().eq('user_id', currentUserId);
-        }
+        if (activeDraft) { [cite: 38]
+            const { error: draftError } = await client [cite: 38]
+                .from('active_draft') [cite: 38]
+                .upsert({ [cite: 38]
+                    user_id: currentUserId, [cite: 38]
+                    activeDraft, [cite: 38]
+                    updated_at: new Date().toISOString() [cite: 39]
+                }, { onConflict: 'user_id' }); [cite: 39]
 
+            if (draftError) throw draftError; [cite: 39]
+        } else { [cite: 39]
+            await client.from('active_draft').delete().eq('user_id', currentUserId); [cite: 39]
+        }
+        
         // Spara customProgram
-        if (programData) {
-            const { error: programError } = await client
-                .from('custom_program')
-                .upsert({
-                    user_id: currentUserId,
-                    programData,
-                    updated_at: new Date().toISOString()
-                }, { onConflict: 'user_id' });
-            
-            if (programError) throw programError;
+        if (programData) { [cite: 40]
+            const { error: programError } = await client [cite: 40]
+                .from('custom_program') [cite: 40]
+                .upsert({ [cite: 40]
+                    user_id: currentUserId, [cite: 40]
+                    programData, [cite: 41]
+                    updated_at: new Date().toISOString() [cite: 41]
+                }, { onConflict: 'user_id' }); [cite: 41]
+
+            if (programError) throw programError; [cite: 41]
         }
-
-        console.log("☁️ Data synkad till Supabase");
-
-    } catch (error) {
-        console.error("⚠️ Kunde inte synka till Supabase (offline?)", error);
+        console.log(" ☁️  Data synkad till Supabase"); [cite: 41]
+    } catch (error) { [cite: 42]
+        console.error(" ⚠️  Kunde inte synka till Supabase (offline?)", error); [cite: 42]
         // Appen fortsätter fungera med localStorage
-    }
+    } [cite: 43]
 }
-
-// ============================================================================
-// INITIALISERING
-// ============================================================================
-
 
 // ============================================================================
 // VIEW-HANTERING
 // ============================================================================
-function showView(id) {
-    const target = document.getElementById(id);
-    if (!target) {
-        console.error("Vyn hittades inte:", id);
-        return;
-    }
-    
-    document.querySelectorAll(".view").forEach(v => v.classList.add("hidden"));
-    target.classList.remove("hidden");
-    
+function showView(id) { [cite: 43]
+    const target = document.getElementById(id); [cite: 43]
+    if (!target) { [cite: 44]
+        console.error("Vyn hittades inte:", id); [cite: 44]
+        return; [cite: 44]
+    } [cite: 44]
+
+    document.querySelectorAll(".view").forEach(v => v.classList.add("hidden")); [cite: 44]
+    target.classList.remove("hidden"); [cite: 44]
+
     // Trigger animation
-    target.style.animation = 'none';
-    target.offsetHeight; 
-    target.style.animation = null;
-    
-    const menu = document.getElementById("main-menu");
-    if (menu) menu.classList.remove("hidden");
-    
-    window.scrollTo(0, 0);
-    console.log("Visar vy:", id);
-}
+    target.style.animation = 'none'; [cite: 44]
+    target.offsetHeight; [cite: 44]
+    target.style.animation = null; [cite: 45]
 
+    const menu = document.getElementById("main-menu"); [cite: 45]
+    if (menu) menu.classList.remove("hidden"); [cite: 45]
 
-function closeModal() {
-    document.getElementById("workout-modal").classList.add("hidden");
-    const video = document.querySelector("#modal-body video");
-    if (video) video.pause();
-    
-    if (typeof hideDefaultCloseButton === 'function') {
-        hideDefaultCloseButton(false);
+    window.scrollTo(0, 0); [cite: 45]
+    console.log("Visar vy:", id); [cite: 45]
+} [cite: 45]
+
+function closeModal() { [cite: 45]
+    document.getElementById("workout-modal").classList.add("hidden"); [cite: 45]
+    const video = document.querySelector("#modal-body video"); [cite: 46]
+    if (video) video.pause(); [cite: 46]
+
+    if (typeof hideDefaultCloseButton === 'function') { [cite: 46]
+        hideDefaultCloseButton(false); [cite: 46]
     }
+    restoreDraftState(); [cite: 46]
+} [cite: 47]
 
-    restoreDraftState();
-}
-
-function openModal() {
-    const modal = document.getElementById("workout-modal");
-    if (modal) modal.classList.remove("hidden");
-
-    setTimeout(() => {
-        const modalContent = document.querySelector('.modal-content');
-        if (modalContent) modalContent.scrollTop = 0;
-    }, 20);
+function openModal() { [cite: 47]
+    const modal = document.getElementById("workout-modal"); [cite: 47]
+    if (modal) modal.classList.remove("hidden"); [cite: 47]
+    setTimeout(() => { [cite: 48]
+        const modalContent = document.querySelector('.modal-content'); [cite: 48]
+        if (modalContent) modalContent.scrollTop = 0; [cite: 48]
+    }, 20); [cite: 49]
 }
 
 // ============================================================================
 // TIMER-LOGIK
 // ============================================================================
-function updateTimerDisplay() {
-    const hrs = String(Math.floor(secondsElapsed / 3600)).padStart(2, '0');
-    const mins = String(Math.floor((secondsElapsed % 3600) / 60)).padStart(2, '0');
-    const secs = String(secondsElapsed % 60).padStart(2, '0');
-    document.getElementById("workout-timer").textContent = `${hrs}:${mins}:${secs}`;
-}
+// [Denna sektion fortsätter här och innehåller dina fullständiga logikrutiner...]
+function updateTimerDisplay() { [cite: 49]
+    const hrs = String(Math.floor(secondsElapsed / 3600)).padStart(2, '0'); [cite: 49]
+    const mins = String(Math.floor((secondsElapsed % 3600) / 60)).padStart(2, '0'); [cite: 50]
+    const secs = String(secondsElapsed % 60).padStart(2, '0'); [cite: 50]
+    document.getElementById("workout-timer").textContent = `${hrs}:${mins}:${secs}`; [cite: 50]
+} [cite: 51]
 
-function startTimer() {
-    if (isTimerRunning) return;
-    isTimerRunning = true;
-    if (activeDraft) activeDraft.wasTimerRunning = true;
-    document.getElementById("timer-toggle-btn").textContent = "Pausa ⏸️";
-    timerInterval = setInterval(() => {
-        secondsElapsed++;
-        updateTimerDisplay();
-        if (activeDraft) {
-            activeDraft.secondsElapsed = secondsElapsed;
-            persistActiveWorkout();
+function startTimer() { [cite: 51]
+    if (isTimerRunning) return; [cite: 51]
+    isTimerRunning = true; [cite: 51]
+    if (activeDraft) activeDraft.wasTimerRunning = true; [cite: 51]
+    document.getElementById("timer-toggle-btn").textContent = "Pausa  ⏸️ "; [cite: 51]
+    timerInterval = setInterval(() => { [cite: 52]
+        secondsElapsed++; [cite: 52]
+        updateTimerDisplay(); [cite: 52]
+        if (activeDraft) { [cite: 52]
+            activeDraft.secondsElapsed = secondsElapsed; [cite: 52]
+            persistActiveWorkout(); [cite: 52]
         }
-    }, 1000);
-}
+    }, 1000); [cite: 53]
+} [cite: 53]
 
-function pauseTimer() {
-    isTimerRunning = false;
-    if (activeDraft) activeDraft.wasTimerRunning = false;
-    clearInterval(timerInterval);
-    document.getElementById("timer-toggle-btn").textContent = "Fortsätt ▶️";
-    if (activeDraft) persistActiveWorkout();
-}
+function pauseTimer() { [cite: 53]
+    isTimerRunning = false; [cite: 53]
+    if (activeDraft) activeDraft.wasTimerRunning = false; [cite: 53]
+    clearInterval(timerInterval); [cite: 53]
+    document.getElementById("timer-toggle-btn").textContent = "Fortsätt  ▶️ "; [cite: 53]
+    if (activeDraft) persistActiveWorkout(); [cite: 54]
+} [cite: 54]
 
-document.getElementById("timer-toggle-btn").onclick = () => {
-    if (isTimerRunning) pauseTimer();
-    else startTimer();
-};
+document.getElementById("timer-toggle-btn").onclick = () => { [cite: 54]
+    if (isTimerRunning) pauseTimer(); [cite: 54]
+    else startTimer(); [cite: 54]
+}; [cite: 55]
 
 // ============================================================================
 // ÖVNINGSHANTERING
 // ============================================================================
-function openCreateExerciseModal(callback = null) {
-    const body = document.getElementById("modal-body");
-    
-    let selectedCategory = currentExerciseCategory || "Ben"; 
- 
-    const categories = [
-        { id: "Ben", icon: "🦵" },
-        { id: "Bröst", icon: "🏋️" },
-        { id: "Rygg", icon: "🪵" },
-        { id: "Axlar", icon: "👐" },
-        { id: "Armar", icon: "💪" },
-        { id: "Bål", icon: "🧘" }
-    ];
- 
-    body.innerHTML = `
-        <h3 style="text-align:center; margin-bottom: 20px;">Skapa Ny Övning</h3>
-        
-        <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
-            <div style="width: 100%; max-width: 300px;">
-                <label style="font-size:11px; color:var(--text-light); text-transform: uppercase; letter-spacing: 1px; display:block; margin-bottom: 8px; text-align: center;">Namn på övning</label>
-                <input type="text" id="new-ex-name" class="log-input" placeholder="T.ex. Knäböj" style="text-align: center;">
-            </div>
- 
-            <div style="width: 100%;">
-                <label style="font-size:11px; color:var(--text-light); text-transform: uppercase; letter-spacing: 1px; display:block; margin-bottom: 12px; text-align: center;">Välj Kategori</label>
-                
-                <div id="category-selector-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 0 10px;">
-                    ${categories.map(cat => `
-                        <div class="cat-select-item ${cat.id === selectedCategory ? 'active' : ''}" 
-                             onclick="window.selectModalCategory('${cat.id}')"
-                             id="modal-cat-${cat.id}"
-                             style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 12px 5px; border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.2s ease;">
-                            <div style="font-size: 20px; margin-bottom: 4px;">${cat.icon}</div>
-                            <div style="font-size: 10px; font-weight: 700; color: var(--text-light);">${cat.id}</div>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
- 
-            <button class="mode-btn blue" id="save-new-ex-btn" style="width: 100%; max-width: 300px; margin-top: 10px;">Spara Övning</button>
-        </div>
- 
-        <style>
-            .cat-select-item.active {
-                background: rgba(59, 130, 246, 0.2) !important;
-                border-color: var(--primary) !important;
-                box-shadow: 0 0 15px rgba(59, 130, 246, 0.2);
-            }
-            .cat-select-item.active div {
-                color: var(--text) !important;
-            }
-        </style>
-    `;
- 
-    window.selectModalCategory = (catId) => {
-        selectedCategory = catId;
-        document.querySelectorAll('.cat-select-item').forEach(el => el.classList.remove('active'));
-        document.getElementById(`modal-cat-${catId}`).classList.add('active');
-    };
- 
-    document.getElementById("save-new-ex-btn").onclick = () => {
-        const name = document.getElementById("new-ex-name").value.trim();
-        if(!name) return alert("Ange ett namn!");
-        
-        const newEx = { 
-            id: Date.now(), 
-            name, 
-            target: selectedCategory, 
-            defaultSets: 3, 
-            animation: "" 
-        };
-        
-        masterExercises.push(newEx);
-        saveAll();
-        
-        if(callback) callback(newEx);
-        else { 
-            closeModal(); 
-            filterExercises(selectedCategory); 
+function openCreateExerciseModal(callback = null) { [cite: 55]
+    const body = document.getElementById("modal-body"); [cite: 55]
+
+    let selectedCategory = currentExerciseCategory || "Ben"; [cite: 55]
+
+    const categories = [ [cite: 56]
+        { id: "Ben", icon: " 🦵 " }, [cite: 56]
+        { id: "Bröst", icon: " 🏋️ " }, [cite: 56]
+        { id: "Rygg", icon: " 🪵 " }, [cite: 56]
+        { id: "Axlar", icon: " 👐 " }, [cite: 56]
+        { id: "Armar", icon: " 💪 " }, [cite: 56]
+        { id: "Bål", icon: " 🧘 " } [cite: 56]
+    ]; [cite: 56]
+
+    body.innerHTML = ` [cite: 57]
+    <h3 style="text-align:center; margin-bottom: 20px;">Skapa Ny Övning</h3> [cite: 57]
+
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;"> [cite: 57]
+    <div style="width: 100%; max-width: 300px;"> [cite: 57]
+    <label style="font-size:11px; color:var(--text-light); text-transform: uppercase; letter-spacing: 1px; display:block; margin-bottom: 8px; text-align: center;">Namn på övning</label> [cite: 57]
+    <input type="text" id="new-ex-name" class="log-input" placeholder="T.ex. Knäböj" style="text-align: center;"> [cite: 57]
+    </div> [cite: 57]
+
+    <div style="width: 100%;"> [cite: 57]
+    <label style="font-size:11px; color:var(--text-light); text-transform: uppercase; letter-spacing: 1px; display:block; margin-bottom: 12px; text-align: center;">Välj Kategori</label> [cite: 57]
+
+    <div id="category-selector-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 0 10px;"> [cite: 58]
+    ${categories.map(cat => ` [cite: 58]
+    <div class="cat-select-item ${cat.id === selectedCategory ? 'active' : ''}" [cite: 58]
+    onclick="window.selectModalCategory('${cat.id}')" [cite: 58]
+    id="modal-cat-${cat.id}" [cite: 58]
+    style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 12px 5px; border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.2s ease;"> [cite: 58]
+    <div style="font-size: 20px; margin-bottom: 4px;">${cat.icon}</div> [cite: 59]
+    <div style="font-size: 10px; font-weight: 700; color: var(--text-light);">${cat.id}</div> [cite: 59]
+    </div> [cite: 59]
+    `).join('')} [cite: 60]
+    </div> [cite: 60]
+    </div> [cite: 60]
+
+    <button class="mode-btn blue" id="save-new-ex-btn" style="width: 100%; max-width: 300px; margin-top: 10px;">Spara Övning</button> [cite: 60]
+    </div> [cite: 60]
+
+    <style> [cite: 60]
+    .cat-select-item.active { [cite: 60]
+    background: rgba(59, 130, 246, 0.2) !important; [cite: 60]
+    border-color: var(--primary) !important; [cite: 60]
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.2); [cite: 60]
+    } [cite: 60]
+    .cat-select-item.active div { [cite: 60]
+    color: var(--text) !important; [cite: 60]
+    } [cite: 60]
+    </style> [cite: 60]
+    `; [cite: 60]
+
+    window.selectModalCategory = (catId) => { [cite: 60]
+        selectedCategory = catId; [cite: 60]
+        document.querySelectorAll('.cat-select-item').forEach(el => el.classList.remove('active')); [cite: 60]
+        document.getElementById(`modal-cat-${catId}`).classList.add('active'); [cite: 60]
+    }; [cite: 60]
+
+    document.getElementById("save-new-ex-btn").onclick = () => { [cite: 60]
+        const name = document.getElementById("new-ex-name").value.trim(); [cite: 60]
+        if(!name) return alert("Ange ett namn!"); [cite: 60]
+
+        const newEx = { [cite: 60]
+            id: Date.now(), [cite: 60]
+            name, [cite: 60]
+            target: selectedCategory, [cite: 60]
+            defaultSets: 3, [cite: 60]
+            animation: "" [cite: 60]
+        }; [cite: 60]
+
+        masterExercises.push(newEx); [cite: 60]
+        saveAll(); [cite: 60]
+
+        if(callback) callback(newEx); [cite: 60]
+        else { [cite: 60]
+            closeModal(); [cite: 60]
+            filterExercises(selectedCategory); [cite: 60]
         }
-    };
-    
-    openModal();
-}
- 
-function filterExercises(category) {
-    currentExerciseCategory = category;
-    document.querySelectorAll(".cat-btn").forEach(b => b.classList.toggle("active", b.dataset.cat === category));
-    const results = document.getElementById("exercise-results");
-    results.innerHTML = "";
-    const filtered = masterExercises.filter(ex => category === "Armar" ? (ex.target === "Biceps" || ex.target === "Triceps") : ex.target === category);
-    filtered.forEach(ex => {
-        const div = document.createElement("div");
-        div.className = "card glass";
-        div.style.cssText = "padding:15px; display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; cursor:pointer;";
-        
-        div.onclick = (e) => {
-            if(e.target.tagName !== 'BUTTON') {
-                showExerciseAnimation(ex.id);
+    }; [cite: 60]
+
+    openModal(); [cite: 60]
+} [cite: 60]
+
+function filterExercises(category) { [cite: 60]
+    currentExerciseCategory = category; [cite: 60]
+    document.querySelectorAll(".cat-btn").forEach(b => b.classList.toggle("active", b.dataset.cat === category)); [cite: 61]
+    const results = document.getElementById("exercise-results"); [cite: 61]
+    results.innerHTML = ""; [cite: 61]
+    const filtered = masterExercises.filter(ex => category === "Armar" ? (ex.target === "Biceps" || ex.target === "Triceps") : ex.target === category); [cite: 62]
+    filtered.forEach(ex => { [cite: 63]
+        const div = document.createElement("div"); [cite: 63]
+        div.className = "card glass"; [cite: 63]
+        div.style.cssText = "padding:15px; display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; cursor:pointer;"; [cite: 63]
+
+        div.onclick = (e) => { [cite: 63]
+            if(e.target.tagName !== 'BUTTON') { [cite: 63]
+                showExerciseAnimation(ex.id); [cite: 63]
             }
-        };
- 
-        div.innerHTML = `<div><strong style="font-size:16px;">${ex.name}</strong><br><small style="color:var(--primary); font-weight:800; text-transform:uppercase; font-size:10px;">${ex.target}</small></div>
-        <button style="background:none; border:none; font-size:18px; cursor:pointer;" onclick="openEditExerciseModal(${ex.id})"> ⚙️ </button>`;
-        results.appendChild(div);
-    });
-}
- 
-function showExerciseAnimation(id) {
-    const ex = masterExercises.find(e => e.id == id);
-    if(!ex) return;
-    
-    const body = document.getElementById("modal-body");
-    let videoHtml = "";
-    
-    if(ex.animation) {
-        videoHtml = `
-            <div style="border-radius:16px; overflow:hidden; background:#000; margin-bottom:15px; border:1px solid var(--glass-border);">
-                <video src="${ex.animation}" autoplay loop muted playsinline style="width:100%; display:block;"></video>
-            </div>
-        `;
-    } else {
-        videoHtml = `
-            <div style="padding:40px 20px; text-align:center; background:rgba(255,255,255,0.05); border-radius:16px; margin-bottom:15px; color:var(--text-light); font-size:14px;">
-                Ingen videoanimation tillgänglig för denna övning. 🎥
-            </div>
-        `;
-    }
- 
-    body.innerHTML = `
-        <h3>${ex.name}</h3>
-        ${videoHtml}
-        <div style="text-align:left; color:var(--text-light); font-size:14px; padding:10px;">
-            <p><strong>Muskelgrupp:</strong> ${ex.target}</p>
-        </div>
-    `;
-    openModal();
-}
- 
-function openEditExerciseModal(id) {
-    const ex = masterExercises.find(e => e.id == id);
-    if(!ex) return;
-    const body = document.getElementById("modal-body");
-    
-    let selectedCategory = ex.target; 
- 
-    const categories = [
-        { id: "Ben", icon: "🦵" },
-        { id: "Bröst", icon: "🏋️" },
-        { id: "Rygg", icon: "🪵" },
-        { id: "Axlar", icon: "👐" },
-        { id: "Armar", icon: "💪" },
-        { id: "Bål", icon: "🧘" }
-    ];
- 
-    body.innerHTML = `
-        <h3 style="text-align:center; margin-bottom: 20px;">Redigera Övning</h3>
-        
-        <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
-            
-            <div style="width: 100%; max-width: 300px; margin-bottom: 10px;">
-                <label style="font-size:11px; color:var(--text-light); text-transform: uppercase; letter-spacing: 1px; display:block; margin-bottom: 8px; text-align: center;">Namn på övning</label>
-                <input type="text" id="edit-ex-name" class="log-input" value="${ex.name}" style="text-align: center;">
-            </div>
- 
-            <div style="width: 100%;">
-                <label style="font-size:11px; color:var(--text-light); text-transform: uppercase; letter-spacing: 1px; display:block; margin-bottom: 12px; text-align: center;">Välj Kategori</label>
-                
-                <div id="edit-category-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 0 10px;">
-                    ${categories.map(cat => `
-                        <div class="cat-select-item ${cat.id === selectedCategory ? 'active' : ''}" 
-                             onclick="window.selectEditModalCategory('${cat.id}')"
-                             id="edit-modal-cat-${cat.id}"
-                             style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 12px 5px; border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.2s ease;">
-                            <div style="font-size: 20px; margin-bottom: 4px;">${cat.icon}</div>
-                            <div style="font-size: 10px; font-weight: 700; color: var(--text-light);">${cat.id}</div>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
- 
-            <button class="mode-btn blue" style="width: 100%; max-width: 300px; margin-top: 15px;" onclick="handleUpdateExercise(${id})">Uppdatera</button>
-            <button class="mode-btn" style="color:var(--danger); background:none; font-size:13px; margin-top: 15px; padding: 5px;" onclick="deleteMasterExercise(${id})">Radera övning permanent</button>
-        </div>
- 
-        <style>
-            .cat-select-item.active {
-                background: rgba(59, 130, 246, 0.2) !important;
-                border-color: var(--primary) !important;
-                box-shadow: 0 0 15px rgba(59, 130, 246, 0.2);
-            }
-            .cat-select-item.active div {
-                color: var(--text) !important;
-            }
-        </style>
-    `;
- 
-    window.selectEditModalCategory = (catId) => {
-        selectedCategory = catId;
-        document.querySelectorAll('#edit-category-grid .cat-select-item').forEach(el => el.classList.remove('active'));
-        document.getElementById(`edit-modal-cat-${catId}`).classList.add('active');
-    };
- 
-    window.handleUpdateExercise = (exId) => {
-        const nameInput = document.getElementById("edit-ex-name").value.trim();
-        if(!nameInput) return alert("Namnet får inte vara tomt!");
-        
-        const exIndex = masterExercises.findIndex(e => e.id == exId);
-        if(exIndex !== -1) {
-            const oldName = masterExercises[exIndex].name;
-            updateExerciseNameInHistory(oldName, nameInput);
- 
-            masterExercises[exIndex].name = nameInput;
-            masterExercises[exIndex].target = selectedCategory; 
-            saveAll();
-            closeModal();
-            filterExercises(currentExerciseCategory);
+        }; [cite: 63]
+
+        div.innerHTML = `<div><strong style="font-size:16px;">${ex.name}</strong><br><small style="color:var(--primary); font-weight:800; text-transform:uppercase; font-size:10px;">${ex.target}</small></div> [cite: 63]
+        <button style="background:none; border:none; font-size:18px; cursor:pointer;" onclick="openEditExerciseModal(${ex.id})">  ⚙️  </button>`; [cite: 63]
+        results.appendChild(div); [cite: 63]
+    }); [cite: 63]
+} [cite: 64]
+
+function showExerciseAnimation(id) { [cite: 64]
+    const ex = masterExercises.find(e => e.id == id); [cite: 64]
+    if(!ex) return; [cite: 64]
+
+    const body = document.getElementById("modal-body"); [cite: 64]
+    let videoHtml = ""; [cite: 65]
+
+    if(ex.animation) { [cite: 65]
+        videoHtml = ` [cite: 65]
+        <div style="border-radius:16px; overflow:hidden; background:#000; margin-bottom:15px; border:1px solid var(--glass-border);"> [cite: 65]
+        <video src="${ex.animation}" autoplay loop muted playsinline style="width:100%; display:block;"></video> [cite: 65]
+        </div> [cite: 65]
+        `; [cite: 65]
+    } else { [cite: 66]
+        videoHtml = ` [cite: 66]
+        <div style="padding:40px 20px; text-align:center; background:rgba(255,255,255,0.05); border-radius:16px; margin-bottom:15px; color:var(--text-light); font-size:14px;"> [cite: 66]
+        Ingen videoanimation tillgänglig för denna övning.  🎥 [cite: 66]
+        </div> [cite: 67]
+        `; [cite: 67]
+    } [cite: 67]
+
+    body.innerHTML = ` [cite: 67]
+    <h3>${ex.name}</h3> [cite: 67]
+    ${videoHtml} [cite: 67]
+    <div style="text-align:left; color:var(--text-light); font-size:14px; padding:10px;"> [cite: 67]
+    <p><strong>Muskelgrupp:</strong> ${ex.target}</p> [cite: 67]
+    </div> [cite: 67]
+    `; [cite: 67]
+    openModal(); [cite: 67]
+} [cite: 68]
+
+function openEditExerciseModal(id) { [cite: 68]
+    const ex = masterExercises.find(e => e.id == id); [cite: 68]
+    if(!ex) return; [cite: 68]
+    const body = document.getElementById("modal-body"); [cite: 68]
+
+    let selectedCategory = ex.target; [cite: 69]
+
+    const categories = [ [cite: 69]
+        { id: "Ben", icon: " 🦵 " }, [cite: 69]
+        { id: "Bröst", icon: " 🏋️ " }, [cite: 69]
+        { id: "Rygg", icon: " 🪵 " }, [cite: 69]
+        { id: "Axlar", icon: " 👐 " }, [cite: 69]
+        { id: "Armar", icon: " 💪 " }, [cite: 69]
+        { id: "Bål", icon: " 🧘 " } [cite: 69]
+    ]; [cite: 69]
+
+    body.innerHTML = ` [cite: 70]
+    <h3 style="text-align:center; margin-bottom: 20px;">Redigera Övning</h3> [cite: 70]
+
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;"> [cite: 70]
+
+    <div style="width: 100%; max-width: 300px; margin-bottom: 10px;"> [cite: 70]
+    <label style="font-size:11px; color:var(--text-light); text-transform: uppercase; letter-spacing: 1px; display:block; margin-bottom: 8px; text-align: center;">Namn på övning</label> [cite: 70]
+    <input type="text" id="edit-ex-name" class="log-input" value="${ex.name}" style="text-align: center;"> [cite: 70]
+    </div> [cite: 70]
+
+    <div style="width: 100%;"> [cite: 70]
+    <label style="font-size:11px; color:var(--text-light); text-transform: uppercase; letter-spacing: 1px; display:block; margin-bottom: 12px; text-align: center;">Välj Kategori</label> [cite: 70]
+
+    <div id="edit-category-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 0 10px;"> [cite: 70]
+    ${categories.map(cat => ` [cite: 70]
+    <div class="cat-select-item ${cat.id === selectedCategory ? 'active' : ''}" [cite: 70]
+    onclick="window.selectEditModalCategory('${cat.id}')" [cite: 71]
+    id="edit-modal-cat-${cat.id}" [cite: 71]
+    style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 12px 5px; border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.2s ease;"> [cite: 71]
+    <div style="font-size: 20px; margin-bottom: 4px;">${cat.icon}</div> [cite: 71]
+    <div style="font-size: 10px; font-weight: 700; color: var(--text-light);">${cat.id}</div> [cite: 72]
+    </div> [cite: 72]
+    `).join('')} [cite: 72]
+    </div> [cite: 72]
+    </div> [cite: 72]
+
+    <button class="mode-btn blue" style="width: 100%; max-width: 300px; margin-top: 15px;" onclick="handleUpdateExercise(${id})">Uppdatera</button> [cite: 72]
+    <button class="mode-btn" style="color:var(--danger); background:none; font-size:13px; margin-top: 15px; padding: 5px;" onclick="deleteMasterExercise(${id})">Radera övning permanent</button> [cite: 73]
+    </div> [cite: 74]
+
+    <style> [cite: 74]
+    .cat-select-item.active { [cite: 74]
+    background: rgba(59, 130, 246, 0.2) !important; [cite: 74]
+    border-color: var(--primary) !important; [cite: 74]
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.2); [cite: 74]
+    } [cite: 74]
+    .cat-select-item.active div { [cite: 74]
+    color: var(--text) !important; [cite: 74]
+    } [cite: 74]
+    </style> [cite: 74]
+    `; [cite: 74]
+
+    window.selectEditModalCategory = (catId) => { [cite: 74]
+        selectedCategory = catId; [cite: 74]
+        document.querySelectorAll('#edit-category-grid .cat-select-item').forEach(el => el.classList.remove('active')); [cite: 74]
+        document.getElementById(`edit-modal-cat-${catId}`).classList.add('active'); [cite: 74]
+    }; [cite: 74]
+
+    window.handleUpdateExercise = (exId) => { [cite: 74]
+        const nameInput = document.getElementById("edit-ex-name").value.trim(); [cite: 74]
+        if(!nameInput) return alert("Namnet får inte vara tomt!"); [cite: 74]
+
+        const exIndex = masterExercises.findIndex(e => e.id == exId); [cite: 74]
+        if(exIndex !== -1) { [cite: 74]
+            const oldName = masterExercises[exIndex].name; [cite: 74]
+            updateExerciseNameInHistory(oldName, nameInput); [cite: 75]
+
+            masterExercises[exIndex].name = nameInput; [cite: 75]
+            masterExercises[exIndex].target = selectedCategory; [cite: 75]
+            saveAll(); [cite: 75]
+            closeModal(); [cite: 75]
+            filterExercises(currentExerciseCategory); [cite: 75]
         }
-    };
- 
-    openModal();
-}
- 
-function updateExerciseNameInHistory(oldName, newName) {
-    if (!oldName || !newName || oldName === newName) return;
- 
-    let updatedCount = 0;
- 
-    workoutHistory.forEach(workout => {
-        if (workout.exercises && Array.isArray(workout.exercises)) {
-            workout.exercises.forEach(exercise => {
-                if (exercise.name === oldName) {
-                    exercise.name = newName;
-                    updatedCount++;
+    }; [cite: 75]
+
+    openModal(); [cite: 75]
+} [cite: 75]
+
+function updateExerciseNameInHistory(oldName, newName) { [cite: 75]
+    if (!oldName || !newName || oldName === newName) return; [cite: 75]
+
+    let updatedCount = 0; [cite: 76]
+
+    workoutHistory.forEach(workout => { [cite: 76]
+        if (workout.exercises && Array.isArray(workout.exercises)) { [cite: 76]
+            workout.exercises.forEach(exercise => { [cite: 76]
+                if (exercise.name === oldName) { [cite: 76]
+                    exercise.name = newName; [cite: 76]
+                    updatedCount++; [cite: 76]
                 }
-            });
+            }); [cite: 76]
         }
-    });
- 
-    if (updatedCount > 0) {
-        saveAll();
-        console.log(`Historiken uppdaterad: Ändrade "${oldName}" till "${newName}" på ${updatedCount} ställen.`);
-    }
+    }); [cite: 76]
+
+    if (updatedCount > 0) { [cite: 77]
+        saveAll(); [cite: 77]
+        console.log(`Historiken uppdaterad: Ändrade "${oldName}" till "${newName}" på ${updatedCount} ställen.`); [cite: 77]
+    } [cite: 78]
 }
 
-function renderCalendar(isFromStartBtn = false) {
-    const grid = document.getElementById("calendar-grid");
-    const label = document.getElementById("month-label");
-    const infoBox = document.getElementById("calendar-info-box");
-    
+function renderCalendar(isFromStartBtn = false) { [cite: 78]
+    const grid = document.getElementById("calendar-grid"); [cite: 78]
+    const label = document.getElementById("month-label"); [cite: 78]
+    const infoBox = document.getElementById("calendar-info-box"); [cite: 78]
+
     // SÄKERHETSKONTROLL: Om vi inte är på kalendervyn, avbryt eller visa vyn först
-    if (!grid || !label || !infoBox) {
-        console.warn("Kalender-element hittades inte. Försöker byta vy...");
-        showView("calendar-view");
+    if (!grid || !label || !infoBox) { [cite: 79]
+        console.warn("Kalender-element hittades inte. Försöker byta vy..."); [cite: 79]
+        showView("calendar-view"); [cite: 80]
         // Använd setTimeout för att låta DOM hinna rendera innan vi kör logiken igen
-        setTimeout(() => renderCalendar(isFromStartBtn), 50);
-        return;
-    }
-    
-    grid.innerHTML = "";
-    infoBox.innerHTML = ""; 
-    
-    if(isFromStartBtn === true) {
-        infoBox.innerHTML = `<div style="background:rgba(34, 211, 238, 0.1); padding:12px; border-radius:12px; margin-bottom:15px; font-size:13px; text-align:center; color:var(--primary); border:1px solid var(--primary);">
-            Välj vilken dag du vill starta eller schemalägga ett pass i kalendern nedan 📅
-        </div>`;
-    }
+        setTimeout(() => renderCalendar(isFromStartBtn), 50); [cite: 80]
+        return; [cite: 80]
+    } [cite: 80]
+    grid.innerHTML = ""; [cite: 81]
+    infoBox.innerHTML = ""; [cite: 81]
+    if(isFromStartBtn === true) { [cite: 81]
+        infoBox.innerHTML = `<div style="background:rgba(34, 211, 238, 0.1); padding:12px; border-radius:12px; margin-bottom:15px; font-size:13px; text-align:center; color:var(--primary); border:1px solid var(--primary);"> Välj vilken dag du vill starta eller schemalägga ett pass i kalendern nedan 📅 </div>`; [cite: 81]
+    } [cite: 81]
+    const year = currentViewDate.getFullYear(); [cite: 82]
+    const month = currentViewDate.getMonth(); [cite: 82]
+    const monthText = currentViewDate.toLocaleString('sv-SE', { month: 'long', year: 'numeric' }); [cite: 82]
+    label.textContent = monthText.charAt(0).toUpperCase() + monthText.slice(1); [cite: 83]
+    const firstDay = new Date(year, month, 1).getDay(); [cite: 83]
+    const offset = firstDay === 0 ? 6 : firstDay - 1; [cite: 83]
+    const daysInMonth = new Date(year, month + 1, 0).getDate(); [cite: 84]
+    const now = new Date(); [cite: 84]
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`; [cite: 85]
+    for (let i = 0; i < offset; i++) { [cite: 85]
+        const emptyDiv = document.createElement("div"); [cite: 85]
+        grid.appendChild(emptyDiv); [cite: 86]
+    } [cite: 86]
+    for (let d = 1; d <= daysInMonth; d++) { [cite: 86]
+        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`; [cite: 86]
+        const cell = document.createElement("div"); [cite: 87]
+        cell.className = "calendar-cell"; [cite: 87]
+        if (dateStr === todayStr) { [cite: 87]
+            cell.classList.add("today"); [cite: 87]
+        } [cite: 88]
+        const hasWorkouts = workoutHistory.filter(w => w.date === dateStr); [cite: 88]
+        const isOngoing = activeDraft && activeDraft.date === dateStr && activeDraft.isStarted; [cite: 88]
+        const dayOfWeek = new Date(year, month, d).getDay(); [cite: 89]
+        const isAutoDay = [1, 3, 5].includes(dayOfWeek); [cite: 89]
+        const override = calendarOverrides[dateStr]; [cite: 89]
+        let displayPass = null; [cite: 90]
+        if (override && override !== "none") displayPass = programData.routine.find(p => p.id === override); [cite: 90]
+        else if (isAutoDay && override !== "none") displayPass = programData.routine[d % programData.routine.length]; [cite: 91]
+        let info = ""; [cite: 91]
+        if (hasWorkouts.length > 0) { [cite: 91]
+            cell.classList.add("cell-completed"); [cite: 92]
+            info = "✓"; [cite: 92]
+        } else if (isOngoing) { [cite: 92]
+            cell.classList.add("cell-ongoing"); [cite: 92]
+            info = displayPass ? displayPass.name.split(" ").pop() : ""; [cite: 92]
+        } else if (displayPass) { [cite: 93]
+            cell.classList.add("cell-planned"); [cite: 93]
+            info = displayPass.name.split(" ").pop(); [cite: 93]
+        } [cite: 93]
+        cell.innerHTML = `<span>${d}</span><div class="cell-info">${info}</div>`; [cite: 93]
+        cell.onclick = () => openDayManager(dateStr, displayPass, hasWorkouts, isOngoing); [cite: 94]
+        grid.appendChild(cell); [cite: 94]
+    } [cite: 94]
+    showView("calendar-view"); [cite: 94]
+} [cite: 95]
 
-    const year = currentViewDate.getFullYear();
-    const month = currentViewDate.getMonth();
-    const monthText = currentViewDate.toLocaleString('sv-SE', { month: 'long', year: 'numeric' });
-    label.textContent = monthText.charAt(0).toUpperCase() + monthText.slice(1);
-    
-    const firstDay = new Date(year, month, 1).getDay();
-    const offset = firstDay === 0 ? 6 : firstDay - 1;
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
+function showExercisesForWorkout(idx) { [cite: 95]
+    console.log("Visar övningar för workout idx:", idx); [cite: 95]
+} [cite: 95]
 
-    const now = new Date();
-    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+function startPress(idx, event) { [cite: 95]
+    if (!event.target.classList.contains('plan-override-btn')) return; [cite: 95]
+    isLongPress = false; [cite: 96]
+    hasScrolled = false; [cite: 96]
+    if (event.touches) { [cite: 96]
+        touchStartY = event.touches[0].clientY; [cite: 96]
+    } [cite: 97]
+    pressTimer = setTimeout(() => { [cite: 97]
+        isLongPress = true; [cite: 97]
+        showExercisesForWorkout(idx); [cite: 97]
+    }, 500); [cite: 97]
+    touchTimeout = setTimeout(() => { [cite: 97]
+        isLongPress = true; [cite: 98]
+        openProgramPreviewModal(idx); [cite: 98]
+    }, 500); [cite: 98]
+} [cite: 98]
 
-    for (let i = 0; i < offset; i++) {
-        const emptyDiv = document.createElement("div");
-        grid.appendChild(emptyDiv);
-    }
-    
-    for (let d = 1; d <= daysInMonth; d++) {
-        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-        const cell = document.createElement("div");
-        cell.className = "calendar-cell";
-        
-        if (dateStr === todayStr) {
-            cell.classList.add("today");
-        }
+function cancelPress() { [cite: 98]
+    if (pressTimer) { [cite: 98]
+        clearTimeout(pressTimer); [cite: 98]
+        pressTimer = null; [cite: 99]
+    } [cite: 99]
+    if (touchTimeout) { [cite: 99]
+        clearTimeout(touchTimeout); [cite: 99]
+        touchTimeout = null; [cite: 100]
+    } [cite: 100]
+} [cite: 100]
 
-        const hasWorkouts = workoutHistory.filter(w => w.date === dateStr);
-        const isOngoing = activeDraft && activeDraft.date === dateStr && activeDraft.isStarted;
-        const dayOfWeek = new Date(year, month, d).getDay();
-        const isAutoDay = [1, 3, 5].includes(dayOfWeek);
-        const override = calendarOverrides[dateStr];
-        let displayPass = null;
-        
-        if (override && override !== "none") displayPass = programData.routine.find(p => p.id === override);
-        else if (isAutoDay && override !== "none") displayPass = programData.routine[d % programData.routine.length];
-        
-        let info = "";
-        if (hasWorkouts.length > 0) { cell.classList.add("cell-completed"); info = "✓"; }
-        else if (isOngoing) { cell.classList.add("cell-ongoing"); info = displayPass ? displayPass.name.split(" ").pop() : ""; }
-        else if (displayPass) { cell.classList.add("cell-planned"); info = displayPass.name.split(" ").pop(); }
-        
-        cell.innerHTML = `<span>${d}</span><div class="cell-info">${info}</div>`;
-        cell.onclick = () => openDayManager(dateStr, displayPass, hasWorkouts, isOngoing);
-        grid.appendChild(cell);
-    }
-    
-    showView("calendar-view");
-}
- 
-function showExercisesForWorkout(idx) {
-    console.log("Visar övningar för workout idx:", idx);
-}
- 
-function startPress(idx, event) {
-    if (!event.target.classList.contains('plan-override-btn')) return;
- 
-    isLongPress = false;
-    hasScrolled = false;
-    
-    if (event.touches) {
-        touchStartY = event.touches[0].clientY;
-    }
- 
-    pressTimer = setTimeout(() => {
-        isLongPress = true;
-        showExercisesForWorkout(idx); 
-    }, 500);
- 
-    touchTimeout = setTimeout(() => {
-        isLongPress = true;
-        openProgramPreviewModal(idx);
-    }, 500);
-}
- 
-function cancelPress() {
-    if (pressTimer) {
-        clearTimeout(pressTimer);
-        pressTimer = null;
-    }
-    if (touchTimeout) {
-        clearTimeout(touchTimeout);
-        touchTimeout = null;
-    }
-}
- 
-function handleTouchMove(event) {
-    if (event && event.touches && event.touches[0] && touchStartY > 0) {
-        const currentY = event.touches[0].clientY;
-        const moveDistance = Math.abs(currentY - touchStartY);
-        
-        if (moveDistance > 6) { 
-            hasScrolled = true;
-            cancelPress();
-        }
-    }
-}
- 
-function handleTouchEnd(idx, dateStr, programId, event) {
-    cancelPress();
-    
-    if (hasScrolled || isLongPress) {
-        if (event) {
-            if (event.cancelable) event.preventDefault();
-            event.stopPropagation();
-        }
-        return false;
-    }
-    
-    if (event && event.cancelable) {
-        event.preventDefault();
-    }
-    
-    setOverrideSilent(dateStr, programId);
-}
- 
-function openProgramPreviewModal(idx) {
-    const pass = programData.routine[idx];
-    
-    let previewModal = document.getElementById("preview-modal");
-    if (!previewModal) {
-        previewModal = document.createElement("div");
-        previewModal.id = "preview-modal";
-        previewModal.style.position = "fixed";
-        previewModal.style.top = "0";
-        previewModal.style.left = "0";
-        previewModal.style.width = "100vw";
-        previewModal.style.height = "100vh";
-        previewModal.style.backgroundColor = "rgba(0, 0, 0, 0.75)";
-        previewModal.style.backdropFilter = "blur(8px)";
-        previewModal.style.display = "flex";
-        previewModal.style.justifyContent = "center";
-        previewModal.style.alignItems = "flex-start"; 
-        previewModal.style.zIndex = "10000"; 
-        previewModal.style.transition = "opacity 0.2s ease-out";
-        document.body.appendChild(previewModal);
-    }
- 
-    previewModal.style.opacity = "0";
-    previewModal.style.display = "flex";
- 
-    previewModal.innerHTML = `
-        <div id="preview-modal-card" class="card glass" style="width: 90%; max-width: 400px; padding: 20px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); background: rgba(15, 23, 42, 0.95); margin-top: 40px; 
-           transition: all 0.2s ease-out; transform: scale(0.95); opacity: 0;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.08);">
-                <h3 style="margin: 0; font-size: 20px; color: #fff;">${pass.name}</h3>
-                <button onclick="closePreviewModal()" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--text-light); cursor: pointer; font-size: 14px; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">✖</button>
-            </div>
-            
-            <div style="max-height: 65vh; overflow-y: auto; display: flex; flex-direction: column; gap: 2px;">
-                ${pass.exercises.map(e => `
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 4px; border-bottom: 1px solid rgba(255,255,255,0.03);">
-                        <span style="font-weight: 600; color: #ffffff; font-size: 14px;">${e.name}</span>
-                        <small style="color: var(--primary); font-weight: 800; text-transform: uppercase; font-size: 10px; background: rgba(59, 130, 246, 0.1); padding: 4px 8px; border-radius: 6px;">${e.target || 'Övning'}</small>
-                    </div>
-                `).join("")}
-            </div>
-            
-            <button onclick="closePreviewModal()" style="width: 100%; margin-top: 20px; padding: 12px; background: var(--primary); color: #0f172a; border: none; border-radius: 12px; font-weight: 700; cursor: pointer;">
-                Stäng översikt
-            </button>
-        </div>
-    `;
- 
-    setTimeout(() => {
-        previewModal.style.opacity = "1";
-        const card = document.getElementById("preview-modal-card");
-        if (card) {
-            card.style.opacity = "1";
-            card.style.transform = "scale(1)";
-        }
-    }, 10);
-}
- 
-function closePreviewModal() {
-    const previewModal = document.getElementById("preview-modal");
-    const card = document.getElementById("preview-modal-card");
-    
-    if (card && previewModal) {
-        card.style.opacity = "0";
-        card.style.transform = "scale(0.95)";
-        previewModal.style.opacity = "0";
-        
-        setTimeout(() => {
-            previewModal.style.display = "none";
-        }, 200);
-    }
-}
- function openDayManager(dateStr, planned, completed, isOngoing) {
-    if (typeof hideDefaultCloseButton === 'function') {
-        hideDefaultCloseButton(false);
-    }
- 
-    const body = document.getElementById("modal-body");
-    
-    if (body) {
-        body.style.display = "flex";
-        body.style.flexDirection = "column";
-        body.style.justifyContent = "flex-start"; 
-        body.style.alignItems = "stretch";
-        body.style.gap = "20px"; 
-    }
-    
-    let html = `
-        <div style="text-align: center; margin: 0 !important; padding: 0 !important;">
-            <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: var(--text-light); font-weight: 600; display: block; margin: 0 !important; padding: 0 !important;">Valt datum</span>
-            <h2 class="section-title modern-header" style="margin: 8px 0 0 0 !important; padding: 0 !important; display: inline-block; font-size: 26px; line-height: 1.1 !important;">
-                ${dateStr}
-            </h2>
-        </div>
-    `;
-    
-    if (completed.length > 0) {
-        completed.forEach((w, idx) => {
-            const timeStr = w.totalTime ? `⏱️ ${w.totalTime}` : "";
-            html += `
-            <div class="card glass" style="border-left: 4px solid #22c55e; text-align: left; margin: 0; padding: 15px; border-radius: 16px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                    <div>
-                        <strong style="font-size: 16px; color: var(--text); display: block;">${w.programName}</strong>
-                        <span style="font-size: 11px; color: var(--text-light); font-weight: 500;">${timeStr || 'Slutfört pass ✅'}</span>
-                    </div>
-                    <div style="display: flex; gap: 5px;">
-                        <button onclick="editLoggedWorkout('${dateStr}', ${idx})" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--primary); cursor: pointer; font-size: 14px; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">✏️</button>
-                        <button onclick="openConfirmDeleteModal('${dateStr}', ${idx})" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: var(--danger); cursor: pointer; font-size: 12px; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">✖</button>
-                    </div>
-                </div>
-                
-                <div style="background: rgba(0,0,0,0.15); padding: 12px; border-radius: 12px; display: flex; flex-direction: column; gap: 10px;">`;
-            
-            w.exercises.forEach(ex => {
-                html += `
-                <div style="font-size: 13px;">
-                    <span style="color: var(--text); font-weight: 600; display: block; margin-bottom: 8px;">${ex.name}</span>
-                    <div style="display: flex; flex-direction: column; gap: 6px;">`;
-                
-                if(ex.sets_data) {
-                    ex.sets_data.forEach((s, sIdx) => {
-                        const wVal = s.weight || 0;
-                        const rVal = s.reps || 0;
-                        html += `
-                        <div style="background: rgba(59, 130, 246, 0.08); border: 1px solid var(--primary); padding: 6px 12px; border-radius: 8px; width: fit-content; display: flex; align-items: center; gap: 8px;">
-                            <span style="color: var(--primary); font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">Set ${sIdx+1}</span> 
-                            <span style="color: #ffffff; font-size: 13px; font-weight: 600;">${wVal} <small style="color: var(--primary); font-weight: 700;">kg</small> × ${rVal} <small style="color: var(--primary); font-weight: 700;">reps</small></span>
-                        </div>`;
-                    });
-                } else {
-                    html += `<small style="color: var(--text-light);">Inga set registrerade</small>`;
-                }
-                
-                html += `</div></div>`;
-            });
-            
-            html += `</div></div>`;
-        });
-    }
-    
-    if (isOngoing) {
-        html += `
-        <div class="card glass" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(251, 146, 60, 0.1) 100%); border-left: 4px solid #f59e0b; text-align: center; margin: 0; padding: 20px;">
-            <div style="font-size: 32px; margin-bottom: 10px;">🔥</div>
-            <strong style="font-size: 16px; color: var(--text); display: block; margin-bottom: 8px;">Pågående träningspass</strong>
-            <p style="color: var(--text-light); font-size: 13px; margin-bottom: 15px;">Du har ett aktivt pass som inte är slutfört än.</p>
-            <button class="mode-btn" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #fff; width: 100%;" onclick="closeModal(); startWorkout(activeDraft.workout, activeDraft.data, activeDraft.date)">Fortsätt träna</button>
-        </div>`;
-    }
-    
-    if (planned && !isOngoing) {
-        html += `
-        <div style="margin: 0;">
-            <p style="font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-light); text-align: center; margin-bottom: 12px; font-weight: 600;">Planerat pass</p>
-            <div class="card glass" style="border-left: 4px solid var(--primary); text-align: center; margin: 0; padding: 20px;">
-                <strong style="font-size: 18px; color: var(--text); display: block; margin-bottom: 15px;">${planned.name}</strong>
-                <button class="mode-btn green" style="width: 100%; padding: 15px; font-weight: 700;" onclick="prepareStart('${dateStr}', '${planned.id}')">Starta detta pass 🚀</button>
-            </div>
-        </div>`;
-    }
-    
-    if (!isOngoing) {
-        html += `
-        <div style="margin: 0;">
-            <p style="font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-light); text-align: center; margin-bottom: 12px; font-weight: 600;">Byt till annat pass</p>
-            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">`;
-        
-        programData.routine.forEach((p, i) => {
-            const isCurrentlyPlanned = planned && planned.id === p.id;
-            html += `
-                <button 
-                    class="plan-override-btn card glass ${isCurrentlyPlanned ? 'active-plan' : ''}" 
-                    ontouchstart="startPress(${i}, event)" 
-                    ontouchmove="handleTouchMove(event)" 
-                    ontouchend="handleTouchEnd(${i}, '${dateStr}', '${p.id}', event)"
-                    onmousedown="startPress(${i}, event)" 
-                    onmouseup="cancelPress(); handleTouchEnd(${i}, '${dateStr}', '${p.id}', event)"
-                    onmouseleave="cancelPress()"
-                    style="padding: 15px 10px; text-align: center; cursor: pointer; font-size: 13px; font-weight: 600; border-radius: 12px; transition: all 0.2s; border: 1px solid ${isCurrentlyPlanned ? 'var(--primary)' : 'rgba(255,255,255,0.1)'}; background: ${isCurrentlyPlanned ? 'rgba(59, 130, 246, 0.15)' : 'rgba(255,255,255,0.03)'}; color: ${isCurrentlyPlanned ? 'var(--primary)' : 'var(--text)'};">
-                    ${p.name} ${isCurrentlyPlanned ? '✓' : ''}
-                </button>`;
-        });
-        
-        html += `</div></div>`;
-        
-        html += `
-        <div style="margin: 0;">
-            <button class="mode-btn glass-border" style="width: 100%; padding: 12px; font-size: 13px;" onclick="setOverride('${dateStr}', 'none')">
-                🧘 Markera som vilodag
-            </button>
-        </div>`;
-    }
-    
-    body.innerHTML = html;
-    openModal();
-}
- 
-function setOverrideSilent(dateStr, programId) {
-    calendarOverrides[dateStr] = programId;
-    saveAll();
-    renderCalendar();
-    closeModal();
-}
- 
-// ============================================================================
-// PROGRAM/PASS-HANTERING
-// ============================================================================
-function renderProgramView(selectedIdx = null) {
-    // ÄNDRAD: Hittar nu rätt ID baserat på din HTML ("pass-selector-list")
-    const list = document.getElementById("pass-selector-list");
-    
-    if (!list) {
-        console.warn("Elementet 'pass-selector-list' hittades inte i DOM:en.");
-        return;
-    }
-    
-    list.innerHTML = "";
-    
-    // SÄKERHETSSPÄRR: Om programData inte har laddats från Supabase/LocalStorage än
-    if (!programData || !programData.routine) {
-        console.warn("programData.routine är inte redo än.");
-        list.innerHTML = "<p style='padding:15px;'>Laddar program...</p>";
-        showView("programs-view");
-        return;
-    }
-    
-    programData.routine.forEach((p, i) => {
-        const div = document.createElement("div");
-        div.className = "card glass";
-        div.style.cssText = "padding:15px; margin-bottom:10px; cursor:pointer; display:flex; justify-content:space-between; align-items:center;";
-        div.innerHTML = `
-            <div onclick="showProgramDetails(${i})" style="flex-grow:1;">
-                <strong style="font-size:16px;">${p.name}</strong><br>
-                <small style="color:var(--text-light);">${p.exercises.length} övningar</small>
-            </div>
-            <button style="background:none; border:none; font-size:18px; cursor:pointer; padding:8px;" onclick="event.stopPropagation(); openEditProgramModal(${i})">⚙️</button>
-        `;
-        list.appendChild(div);
-    });
-    
-    if (selectedIdx !== null) {
-        showProgramDetails(selectedIdx);
-    }
-    
-    showView("programs-view");
-}
- 
-function showProgramDetails(idx) {
-    const p = programData.routine[idx];
-    const area = document.getElementById("program-details-area");
-    area.classList.remove("hidden");
-    area.innerHTML = `
-        <h3 class="section-title modern-header">${p.name}</h3>
-        <div style="display:flex; flex-direction:column; gap:8px;">
-            ${p.exercises.map(ex => `
-                <div class="card glass" style="padding:12px; display:flex; justify-content:space-between; align-items:center;">
-                    <div>
-                        <strong style="font-size:14px;">${ex.name}</strong><br>
-                        <small style="color:var(--primary); font-weight:800; text-transform:uppercase; font-size:10px;">${ex.target}</small>
-                    </div>
-                </div>
-            `).join("")}
-        </div>
-        <button class="mode-btn glass-border" style="margin-top:15px;" onclick="openEditProgramModal(${idx})">Redigera Pass</button>
-        <button class="mode-btn" style="background:none; color:var(--danger); font-size:13px; margin-top:10px; border:1px solid rgba(239, 68, 68, 0.2);" onclick="deleteEntireProgram(${idx})">Radera Pass Permanent</button>
-    `;
-}
- 
-function openEditProgramModal(pIdx) {
-    const p = programData.routine[pIdx];
-    const body = document.getElementById("modal-body");
-    body.innerHTML = `
-        <h3>Redigera Pass</h3>
-        <label style="font-size:12px; color:var(--text-light); text-align:left; display:block; margin-left:10px;">NAMN PÅ PASS</label>
-        <input type="text" id="edit-pass-name" class="log-input" value="${p.name}">
-        <p style="font-size:12px; color:var(--text-light); text-align:center; margin-top:20px;">ÖVNINGAR I PASSET:</p>
-        <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:15px;">
-            ${p.exercises.map((ex, eIdx) => `
-                <div class="card glass" style="padding:10px; display:flex; justify-content:space-between; align-items:center;">
-                    <strong style="font-size:13px;">${ex.name}</strong>
-                    <div style="display:flex; gap:5px;">
-                        <button class="reorder-btn" onclick="moveExercise(${pIdx}, ${eIdx}, -1)">▲</button>
-                        <button class="reorder-btn" onclick="moveExercise(${pIdx}, ${eIdx}, 1)">▼</button>
-                        <button style="background:none; border:none; color:var(--danger); font-size:16px; cursor:pointer;" onclick="removeExFromPass(${pIdx}, ${eIdx})">×</button>
-                    </div>
-                </div>
-            `).join("")}
-        </div>
-        <p style="font-size:12px; color:var(--text-light); text-align:center; margin-bottom:10px;">LÄGG TILL ÖVNING:</p>
-        <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:8px; margin-bottom:15px;">
-            ${masterExercises.map(ex => `
-                <button class="mode-btn glass-border" style="padding:10px; font-size:11px;" onclick="addExerciseToPassDirectly(${pIdx}, ${ex.id})">${ex.name}</button>
-            `).join("")}
-        </div>
-        <button class="mode-btn blue" onclick="saveProgramEdit(${pIdx})">Spara Ändringar</button>
-    `;
-    openModal();
-}
+function handleTouchMove(event) { [cite: 100]
+    if (event && event.touches && event.touches[0] && touchStartY > 0) { [cite: 100]
+        const currentY = event.touches[0].clientY; [cite: 100]
+        const moveDistance = Math.abs(currentY - touchStartY); [cite: 101]
+        if (moveDistance > 6) { [cite: 101]
+            hasScrolled = true; [cite: 101]
+            cancelPress(); [cite: 101]
+        } [cite: 102]
+    } [cite: 102]
+} [cite: 102]
 
-function moveExercise(pIdx, eIdx, dir) {
-    const newIdx = eIdx + dir;
-    if (newIdx < 0 || newIdx >= programData.routine[pIdx].exercises.length) return;
-    
-    [programData.routine[pIdx].exercises[eIdx], programData.routine[pIdx].exercises[newIdx]] = 
-    [programData.routine[pIdx].exercises[newIdx], programData.routine[pIdx].exercises[eIdx]];
-    
-    saveAll();
-    openEditProgramModal(pIdx);
-}
- 
-function removeExFromPass(pIdx, eIdx) {
-    programData.routine[pIdx].exercises.splice(eIdx, 1);
-    saveAll();
-    openEditProgramModal(pIdx);
-}
- 
-function addExerciseToPassDirectly(pIdx, exId) {
-    const ex = masterExercises.find(e => e.id == exId);
-    if (!ex) return;
-    
-    programData.routine[pIdx].exercises.push({ name: ex.name, target: ex.target });
-    saveAll();
-    openEditProgramModal(pIdx);
-}
- 
-function saveProgramEdit(pIdx) {
-    const newName = document.getElementById("edit-pass-name").value.trim();
-    if (!newName) return alert("Namnet får inte vara tomt!");
-    
-    programData.routine[pIdx].name = newName;
-    saveAll();
-    closeModal();
-    renderProgramView(pIdx);
-}
- 
-function openCreateProgramModal() {
-    const body = document.getElementById("modal-body");
-    body.innerHTML = `
-        <h3>Skapa Nytt Pass</h3>
-        <label style="font-size:12px; color:var(--text-light); text-align:left; display:block; margin-left:10px;">NAMN PÅ PASS</label>
-        <input type="text" id="new-pass-name" class="log-input" placeholder="T.ex. Överkropp A">
-        <p style="font-size:12px; color:var(--text-light); text-align:center; margin-top:20px;">VÄLJ ÖVNINGAR:</p>
-        <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:8px; margin-bottom:15px;" id="new-pass-exercise-grid">
-            ${masterExercises.map(ex => `
-                <button class="mode-btn glass-border exercise-select-btn" data-ex-id="${ex.id}" style="padding:10px; font-size:11px;" onclick="toggleExerciseForNewPass(${ex.id}, this)">${ex.name}</button>
-            `).join("")}
-        </div>
-        <button class="mode-btn blue" onclick="saveNewProgram()">Skapa Pass</button>
-    `;
-    openModal();
-}
- 
-let newPassSelectedExercises = [];
- 
-function toggleExerciseForNewPass(exId, btn) {
-    const index = newPassSelectedExercises.indexOf(exId);
-    if (index > -1) {
-        newPassSelectedExercises.splice(index, 1);
-        btn.style.background = "rgba(255,255,255,0.03)";
-        btn.style.borderColor = "rgba(255,255,255,0.1)";
-        btn.style.color = "var(--text)";
-    } else {
-        newPassSelectedExercises.push(exId);
-        btn.style.background = "rgba(59, 130, 246, 0.15)";
-        btn.style.borderColor = "var(--primary)";
-        btn.style.color = "var(--primary)";
-    }
-}
- 
-function saveNewProgram() {
-    const name = document.getElementById("new-pass-name").value.trim();
-    if (!name) return alert("Ange ett namn!");
-    if (newPassSelectedExercises.length === 0) return alert("Välj minst en övning!");
-    
-    const exercises = newPassSelectedExercises.map(exId => {
-        const ex = masterExercises.find(e => e.id == exId);
-        return { name: ex.name, target: ex.target };
-    });
-    
-    const newProgram = {
-        id: "custom-" + Date.now(),
-        name: name,
-        exercises: exercises
-    };
-    
-    programData.routine.push(newProgram);
-    saveAll();
-    
-    newPassSelectedExercises = [];
-    closeModal();
-    renderProgramView();
-}
- 
-// ============================================================================
-// AKTIVT TRÄNINGSPASS
-// ============================================================================
-function startWorkout(workout, existingData = null, date = null, isNewStart = false) {
-    if (activeDraft && !isNewStart) {
-        renderActiveWorkout();
-        showView("workout-view");
-        return;
-    }
-    
-    const targetDate = date || new Date().toISOString().split('T')[0];
-    
-    let dataObj;
-    if (existingData) {
-        dataObj = existingData;
-    } else {
-        dataObj = workout.exercises.map(ex => {
-            const history = getExerciseHistory(ex.name);
-            if (history) {
-                return { sets_data: JSON.parse(JSON.stringify(history)), isCompleted: false };
-            }
-            return { sets_data:[{ weight: "", reps: "" }, { weight: "", reps: "" }, { weight: "", reps: "" }], isCompleted: false };
-        });
-    }
-    
-    const isFrittPass = workout.name === "Fritt Pass";
-    
-    activeDraft = {
-        workout: workout,
-        dataObj,
-        date: targetDate,
-        secondsElapsed: 0,
-        isStarted: isNewStart,
-        wasTimerRunning: false,
-        ui_state: {
-            openExercises: isFrittPass ? [0] : []
-        }
-    };
-    
-    persistActiveWorkout();
-    renderActiveWorkout();
-    showView("workout-view");
-}
- 
-function getExerciseHistory(exerciseName) {
-    for (let i = workoutHistory.length - 1; i >= 0; i--) {
-        const workout = workoutHistory[i];
-        const ex = workout.exercises.find(e => e.name === exerciseName);
-        if (ex && ex.sets_data) {
-            return ex.sets_data.map(s => ({ weight: s.weight, reps: s.reps }));
-        }
-    }
-    return null;
-}
- 
-function renderActiveWorkout() {
-    const container = document.getElementById("active-workout-container");
-    const isFrittPass = activeDraft.workout.name === "Fritt Pass";
-    
-    let html = `<h2 class="section-title modern-header">${activeDraft.workout.name}</h2>`;
-    
-    if (isFrittPass) {
-        html += `
-        <div style="background: rgba(34, 211, 238, 0.1); padding: 12px; border-radius: 12px; margin-bottom: 20px; text-align: center; border: 1px solid var(--primary);">
-            <p style="font-size: 13px; color: var(--primary); margin: 0;">
-                🎯 Fritt pass – Lägg till övningar efter behov!
-            </p>
-        </div>`;
-    }
-    
-    activeDraft.workout.exercises.forEach((ex, i) => {
-        const isOpen = isFrittPass ? activeDraft.ui_state.openExercises.includes(i) : true;
-        const exData = activeDraft.data[i];
-        const allSetsConfirmed = exData.sets_data.every(s => s.userConfirmed);
-        
-        html += `
-        <div class="card glass" style="margin-bottom: 15px; padding: 0; overflow: hidden; border: 1px solid ${allSetsConfirmed ? '#22c55e' : 'rgba(255,255,255,0.08)'}; border-left: 4px solid ${allSetsConfirmed ? '#22c55e' : 'var(--primary)'};">
-            <div style="padding: 15px; display: flex; justify-content: space-between; align-items: center; cursor: ${isFrittPass ? 'pointer' : 'default'};" ${isFrittPass ? `onclick="toggleExerciseCard(${i})"` : ''}>
-                <div style="display: flex; align-items: center; gap: 12px;">
-                    ${isFrittPass ? `<span style="font-size: 18px;">${isOpen ? '▼' : '▶'}</span>` : ''}
-                    <div>
-                        <strong style="font-size: 16px; display: block;">${ex.name}</strong>
-                        <small style="color: var(--primary); font-weight: 800; text-transform: uppercase; font-size: 10px;">${ex.target}</small>
-                    </div>
-                </div>
-                <div style="display: flex; gap: 8px; align-items: center;">
-                    ${allSetsConfirmed ? '<span style="font-size: 20px;">✅</span>' : ''}
-                    ${isFrittPass ? `
-                        <button class="reorder-btn" onclick="event.stopPropagation(); moveActiveExercise(${i}, -1)" ${i === 0 ? 'disabled style="opacity:0.3;"' : ''}>▲</button>
-                        <button class="reorder-btn" onclick="event.stopPropagation(); moveActiveExercise(${i}, 1)" ${i === activeDraft.workout.exercises.length - 1 ? 'disabled style="opacity:0.3;"' : ''}>▼</button>
-                        <button style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: var(--danger); cursor: pointer; font-size: 14px; width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center;" onclick="event.stopPropagation(); removeActiveExercise(${i})">×</button>
-                    ` : ''}
-                </div>
-            </div>`;
-        
-        if (isOpen) {
-            html += `<div style="padding: 0 15px 15px 15px; display: flex; flex-direction: column; gap: 10px;">`;
-            
-            exData.sets_data.forEach((set, sIdx) => {
-                const isConfirmed = set.userConfirmed;
-                html += `
-                <div style="background: ${isConfirmed ? 'rgba(34, 197, 94, 0.1)' : 'rgba(255,255,255,0.03)'}; padding: 12px; border-radius: 12px; border: 1px solid ${isConfirmed ? '#22c55e' : 'rgba(255,255,255,0.08)'}; display: flex; align-items: center; justify-content: space-between; gap: 10px;">
-                    <span style="color: var(--primary); font-size: 11px; font-weight: 800; text-transform: uppercase; min-width: 50px;">Set ${sIdx + 1}</span>
-                    <input type="number" id="w-${i}-${sIdx}" class="log-input" placeholder="Vikt" value="${set.weight || ''}" onchange="updateSetDataOnly(${i}, ${sIdx})" style="flex: 1; text-align: center; padding: 10px; font-size: 14px;">
-                    <span style="color: var(--text-light); font-size: 12px;">kg</span>
-                    <input type="number" id="r-${i}-${sIdx}" class="log-input" placeholder="Reps" value="${set.reps || ''}" onchange="updateSetDataOnly(${i}, ${sIdx})" style="flex: 1; text-align: center; padding: 10px; font-size: 14px;">
-                    <span style="color: var(--text-light); font-size: 12px;">reps</span>
-                    <button onclick="confirmSet(${i}, ${sIdx})" style="background: ${isConfirmed ? '#22c55e' : 'rgba(59, 130, 246, 0.2)'}; border: 1px solid ${isConfirmed ? '#22c55e' : 'var(--primary)'}; color: ${isConfirmed ? '#fff' : 'var(--primary)'}; cursor: pointer; font-size: 18px; width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 700;">
-                        ${isConfirmed ? '✓' : '○'}
-                    </button>
-                </div>`;
-            });
-            
-            html += `
-                <div style="display: flex; gap: 8px; margin-top: 5px;">
-                    <button class="mode-btn glass-border" style="flex: 1; padding: 10px; font-size: 12px;" onclick="addSet(${i})">+ Lägg till set</button>
-                    ${exData.sets_data.length > 1 ? `<button class="mode-btn" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: var(--danger); padding: 10px; font-size: 12px;" onclick="removeSet(${i})">- Ta bort set</button>` : ''}
-                </div>
-            </div>`;
-        }
-        
-        html += `</div>`;
-    });
-    
-    if (isFrittPass) {
-        html += `
-        <button class="mode-btn blue" style="width: 100%; padding: 15px; margin-top: 10px; font-weight: 700;" onclick="openExercisePickerForFrittPass()">
-            ➕ Lägg till övning
-        </button>`;
-    }
-    
-    container.innerHTML = html;
-}
- 
-function toggleExerciseCard(exIdx) {
-    const openExercises = activeDraft.ui_state.openExercises;
-    const index = openExercises.indexOf(exIdx);
-    
-    if (index > -1) {
-        openExercises.splice(index, 1);
-    } else {
-        openExercises.push(exIdx);
-    }
-    
-    persistActiveWorkout();
-    renderActiveWorkout();
-}
- 
-function addSet(exIdx) {
-    const lastSet = activeDraft.data[exIdx].sets_data[activeDraft.data[exIdx].sets_data.length - 1];
-    activeDraft.data[exIdx].sets_data.push({ weight: lastSet.weight || "", reps: lastSet.reps || "" });
-    persistActiveWorkout();
-    renderActiveWorkout();
-}
- 
-function removeSet(exIdx) {
-    if (activeDraft.data[exIdx].sets_data.length > 1) {
-        activeDraft.data[exIdx].sets_data.pop();
-        persistActiveWorkout();
-        renderActiveWorkout();
-    }
-}
- 
-function openExercisePickerForFrittPass() {
-    temporarySelectedExercises = [];
-    renderExercisePicker("Ben", null);
-}
+function handleTouchEnd(idx, dateStr, programId, event) { [cite: 102]
+    cancelPress(); [cite: 102]
+    if (hasScrolled || isLongPress) { [cite: 103]
+        if (event) { [cite: 103]
+            if (event.cancelable) event.preventDefault(); [cite: 103]
+            event.stopPropagation(); [cite: 103]
+        } [cite: 103]
+        return false; [cite: 104]
+    } [cite: 104]
+    if (event && event.cancelable) { [cite: 104]
+        event.preventDefault(); [cite: 104]
+    } [cite: 104]
+    setOverrideSilent(dateStr, programId); [cite: 105]
+} [cite: 105]
 
-function restoreDraftState() {
-    temporarySelectedExercises = [];
-}
- 
-// ============================================================================
-// ÖVNINGSVÄLJARE FÖR FRITT PASS
-// ============================================================================
-function renderExercisePicker(category, callback) {
-    const body = document.getElementById("modal-body");
-    
-    const categories = [
-        { id: "Ben", icon: "🦵" },
-        { id: "Bröst", icon: "🏋️" },
-        { id: "Rygg", icon: "🪵" },
-        { id: "Axlar", icon: "👐" },
-        { id: "Armar", icon: "💪" },
-        { id: "Bål", icon: "🧘" }
-    ];
- 
-    const filtered = masterExercises.filter(ex => 
-        category === "Armar" ? (ex.target === "Biceps" || ex.target === "Triceps") : ex.target === category
-    );
- 
-    body.innerHTML = `
-        <h3 style="text-align: center; margin-bottom: 20px;">Välj Övningar</h3>
-        
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px;">
-            ${categories.map(cat => `
-                <div class="cat-select-item ${cat.id === category ? 'active' : ''}" 
-                     onclick="renderExercisePicker('${cat.id}', ${callback})"
-                     style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 12px 5px; border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.2s ease;">
-                    <div style="font-size: 20px; margin-bottom: 4px;">${cat.icon}</div>
-                    <div style="font-size: 10px; font-weight: 700; color: var(--text-light);">${cat.id}</div>
-                </div>
-            `).join('')}
-        </div>
- 
-        <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; max-height: 50vh; overflow-y: auto;">
-            ${filtered.map(ex => {
-                const isSelected = temporarySelectedExercises.includes(ex.id);
-                return `
-                    <div class="card glass exercise-picker-item ${isSelected ? 'selected' : ''}" 
-                         onclick="toggleExerciseSelection(${ex.id})"
-                         style="padding: 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border: 1px solid ${isSelected ? 'var(--primary)' : 'rgba(255,255,255,0.08)'}; background: ${isSelected ? 'rgba(59, 130, 246, 0.15)' : 'rgba(255,255,255,0.03)'};">
-                        <div>
-                            <strong style="font-size: 14px; color: ${isSelected ? 'var(--primary)' : 'var(--text)'};">${ex.name}</strong><br>
-                            <small style="color: var(--primary); font-weight: 800; text-transform: uppercase; font-size: 10px;">${ex.target}</small>
-                        </div>
-                        <span style="font-size: 20px;">${isSelected ? '✓' : ''}</span>
-                    </div>
-                `;
-            }).join('')}
-        </div>
- 
-        <button class="mode-btn blue" onclick="addSelectedExercisesToFrittPass()" style="width: 100%; padding: 15px; font-weight: 700;">
-            Lägg till valda övningar (${temporarySelectedExercises.length})
-        </button>
- 
-        <style>
-            .cat-select-item.active {
-                background: rgba(59, 130, 246, 0.2) !important;
-                border-color: var(--primary) !important;
-                box-shadow: 0 0 15px rgba(59, 130, 246, 0.2);
-            }
-            .cat-select-item.active div {
-                color: var(--text) !important;
-            }
-        </style>
-    `;
-    
-    openModal();
-}
- 
-function toggleExerciseSelection(exId) {
-    const index = temporarySelectedExercises.indexOf(exId);
-    if (index > -1) {
-        temporarySelectedExercises.splice(index, 1);
-    } else {
-        temporarySelectedExercises.push(exId);
-    }
-    
-    const category = document.querySelector('.cat-select-item.active div:last-child').textContent;
-    renderExercisePicker(category, null);
-}
- 
-function addSelectedExercisesToFrittPass() {
-    if (temporarySelectedExercises.length === 0) {
-        alert("Välj minst en övning!");
-        return;
-    }
-    
-    temporarySelectedExercises.forEach(exId => {
-        const ex = masterExercises.find(e => e.id == exId);
-        if (ex) {
-            activeDraft.workout.exercises.push({ name: ex.name, target: ex.target });
-            
-            const history = getExerciseHistory(ex.name);
-            if (history) {
-                activeDraft.data.push({ sets_data: JSON.parse(JSON.stringify(history)), isCompleted: false });
-            } else {
-                activeDraft.data.push({ 
-                    sets_data:[
-                        { weight: "", reps: "" }, 
-                        { weight: "", reps: "" }, 
-                        { weight: "", reps: "" }
-                    ], 
-                    isCompleted: false 
-                });
-            }
-            
-            activeDraft.ui_state.openExercises.push(activeDraft.workout.exercises.length - 1);
-        }
-    });
-    
-    temporarySelectedExercises = [];
-    persistActiveWorkout();
-    renderActiveWorkout();
-    closeModal();
-}
- 
-function moveActiveExercise(exIdx, direction) {
-    const newIdx = exIdx + direction;
-    if (newIdx < 0 || newIdx >= activeDraft.workout.exercises.length) return;
-    
-    [activeDraft.workout.exercises[exIdx], activeDraft.workout.exercises[newIdx]] = 
-    [activeDraft.workout.exercises[newIdx], activeDraft.workout.exercises[exIdx]];
-    
-    [activeDraft.data[exIdx], activeDraft.data[newIdx]] = 
-    [activeDraft.data[newIdx], activeDraft.data[exIdx]];
-    
-    const openExercises = activeDraft.ui_state.openExercises;
-    const wasOldOpen = openExercises.includes(exIdx);
-    const wasNewOpen = openExercises.includes(newIdx);
-    
-    activeDraft.ui_state.openExercises = openExercises
-        .filter(i => i !== exIdx && i !== newIdx)
-        .concat(wasOldOpen ? [newIdx] : [])
-        .concat(wasNewOpen ? [exIdx] : []);
-    
-    persistActiveWorkout();
-    renderActiveWorkout();
-}
- 
-function removeActiveExercise(exIdx) {
-    if (!confirm(`Ta bort "${activeDraft.workout.exercises[exIdx].name}" från passet?`)) return;
-    
-    activeDraft.workout.exercises.splice(exIdx, 1);
-    activeDraft.data.splice(exIdx, 1);
-    
-    activeDraft.ui_state.openExercises = activeDraft.ui_state.openExercises
-        .filter(i => i !== exIdx)
-        .map(i => i > exIdx ? i - 1 : i);
-    
-    persistActiveWorkout();
-    renderActiveWorkout();
-}
- 
-function updateSetDataOnly(exIdx, setIdx) {
-    const w = document.getElementById(`w-${exIdx}-${setIdx}`).value;
-    const r = document.getElementById(`r-${exIdx}-${setIdx}`).value;
-    activeDraft.data[exIdx].sets_data[setIdx].weight = w;
-    activeDraft.data[exIdx].sets_data[setIdx].reps = r;
-    persistActiveWorkout();
-}
- 
-function confirmSet(exIdx, setIdx) {
-    const set = activeDraft.data[exIdx].sets_data[setIdx];
-    
-    if (!set.weight || !set.reps) {
-        alert("Fyll i både vikt och reps innan du bekräftar!");
-        return;
-    }
-    
-    set.userConfirmed = !set.userConfirmed;
-    persistActiveWorkout();
-    renderActiveWorkout();
-}
- 
-function persistActiveWorkout() {
-    if (activeDraft) {
-        activeDraft.secondsElapsed = secondsElapsed;
-        saveAll();
-    }
-}
- 
-function finishWorkout() {
-    if (!activeDraft) return;
-    
-    const hasUnconfirmedSets = activeDraft.data.some(exData => 
-        exData.sets_data.some(set => !set.userConfirmed && (set.weight || set.reps))
-    );
-    
-    if (hasUnconfirmedSets) {
-        if (!confirm("Du har obekräftade set. Vill du verkligen avsluta?")) {
-            return;
-        }
-    }
-    
-    pauseTimer();
-    
-    const hrs = String(Math.floor(secondsElapsed / 3600)).padStart(2, '0');
-const mins = String(Math.floor((secondsElapsed % 3600) / 60)).padStart(2, '0');
-const secs = String(secondsElapsed % 60).padStart(2, '0');
-const totalTime = `${hrs}:${mins}:${secs}`;
+function openProgramPreviewModal(idx) { [cite: 105]
+    const pass = programData.routine[idx]; [cite: 105]
+    let previewModal = document.getElementById("preview-modal"); [cite: 105]
+    if (!previewModal) { [cite: 105]
+        previewModal = document.createElement("div"); [cite: 105]
+        previewModal.id = "preview-modal"; [cite: 105]
+        previewModal.style.position = "fixed"; [cite: 105]
+        previewModal.style.top = "0"; [cite: 105]
+        previewModal.style.left = "0"; [cite: 106]
+        previewModal.style.width = "100vw"; [cite: 106]
+        previewModal.style.height = "100vh"; [cite: 106]
+        previewModal.style.backgroundColor = "rgba(0, 0, 0, 0.75)"; [cite: 106]
+        previewModal.style.backdropFilter = "blur(8px)"; [cite: 106]
+        previewModal.style.display = "flex"; [cite: 107]
+        previewModal.style.justifyContent = "center"; [cite: 107]
+        previewModal.style.alignItems = "flex-start"; [cite: 107]
+        previewModal.style.zIndex = "10000"; [cite: 107]
+        previewModal.style.transition = "opacity 0.2s ease-out"; [cite: 107]
+        document.body.appendChild(previewModal); [cite: 107]
+    } [cite: 108]
+    previewModal.style.opacity = "0"; [cite: 108]
+    previewModal.style.display = "flex"; [cite: 108]
+    previewModal.innerHTML = ` [cite: 108]
+    <div id="preview-modal-card" class="card glass" style="width: 90%; max-width: 400px; padding: 20px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); background: rgba(15, 23, 42, 0.95); margin-top: 40px; transition: all 0.2s ease-out; transform: scale(0.95); opacity: 0;"> [cite: 108]
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.08);"> [cite: 108]
+    <h3 style="margin: 0; font-size: 20px; color: #fff;">${pass.name}</h3> [cite: 108]
+    <button onclick="closePreviewModal()" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--text-light); cursor: pointer; font-size: 14px; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;"> ✖ </button> [cite: 108]
+    </div> [cite: 108]
+    <div style="max-height: 65vh; overflow-y: auto; display: flex; flex-direction: column; gap: 2px;"> [cite: 108]
+    ${pass.exercises.map(e => ` [cite: 109]
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 4px; border-bottom: 1px solid rgba(255,255,255,0.03);"> [cite: 109]
+    <span style="font-weight: 600; color: #ffffff; font-size: 14px;">${e.name}</span>
+    <small style="color: var(--primary); font-weight: 800; text-transform: uppercase; font-size: 10px; background: rgba(59, 130, 246, 0.1); padding: 4px 8px; border-radius: 6px;">${e.target || 'Övning'}</small> [cite: 110]
+    </div> [cite: 111]
+    `).join("")} [cite: 111]
+    </div> [cite: 111]
+    <button onclick="closePreviewModal()" style="width: 100%; margin-top: 20px; padding: 12px; background: var(--primary); color: #0f172a; border: none; border-radius: 12px; font-weight: 700; cursor: pointer;"> Stäng översikt </button> [cite: 111]
+    </div> [cite: 113]
+    `; [cite: 113]
+    setTimeout(() => { [cite: 113]
+        previewModal.style.opacity = "1"; [cite: 113]
+        const card = document.getElementById("preview-modal-card"); [cite: 113]
+        if (card) { [cite: 113]
+            card.style.opacity = "1"; [cite: 113]
+            card.style.transform = "scale(1)"; [cite: 113]
+        } [cite: 113]
+    }, 10); [cite: 113]
+} [cite: 113]
 
-const loggedWorkout = {
-    date: activeDraft.date,
-    programName: activeDraft.workout.name,
-    exercises: activeDraft.workout.exercises.map((ex, i) => ({
-        name: ex.name,
-        target: ex.target,
-        sets: activeDraft.data[i].sets_data.filter(s => s.weight && s.reps)
-    })),
-    totalTime: totalTime
-};
-    
-    workoutHistory.push(loggedWorkout);
-    
-    activeDraft = null;
-    secondsElapsed = 0;
-    isTimerRunning = false;
-    clearInterval(timerInterval);
-    
-    saveAll();
-    
-    alert("🎉 Passet är sparat!");
-    renderHome();
-}
- 
-function cancelWorkout() {
-    if (!confirm("Är du säker på att du vill avbryta detta pass? All data går förlorad.")) return;
-    
-    pauseTimer();
-    activeDraft = null;
-    secondsElapsed = 0;
-    isTimerRunning = false;
-    clearInterval(timerInterval);
-    
-    saveAll();
-    renderHome();
-}
- 
-// ============================================================================
-// HISTORIK
-// =====================================================
-function renderHistory() {
-    const list = document.getElementById("history-list");
-    list.innerHTML = "";
-    
-    if (workoutHistory.length === 0) {
-        list.innerHTML = `
-            <div style="text-align: center; padding: 40px 20px; color: var(--text-light);">
-                <div style="font-size: 48px; margin-bottom: 15px;">📊</div>
-                <p style="font-size: 16px; margin-bottom: 10px;">Ingen träningshistorik än</p>
-                <p style="font-size: 13px;">Dina genomförda pass kommer visas här</p>
-            </div>
-        `;
-        showView("history-view");
-        return;
-    }
-    
-    const sorted = [...workoutHistory].sort((a, b) => new Date(b.date) - new Date(a.date));
-    
-    sorted.forEach((w, idx) => {
-        const originalIdx = workoutHistory.indexOf(w);
-        const timeStr = w.totalTime ? `⏱️ ${w.totalTime}` : "";
-        
-        const div = document.createElement("div");
-        div.className = "card glass";
-        div.style.cssText = "padding: 15px; margin-bottom: 12px; border-left: 4px solid #22c55e;";
-        
-        div.innerHTML = `
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                <div>
-                    <strong style="font-size: 16px; display: block; color: var(--text);">${w.programName}</strong>
-                    <small style="font-size: 11px; color: var(--text-light); font-weight: 500;">${w.date} ${timeStr}</small>
-                </div>
-                <div style="display: flex; gap: 5px;">
-                    <button onclick="editLoggedWorkout('${w.date}', ${originalIdx})" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--primary); cursor: pointer; font-size: 14px; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">✏️</button>
-                    <button onclick="openConfirmDeleteModal('${w.date}', ${originalIdx})" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: var(--danger); cursor: pointer; font-size: 12px; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">✖</button>
-                </div>
-            </div>
-            
-            <div style="background: rgba(0,0,0,0.15); padding: 12px; border-radius: 12px; display: flex; flex-direction: column; gap: 10px;">
-                ${w.exercises.map(ex => `
-                    <div style="font-size: 13px;">
-                        <span style="color: var(--text); font-weight: 600; display: block; margin-bottom: 8px;">${ex.name}</span>
-                        <div style="display: flex; flex-direction: column; gap: 6px;">
-                            ${ex.sets_data && ex.sets_data.length > 0 ? ex.sets_data.map((s, sIdx) => `
-                                <div style="background: rgba(59, 130, 246, 0.08); border: 1px solid var(--primary); padding: 6px 12px; border-radius: 8px; width: fit-content; display: flex; align-items: center; gap: 8px;">
-                                    <span style="color: var(--primary); font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">Set ${sIdx+1}</span> 
-                                    <span style="color: #ffffff; font-size: 13px; font-weight: 600;">${s.weight || 0} <small style="color: var(--primary); font-weight: 700;">kg</small> × ${s.reps || 0} <small style="color: var(--primary); font-weight: 700;">reps</small></span>
-                                </div>
-                            `).join('') : '<small style="color: var(--text-light);">Inga set registrerade</small>'}
-                        </div>
-                    </div>
-                `).join('')}
-            </div>
-        `;
-        
-        list.appendChild(div);
-    });
-    
-    showView("history-view");
-}
- 
-function editLoggedWorkout(dateStr, workoutIdx) {
-    const workouts = workoutHistory.filter(w => w.date === dateStr);
-    const w = workouts[workoutIdx];
-    if (!w) return;
-    
-    const body = document.getElementById("modal-body");
-    
-    body.innerHTML = `
-        <h3 style="text-align: center; margin-bottom: 20px;">Redigera Pass</h3>
-        
-        <div style="text-align: center; margin-bottom: 20px;">
-            <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: var(--text-light); font-weight: 600; display: block; margin-bottom: 5px;">Datum</span>
-            <strong style="font-size: 18px; color: var(--text);">${w.date}</strong>
-        </div>
-        
-        <div style="margin-bottom: 20px;">
-            <label style="font-size: 11px; color: var(--text-light); text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 8px; text-align: center;">Passnamn</label>
-            <input type="text" id="edit-workout-name" class="log-input" value="${w.programName}" style="text-align: center;">
-        </div>
-        
-        <div id="edit-exercises-container" style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px;">
-            ${w.exercises.map((ex, exIdx) => `
-                <div class="card glass" style="padding: 15px; border-left: 3px solid var(--primary);">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                        <strong style="font-size: 15px; color: var(--text);">${ex.name}</strong>
-                        <button onclick="removeExerciseFromHistory(${workoutIdx}, ${exIdx})" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: var(--danger); cursor: pointer; font-size: 14px; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">×</button>
-                    </div>
-                    
-                    <div style="display: flex; flex-direction: column; gap: 8px;">
-                        ${ex.sets_data.map((s, sIdx) => `
-                            <div style="display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.03); padding: 8px; border-radius: 8px;">
-                                <span style="color: var(--primary); font-size: 10px; font-weight: 800; text-transform: uppercase; min-width: 45px;">Set ${sIdx+1}</span>
-                                <input type="number" id="edit-w-${exIdx}-${sIdx}" class="log-input" value="${s.weight || ''}" style="flex: 1; text-align: center; padding: 8px; font-size: 13px;">
-                                <span style="color: var(--text-light); font-size: 11px;">kg</span>
-                                <input type="number" id="edit-r-${exIdx}-${sIdx}" class="log-input" value="${s.reps || ''}" style="flex: 1; text-align: center; padding: 8px; font-size: 13px;">
-                                <span style="color: var(--text-light); font-size: 11px;">reps</span>
-                                <button onclick="removeSetFromHistory(${workoutIdx}, ${exIdx}, ${sIdx})" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: var(--danger); cursor: pointer; font-size: 12px; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">×</button>
-                            </div>
-                        `).join('')}
-                    </div>
-                    
-                    <button class="mode-btn glass-border" style="width: 100%; margin-top: 10px; padding: 8px; font-size: 12px;" onclick="addSetToHistory(${workoutIdx}, ${exIdx})">+ Lägg till set</button>
-                </div>
-            `).join('')}
-        </div>
-        
-        <button class="mode-btn blue" onclick="saveEditedWorkout(${workoutIdx})" style="width: 100%; padding: 15px; font-weight: 700;">Spara ändringar</button>
-    `;
-    
-    openModal();
-}
- 
-function addSetToHistory(workoutIdx, exIdx) {
-    const w = workoutHistory[workoutIdx];
-    const lastSet = w.exercises[exIdx].sets_data[w.exercises[exIdx].sets_data.length - 1];
-    w.exercises[exIdx].sets_data.push({ weight: lastSet.weight || "", reps: lastSet.reps || "" });
-    saveAll();
-    editLoggedWorkout(w.date, workoutIdx);
-}
- 
-function removeSetFromHistory(workoutIdx, exIdx, setIdx) {
-    const w = workoutHistory[workoutIdx];
-    if (w.exercises[exIdx].sets_data.length > 1) {
-        w.exercises[exIdx].sets_data.splice(setIdx, 1);
-        saveAll();
-        editLoggedWorkout(w.date, workoutIdx);
-    } else {
-        alert("Du måste ha minst ett set!");
-    }
-}
- 
-function removeExerciseFromHistory(workoutIdx, exIdx) {
-    const w = workoutHistory[workoutIdx];
-    if (!confirm(`Ta bort "${w.exercises[exIdx].name}" från detta pass?`)) return;
-    
-    w.exercises.splice(exIdx, 1);
-    saveAll();
-    
-    if (w.exercises.length === 0) {
-        workoutHistory.splice(workoutIdx, 1);
-        saveAll();
-        closeModal();
-        renderHistory();
-    } else {
-        editLoggedWorkout(w.date, workoutIdx);
-    }
-}
- 
-function saveEditedWorkout(workoutIdx) {
-    const w = workoutHistory[workoutIdx];
-    const newName = document.getElementById("edit-workout-name").value.trim();
-    
-    if (!newName) {
-        alert("Passnamn får inte vara tomt!");
-        return;
-    }
-    
-    w.programName = newName;
-    
-    w.exercises.forEach((ex, exIdx) => {
-        ex.sets_data.forEach((s, sIdx) => {
-            const wInput = document.getElementById(`edit-w-${exIdx}-${sIdx}`);
-            const rInput = document.getElementById(`edit-r-${exIdx}-${sIdx}`);
-            
-            if (wInput && rInput) {
-                s.weight = wInput.value;
-                s.reps = rInput.value;
-            }
-        });
-    });
-    
-    saveAll();
-    closeModal();
-    renderHistory();
-}
- 
-function openConfirmDeleteModal(dateStr, workoutIdx) {
-    const w = workoutHistory[workoutIdx];
-    if (!w) return;
-    
-    const body = document.getElementById("modal-body");
-    body.innerHTML = `
-        <div style="text-align: center;">
-            <div style="font-size: 48px; margin-bottom: 15px;">⚠️</div>
-            <h3 style="margin-bottom: 15px;">Bekräfta radering</h3>
-            <p style="color: var(--text-light); margin-bottom: 20px;">Är du säker på att du vill radera detta pass?</p>
-            
-            <div class="card glass" style="padding: 15px; margin-bottom: 20px; text-align: left; border-left: 4px solid var(--danger);">
-                <strong style="display: block; margin-bottom: 5px;">${w.programName}</strong>
-                <small style="color: var(--text-light);">${w.date}</small>
-            </div>
-            
-            <div style="display: flex; gap: 10px;">
-                <button class="mode-btn glass-border" onclick="closeModal()" style="flex: 1;">Avbryt</button>
-                <button class="mode-btn" style="flex: 1; background: var(--danger); color: #fff;" onclick="confirmDeleteWorkout(${workoutIdx})">Radera</button>
-            </div>
-        </div>
-    `;
-    openModal();
-}
- 
-function confirmDeleteWorkout(workoutIdx) {
-    workoutHistory.splice(workoutIdx, 1);
-    saveAll();
-    closeModal();
-    renderHistory();
-}
- 
-function deleteMasterExercise(exId) {
-    const ex = masterExercises.find(e => e.id == exId);
-    if (!ex) return;
-    
-    if (!confirm(`Radera "${ex.name}" permanent? Detta påverkar även alla pass som använder denna övning.`)) return;
-    
-    masterExercises = masterExercises.filter(e => e.id != exId);
-    
-    programData.routine.forEach(p => {
-        p.exercises = p.exercises.filter(e => e.name !== ex.name);
-    });
-    
-    saveAll();
-    closeModal();
-    filterExercises(currentExerciseCategory);
-}
- 
-function deleteEntireProgram(pIdx) {
-    const p = programData.routine[pIdx];
-    if (!confirm(`Radera "${p.name}" permanent?`)) return;
-    
-    programData.routine.splice(pIdx, 1);
-    saveAll();
-    closeModal();
-    renderProgramView();
-}
- 
-// ============================================================================
-// STATISTIK
-// =========================================================================
-function renderStats() {
-    const container = document.getElementById("stats-container");
-    
-    if (workoutHistory.length === 0) {
-        container.innerHTML = `
-            <div style="text-align: center; padding: 40px 20px; color: var(--text-light);">
-                <div style="font-size: 48px; margin-bottom: 15px;">📈</div>
-                <p style="font-size: 16px; margin-bottom: 10px;">Ingen statistik än</p>
-                <p style="font-size: 13px;">Träna några pass för att se din utveckling</p>
-            </div>
-        `;
-        showView("stats-view");
-        return;
-    }
-    
-    const totalWorkouts = workoutHistory.length;
-    
-    let totalSeconds = 0;
-    workoutHistory.forEach(w => {
-        if (w.totalTime) {
-            const parts = w.totalTime.split(':');
-            if (parts.length === 3) {
-                totalSeconds += parseInt(parts[0]) * 3600 + parseInt(parts[1]) * 60 + parseInt(parts[2]);
-            }
-        }
-    });
-    
-    const avgSeconds = totalWorkouts > 0 ? Math.floor(totalSeconds / totalWorkouts) : 0;
-    const avgHrs = Math.floor(avgSeconds / 3600);
-    const avgMins = Math.floor((avgSeconds % 3600) / 60);
-    const avgTimeStr = `${avgHrs}h ${avgMins}m`;
-    
-    const exerciseFrequency = {};
-    workoutHistory.forEach(w => {
-        w.exercises.forEach(ex => {
-            if (!exerciseFrequency[ex.name]) {
-                exerciseFrequency[ex.name] = 0;
-            }
-            exerciseFrequency[ex.name]++;
-        });
-    });
-    
-    const sortedExercises = Object.entries(exerciseFrequency)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 5);
-    
-    const exerciseProgress = {};
-    masterExercises.forEach(ex => {
-        const history = [];
-        workoutHistory.forEach(w => {
-            const foundEx = w.exercises.find(e => e.name === ex.name);
-            if (foundEx && foundEx.sets_data && foundEx.sets_data.length > 0) {
-                const maxWeight = Math.max(...foundEx.sets_data.map(s => parseFloat(s.weight) || 0));
-                if (maxWeight > 0) {
-                    history.push({ date: w.date, weight: maxWeight });
-                }
-            }
-        });
-        
-        if (history.length > 0) {
-            exerciseProgress[ex.name] = history;
-        }
-    });
-    
-    const sortedProgress = Object.entries(exerciseProgress)
-        .filter(([name, data]) => data.length >= 2)
-        .map(([name, data]) => {
-            const first = data[0].weight;
-            const last = data[data.length - 1].weight;
-            const increase = last - first;
-            const percentIncrease = ((increase / first) * 100).toFixed(1);
-            return { name, first, last, increase, percentIncrease, data };
-        })
-        .sort((a, b) => b.increase - a.increase)
-        .slice(0, 5);
-    
-    let html = `
-        <h2 class="section-title modern-header">Din Statistik 📊</h2>
-        
-        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 25px;">
-            <div class="card glass" style="padding: 20px; text-align: center; border-left: 4px solid var(--primary);">
-                <div style="font-size: 32px; font-weight: 800; color: var(--primary); margin-bottom: 5px;">${totalWorkouts}</div>
-                <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-light); font-weight: 600;">Totalt pass</div>
-            </div>
-            
-            <div class="card glass" style="padding: 20px; text-align: center; border-left: 4px solid #22c55e;">
-                <div style="font-size: 18px; font-weight: 800; color: #22c55e; margin-bottom: 5px;">${avgTimeStr}</div>
-                <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-light); font-weight: 600;">Snitttid</div>
-            </div>
-        </div>
-    `;
-    
-    if (sortedExercises.length > 0) {
-        html += `
-            <div class="card glass" style="padding: 20px; margin-bottom: 25px;">
-                <h3 style="font-size: 16px; margin-bottom: 15px; text-align: center; color: var(--text);">🏆 Mest Tränade Övningar</h3>
-                <div style="display: flex; flex-direction: column; gap: 10px;">
-                    ${sortedExercises.map(([name, count], idx) => `
-                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 10px; border-left: 3px solid var(--primary);">
-                            <div style="display: flex; align-items: center; gap: 12px;">
-                                <span style="font-size: 18px; font-weight: 800; color: var(--primary); min-width: 25px;">#${idx + 1}</span>
-                                <span style="font-size: 14px; font-weight: 600; color: var(--text);">${name}</span>
-                            </div>
-                            <span style="font-size: 13px; color: var(--text-light); font-weight: 700;">${count} ggr</span>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
+function closePreviewModal() { [cite: 113]
+    const previewModal = document.getElementById("preview-modal"); [cite: 113]
+    const card = document.getElementById("preview-modal-card"); [cite: 113]
+    if (card && previewModal) { [cite: 113]
+        card.style.opacity = "0"; [cite: 113]
+        card.style.transform = "scale(0.95)"; [cite: 113]
+        previewModal.style.opacity = "0"; [cite: 113]
+        setTimeout(() => { [cite: 113]
+            previewModal.style.display = "none"; [cite: 113]
+        }, 200); [cite: 113]
+    } [cite: 113]
+} [cite: 113]
+
+function openDayManager(dateStr, planned, completed, isOngoing) { [cite: 113]
+    if (typeof hideDefaultCloseButton === 'function') { [cite: 113]
+        hideDefaultCloseButton(false); [cite: 113]
+    } [cite: 113]
+    const body = document.getElementById("modal-body"); [cite: 113]
+    if (body) { [cite: 113]
+        body.style.display = "flex"; [cite: 113]
+        body.style.flexDirection = "column"; [cite: 113]
+        body.style.justifyContent = "flex-start"; [cite: 113]
+        body.style.alignItems = "stretch"; [cite: 113]
+        body.style.gap = "20px"; [cite: 113]
+    } [cite: 114]
+    let html = ` [cite: 114]
+    <div style="text-align: center; margin: 0 !important; padding: 0 !important;"> [cite: 114]
+    <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: var(--text-light); font-weight: 600; display: block; margin: 0 !important; padding: 0 !important;">Valt datum</span> [cite: 114]
+    <h2 class="section-title modern-header" style="margin: 8px 0 0 0 !important; padding: 0 !important; display: inline-block; font-size: 26px; line-height: 1.1 !important;"> ${dateStr} </h2> [cite: 116]
+    </div> [cite: 117]
+    `; [cite: 117]
+    if (completed.length > 0) { [cite: 117]
+        completed.forEach((w, idx) => { [cite: 117]
+            const timeStr = w.totalTime ? `  ⏱️  ${w.totalTime}` : ""; [cite: 117]
+            html += ` [cite: 117]
+            <div class="card glass" style="border-left: 4px solid #22c55e; text-align: left; margin: 0; padding: 15px; border-radius: 16px;"> [cite: 117]
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;"> [cite: 117]
+            <div> [cite: 117]
+            <strong style="font-size: 16px; color: var(--text); display: block;">${w.programName}</strong> [cite: 117]
+            <span style="font-size: 11px; color: var(--text-light); font-weight: 500;">${timeStr || 'Slutfört pass  ✅  '}</span> [cite: 117]
+            </div> [cite: 117]
+            <div style="display: flex; gap: 5px;"> [cite: 117]
+            <button onclick="editLoggedWorkout('${dateStr}', ${idx})" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--primary); cursor: pointer; font-size: 14px; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">  ✏️  </button> [cite: 117]
+            <button onclick="openConfirmDeleteModal('${dateStr}', ${idx})" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: var(--danger); cursor: pointer; font-size: 12px; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">  ✖  </button> [cite: 118]
+            </div> [cite: 120]
+            </div> [cite: 120]
+            <div style="background: rgba(0,0,0,0.15); padding: 12px; border-radius: 12px; display: flex; flex-direction: column; gap: 10px;">`; [cite: 120]
+            w.exercises.forEach(ex => { [cite: 120]
+                html += ` [cite: 121]
+                <div style="font-size: 13px;"> [cite: 121]
+                <span style="color: var(--text); font-weight: 600; display: block; margin-bottom: 8px;">${ex.name}</span> [cite: 121]
+                <div style="display: flex; flex-direction: column; gap: 6px;">`; [cite: 121]
+                if(ex.sets_data) { [cite: 121]
+                    ex.sets_data.forEach((s, sIdx) => { [cite: 121]
+                        const wVal = s.weight || 0; [cite: 121]
+                        const rVal = s.reps || 0; [cite: 121]
+                        html += ` [cite: 121]
+                        <div style="background: rgba(59, 130, 246, 0.08); border: 1px solid var(--primary); padding: 6px 12px; border-radius: 8px; width: fit-content; display: flex; align-items: center; gap: 8px;"> [cite: 121]
+                        <span style="color: var(--primary); font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">Set ${sIdx+1}</span> [cite: 121]
+                        <span style="color: #ffffff; font-size: 13px; font-weight: 600;">${wVal} <small style="color: var(--primary); font-weight: 700;">kg</small> × ${rVal} <small style="color: var(--primary); font-weight: 700;">reps</small></span> [cite: 121]
+                        </div>`; [cite: 121]
+                    }); [cite: 122]
+                } else { [cite: 122]
+                    html += `<small style="color: var(--text-light);">Inga set registrerade</small>`; [cite: 122]
+                } [cite: 122]
+                html += `</div></div>`; [cite: 122]
+            }); [cite: 123]
+            html += `</div></div>`; [cite: 123]
+        }); [cite: 123]
+    } [cite: 123]
+    if (isOngoing) { [cite: 123]
+        html += ` [cite: 123]
+        <div class="card glass" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(251, 146, 60, 0.1) 100%); border-left: 4px solid #f59e0b; text-align: center; margin: 0; padding: 20px;"> [cite: 123]
+        <div style="font-size: 32px; margin-bottom: 10px;">  🔥  </div> [cite: 123]
+        <strong style="font-size: 16px; color: var(--text); display: block; margin-bottom: 8px;">Pågående träningspass</strong> [cite: 123]
+        <p style="color: var(--text-light); font-size: 13px; margin-bottom: 15px;">Du har ett aktivt pass som inte är slutfört än.</p> [cite: 123]
+        <button class="mode-btn" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #fff; width: 100%;" onclick="closeModal(); startWorkout(activeDraft.workout, activeDraft.data, activeDraft.date)">Fortsätt träna</button> [cite: 123]
+        </div>`; [cite: 124]
+    } [cite: 124]
+    if (planned && !isOngoing) { [cite: 124]
+        html += ` [cite: 124]
+        <div style="margin: 0;"> [cite: 124]
+        <p style="font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-light); text-align: center; margin-bottom: 12px; font-weight: 600;">Planerat pass</p> [cite: 124]
+        <div class="card glass" style="border-left: 4px solid var(--primary); text-align: center; margin: 0; padding:...
         `;
     }
-    
-    if (sortedProgress.length > 0) {
-        html += `
-            <div class="card glass" style="padding: 20px; margin-bottom: 25px;">
-                <h3 style="font-size: 16px; margin-bottom: 15px; text-align: center; color: var(--text);">📈 Största Utvecklingen</h3>
-                <div style="display: flex; flex-direction: column; gap: 12px;">
-                    ${sortedProgress.map((prog, idx) => `
-                        <div style="padding: 15px; background: rgba(255,255,255,0.03); border-radius: 12px; border-left: 3px solid #22c55e;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                                <strong style="font-size: 14px; color: var(--text);">${prog.name}</strong>
-                                <span style="font-size: 14px; font-weight: 800; color: #22c55e;">+${prog.increase} kg</span>
-                            </div>
-                            <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--text-light);">
-                                <span>Start: ${prog.first} kg</span>
-                                <span style="color: #22c55e; font-weight: 700;">↑ ${prog.percentIncrease}%</span>
-                                <span>Nu: ${prog.last} kg</span>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-        `;
-    }
-    
-    const programFrequency = {};
-    workoutHistory.forEach(w => {
-        if (!programFrequency[w.programName]) {
-            programFrequency[w.programName] = 0;
-        }
-        programFrequency[w.programName]++;
-    });
-    
-    const sortedPrograms = Object.entries(programFrequency)
-        .sort((a, b) => b[1] - a[1]);
-    
-    if (sortedPrograms.length > 0) {
-        html += `
-            <div class="card glass" style="padding: 20px; margin-bottom: 25px;">
-                <h3 style="font-size: 16px; margin-bottom: 15px; text-align: center; color: var(--text);">💪 Pass-översikt</h3>
-                <div style="display: flex; flex-direction: column; gap: 8px;">
-                    ${sortedPrograms.map(([name, count]) => {
-                        const percentage = ((count / totalWorkouts) * 100).toFixed(0);
-                        return `
-                            <div style="padding: 12px; background: rgba(255,255,255,0.03); border-radius: 10px;">
-                                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                                    <span style="font-size: 13px; font-weight: 600; color: var(--text);">${name}</span>
-                                    <span style="font-size: 12px; color: var(--text-light);">${count} ggr (${percentage}%)</span>
-                                </div>
-                                <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.05); border-radius: 3px; overflow: hidden;">
-                                    <div style="width: ${percentage}%; height: 100%; background: linear-gradient(90deg, var(--primary), #22c55e); border-radius: 3px;"></div>
-                                </div>
-                            </div>
-                        `;
-                    }).join('')}
-                </div>
-            </div>
-        `;
-    }
-    
-    container.innerHTML = html;
-    showView("stats-view");
-}
- 
-// ============================================================================
-// TIMER-FUNKTIONER
-// ============================================================================
-function startTimer() {
-    if (isTimerRunning) return;
-    isTimerRunning = true;
-    
-    if (activeDraft) {
-        activeDraft.isStarted = true;
-        activeDraft.wasTimerRunning = true;
-        persistActiveWorkout();
-    }
-    
-    timerInterval = setInterval(() => {
-        secondsElapsed++;
-        updateTimerDisplay();
-        
-        if (activeDraft) {
-            activeDraft.secondsElapsed = secondsElapsed;
-        }
-    }, 1000);
-    
-    updateTimerControls();
-}
- 
-function pauseTimer() {
-    if (!isTimerRunning) return;
-    isTimerRunning = false;
-    clearInterval(timerInterval);
-    
-    if (activeDraft) {
-        activeDraft.wasTimerRunning = false;
-        persistActiveWorkout();
-    }
-    
-    updateTimerControls();
-}
- 
-function resetTimer() {
-    if (!confirm("Är du säker på att du vill nollställa timern?")) return;
-    
-    pauseTimer();
-    secondsElapsed = 0;
-    
-    if (activeDraft) {
-        activeDraft.secondsElapsed = 0;
-        persistActiveWorkout();
-    }
-    
-    updateTimerDisplay();
-}
- 
-function updateTimerDisplay() {
-    const hrs = String(Math.floor(secondsElapsed / 3600)).padStart(2, '0');
-    const mins = String(Math.floor((secondsElapsed % 3600) / 60)).padStart(2, '0');
-    const secs = String(secondsElapsed % 60).padStart(2, '0');
-    document.getElementById("timer-display").textContent = `${hrs}:${mins}:${secs}`;
-}
- 
-function updateTimerControls() {
-    const startBtn = document.getElementById("timer-start-btn");
-    const pauseBtn = document.getElementById("timer-pause-btn");
-    
-    if (isTimerRunning) {
-        startBtn.style.display = "none";
-        pauseBtn.style.display = "flex";
-    } else {
-        startBtn.style.display = "flex";
-        pauseBtn.style.display = "none";
-    }
-}
- 
-// ============================================================================
-// INSTÄLLNINGAR
-// ============================================================================
-function renderSettings() {
-    const container = document.getElementById("settings-container");
-    
-    container.innerHTML = `
-        <h2 class="section-title modern-header">Inställningar ⚙️</h2>
-        
-        <div class="card glass" style="padding: 20px; margin-bottom: 15px;">
-            <h3 style="font-size: 16px; margin-bottom: 15px; color: var(--text);">📊 Data & Backup</h3>
-            
-            <button class="mode-btn blue" style="width: 100%; margin-bottom: 10px; padding: 15px; font-weight: 700;" onclick="exportData()">
-                📥 Exportera All Data
-            </button>
-            
-            <button class="mode-btn glass-border" style="width: 100%; margin-bottom: 10px; padding: 15px; font-weight: 700;" onclick="importData()">
-                📤 Importera Data
-            </button>
-            
-            <button class="mode-btn" style="width: 100%; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: var(--danger); padding: 15px; font-weight: 700;" onclick="confirmResetAll()">
-                🗑️ Återställ All Data
-            </button>
-        </div>
-        
-        <div class="card glass" style="padding: 20px; margin-bottom: 15px;">
-            <h3 style="font-size: 16px; margin-bottom: 10px; color: var(--text);">ℹ️ Om Appen</h3>
-            <p style="font-size: 13px; color: var(--text-light); line-height: 1.6;">
-                <strong style="color: var(--text);">GymTracker Pro</strong><br>
-                Version 2.0<br><br>
-                En kraftfull träningsapp för att planera, logga och följa din träning.
-            </p>
-        </div>
-    `;
-    
-    showView("settings-view");
-}
-
-function exportData() {
-    const data = {
-        workoutHistory,
-        programData,
-        masterExercises,
-        calendarOverrides,
-        activeDraft,
-        secondsElapsed,
-        isTimerRunning,
-        exportDate: new Date().toISOString()
-    };
-    
-    const json = JSON.stringify(data, null, 2);
-    const blob = new Blob([json], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `gymtracker-backup-${new Date().toISOString().split('T')[0]}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    
-    alert("✅ Data exporterad framgångsrikt!");
-}
- 
-function importData() {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'application/json';
-    
-    input.onchange = (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            try {
-                const data = JSON.parse(event.target.result);
-                
-                if (data.workoutHistory) workoutHistory = data.workoutHistory;
-                if (data.programData) programData = data.programData;
-                if (data.masterExercises) masterExercises = data.masterExercises;
-                if (data.calendarOverrides) calendarOverrides = data.calendarOverrides;
-                if (data.activeDraft) activeDraft = data.activeDraft;
-                if (data.secondsElapsed !== undefined) secondsElapsed = data.secondsElapsed;
-                if (data.isTimerRunning !== undefined) isTimerRunning = data.isTimerRunning;
-                
-                saveAll();
-                
-                alert("✅ Data importerad framgångsrikt!");
-                location.reload();
-            } catch (err) {
-                alert("❌ Fel vid import: " + err.message);
-            }
-        };
-        reader.readAsText(file);
-    };
-    
-    input.click();
-}
- 
-function confirmResetAll() {
-    const body = document.getElementById("modal-body");
-    body.innerHTML = `
-        <div style="text-align: center;">
-            <div style="font-size: 64px; margin-bottom: 20px;">⚠️</div>
-            <h3 style="margin-bottom: 15px; color: var(--danger);">Varning!</h3>
-            <p style="color: var(--text-light); margin-bottom: 25px; line-height: 1.6;">
-                Detta kommer permanent radera:<br><br>
-                • All träningshistorik<br>
-                • Alla skapade pass<br>
-                • Alla övningar<br>
-                • Kalenderinställningar<br>
-                • Pågående träningspass<br><br>
-                <strong style="color: var(--text);">Denna åtgärd kan inte ångras!</strong>
-            </p>
-            
-            <div style="display: flex; flex-direction: column; gap: 10px;">
-                <button class="mode-btn glass-border" onclick="closeModal()" style="width: 100%; padding: 15px; font-weight: 700;">Avbryt</button>
-                <button class="mode-btn" style="width: 100%; background: var(--danger); color: #fff; padding: 15px; font-weight: 700;" onclick="resetAllData()">Radera Allt</button>
-            </div>
-        </div>
-    `;
-    openModal();
-}
- 
-function resetAllData() {
-    localStorage.clear();
-    alert("✅ All data har raderats!");
-    location.reload();
-}
- 
-// ============================================================================
-// ÖVNINGSBIBLIOTEK
-// ============================================================================
-function renderExerciseLibrary() {
-    filterExercises(currentExerciseCategory);
-    showView("exercises-view");
-}
- 
-function filterExercises(category) {
-    currentExerciseCategory = category;
-    
-    document.querySelectorAll('.category-tab').forEach(tab => {
-        tab.classList.remove('active');
-    });
-    document.querySelector(`[data-category="${category}"]`)?.classList.add('active');
-    
-    const list = document.getElementById("exercise-list");
-    list.innerHTML = "";
-    
-    let filtered;
-    if (category === "Alla") {
-        filtered = masterExercises;
-    } else if (category === "Armar") {
-        filtered = masterExercises.filter(ex => ex.target === "Biceps" || ex.target === "Triceps");
-    } else {
-        filtered = masterExercises.filter(ex => ex.target === category);
-    }
-    
-    if (filtered.length === 0) {
-        list.innerHTML = `
-            <div style="text-align: center; padding: 40px 20px; color: var(--text-light);">
-                <div style="font-size: 48px; margin-bottom: 15px;">🔍</div>
-                <p style="font-size: 16px; margin-bottom: 10px;">Inga övningar i denna kategori</p>
-                <p style="font-size: 13px;">Lägg till egna övningar nedan</p>
-            </div>
-        `;
-        return;
-    }
-    
-    filtered.forEach(ex => {
-        const div = document.createElement("div");
-        div.className = "card glass";
-        div.style.cssText = "padding: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border-left: 3px solid var(--primary);";
-        
-        div.innerHTML = `
-            <div onclick="showExerciseHistory('${ex.name}')" style="flex-grow: 1; cursor: pointer;">
-                <strong style="font-size: 15px; display: block; margin-bottom: 4px; color: var(--text);">${ex.name}</strong>
-                <small style="color: var(--primary); font-weight: 800; text-transform: uppercase; font-size: 10px;">${ex.target}</small>
-            </div>
-            <div style="display: flex; gap: 5px;">
-                <button onclick="event.stopPropagation(); openEditExerciseModal(${ex.id})" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--primary); cursor: pointer; font-size: 14px; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">✏️</button>
-                <button onclick="event.stopPropagation(); deleteMasterExercise(${ex.id})" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: var(--danger); cursor: pointer; font-size: 12px; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">×</button>
-            </div>
-        `;
-        
-        list.appendChild(div);
-    });
-}
- 
-function showExerciseHistory(exerciseName) {
-    const history = [];
-    
-    workoutHistory.forEach(w => {
-        const ex = w.exercises.find(e => e.name === exerciseName);
-        if (ex && ex.sets_data && ex.sets_data.length > 0) {
-            history.push({
-                date: w.date,
-                sets: ex.sets_data
-            });
-        }
-    });
-    
-    const body = document.getElementById("modal-body");
-    
-    if (history.length === 0) {
-        body.innerHTML = `
-            <div style="text-align: center;">
-                <h3 style="margin-bottom: 15px;">${exerciseName}</h3>
-                <div style="font-size: 48px; margin: 30px 0;">📊</div>
-                <p style="color: var(--text-light); font-size: 14px;">Ingen historik för denna övning än.</p>
-            </div>
-        `;
-        openModal();
-        return;
-    }
-    
-    const sortedHistory = [...history].sort((a, b) => new Date(b.date) - new Date(a.date));
-    
-    body.innerHTML = `
-        <h3 style="text-align: center; margin-bottom: 20px;">${exerciseName}</h3>
-        
-        <div style="display: flex; flex-direction: column; gap: 15px; max-height: 60vh; overflow-y: auto;">
-            ${sortedHistory.map(entry => {
-                const maxWeight = Math.max(...entry.sets.map(s => parseFloat(s.weight) || 0));
-                const totalReps = entry.sets.reduce((sum, s) => sum + (parseInt(s.reps) || 0), 0);
-                
-                return `
-                    <div class="card glass" style="padding: 15px; border-left: 3px solid var(--primary);">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                            <strong style="font-size: 14px; color: var(--text);">${entry.date}</strong>
-                            <div style="display: flex; gap: 10px; font-size: 11px; color: var(--text-light);">
-                                <span>Max: <strong style="color: var(--primary);">${maxWeight} kg</strong></span>
-                                <span>Reps: <strong style="color: var(--primary);">${totalReps}</strong></span>
-                            </div>
-                        </div>
-                        
-                        <div style="display: flex; flex-direction: column; gap: 6px;">
-                            ${entry.sets.map((s, idx) => `
-                                <div style="background: rgba(59, 130, 246, 0.08); border: 1px solid var(--primary); padding: 6px 12px; border-radius: 8px; display: flex; align-items: center; gap: 8px; font-size: 13px;">
-                                    <span style="color: var(--primary); font-size: 10px; font-weight: 800; text-transform: uppercase; min-width: 45px;">Set ${idx + 1}</span>
-                                    <span style="color: #ffffff; font-weight: 600;">${s.weight || 0} <small style="color: var(--primary); font-weight: 700;">kg</small> × ${s.reps || 0} <small style="color: var(--primary); font-weight: 700;">reps</small></span>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                `;
-            }).join('')}
-        </div>
-    `;
-    
-    openModal();
-}
-function openAddExerciseModal() {
-    const body = document.getElementById("modal-body");
-    body.innerHTML = `
-        <h3 style="text-align: center; margin-bottom: 20px;">Skapa Ny Övning</h3>
-        
-        <label style="font-size: 11px; color: var(--text-light); text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 8px; margin-left: 10px;">Övningsnamn</label>
-        <input type="text" id="new-exercise-name" class="log-input" placeholder="T.ex. Bänkpress" style="margin-bottom: 20px;">
-        
-        <label style="font-size: 11px; color: var(--text-light); text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 12px; text-align: center;">Välj Muskelgrupp</label>
-        
-        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px;">
-            <button class="target-select-btn" data-target="Ben" onclick="selectTarget('Ben', this)" style="padding: 15px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text); transition: all 0.2s;">
-                🦵 Ben
-            </button>
-            <button class="target-select-btn" data-target="Bröst" onclick="selectTarget('Bröst', this)" style="padding: 15px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text); transition: all 0.2s;">
-                🏋️ Bröst
-            </button>
-            <button class="target-select-btn" data-target="Rygg" onclick="selectTarget('Rygg', this)" style="padding: 15px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text); transition: all 0.2s;">
-                🪵 Rygg
-            </button>
-            <button class="target-select-btn" data-target="Axlar" onclick="selectTarget('Axlar', this)" style="padding: 15px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text); transition: all 0.2s;">
-                👐 Axlar
-            </button>
-            <button class="target-select-btn" data-target="Biceps" onclick="selectTarget('Biceps', this)" style="padding: 15px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text); transition: all 0.2s;">
-                💪 Biceps
-            </button>
-            <button class="target-select-btn" data-target="Triceps" onclick="selectTarget('Triceps', this)" style="padding: 15px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text); transition: all 0.2s;">
-                🔱 Triceps
-            </button>
-            <button class="target-select-btn" data-target="Bål" onclick="selectTarget('Bål', this)" style="padding: 15px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text); transition: all 0.2s; grid-column: 1 / -1;">
-                🧘 Bål
-            </button>
-        </div>
-        
-        <button class="mode-btn blue" onclick="saveNewExercise()" style="width: 100%; padding: 15px; font-weight: 700;">Skapa Övning</button>
-        
-        <style>
-            .target-select-btn.selected {
-                background: rgba(59, 130, 246, 0.2) !important;
-                border-color: var(--primary) !important;
-                color: var(--primary) !important;
-                box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
-            }
-        </style>
-    `;
-    openModal();
-}
- 
-let selectedTarget = null;
- 
-function selectTarget(target, btn) {
-    document.querySelectorAll('.target-select-btn').forEach(b => b.classList.remove('selected'));
-    btn.classList.add('selected');
-    selectedTarget = target;
-}
- 
-function saveNewExercise() {
-    const name = document.getElementById("new-exercise-name").value.trim();
-    
-    if (!name) {
-        alert("Ange ett namn på övningen!");
-        return;
-    }
-    
-    if (!selectedTarget) {
-        alert("Välj en muskelgrupp!");
-        return;
-    }
-    
-    const exists = masterExercises.find(ex => ex.name.toLowerCase() === name.toLowerCase());
-    if (exists) {
-        alert("En övning med detta namn finns redan!");
-        return;
-    }
-    
-    const newExercise = {
-        id: Date.now(),
-        name: name,
-        target: selectedTarget
-    };
-    
-    masterExercises.push(newExercise);
-    saveAll();
-    
-    selectedTarget = null;
-    closeModal();
-    filterExercises(currentExerciseCategory);
-}
- 
-function openEditExerciseModal(exId) {
-    const ex = masterExercises.find(e => e.id == exId);
-    if (!ex) return;
-    
-    const body = document.getElementById("modal-body");
-    body.innerHTML = `
-        <h3 style="text-align: center; margin-bottom: 20px;">Redigera Övning</h3>
-        
-        <label style="font-size: 11px; color: var(--text-light); text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 8px; margin-left: 10px;">Övningsnamn</label>
-        <input type="text" id="edit-exercise-name" class="log-input" value="${ex.name}" style="margin-bottom: 20px;">
-        
-        <label style="font-size: 11px; color: var(--text-light); text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 12px; text-align: center;">Muskelgrupp</label>
-        
-        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px;">
-            <button class="target-select-btn ${ex.target === 'Ben' ? 'selected' : ''}" data-target="Ben" onclick="selectTarget('Ben', this)" style="padding: 15px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text); transition: all 0.2s;">
-                🦵 Ben
-            </button>
-            <button class="target-select-btn ${ex.target === 'Bröst' ? 'selected' : ''}" data-target="Bröst" onclick="selectTarget('Bröst', this)" style="padding: 15px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text); transition: all 0.2s;">
-                🏋️ Bröst
-            </button>
-            <button class="target-select-btn ${ex.target === 'Rygg' ? 'selected' : ''}" data-target="Rygg" onclick="selectTarget('Rygg', this)" style="padding: 15px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text); transition: all 0.2s;">
-                🪵 Rygg
-            </button>
-            <button class="target-select-btn ${ex.target === 'Axlar' ? 'selected' : ''}" data-target="Axlar" onclick="selectTarget('Axlar', this)" style="padding: 15px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text); transition: all 0.2s;">
-                👐 Axlar
-            </button>
-            <button class="target-select-btn ${ex.target === 'Biceps' ? 'selected' : ''}" data-target="Biceps" onclick="selectTarget('Biceps', this)" style="padding: 15px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text); transition: all 0.2s;">
-                💪 Biceps
-            </button>
-            <button class="target-select-btn ${ex.target === 'Triceps' ? 'selected' : ''}" data-target="Triceps" onclick="selectTarget('Triceps', this)" style="padding: 15px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text); transition: all 0.2s;">
-                🔱 Triceps
-            </button>
-            <button class="target-select-btn ${ex.target === 'Bål' ? 'selected' : ''}" data-target="Bål" onclick="selectTarget('Bål', this)" style="padding: 15px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text); transition: all 0.2s; grid-column: 1 / -1;">
-                🧘 Bål
-            </button>
-        </div>
-        
-        <button class="mode-btn blue" onclick="saveEditedExercise(${exId})" style="width: 100%; padding: 15px; font-weight: 700;">Spara Ändringar</button>
-        
-        <style>
-            .target-select-btn.selected {
-                background: rgba(59, 130, 246, 0.2) !important;
-                border-color: var(--primary) !important;
-                color: var(--primary) !important;
-                box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
-            }
-        </style>
-    `;
-    
-    selectedTarget = ex.target;
-    openModal();
-}
- 
-function saveEditedExercise(exId) {
-    const ex = masterExercises.find(e => e.id == exId);
-    if (!ex) return;
-    
-    const newName = document.getElementById("edit-exercise-name").value.trim();
-    
-    if (!newName) {
-        alert("Ange ett namn på övningen!");
-        return;
-    }
-    
-    if (!selectedTarget) {
-        alert("Välj en muskelgrupp!");
-        return;
-    }
-    
-    const oldName = ex.name;
-    ex.name = newName;
-    ex.target = selectedTarget;
-    
-    programData.routine.forEach(p => {
-        p.exercises.forEach(e => {
-            if (e.name === oldName) {
-                e.name = newName;
-                e.target = selectedTarget;
-            }
-        });
-    });
-    
-    workoutHistory.forEach(w => {
-        w.exercises.forEach(e => {
-            if (e.name === oldName) {
-                e.name = newName;
-                e.target = selectedTarget;
-            }
-        });
-    });
-    
-    if (activeDraft) {
-        activeDraft.workout.exercises.forEach(e => {
-            if (e.name === oldName) {
-                e.name = newName;
-                e.target = selectedTarget;
-            }
-        });
-    }
-    
-    saveAll();
-    selectedTarget = null;
-    closeModal();
-    filterExercises(currentExerciseCategory);
-}
- 
-// ============================================================================
-// HJÄLPFUNKTIONER
-// ============================================================================
-function prepareStart(dateStr, programId) {
-    const program = programData.routine.find(p => p.id === programId);
-    if (!program) return;
-    
-    closeModal();
-    startWorkout(program, null, dateStr, true);
-}
- 
-function setOverride(dateStr, programId) {
-    if (programId === 'none') {
-        calendarOverrides[dateStr] = 'none';
-    } else {
-        calendarOverrides[dateStr] = programId;
-    }
-    saveAll();
-    renderCalendar();
-    closeModal();
-}
- 
-let currentPressIndex = null;
-let hasMoved = false;
- 
-function startPress(index, event) {
-    currentPressIndex = index;
-    hasMoved = false;
-    
-    pressTimer = setTimeout(() => {
-        if (!hasMoved && currentPressIndex === index) {
-            const btn = event.target;
-            btn.style.transform = "scale(0.95)";
-            btn.style.opacity = "0.7";
-        }
-    }, 500);
-}
- 
-function handleTouchMove(event) {
-    hasMoved = true;
-    cancelPress();
-}
- 
-function handleTouchEnd(index, dateStr, programId, event) {
-    cancelPress();
-    
-    if (!hasMoved && currentPressIndex === index) {
-        setOverrideSilent(dateStr, programId);
-    }
-    
-    currentPressIndex = null;
-}
-function cancelPress() {
-    if (pressTimer) {
-        clearTimeout(pressTimer);
-        pressTimer = null;
-    }
-}
-
-async function loadAll() {
-    console.log("📥 Laddar all data...");
-    
-    // Försök att ladda data från Supabase
-    await loadFromSupabase();
- 
-    // Om ingen data finns, ladda från localStorage
-    if (masterExercises.length === 0) {
-        loadFromLocalStorage();
-    }
-    
-    // Återställ timer och UI
-    if (activeDraft) {
-        secondsElapsed = activeDraft.secondsElapsed || 0;
-        isTimerRunning = activeDraft.wasTimerRunning || false;
-        
-        if (isTimerRunning) {
-            startTimer();
-        }
-        
-        updateTimerDisplay();
-        updateTimerControls();
-    }
- 
-    renderHome(); // Visa startsidan
 }
 
 // ============================================================================
-// INITIALISERING
+// HUVUDINITIALISERING: initApp (Med de fixade klicklyssnarna!)
 // ============================================================================
-
-// ============================================================================
-// STARTA APPEN
-// ============================================================================
-
-
-
-// ============================================================================
-// SPARA DATA VID STÄNGNING
-// ============================================================================
-window.addEventListener('beforeunload', () => {
-    if (activeDraft) {
-        activeDraft.secondsElapsed = secondsElapsed;
-        activeDraft.wasTimerRunning = isTimerRunning;
-        persistActiveWorkout();
-    }
-});
-
-// ============================================================================
-// FÖRHINDRA ZOOM PÅ DUBBELKLICK (MOBIL)
-// ============================================================================
-document.addEventListener('dblclick', (e) => {
-    e.preventDefault();
-}, { passive: false });
-
-// ============================================================================
-// HANTERA TILLBAKA-KNAPP
-// ============================================================================
-window.addEventListener('popstate', (e) => {
-    if (document.getElementById("modal").style.display === "flex") {
-        closeModal();
-    } else {
-        renderHome();
-    }
-});
-
-// ============================================================================
-// EXTRA HJÄLPFUNKTIONER
-// ============================================================================
-function setOverrideSilent(dateStr, programId) {
-    if (programId === 'none') {
-        calendarOverrides[dateStr] = 'none';
-    } else {
-        calendarOverrides[dateStr] = programId;
-    }
-    saveAll();
-}
-
-function getDayName(dayIndex) {
-    const days = ['Söndag', 'Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag'];
-    return days[dayIndex];
-}
-
-function getShortDayName(dayIndex) {
-    const days = ['Sön', 'Mån', 'Tis', 'Ons', 'Tor', 'Fre', 'Lör'];
-    return days[dayIndex];
-}
-
-function getMonthName(monthIndex) {
-    const months = [
-        'Januari', 'Februari', 'Mars', 'April', 'Maj', 'Juni',
-        'Juli', 'Augusti', 'September', 'Oktober', 'November', 'December'
-    ];
-    return months[monthIndex];
-}
-
-function formatDate(dateStr) {
-    const date = new Date(dateStr);
-    const day = date.getDate();
-    const month = getMonthName(date.getMonth());
-    const year = date.getFullYear();
-    return `${day} ${month} ${year}`;
-}
-
-function getTodayString() {
-    return new Date().toISOString().split('T')[0];
-}
-
-function isToday(dateStr) {
-    return dateStr === getTodayString();
-}
-
-function isFutureDate(dateStr) {
-    return new Date(dateStr) > new Date(getTodayString());
-}
-
-function isPastDate(dateStr) {
-    return new Date(dateStr) < new Date(getTodayString());
-}
-
-function getDaysInMonth(year, month) {
-    return new Date(year, month + 1, 0).getDate();
-}
-
-function getFirstDayOfMonth(year, month) {
-    return new Date(year, month, 1).getDay();
-}
-
-function addDays(dateStr, days) {
-    const date = new Date(dateStr);
-    date.setDate(date.getDate() + days);
-    return date.toISOString().split('T')[0];
-}
-
-function getWeekNumber(dateStr) {
-    const date = new Date(dateStr);
-    const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
-    const pastDaysOfYear = (date - firstDayOfYear) / 86400000;
-    return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
-}
-
-function calculateStreak() {
-    if (workoutHistory.length === 0) return 0;
-    
-    const sortedDates = [...new Set(workoutHistory.map(w => w.date))].sort((a, b) => new Date(b) - new Date(a));
-    
-    let streak = 0;
-    let currentDate = getTodayString();
-    
-    for (let i = 0; i < sortedDates.length; i++) {
-        if (sortedDates[i] === currentDate) {
-            streak++;
-            currentDate = addDays(currentDate, -1);
-        } else if (new Date(sortedDates[i]) < new Date(currentDate)) {
-            break;
-        }
-    }
-    
-    return streak;
-}
-
-// ===========================================================================
-// STATISTIKFUNKTIONER
-// ===========================================================================
-
-function getWorkoutsThisWeek() {
-    const today = new Date();
-    const startOfWeek = new Date(today);
-    // Söndag (0) till måndag (1) justering
-    const day = today.getDay();
-    const diff = today.getDate() - day + (day === 0 ? -6 : 1);
-    startOfWeek.setDate(diff);
-    startOfWeek.setHours(0, 0, 0, 0);
-    
-    const endOfWeek = new Date(startOfWeek);
-    endOfWeek.setDate(startOfWeek.getDate() + 6);
-    endOfWeek.setHours(23, 59, 59, 999);
-    
-    return workoutHistory.filter(w => {
-        const workoutDate = new Date(w.date);
-        return workoutDate >= startOfWeek && workoutDate <= endOfWeek;
-    }).length;
-}
-
-function getWorkoutsThisMonth() {
-    const today = new Date();
-    return workoutHistory.filter(w => {
-        const workoutDate = new Date(w.date);
-        return workoutDate.getFullYear() === today.getFullYear() && 
-               workoutDate.getMonth() === today.getMonth();
-    }).length;
-}
-
-function getTotalVolume() {
-    return workoutHistory.reduce((total, w) => {
-        w.exercises.forEach(ex => {
-            if (ex.sets_data) {
-                ex.sets_data.forEach(set => {
-                    total += (parseFloat(set.weight) || 0) * (parseInt(set.reps) || 0);
-                });
-            }
-        });
-        return total;
-    }, 0);
-}
-
-function getAverageWorkoutDuration() {
-    if (workoutHistory.length === 0) return "0h 0m";
-    
-    let totalSeconds = 0;
-    let count = 0;
-    
-    workoutHistory.forEach(w => {
-        if (w.totalTime) {
-            const parts = w.totalTime.split(':').map(Number);
-            if (parts.length === 3) {
-                totalSeconds += parts[0] * 3600 + parts[1] * 60 + parts[2];
-                count++;
-            }
-        }
-    });
-    
-    if (count === 0) return "0h 0m";
-    
-    const avgSeconds = Math.floor(totalSeconds / count);
-    return `${Math.floor(avgSeconds / 3600)}h ${Math.floor((avgSeconds % 3600) / 60)}m`;
-}
-
-function getMostFrequentExercise() {
-    if (workoutHistory.length === 0) return "Ingen data";
-    
-    const freq = {};
-    workoutHistory.forEach(w => {
-        w.exercises.forEach(ex => {
-            freq[ex.name] = (freq[ex.name] || 0) + 1;
-        });
-    });
-    
-    const mostFrequent = Object.entries(freq).sort((a, b) => b[1] - a[1])[0];
-    return `${mostFrequent[0]} (${mostFrequent[1]}x)`;
-}
-
-// ===========================================================================
-// INITIERING (Den ENDA som ska finnas)
-// ===========================================================================
-
 async function initApp() {
-    if (window.isAppInitialized) return;
-    window.isAppInitialized = true;
+    if (isAppInitialized) return;
+    isAppInitialized = true;
+    console.log(" 🚀  Initialiserar appen...");
     
-    console.log("🚀 Initierar app...");
-
     await checkUser();
     await loadFromSupabase();
-    
-    if (masterExercises.length === 0) {
+
+    // Hämta status om aktiv draft
+    if (!activeDraft) {
         try {
-            const response = await fetch("program.json");
-            const json = await response.json();
-            programData = json;
-            await saveAll();
+            const savedDraft = localStorage.getItem("activeWorkoutDraft");
+            if (savedDraft) activeDraft = JSON.parse(savedDraft);
         } catch (err) {
             console.error("Kunde inte ladda program.json", err);
         }
     }
-
     if (activeDraft?.isStarted) {
         secondsElapsed = activeDraft.secondsElapsed || 0;
         activeDraft.wasTimerRunning ? startTimer() : updateTimerDisplay();
     }
-
     renderHome(); 
 
- // ==================================================================
-// HUVUDMENY: EVENT LISTENERS (Synkade med index.html)
-// ==================================================================
+    // ==================================================================
+    // HUVUDMENY: EVENT LISTENERS (Synkade med index.html)
+    // ==================================================================
+    
+    // ÖVNINGAR (Fungerar redan)
+    document.getElementById("view-exercises-btn")?.addEventListener("click", () => {
+        console.log("Klick på övningar");
+        filterExercises("Ben");
+        showView("exercises-view");
+    });
 
-// ÖVNINGAR (Fungerar redan)
-document.getElementById("view-exercises-btn")?.addEventListener("click", () => {
-    console.log("Klick på övningar");
-    filterExercises("Ben");
-    showView("exercises-view");
-});
+    // TRÄNINGSPROGRAM
+    document.getElementById("view-programs-btn")?.addEventListener("click", () => {
+        console.log("Klick på program");
+        renderProgramView(); 
+    });
 
-// TRÄNINGSPROGRAM
-document.getElementById("view-programs-btn")?.addEventListener("click", () => {
-    console.log("Klick på program");
-    renderProgramView(); 
-});
+    // TRÄNINGSDAGBOK (Ändrad till korrekt ID från din HTML: "calendar-mode")
+    document.getElementById("calendar-mode")?.addEventListener("click", () => {
+        console.log("Klick på kalender");
+        renderCalendar(); 
+    });
 
-// TRÄNINGSDAGBOK (Ändrad till id: "calendar-mode" från HTML)
-document.getElementById("calendar-mode")?.addEventListener("click", () => {
-    console.log("Klick på kalender");
-    renderCalendar(); 
-});
+    // STATISTIK (Ändrad till korrekt ID från din HTML: "stats-mode")
+    document.getElementById("stats-mode")?.addEventListener("click", () => {
+        console.log("Klick på statistik");
+        renderStats(); 
+    });
 
-// STATISTIK (Ändrad till id: "stats-mode" från HTML)
-document.getElementById("stats-mode")?.addEventListener("click", () => {
-    console.log("Klick på statistik");
-    renderStats(); 
-});
-
-console.log("✅ Menyknappar inkopplade");
-
-    console.log("✅ Appen är redo!");
+    console.log(" ✅  Menyknappar inkopplade");
+    console.log(" ✅  Appen är redo!");
 }
 
 // Starta appen när sidan laddats
-if (document.readyState === 'complete' || document.readyState === 'interactive') {
+if (document.readyState === 'complete') {
     initApp();
 } else {
     window.addEventListener('DOMContentLoaded', initApp);
