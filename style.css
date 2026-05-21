@@ -653,3 +653,13 @@ select.log-input { font-size: 16px !important; text-align-last: center; appearan
 @keyframes buttonPulse { 0% { box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3); } 100% { box-shadow: 0 8px 30px rgba(34, 197, 94, 0.7); } }
 @keyframes smokyMove { 0% { transform: scale(1) translateX(-5%); opacity: 0.4; } 50% { transform: scale(1.1) translateX(5%); opacity: 0.8; } 100% { transform: scale(1) translateX(-5%); opacity: 0.4; } }
 @keyframes mainSmokyMove { 0% { transform: scale(1) translateX(-30%); opacity: 0.3; } 50% { transform: scale(1.1) translateX(30%); opacity: 0.9; } 100% { transform: scale(1) translateX(-30%); opacity: 0.3; } }
+
+/* Gör att vyer som inte är dolda syns */
+.view {
+    display: block !important;
+}
+
+/* Gör att vyer med klassen hidden är osynliga */
+.view.hidden {
+    display: none !important;
+}
