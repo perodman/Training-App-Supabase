@@ -2827,49 +2827,34 @@ async function initApp() {
 
     renderHome(); 
 
-   // ======================================================================
-// MENYKNAPPAR
-// ======================================================================
+ // ==================================================================
+// HUVUDMENY: EVENT LISTENERS (Synkade med index.html)
+// ==================================================================
 
-// ÖVNINGAR
-document.getElementById("view-exercises-btn")
-    ?.addEventListener("click", () => {
+// ÖVNINGAR (Fungerar redan)
+document.getElementById("view-exercises-btn")?.addEventListener("click", () => {
+    console.log("Klick på övningar");
+    filterExercises("Ben");
+    showView("exercises-view");
+});
 
-        console.log("Klick på övningar");
+// TRÄNINGSPROGRAM
+document.getElementById("view-programs-btn")?.addEventListener("click", () => {
+    console.log("Klick på program");
+    renderProgramView(); 
+});
 
-        filterExercises("Ben");
-        showView("exercises-view");
-    });
+// TRÄNINGSDAGBOK (Ändrad till id: "calendar-mode" från HTML)
+document.getElementById("calendar-mode")?.addEventListener("click", () => {
+    console.log("Klick på kalender");
+    renderCalendar(); 
+});
 
-// PROGRAM
-document.getElementById("view-programs-btn")
-    ?.addEventListener("click", () => {
-
-        console.log("Klick på program");
-
-        renderProgramView();
-        showView("programs-view");
-    });
-
-// KALENDER
-document.getElementById("calendar-mode")
-    ?.addEventListener("click", () => {
-
-        console.log("Klick på kalender");
-
-        renderCalendar();
-        showView("calendar-view");
-    });
-
-// STATISTIK
-document.getElementById("stats-mode")
-    ?.addEventListener("click", () => {
-
-        console.log("Klick på statistik");
-
-        renderStats();
-        showView("stats-view");
-    });
+// STATISTIK (Ändrad till id: "stats-mode" från HTML)
+document.getElementById("stats-mode")?.addEventListener("click", () => {
+    console.log("Klick på statistik");
+    renderStats(); 
+});
 
 console.log("✅ Menyknappar inkopplade");
 
