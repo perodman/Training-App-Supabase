@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="sv">
 <head>
+    <meta http-equiv="Service-Worker" content="none">
+    
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>LIFT Tracker Pro</title>
@@ -8,12 +10,13 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body ontouchstart="">
-   <div class="global-header">
+    <div class="global-header">
         <div id="global-home" class="circle-ctrl"> 🏠 </div>
         <div id="auth-container">
             <button id="login-btn" onclick="loginWithGitHub()" class="mode-btn glass" style="padding: 5px 15px; font-size: 12px;">Logga in</button>
         </div>
     </div>
+
     <div class="app-container">
         <div id="home-view" class="view">
             <div class="hero-section">
@@ -73,9 +76,9 @@
             <h2 class="section-title modern-header">Träningsschema</h2>
             <div id="calendar-info-box"></div>
             <div class="calendar-nav">
-                <button onclick="changeMonth(-1)" class="nav-arrow">  ❮  </button>
+                <button onclick="changeMonth(-1)" class="nav-arrow"> ❮ </button>
                 <h2 id="month-label" onclick="openMonthPicker()" style="cursor:pointer;"></h2>
-                <button onclick="changeMonth(1)" class="nav-arrow">  ❯  </button>
+                <button onclick="changeMonth(1)" class="nav-arrow"> ❯ </button>
             </div>
             <div class="card calendar-card glass-light">
                 <div class="calendar-weekdays">
@@ -100,17 +103,6 @@
                 <button class="cat-btn glass" data-cat="Armar" onclick="filterExercises('Armar')"><span class="cat-icon"> 💪 </span> Armar</button>
                 <button class="cat-btn glass" data-cat="Bål" onclick="filterExercises('Bål')"><span class="cat-icon"> 🧘 </span> Bål</button>
             </div>
-            <div style="display: flex; align-items: center; gap: 15px; margin: 35px 0 20px 0; opacity: 0.8;">
-                <div style="flex-grow: 1; height: 1px; background: linear-gradient(to right, transparent, var(--primary), transparent);"></div>
-                <div style="width: 8px; height: 8px; background: var(--primary); transform: rotate(45deg); border-radius: 2px; box-shadow: 0 0 10px var(--primary);"></div>
-                <div style="flex-grow: 1; height: 1px; background: linear-gradient(to left, transparent, var(--primary), transparent);"></div>
-            </div>
-            <div style="display: flex; justify-content: flex-end; margin-bottom: 15px; padding-right: 17px;">
-                <button class="add-inline-btn" onclick="openCreateExerciseModal()" 
-                        style="position: static; transform: none; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-size: 17px; padding: 0; line-height: 1;">
-                    +
-                </button>
-            </div>
             <div id="exercise-results" class="exercise-bank-list"></div>
         </div>
 
@@ -118,7 +110,6 @@
             <h2 class="section-title modern-header">Träningsprogram</h2>
             <div id="pass-selector-list" class="program-modern-grid"></div>
             <div id="program-details-area" class="hidden">
-                <div class="separator" style="margin: 30px 0;"></div>
                 <div id="program-exercise-list" class="card glass-modern"></div>
             </div>
             <button id="add-custom-pass-btn" class="mode-btn glass-border" style="margin-top:20px;">+ Skapa Nytt Pass</button>
@@ -136,9 +127,7 @@
             <h2 id="active-title" class="section-title modern-header" style="margin-bottom:10px;"></h2>
             <div class="card glass" style="margin-bottom: 20px; padding: 15px;">
                 <div id="workout-timer" class="timer-display">00:00:00</div>
-                <div style="display: flex; gap: 10px;">
-                    <button id="timer-toggle-btn" class="mode-btn glass-border" style="margin-bottom:0; padding:10px;">Pausa ⏸️</button>
-                </div>
+                <button id="timer-toggle-btn" class="mode-btn glass-border">Pausa ⏸️</button>
             </div>
             <div id="exercise-list"></div>
             <div class="workout-footer">
@@ -148,53 +137,7 @@
         </div>
     </div>
 
-    <div id="workout-modal" class="modal hidden">
-        <div class="modal-content">
-            <div id="modal-body">
-                
-                <div class="day-manager-header-area">
-                    <span class="day-manager-sub-date">Valt Datum</span>
-                    <h2 class="section-title modern-header day-manager-main-date" id="modal-date-display">2026-05-18</h2>
-                </div>
-
-                <div class="modern-status-card day-manager-status-box">
-                    <div class="status-aura aura-planned"></div>
-                    
-                    <div class="status-badge-container">
-                        <span class="status-box-title">Status</span>
-                    </div>
-                    
-                    <h3 class="status-box-text">📋 <span class="status-highlight-text" id="modal-status-text">Pass A</span></h3>
-                    
-                    <button class="premium-action-btn premium-green-btn" id="modal-start-btn">Starta träning 🔥</button>
-                    <button class="premium-action-btn premium-free-btn" id="modal-free-btn">+ Starta Fritt Pass</button>
-                </div>
-
-                <div class="section-divider-container planning-section">
-                    <div class="divider-line"></div>
-                    <p class="divider-text">Ändra planering</p>
-                    <div class="divider-line"></div>
-                </div>
-
-                <div class="plan-override-grid" id="modal-override-options">
-                    <div class="override-item-wrapper">
-                        <button class="mode-btn plan-override-btn active-choice" data-pass="A">Pass A</button>
-                        <details class="override-details"><summary>Innehåll ▾</summary><div class="details-content" id="details-A"></div></details>
-                    </div>
-                    <div class="override-item-wrapper">
-                        <button class="mode-btn plan-override-btn" data-pass="B">Pass B</button>
-                        <details class="override-details"><summary>Innehåll ▾</summary><div class="details-content" id="details-B"></div></details>
-                    </div>
-                </div>
-
-                <button class="mode-btn plan-override-btn override-rest-btn" id="modal-rest-btn" style="margin-top: 15px !important;">🧘 Vila</button>
-
-            </div>
-            
-            <button class="mode-btn glass-border" onclick="closeModal()" style="margin-top: 25px;">Stäng</button>
-        </div>
-    </div>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="app.js?v=1.0.1"></script>
+    <script async src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script defer src="app.js?v=1.0.1"></script>
 </body>
 </html>
