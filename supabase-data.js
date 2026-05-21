@@ -241,12 +241,12 @@ async function deleteWorkoutFromHistory(date, idx) {
 
 async function clearActiveDraft() {
     if (!currentUser) return;
-
+ 
     const { error } = await supabase
         .from('active_draft')
-        .update({ {} })
+        .update({ draft_null })
         .eq('user_id', currentUser.id);
-
+ 
     if (error) {
         console.error('Fel vid rensning av utkast:', error);
     }
