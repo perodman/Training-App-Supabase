@@ -244,7 +244,7 @@ async function clearActiveDraft() {
  
     const { error } = await supabase
         .from('active_draft')
-        .update({ draft_null })
+        .update({ draft_data : null })
         .eq('user_id', currentUser.id);
  
     if (error) {
