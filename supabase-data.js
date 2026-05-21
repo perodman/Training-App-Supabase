@@ -155,7 +155,7 @@ async function saveWorkoutHistory(workout) {
         .insert([{
             user_id: currentUser.id,
             workout_date: workout.date,
-            workout_{
+            workout_data:{
                 programName: workout.programName,
                 totalTime: workout.totalTime,
                 exercises: workout.exercises
