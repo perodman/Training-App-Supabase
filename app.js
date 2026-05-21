@@ -356,6 +356,18 @@ function showView(id) {
     console.log("Visar vy:", id);
 }
 
+function attachMenuListeners() {
+    console.log("🛠 Kopplar om menyknappar...");
+    const buttons = document.querySelectorAll('[onclick*="showView"]');
+    buttons.forEach(btn => {
+        // Vi tvingar in klicket igen
+        btn.onclick = function() {
+            const view = this.getAttribute('onclick').match(/'([^']+)'/)[1];
+            showView(view);
+        };
+    });
+}
+
 function closeModal() {
     document.getElementById("workout-modal").classList.add("hidden");
     const video = document.querySelector("#modal-body video");
