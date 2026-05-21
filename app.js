@@ -327,16 +327,33 @@ async function saveAll() {
 // ============================================================================
 function showView(id) {
     const target = document.getElementById(id);
-    if (!target) return;
-    
-    if (target.classList.contains("hidden")) {
-        document.querySelectorAll(".view").forEach(v => v.classList.add("hidden"));
-        target.classList.remove("hidden");
-        target.style.animation = 'none';
-        target.offsetHeight; 
-        target.style.animation = null;
+    if (!target) {
+        console.error("Vyn hittades inte:", id);
+        return;
     }
+    
+    // 1. Göm alla andra vyer
+    document.querySelectorAll(".view").forEach(v => v.classList.add("hidden"));
+    
+    // 2. Visa den valda vyn
+    target.classList.remove("hidden");
+    
+    // 3. Trigger animation
+    target.style.animation = 'none';
+    target.offsetHeight; // Trigger reflow
+    target.style.animation = null;
+    
+    // 4. LÄGG TILL DETTA: Säkerställ att huvudmenyn alltid är synlig
+    const menu = document.getElementById("main-menu");
+    if (menu) menu.classList.remove("hidden");
+    
+    // 5. Återkoppla klick-event (om du har lagt till attachMenuListeners)
+    if (typeof attachMenuListeners === 'function') {
+        attachMenuListeners();
+    }
+    
     window.scrollTo(0, 0);
+    console.log("Visar vy:", id);
 }
 
 function closeModal() {
