@@ -5,12 +5,12 @@
 const SUPABASE_URL = 'https://oixavkihfvbagzlyoocm.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9peGF2a2loZnZiYWd6bHlvb2NtIiwicm9sZSI6ImFub24iLCJpYXQiOjE2ODkwMDAwMDAsImV4cCI6MTg0Njg1MjgwMH0.PLACEHOLDER_KEY';
 
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let currentUser = null;
 
 async function initAuth() {
-    const response = await supabase.auth.getSession();
+    const response = await supabaseClient.auth.getSession();
 const session = response.data.session;
     
     if (session) {
@@ -21,7 +21,7 @@ const session = response.data.session;
         showAuth();
     }
 
-    supabase.auth.onAuthStateChange(async (event, session) => {
+    supabaseClient.auth.onAuthStateChange(async (event, session) => {
         if (event === 'SIGNED_IN' && session) {
             currentUser = session.user;
             await loadUserData();
@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const { data, error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await supabaseClient.auth.signInWithPassword({
             email: email,
             password: password
         });
@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     document.getElementById('github-login-btn').onclick = async () => {
-        const { data, error } = await supabase.auth.signInWithOAuth({
+        const { data, error } = await supabaseClient.auth.signInWithOAuth({
             provider: 'github'
         });
 
@@ -101,7 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const { data, error } = await supabase.auth.signUp({
+        const { data, error } = await supabaseClient.auth.signUp({
             email: email,
             password: password
         });
@@ -115,7 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     document.getElementById('global-logout').onclick = async () => {
-        const { error } = await supabase.auth.signOut();
+        const { error } = await supabaseClient.auth.signOut();
         if (error) {
             alert('Utloggning misslyckades: ' + error.message);
         }
