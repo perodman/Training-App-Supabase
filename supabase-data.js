@@ -251,8 +251,3 @@ async function clearActiveDraft() {
         console.error('Fel vid rensning av utkast:', error);
     }
 }
-
-function saveAll() {
-    saveCustomProgram();
-    saveCalendarOverrides();
-}
