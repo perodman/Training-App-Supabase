@@ -151,19 +151,18 @@ async function loadFromSupabase() {
     console.log("📥 Laddar data från Supabase...");
 
     try {
-        // 1. Ladda workoutHistory (Denna är OK med array)
-        const { data: historyData, error: historyError } = await client
+        // 1. Ladda workoutHistory
+        const { data: historyData } = await client
             .from('workout_history')
             .select('workout_data')
             .eq('user_id', currentUserId)
             .order('workout_date', { ascending: false });
 
-        if (historyError) throw historyError;
         workoutHistory = historyData ? historyData.map(row => row.workout_data) : [];
         console.log("✅ Träningshistorik laddad:", workoutHistory.length);
 
-        // 2. Ladda calendarOverrides (Ta bort .single() för att undvika krasch om tom)
-        const { data: ovData, error: ovError } = await client
+        // 2. Ladda calendarOverrides (utan .single())
+        const { data: ovData } = await client
             .from('calendar_overrides')
             .select('data')
             .eq('user_id', currentUserId);
@@ -171,7 +170,7 @@ async function loadFromSupabase() {
         if (ovData && ovData.length > 0) calendarOverrides = ovData[0].data;
 
         // 3. Ladda activeDraft
-        const { data: adData, error: adError } = await client
+        const { data: adData } = await client
             .from('active_draft')
             .select('data')
             .eq('user_id', currentUserId);
@@ -179,15 +178,16 @@ async function loadFromSupabase() {
         if (adData && adData.length > 0) activeDraft = adData[0].data;
 
         // 4. Ladda customProgram
-        const { data: cpData, error: cpError } = await client
+        const { data: cpData } = await client
             .from('custom_program')
             .select('data')
             .eq('user_id', currentUserId);
             
         if (cpData && cpData.length > 0) programData = cpData[0].data;
 
+        console.log("✅ All data har laddats.");
     } catch (error) {
-        console.error("❌ Fel vid laddning från Supabase:", error);
+        console.error("❌ Fel vid laddning:", error);
     }
 }
 
