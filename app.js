@@ -2022,7 +2022,7 @@ async function editLoggedWorkout(date, idx) {
     const workoutObj = { id: "edit-" + Date.now(), name: item.programName, exercises: item.exercises.map(ex => ({ name: ex.name })) };
     
     const dataObj = item.exercises.map(ex => {
-        if(ex.sets_data) return { sets_ex.sets_data, isCompleted: true };
+        if(ex.sets_data) return { sets_data: ex.sets_data, isCompleted: true };
         return { sets_Array(parseInt(ex.sets || 1)).fill({ weight: ex.weight, reps: ex.reps }), isCompleted: true };
     });
 
