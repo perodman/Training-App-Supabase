@@ -1,5 +1,5 @@
 // ==========================================================================
-// SUPABASE DATABASOPERATIONER (TOTALT ISOLERAD & STABILISERAD)
+// SUPABASE DATABASOPERATIONER (Garanterad återställning av program.json)
 // ==========================================================================
 
 async function loadUserData() {
@@ -8,13 +8,10 @@ async function loadUserData() {
     try {
         console.log("Startar synkroniserad laddning av data från Supabase...");
 
-        // 1. SÄKRA UPPA GRUNDSTRUKTURER I WINDOW-OBJEKTET
+        // 1. SÄKRA UPPA GRUNDSTRUKTURER I WINDOW-OBJEKTET SOM BACKUP
         if (!window.programData) {
-            try {
-                window.programData = JSON.parse(localStorage.getItem("myCustomProgram"));
-            } catch(e) { window.programData = null; }
+            try { window.programData = JSON.parse(localStorage.getItem("myCustomProgram")); } catch(e) { window.programData = null; }
         }
-        
         if (typeof masterExercises === 'undefined' || !masterExercises) {
             try { masterExercises = JSON.parse(localStorage.getItem("masterExercises") || "[]"); } catch(e) { masterExercises = []; }
         }
@@ -36,7 +33,9 @@ async function loadUserData() {
             console.error('Fel vid laddning av program:', programError);
         }
 
-        if (programDataResult && programDataResult.data) {
+        // KRITISK KONTROLL: Har vi RIKTIG data i molnet med en träningsrutin?
+        if (programDataResult && programDataResult.data && programDataResult.data.routine && programDataResult.data.routine.length > 0) {
+            console.log("Hittade giltigt program i molnet. Läser in...");
             window.programData = programDataResult.data;
             localStorage.setItem("myCustomProgram", JSON.stringify(window.programData));
             
@@ -45,17 +44,17 @@ async function loadUserData() {
                 localStorage.setItem("masterExercises", JSON.stringify(masterExercises));
             }
         } else {
-            // Om inget program finns i molnet, försök rädda från localStorage, annars ladda default
-            if (!window.programData || !window.programData.routine || window.programData.routine.length === 0) {
-                await loadDefaultProgram();
-            }
+            // Om molnet är tomt, eller saknar rutiner (Full Body A/B), TVINGA in program.json
+            console.log("Molnet saknar träningsrutiner. Laddar från program.json...");
+            await loadDefaultProgram();
         }
 
-        // Dubbelkolla strukturen så att render-funktionerna har något att jobba med
-        if (!window.programData) window.programData = { routine: [] };
-        if (!window.programData.routine) window.programData.routine = [];
+        // Dubbelkolla strukturen en extra gång så appen har något att loopa igenom
+        if (!window.programData || !window.programData.routine || window.programData.routine.length === 0) {
+            await loadDefaultProgram();
+        }
 
-        // Synka till app.js lokala variabel om den existerar i det globala skopet
+        // Synka till app.js lokala variabel om den existerar globalt
         if (typeof programData !== 'undefined') {
             programData = window.programData;
         }
@@ -136,6 +135,7 @@ async function loadUserData() {
 
 async function loadDefaultProgram() {
     try {
+        console.log("Hämtar program.json från servern...");
         const response = await fetch("program.json");
         const json = await response.json();
         
@@ -166,9 +166,11 @@ async function loadDefaultProgram() {
 
         localStorage.setItem("myCustomProgram", JSON.stringify(window.programData));
         localStorage.setItem("masterExercises", JSON.stringify(masterExercises));
+        
+        // Spara omedelbart upp detta till Supabase så molnet blir lagat
         await saveCustomProgram();
     } catch (err) {
-        console.error('Fel vid laddning av standardprogram:', err);
+        console.error('Fel vid laddning av standardprogram från program.json:', err);
     }
 }
 
@@ -177,6 +179,12 @@ async function saveCustomProgram() {
 
     if (typeof programData !== 'undefined' && programData) {
         window.programData = programData;
+    }
+
+    // Skydda mot att spara ett tomt program över ett fungerande
+    if (!window.programData || !window.programData.routine || window.programData.routine.length === 0) {
+        console.warn("Avbryter sparande: Försökte spara ett tomt program.");
+        return;
     }
 
     const dataToSave = {
