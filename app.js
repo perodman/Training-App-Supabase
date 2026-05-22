@@ -14,120 +14,21 @@ let isTimerRunning = false;
 // --- INIT ---
 async function initializeApp() {
     try {
-        // VÄNTA PÅ ATT ANVÄNDAREN ÄR INLOGGAD
-        const { data: { user } } = await supabaseClient.auth.getUser();
+        const { { user } } = await supabaseClient.auth.getUser();
         if (!user) {
             console.error('No user logged in');
-            // Omdirigera till login eller visa felmeddelande
             return;
         }
         currentUser = user;
         
-        // Hämta master exercises från Supabase
-        const { exercisesData, error: exercisesError } = await supabaseClient
-            .from('master_exercises')
-            .select('*')
-            .eq('user_id', currentUser.id);
+        await loadUserData();
         
-        if (exercisesError) throw exercisesError;
-        
-        if (exercisesData && exercisesData.length > 0) {
-            masterExercises = exercisesData;
-        }
- 
-        // Hämta workout history från Supabase
-        const { historyData, error: historyError } = await supabaseClient
-            .from('workout_history')
-            .select('*')
-            .eq('user_id', currentUser.id);
-        
-        if (historyError) throw historyError;
-        
-        if (historyData) {
-            workoutHistory = historyData;
-        }
- 
-        // Hämta active draft från Supabase
-        const { draftData, error: draftError } = await supabaseClient
-            .from('active_draft')
-            .select('*')
-            .eq('user_id', currentUser.id)
-            .single();
-        
-        if (draftError && draftError.code !== 'PGRST116') throw draftError;
-        
-        if (draftData) {
-            activeDraft = draftData.draft_data;
-        }
- 
-        // Hämta calendar overrides från Supabase
-        const { overridesData, error: overridesError } = await supabaseClient
-            .from('calendar_overrides')
-            .select('*')
-            .eq('user_id', currentUser.id)
-            .single();
-        
-        if (overridesError && overridesError.code !== 'PGRST116') throw overridesError;
-        
-        if (overridesData) {
-            calendarOverrides = overridesData.overrides_data;
-        }
- 
-        // Hämta custom program från Supabase
-        const { programDataResult, error: programError } = await supabaseClient
-            .from('custom_program')
-            .select('*')
-            .eq('user_id', currentUser.id)
-            .single();
-        
-        if (programError && programError.code !== 'PGRST116') throw programError;
- 
-        // Ladda program.json
-        const response = await fetch("program.json");
-        const json = await response.json();
-        
-        if (masterExercises.length === 0) {
-            json.routine.forEach(p => {
-                p.exercises.forEach(ex => {
-                    if (!masterExercises.find(m => m.name === ex.name)) {
-                        let animFile = "";
-                        if (ex.name === "Deadlift") animFile = "Gemini_Generated_Image_sqtn3ksqtn3ksqtn.mp4";
-                        if (ex.name === "Barbell Bench Press") animFile = "Skärmbild 2026-05-11 124104.mp4";
-                        
-                        masterExercises.push({ 
-                            ...ex, 
-                            id: Date.now() + Math.random(),
-                            animation: animFile 
-                        });
-                    }
-                });
-            });
-            await saveMasterExercises();
-        } else {
-            masterExercises.forEach(ex => {
-                if (ex.name === "Deadlift") ex.animation = "Gemini_Generated_Image_sqtn3ksqtn3ksqtn.mp4";
-                if (ex.name === "Barbell Bench Press") ex.animation = "Skärmbild 2026-05-11 124104.mp4";
-            });
-        }
-        
-        programData = programDataResult ? programDataResult.program_data : json;
- 
-        if(activeDraft && activeDraft.isStarted) {
-            secondsElapsed = activeDraft.secondsElapsed || 0;
-            if(activeDraft.wasTimerRunning) {
-                startTimer();
-            } else {
-                updateTimerDisplay();
-            }
-        }
- 
         renderHome();
     } catch (error) {
         console.error('Error initializing app:', error);
     }
 }
- 
-// Kör initializeringen EFTER att Supabase är redo
+
 initializeApp();
  
 
