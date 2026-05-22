@@ -1,5 +1,5 @@
 // ==========================================================================
-// SUPABASE DATABASOPERATIONER (FIXAT PROBLEM MED NAVIGERING OCH PASS)
+// SUPABASE DATABASOPERATIONER (TOTALT ISOLERAD & STABILISERAD)
 // ==========================================================================
 
 async function loadUserData() {
@@ -8,23 +8,24 @@ async function loadUserData() {
     try {
         console.log("Startar synkroniserad laddning av data från Supabase...");
 
-        // 1. UNITIALISERA/SÄKRA VARIABLER FRÅN LOCALSTORAGE DIREKT
-        // Vi läser in existerande data på båda sätten (med och utan window) så app.js är synkad
+        // 1. SÄKRA UPPA GRUNDSTRUKTURER I WINDOW-OBJEKTET
         if (!window.programData) {
-            window.programData = JSON.parse(localStorage.getItem("myCustomProgram"));
-            if (window.programData) programData = window.programData;
+            try {
+                window.programData = JSON.parse(localStorage.getItem("myCustomProgram"));
+            } catch(e) { window.programData = null; }
         }
+        
         if (typeof masterExercises === 'undefined' || !masterExercises) {
-            masterExercises = JSON.parse(localStorage.getItem("masterExercises") || "[]");
+            try { masterExercises = JSON.parse(localStorage.getItem("masterExercises") || "[]"); } catch(e) { masterExercises = []; }
         }
         if (typeof workoutHistory === 'undefined' || !workoutHistory) {
-            workoutHistory = JSON.parse(localStorage.getItem("workoutHistory") || "[]");
+            try { workoutHistory = JSON.parse(localStorage.getItem("workoutHistory") || "[]"); } catch(e) { workoutHistory = []; }
         }
         if (typeof calendarOverrides === 'undefined' || !calendarOverrides) {
-            calendarOverrides = JSON.parse(localStorage.getItem("calendarOverrides") || "{}");
+            try { calendarOverrides = JSON.parse(localStorage.getItem("calendarOverrides") || "{}"); } catch(e) { calendarOverrides = {}; }
         }
 
-        // 2. LADDAR CUSTOM_PROGRAM (Dina planerade pass)
+        // 2. LADDAR CUSTOM_PROGRAM (Planerade pass)
         const { data : programDataResult, error: programError } = await supabaseClient
             .from('custom_program')
             .select('data')
@@ -36,9 +37,7 @@ async function loadUserData() {
         }
 
         if (programDataResult && programDataResult.data) {
-            // Sätt datan på BÅDA ställena så att app.js inte tappar bort den vid sidbyten
             window.programData = programDataResult.data;
-            programData = programDataResult.data; 
             localStorage.setItem("myCustomProgram", JSON.stringify(window.programData));
             
             if (programDataResult.data.masterExercises) {
@@ -46,22 +45,22 @@ async function loadUserData() {
                 localStorage.setItem("masterExercises", JSON.stringify(masterExercises));
             }
         } else {
-            // Om inget program fanns i molnet och inget i minnet, ladda default
+            // Om inget program finns i molnet, försök rädda från localStorage, annars ladda default
             if (!window.programData || !window.programData.routine || window.programData.routine.length === 0) {
                 await loadDefaultProgram();
             }
         }
 
-        // Absolut sista spärren: Tillåt aldrig programData att bli helt tomt eller sakna routine-fältet
-        if (!window.programData) {
-            window.programData = JSON.parse(localStorage.getItem("myCustomProgram")) || { routine: [] };
-        }
-        if (!window.programData.routine) {
-            window.programData.routine = [];
-        }
-        programData = window.programData; // Håll app.js-variabeln identisk
+        // Dubbelkolla strukturen så att render-funktionerna har något att jobba med
+        if (!window.programData) window.programData = { routine: [] };
+        if (!window.programData.routine) window.programData.routine = [];
 
-        // 3. LADDAR WORKOUT_HISTORY (Dina genomförda pass)
+        // Synka till app.js lokala variabel om den existerar i det globala skopet
+        if (typeof programData !== 'undefined') {
+            programData = window.programData;
+        }
+
+        // 3. LADDAR WORKOUT_HISTORY (Genomförda pass)
         const { data : historyData, error: historyError } = await supabaseClient
             .from('workout_history')
             .select('*')
@@ -124,9 +123,9 @@ async function loadUserData() {
             localStorage.removeItem("activeWorkoutDraft");
         }
 
-        console.log("All data är fullständigt synkroniserad och säkrad.");
+        console.log("All data synkad i loadUserData. Renderar vyer.");
         
-        // Rita upp vyerna
+        // Uppdatera gränssnittet
         if (typeof renderCalendar === 'function') renderCalendar();
         if (typeof renderHome === 'function') renderHome();
 
@@ -141,7 +140,8 @@ async function loadDefaultProgram() {
         const json = await response.json();
         
         window.programData = json;
-        programData = json; // Synka app.js lokala variabel
+        if (typeof programData !== 'undefined') programData = window.programData;
+        
         masterExercises = [];
         
         if (json && json.routine) {
@@ -175,9 +175,9 @@ async function loadDefaultProgram() {
 async function saveCustomProgram() {
     if (!currentUser) return;
 
-    // Säkerställ synk innan sparande
-    if (window.programData) programData = window.programData;
-    if (programData) window.programData = programData;
+    if (typeof programData !== 'undefined' && programData) {
+        window.programData = programData;
+    }
 
     const dataToSave = {
         ...window.programData,
