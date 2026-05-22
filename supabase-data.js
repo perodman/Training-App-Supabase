@@ -6,28 +6,8 @@ async function loadUserData() {
     if (!currentUser) return;
 
     try {
-        // Ladda custom_program
-        const { data : programData, error: programError } = await supabaseClient
-            .from('custom_program')
-            .select('data')
-            .eq('user_id', currentUser.id)
-            .single();
-
-        if (programError && programError.code !== 'PGRST116') {
-            console.error('Fel vid laddning av program:', programError);
-        }
-
-        if (programData && programData.data) {
-            window.programData = programData.data;
-            if (programData.data.masterExercises) {
-                masterExercises = programData.data.masterExercises;
-            }
-        } else {
-            await loadDefaultProgram();
-        }
-
         // Ladda workout_history
-        const { data : historyData, error: historyError } = await supabaseClient
+        const { historyData, error: historyError } = await supabaseClient
             .from('workout_history')
             .select('*')
             .eq('user_id', currentUser.id)
@@ -45,7 +25,7 @@ async function loadUserData() {
         }
 
         // Ladda calendar_overrides
-        const { data : calendarData, error: calendarError } = await supabaseClient
+        const { calendarData, error: calendarError } = await supabaseClient
             .from('calendar_overrides')
             .select('data')
             .eq('user_id', currentUser.id)
@@ -60,9 +40,9 @@ async function loadUserData() {
         }
 
         // Ladda active_draft
-        const { data : draftData, error: draftError } = await supabaseClient
+        const { draftData, error: draftError } = await supabaseClient
             .from('active_draft')
-            .select('data')
+            .select('draft_data')
             .eq('user_id', currentUser.id)
             .single();
 
@@ -70,8 +50,8 @@ async function loadUserData() {
             console.error('Fel vid laddning av utkast:', draftError);
         }
 
-        if (draftData && draftData.data && Object.keys(draftData.data).length > 0) {
-            activeDraft = draftData.data;
+        if (draftData && draftData.draft_data && Object.keys(draftData.draft_data).length > 0) {
+            activeDraft = draftData.draft_data;
             if (activeDraft && activeDraft.isStarted) {
                 secondsElapsed = activeDraft.secondsElapsed || 0;
                 if (activeDraft.wasTimerRunning) {
@@ -81,6 +61,55 @@ async function loadUserData() {
                 }
             }
         }
+
+        // Ladda custom_program
+        const { programDataResult, error: programError } = await supabaseClient
+            .from('custom_program')
+            .select('data')
+            .eq('user_id', currentUser.id)
+            .single();
+
+        if (programError && programError.code !== 'PGRST116') {
+            console.error('Fel vid laddning av program:', programError);
+        }
+
+        // Ladda program.json
+        const response = await fetch("program.json");
+        const json = await response.json();
+
+        if (programDataResult && programDataResult.data) {
+            window.programData = programDataResult.data;
+            if (programDataResult.data.masterExercises) {
+                masterExercises = programDataResult.data.masterExercises;
+            }
+        } else {
+            // Ingen sparad data - ladda från program.json
+            window.programData = json;
+            
+            json.routine.forEach(p => {
+                p.exercises.forEach(ex => {
+                    if (!masterExercises.find(m => m.name === ex.name)) {
+                        let animFile = "";
+                        if (ex.name === "Deadlift") animFile = "Gemini_Generated_Image_sqtn3ksqtn3ksqtn.mp4";
+                        if (ex.name === "Barbell Bench Press") animFile = "Skärmbild 2026-05-11 124104.mp4";
+                        
+                        masterExercises.push({ 
+                            ...ex, 
+                            id: Date.now() + Math.random(),
+                            animation: animFile 
+                        });
+                    }
+                });
+            });
+            
+            await saveCustomProgram();
+        }
+
+        // Uppdatera animationer
+        masterExercises.forEach(ex => {
+            if (ex.name === "Deadlift") ex.animation = "Gemini_Generated_Image_sqtn3ksqtn3ksqtn.mp4";
+            if (ex.name === "Barbell Bench Press") ex.animation = "Skärmbild 2026-05-11 124104.mp4";
+        });
 
     } catch (err) {
         console.error('Oväntat fel vid laddning av data:', err);
