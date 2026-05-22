@@ -114,12 +114,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    document.getElementById('global-logout').onclick = async () => {
-        const { error } = await supabaseClient.auth.signOut();
-        if (error) {
-            alert('Utloggning misslyckades: ' + error.message);
-        }
-    };
-
-    initAuth();
-});
+document.getElementById('global-logout').onclick = async () => {
+    const { error } = await supabaseClient.auth.signOut();
+    if (error) {
+        alert('Utloggning misslyckades: ' + error.message);
+    } else {
+        // Rensa ALL lokal träningsdata från denna enhet vid utloggning
+        localStorage.removeItem("masterExercises");
+        localStorage.removeItem("workoutHistory");
+        localStorage.removeItem("activeWorkoutDraft");
+        localStorage.removeItem("calendarOverrides");
+        localStorage.removeItem("myCustomProgram");
+        
+        // Starta om appen till logga in-vyn
+        currentUser = null;
+        showAuth();
+    }
+};
