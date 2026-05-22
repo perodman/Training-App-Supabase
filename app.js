@@ -1293,7 +1293,7 @@ async function startWorkout(workout, data = null, date = null, isImmediateStart 
                 }
                 return { sets_historyCopy, isCompleted: false };
             }
-            return { sets_[{ weight: "", reps: "" }, { weight: "", reps: "" }, { weight: "", reps: "" }], isCompleted: false };
+           return { sets_data: [{ weight: "", reps: "" }, { weight: "", reps: "" }, { weight: "", reps: "" }], isCompleted: false };
         });
     }
 
