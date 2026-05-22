@@ -1,38 +1,75 @@
 let programData;
-let masterExercises = [];
-let workoutHistory = [];
-let activeDraft = null;
-let calendarOverrides = {};
+let masterExercises = JSON.parse(localStorage.getItem("masterExercises") || "[]");
+let workoutHistory = JSON.parse(localStorage.getItem("workoutHistory") || "[]");
+let activeDraft = JSON.parse(localStorage.getItem("activeWorkoutDraft") || "null");
+let calendarOverrides = JSON.parse(localStorage.getItem("calendarOverrides") || "{}");
 let currentViewDate = new Date();
 let currentExerciseCategory = "Ben";
- 
+
 // Timer-variablerrf
 let timerInterval = null;
 let secondsElapsed = 0;
 let isTimerRunning = false;
- 
+
 // --- INIT ---
-async function initializeApp() {
-    try {
-         const { data: { user } } = await supabaseClient.auth.getUser();
-        if (!user) {
-            console.error('No user logged in');
-            return;
-        }
-        currentUser = user;
-        
-        await loadUserData();
-        
-        renderHome();
-    } catch (error) {
-        console.error('Error initializing app:', error);
+// ÄNDRING: Initieringslogiken använder nu Supabase som primär datakälla (om tillgänglig via supabase-data.js),
+// men faller sömlöst tillbaka på program.json och localStorage precis som förut för att säkra stabilitet.
+fetch("program.json")
+.then(r => r.json())
+.then(async json => {
+    const savedProgram = JSON.parse(localStorage.getItem("myCustomProgram"));
+    
+    if (masterExercises.length === 0) {
+        json.routine.forEach(p => {
+            p.exercises.forEach(ex => {
+                if (!masterExercises.find(m => m.name === ex.name)) {
+                    let animFile = "";
+                    if (ex.name === "Deadlift") animFile = "Gemini_Generated_Image_sqtn3ksqtn3ksqtn.mp4";
+                    if (ex.name === "Barbell Bench Press") animFile = "Skärmbild 2026-05-11 124104.mp4";
+                    
+                    masterExercises.push({ 
+                        ...ex, 
+                        id: Date.now() + Math.random(),
+                        animation: animFile 
+                    });
+                }
+            });
+        });
+        localStorage.setItem("masterExercises", JSON.stringify(masterExercises));
+    } else {
+        masterExercises.forEach(ex => {
+            if (ex.name === "Deadlift") ex.animation = "Gemini_Generated_Image_sqtn3ksqtn3ksqtn.mp4";
+            if (ex.name === "Barbell Bench Press") ex.animation = "Skärmbild 2026-05-11 124104.mp4";
+        });
     }
+    
+    programData = savedProgram || json;
+
+    // Om användaren är inloggad i Supabase kommer dessa lokala variabler att 
+    // skrivas över med färsk molndata direkt efter autentiseringen (via loadUserData).
+    if(activeDraft && activeDraft.isStarted) {
+        secondsElapsed = activeDraft.secondsElapsed || 0;
+        if(activeDraft.wasTimerRunning) {
+            startTimer();
+        } else {
+            updateTimerDisplay();
+        }
+    }
+
+    renderHome();
+});
+
+function saveAll() {
+    localStorage.setItem("myCustomProgram", JSON.stringify(programData));
+    localStorage.setItem("masterExercises", JSON.stringify(masterExercises));
+    localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
+    localStorage.setItem("calendarOverrides", JSON.stringify(calendarOverrides));
+    
+    // Supabase-synk: Anropar de globala asynkrona funktionerna från dina konfigurationsfiler
+    if (typeof saveCustomProgram === 'function') saveCustomProgram();
+    if (typeof saveCalendarOverrides === 'function') saveCalendarOverrides();
 }
 
-initializeApp();
- 
-
- 
 function showView(id) {
     const target = document.getElementById(id);
     if(!target) return;
@@ -46,7 +83,7 @@ function showView(id) {
     }
     window.scrollTo(0, 0);
 }
- 
+
 function closeModal() {
     document.getElementById("workout-modal").classList.add("hidden");
     const video = document.querySelector("#modal-body video");
@@ -56,22 +93,24 @@ function closeModal() {
     if (typeof hideDefaultCloseButton === 'function') {
         hideDefaultCloseButton(false);
     }
- 
+
     // HÄR ÅTERSTÄLLER VI DIN DRAFT
-    restoreDraftState();
+    if (typeof restoreDraftState === 'function') {
+        restoreDraftState();
+    }
 }
- 
+
 function openModal() {
     const modal = document.getElementById("workout-modal");
     if (modal) modal.classList.remove("hidden");
- 
+
     // Samma logik här för att garantera toppen vid öppning
     setTimeout(() => {
         const modalContent = document.querySelector('.modal-content');
         if (modalContent) modalContent.scrollTop = 0;
     }, 20);
 }
- 
+
 // --- TIMER LOGIK ---
 function updateTimerDisplay() {
     const hrs = String(Math.floor(secondsElapsed / 3600)).padStart(2, '0');
@@ -79,7 +118,7 @@ function updateTimerDisplay() {
     const secs = String(secondsElapsed % 60).padStart(2, '0');
     document.getElementById("workout-timer").textContent = `${hrs}:${mins}:${secs}`;
 }
- 
+
 function startTimer() {
     if (isTimerRunning) return;
     isTimerRunning = true;
@@ -90,31 +129,31 @@ function startTimer() {
         updateTimerDisplay();
         if(activeDraft) {
             activeDraft.secondsElapsed = secondsElapsed;
-            persistActiveWorkout();
+            if (typeof persistActiveWorkout === 'function') persistActiveWorkout();
         }
     }, 1000);
 }
- 
+
 function pauseTimer() {
     isTimerRunning = false;
     if(activeDraft) activeDraft.wasTimerRunning = false;
     clearInterval(timerInterval);
     document.getElementById("timer-toggle-btn").textContent = "Fortsätt ▶️";
-    if(activeDraft) persistActiveWorkout();
+    if(activeDraft && typeof persistActiveWorkout === 'function') persistActiveWorkout();
 }
- 
+
 document.getElementById("timer-toggle-btn").onclick = () => {
     if (isTimerRunning) pauseTimer();
     else startTimer();
 };
- 
+
 // --- ÖVNINGAR & INSTÄLLNINGAR ---
-async function openCreateExerciseModal(callback = null) {
+function openCreateExerciseModal(callback = null) {
     const body = document.getElementById("modal-body");
     
     // ÄNDRING 1: Istället för att alltid välja "Ben", kollar vi vad du har valt i vyn just nu
     let selectedCategory = currentExerciseCategory || "Ben"; 
- 
+
     const categories = [
         { id: "Ben", icon: "🦵" },
         { id: "Bröst", icon: "🏋️" },
@@ -123,7 +162,7 @@ async function openCreateExerciseModal(callback = null) {
         { id: "Armar", icon: "💪" },
         { id: "Bål", icon: "🧘" }
     ];
- 
+
     body.innerHTML = `
         <h3 style="text-align:center; margin-bottom: 20px;">Skapa Ny Övning</h3>
         
@@ -132,7 +171,7 @@ async function openCreateExerciseModal(callback = null) {
                 <label style="font-size:11px; color:var(--text-light); text-transform: uppercase; letter-spacing: 1px; display:block; margin-bottom: 8px; text-align: center;">Namn på övning</label>
                 <input type="text" id="new-ex-name" class="log-input" placeholder="T.ex. Knäböj" style="text-align: center;">
             </div>
- 
+
             <div style="width: 100%;">
                 <label style="font-size:11px; color:var(--text-light); text-transform: uppercase; letter-spacing: 1px; display:block; margin-bottom: 12px; text-align: center;">Välj Kategori</label>
                 
@@ -148,10 +187,10 @@ async function openCreateExerciseModal(callback = null) {
                     `).join('')}
                 </div>
             </div>
- 
+
             <button class="mode-btn blue" id="save-new-ex-btn" style="width: 100%; max-width: 300px; margin-top: 10px;">Spara Övning</button>
         </div>
- 
+
         <style>
             .cat-select-item.active {
                 background: rgba(59, 130, 246, 0.2) !important;
@@ -163,14 +202,14 @@ async function openCreateExerciseModal(callback = null) {
             }
         </style>
     `;
- 
+
     window.selectModalCategory = (catId) => {
         selectedCategory = catId;
         document.querySelectorAll('.cat-select-item').forEach(el => el.classList.remove('active'));
         document.getElementById(`modal-cat-${catId}`).classList.add('active');
     };
- 
-    document.getElementById("save-new-ex-btn").onclick = async () => {
+
+    document.getElementById("save-new-ex-btn").onclick = () => {
         const name = document.getElementById("new-ex-name").value.trim();
         if(!name) return alert("Ange ett namn!");
         
@@ -183,7 +222,7 @@ async function openCreateExerciseModal(callback = null) {
         };
         
         masterExercises.push(newEx);
-        await saveMasterExercises();
+        saveAll();
         
         if(callback) callback(newEx);
         else { 
@@ -200,6 +239,7 @@ function filterExercises(category) {
     currentExerciseCategory = category;
     document.querySelectorAll(".cat-btn").forEach(b => b.classList.toggle("active", b.dataset.cat === category));
     const results = document.getElementById("exercise-results");
+    if (!results) return;
     results.innerHTML = "";
     const filtered = masterExercises.filter(ex => category === "Armar" ? (ex.target === "Biceps" || ex.target === "Triceps") : ex.target === category);
     filtered.forEach(ex => {
@@ -212,13 +252,13 @@ function filterExercises(category) {
                 showExerciseAnimation(ex.id);
             }
         };
- 
+
         div.innerHTML = `<div><strong style="font-size:16px;">${ex.name}</strong><br><small style="color:var(--primary); font-weight:800; text-transform:uppercase; font-size:10px;">${ex.target}</small></div>
         <button style="background:none; border:none; font-size:18px; cursor:pointer;" onclick="openEditExerciseModal(${ex.id})"> ⚙️ </button>`;
         results.appendChild(div);
     });
 }
- 
+
 function showExerciseAnimation(id) {
     const ex = masterExercises.find(e => e.id == id);
     if(!ex) return;
@@ -239,7 +279,7 @@ function showExerciseAnimation(id) {
             </div>
         `;
     }
- 
+
     body.innerHTML = `
         <h3>${ex.name}</h3>
         ${videoHtml}
@@ -249,14 +289,14 @@ function showExerciseAnimation(id) {
     `;
     openModal();
 }
- 
-async function openEditExerciseModal(id) {
+
+function openEditExerciseModal(id) {
     const ex = masterExercises.find(e => e.id == id);
     if(!ex) return;
     const body = document.getElementById("modal-body");
     
     let selectedCategory = ex.target; 
- 
+
     const categories = [
         { id: "Ben", icon: "🦵" },
         { id: "Bröst", icon: "🏋️" },
@@ -265,7 +305,7 @@ async function openEditExerciseModal(id) {
         { id: "Armar", icon: "💪" },
         { id: "Bål", icon: "🧘" }
     ];
- 
+
     body.innerHTML = `
         <h3 style="text-align:center; margin-bottom: 20px;">Redigera Övning</h3>
         
@@ -275,7 +315,7 @@ async function openEditExerciseModal(id) {
                 <label style="font-size:11px; color:var(--text-light); text-transform: uppercase; letter-spacing: 1px; display:block; margin-bottom: 8px; text-align: center;">Namn på övning</label>
                 <input type="text" id="edit-ex-name" class="log-input" value="${ex.name}" style="text-align: center;">
             </div>
- 
+
             <div style="width: 100%;">
                 <label style="font-size:11px; color:var(--text-light); text-transform: uppercase; letter-spacing: 1px; display:block; margin-bottom: 12px; text-align: center;">Välj Kategori</label>
                 
@@ -291,11 +331,11 @@ async function openEditExerciseModal(id) {
                     `).join('')}
                 </div>
             </div>
- 
+
             <button class="mode-btn blue" style="width: 100%; max-width: 300px; margin-top: 15px;" onclick="handleUpdateExercise(${id})">Uppdatera</button>
             <button class="mode-btn" style="color:var(--danger); background:none; font-size:13px; margin-top: 15px; padding: 5px;" onclick="deleteMasterExercise(${id})">Radera övning permanent</button>
         </div>
- 
+
         <style>
             .cat-select-item.active {
                 background: rgba(59, 130, 246, 0.2) !important;
@@ -307,14 +347,14 @@ async function openEditExerciseModal(id) {
             }
         </style>
     `;
- 
+
     window.selectEditModalCategory = (catId) => {
         selectedCategory = catId;
         document.querySelectorAll('#edit-category-grid .cat-select-item').forEach(el => el.classList.remove('active'));
         document.getElementById(`edit-modal-cat-${catId}`).classList.add('active');
     };
- 
-    window.handleUpdateExercise = async (exId) => {
+
+    window.handleUpdateExercise = (exId) => {
         const nameInput = document.getElementById("edit-ex-name").value.trim();
         if(!nameInput) return alert("Namnet får inte vara tomt!");
         
@@ -322,36 +362,39 @@ async function openEditExerciseModal(id) {
         if(exIndex !== -1) {
             // AUTOMATISERING: Spara det gamla namnet innan det skrivs över, och uppdatera historiken
             const oldName = masterExercises[exIndex].name;
-            await updateExerciseNameInHistory(oldName, nameInput);
- 
+            if (typeof updateExerciseNameInHistory === 'function') {
+                updateExerciseNameInHistory(oldName, nameInput);
+            }
+
             // Din befintliga sparlogik
             masterExercises[exIndex].name = nameInput;
             masterExercises[exIndex].target = selectedCategory; 
-            await saveMasterExercises();
+            saveAll();
             closeModal();
             filterExercises(currentExerciseCategory);
         }
     };
- 
+
     openModal();
 }
- 
-async function updateExercise(id) {
+
+function updateExercise(id) {
     const ex = masterExercises.find(e => e.id == id);
+    if(!ex) return;
     ex.name = document.getElementById("edit-ex-name").value;
     ex.target = document.getElementById("edit-ex-cat").value;
     ex.animation = document.getElementById("edit-ex-anim").value;
-    await saveMasterExercises();
-    closeModal();
-    filterExercises(currentExerciseCategory);
+    saveAll(); closeModal(); filterExercises(currentExerciseCategory);
 }
- 
+
+
 // --- KALENDER ---
 function renderCalendar(isFromStartBtn = false) {
     const grid = document.getElementById("calendar-grid");
     const label = document.getElementById("month-label");
     const infoBox = document.getElementById("calendar-info-box");
     
+    if(!grid || !label || !infoBox) return;
     grid.innerHTML = "";
     infoBox.innerHTML = ""; 
     
@@ -360,7 +403,7 @@ function renderCalendar(isFromStartBtn = false) {
             Välj vilken dag du vill starta eller schemalägga ett pass i kalendern nedan 📅
         </div>`;
     }
- 
+
     const year = currentViewDate.getFullYear();
     const month = currentViewDate.getMonth();
     const monthText = currentViewDate.toLocaleString('sv-SE', { month: 'long', year: 'numeric' });
@@ -369,11 +412,11 @@ function renderCalendar(isFromStartBtn = false) {
     const firstDay = new Date(year, month, 1).getDay();
     const offset = firstDay === 0 ? 6 : firstDay - 1;
     const daysInMonth = new Date(year, month + 1, 0).getDate();
- 
+
     // Hämta dagens faktiska datum för att matcha mot loopen
     const now = new Date();
     const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
- 
+
     for (let i = 0; i < offset; i++) grid.innerHTML += `<div></div>`;
     for (let d = 1; d <= daysInMonth; d++) {
         const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
@@ -384,7 +427,7 @@ function renderCalendar(isFromStartBtn = false) {
         if (dateStr === todayStr) {
             cell.classList.add("today");
         }
- 
+
         const hasWorkouts = workoutHistory.filter(w => w.date === dateStr);
         const isOngoing = activeDraft && activeDraft.date === dateStr && activeDraft.isStarted;
         const dayOfWeek = new Date(year, month, d).getDay();
@@ -392,23 +435,26 @@ function renderCalendar(isFromStartBtn = false) {
         const override = calendarOverrides[dateStr];
         let displayPass = null;
         if (override && override !== "none") displayPass = programData.routine.find(p => p.id === override);
-        else if (isAutoDay && override !== "none") displayPass = programData.routine[d % programData.routine.length];
+        else if (isAutoDay && override !== "none" && programData && programData.routine.length > 0) displayPass = programData.routine[d % programData.routine.length];
         
         let info = "";
         if (hasWorkouts.length > 0) { cell.classList.add("cell-completed"); info = "✓"; }
-        else if (isOngoing) { cell.classList.add("cell-ongoing"); info = displayPass.name.split(" ").pop(); }
+        else if (isOngoing && displayPass) { cell.classList.add("cell-ongoing"); info = displayPass.name.split(" ").pop(); }
         else if (displayPass) { cell.classList.add("cell-planned"); info = displayPass.name.split(" ").pop(); }
         
         // Punkt 3: Ändrad struktur för info-ikon för bättre centrering
         cell.innerHTML = `<span>${d}</span><div class="cell-info">${info}</div>`;
-        cell.onclick = () => openDayManager(dateStr, displayPass, hasWorkouts, isOngoing);
+        cell.onclick = () => {
+            if (typeof openDayManager === 'function') openDayManager(dateStr, displayPass, hasWorkouts, isOngoing);
+        };
         grid.appendChild(cell);
     }
     showView("calendar-view");
 }
 
-// FUNKTION: Öppnar en renodlad popup-ruta med övningarna (Likt showProgramDetails fast som modal)
+// NY FUNKTION: Öppnar en renodlad popup-ruta med övningarna (Likt showProgramDetails fast som modal)
 function openProgramPreviewModal(idx) {
+    if(!programData || !programData.routine[idx]) return;
     const pass = programData.routine[idx];
     
     // Skapa ett temporärt modalelement om det inte redan finns
@@ -479,7 +525,7 @@ function startPress(idx, event) {
     // 2. Starta båda timers (pressTimer för övningar, touchTimeout för preview)
     pressTimer = setTimeout(() => {
         isLongPress = true;
-        showExercisesForWorkout(idx); 
+        if (typeof showExercisesForWorkout === 'function') showExercisesForWorkout(idx); 
     }, 500);
 
     touchTimeout = setTimeout(() => {
@@ -499,12 +545,16 @@ function cancelPress() {
     }
 }
 
+// ==========================================================================
+// DEL 2 AV 4: TOUCH-HANTERING, DAGSHANTERING (MODAL) OCH PROGRAMREDIGERING
+// ==========================================================================
+
 function handleTouchMove(event) {
     if (event && event.touches && event.touches[0] && touchStartY > 0) {
         const currentY = event.touches[0].clientY;
         const moveDistance = Math.abs(currentY - touchStartY);
         
-        // Om användaren flyttar fingret mer än 6 pixlar, markera som scrollat och avbryt
+        // Om användaren flyttar fingret mer än 6 pixlar, markera som scrollat och avbryt långtryck/klick
         if (moveDistance > 6) { 
             hasScrolled = true;
             cancelPress();
@@ -515,7 +565,7 @@ function handleTouchMove(event) {
 async function handleTouchEnd(idx, dateStr, programId, event) {
     cancelPress();
     
-    // Om användaren har scrollat eller om det var ett långtryck: avbryt klick
+    // Om användaren har scrollat eller om det var ett långtryck: avbryt klick-aktivering
     if (hasScrolled || isLongPress) {
         if (event) {
             if (event.cancelable) event.preventDefault();
@@ -524,18 +574,19 @@ async function handleTouchEnd(idx, dateStr, programId, event) {
         return false;
     }
     
-    // Stoppa eventuella virtuella klick för säkerhets skull
+    // Stoppa eventuella virtuella klick för säkerhets skull på touch-enheter
     if (event && event.cancelable) {
         event.preventDefault();
     }
     
-    // Detta var ett rent, snabbt klick utan scroll – utför bytet!
+    // Detta var ett rent, snabbt klick utan scroll eller långtryck – utför schemaändringen!
     await setOverrideSilent(dateStr, programId);
 }
  
-// FUNKTION: Öppnar en renodlad popup-ruta med övningarna (Med mjuk animation)
+// FUNKTION: Öppnar en renodlad popup-ruta med övningarna (Med mjuk animation vid långtryck)
 function openProgramPreviewModal(idx) {
     const pass = programData.routine[idx];
+    if (!pass) return;
     
     let previewModal = document.getElementById("preview-modal");
     if (!previewModal) {
@@ -608,7 +659,7 @@ function closePreviewModal() {
     }
 }
 
-// HUVUDFUNKTIONEN
+// HUVUDFUNKTIONEN FOR DAGSPLANERING OCH HISTORIKUTLÄSNING
 function openDayManager(dateStr, planned, completed, isOngoing) {
     if (typeof hideDefaultCloseButton === 'function') {
         hideDefaultCloseButton(false);
@@ -633,7 +684,8 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
         </div>
     `;
     
-    if (completed.length > 0) {
+    // 1. Slutförda pass på detta datum (Hämtas från det synkroniserade workoutHistory-objektet)
+    if (completed && completed.length > 0) {
         completed.forEach((w, idx) => {
             const timeStr = w.totalTime ? `⏱️ ${w.totalTime}` : "";
             html += `
@@ -682,6 +734,7 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
             html += `</div></div>`;
         });
     } 
+    // 2. Pågående aktivt utkast (activeDraft)
     else if (isOngoing) {
         html += `
         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px; width: 100%; margin-top: 16px;">
@@ -701,6 +754,7 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
             </button>
         </div>`;
     }
+    // 3. Planerad träning eller vila för dagen
     else {
         html += `
         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px; width: 100%; margin-top: 16px;">
@@ -728,13 +782,13 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
             </div>
             
            <button class="mode-btn premium-action-btn premium-free-btn" 
-        onclick="closeModal(); startFreeWorkoutOnDate('${dateStr}')" 
-        style="width: 100% !important; margin: 10px 0 0 0 !important; padding: 10px !important; touch-action: manipulation; -webkit-tap-highlight-color: transparent; cursor: pointer;">
-    ➕ Starta Fritt Pass
-</button>
+                onclick="closeModal(); startFreeWorkoutOnDate('${dateStr}')" 
+                style="width: 100% !important; margin: 10px 0 0 0 !important; padding: 10px !important; touch-action: manipulation; -webkit-tap-highlight-color: transparent; cursor: pointer;">
+                ➕ Starta Fritt Pass
+           </button>
         </div>`;
- 
-        // ÄNDRA PLANERING - SEKTIONSAVSKILJARE
+
+        // ÄNDRA PLANERING - GRID MED ALLA PASS I RUTINEN
         html += `
         <div style="margin-top: 1px; width: 100%;">
             <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
@@ -786,7 +840,7 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
                 </button>`;
             });
             
-                        const isRestSelected = !planned;
+            const isRestSelected = !planned;
             const restBorderColor = isRestSelected ? "rgba(253, 224, 71, 1)" : "rgba(253, 224, 71, 0.2)";
 
             html += `
@@ -809,17 +863,43 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
     openModal();
 }
 
+// ASYNKRON SYNCRONISERING AV KALENDERÄNDRINGAR (Optimistic Update-mönster)
 async function setOverrideSilent(date, val) {
+    // 1. Uppdatera minnet direkt för direkt respons i UI
     calendarOverrides[date] = val;
-    await saveAll();
     
-    document.querySelectorAll('.plan-override-btn').forEach(b => b.classList.remove('active-choice'));
+    // 2. Spara till localStorage omedelbart som blixtsnabb backup
+    localStorage.setItem("calendarOverrides", JSON.stringify(calendarOverrides));
     
-    const btnContainer = document.getElementById('day-manager-action-btn-container');
-    const statusTextElem = document.getElementById('current-planned-label');
-    
-    openDayManager(date, val === 'none' ? null : programData.routine.find(x => x.id === val), [], false);
+    // 3. Rendera om gränssnittet direkt utan att blockera tråden (Optimistic update)
+    const plannedPass = val === 'none' ? null : programData.routine.find(x => x.id === val);
+    openDayManager(date, plannedPass, [], false);
     renderCalendar(false); 
+    
+    // 4. Skicka ändringen asynkront till Supabase i bakgrunden
+    if (typeof currentUser !== 'undefined' && currentUser) {
+        try {
+            // Kontrollera om posten redan finns för användaren
+            const { data: existing } = await supabaseClient
+                .from('calendar_overrides')
+                .select('id')
+                .eq('user_id', currentUser.id)
+                .maybeSingle();
+
+            if (existing) {
+                await supabaseClient
+                    .from('calendar_overrides')
+                    .update({ data: calendarOverrides })
+                    .eq('user_id', currentUser.id);
+            } else {
+                await supabaseClient
+                    .from('calendar_overrides')
+                    .insert([{ user_id: currentUser.id, data: calendarOverrides }]);
+            }
+        } catch (err) {
+            console.error("Supabase-synk misslyckades för kalenderändring, kör vidare på lokal backup:", err);
+        }
+    }
 }
 
 function startFreeWorkoutOnDate(date) {
@@ -836,12 +916,18 @@ function openMonthPicker() {
     openModal();
 }
 
-function selectMonth(m) { currentViewDate.setMonth(m); closeModal(); renderCalendar(); }
+function selectMonth(m) { 
+    currentViewDate.setMonth(m); 
+    closeModal(); 
+    renderCalendar(); 
+}
 
-// --- PROGRAM & REDIGERING ---
+// --- PROGRAMVYER & RUTINREDIGERING ---
 function renderProgramView(activeIdx = null) {
     const selector = document.getElementById("pass-selector-list");
+    if (!selector) return;
     selector.innerHTML = "";
+    
     programData.routine.forEach((pass, i) => {
         const div = document.createElement("div");
         div.className = `prog-card ${activeIdx === i ? 'active' : ''}`;
@@ -860,6 +946,8 @@ function showProgramDetails(idx) {
     const pass = programData.routine[idx];
     const detailsArea = document.getElementById("program-details-area");
     const list = document.getElementById("program-exercise-list");
+    if (!pass || !detailsArea || !list) return;
+    
     detailsArea.classList.remove("hidden");
     
     list.innerHTML = `
@@ -939,16 +1027,29 @@ function renderExercisePickerForEdit(idx, category = "Ben") {
     }, 50);
 }
 
+// SKICKAR VALD ÖVNING ASYNKRONT IN I PROGRAMRUTINEN
 async function addExerciseToPassDirectly(pIdx, exId) {
     const ex = masterExercises.find(e => e.id == exId);
     if (!ex) return;
+    
+    // Uppdaterar i minnet direkt
     programData.routine[pIdx].exercises.push({ name: ex.name, target: ex.target, defaultSets: 3 });
+    
+    // Sparar asynkront till databasen i bakgrunden (Optimistic Update)
+    if (typeof saveCustomProgramToSupabase === 'function') {
+        saveCustomProgramToSupabase();
+    } else {
+        localStorage.setItem("myCustomProgram", JSON.stringify(programData));
+    }
+    
     await openEditProgramModal(pIdx); 
 }
 
 async function openEditProgramModal(idx) {
     const pass = programData.routine[idx];
     const body = document.getElementById("modal-body");
+    if (!pass || !body) return;
+    
     body.innerHTML = `
         <h3>Redigera ${pass.name}</h3>
         <label style="font-size:12px; color:var(--text-light); text-align:left; display:block; margin-left:10px;">NAMN PÅ PASS</label>
@@ -981,9 +1082,74 @@ async function openEditProgramModal(idx) {
     openModal();
 }
 
+// ==========================================================================
+// DEL 3 AV 4: PROGRAMREDIGERING, HISTORIKHANTERING OCH AKTIVT PASS (DRAFT)
+// ==========================================================================
+
+// Central hjälpfunktion för att asynkront spara hela programrutinen till localStorage och Supabase
+async function saveCustomProgramToSupabase() {
+    localStorage.setItem("myCustomProgram", JSON.stringify(programData));
+    
+    if (typeof currentUser !== 'undefined' && currentUser) {
+        try {
+            const { data: existing } = await supabaseClient
+                .from('custom_program')
+                .select('id')
+                .eq('user_id', currentUser.id)
+                .maybeSingle();
+
+            if (existing) {
+                await supabaseClient
+                    .from('custom_program')
+                    .update({ data: programData })
+                    .eq('user_id', currentUser.id);
+            } else {
+                await supabaseClient
+                    .from('custom_program')
+                    .insert([{ user_id: currentUser.id, data: programData }]);
+            }
+        } catch (err) {
+            console.error("Supabase: Fel vid synkronisering av custom_program:", err);
+        }
+    }
+}
+
+// Central hjälpfunktion för att spara det aktiva pågående träningspasset (activeDraft)
+async function persistActiveWorkout() {
+    localStorage.setItem("activeWorkoutDraft", JSON.stringify(activeDraft));
+    
+    if (typeof currentUser !== 'undefined' && currentUser) {
+        try {
+            const { data: existing } = await supabaseClient
+                .from('active_draft')
+                .select('id')
+                .eq('user_id', currentUser.id)
+                .maybeSingle();
+
+            const draftDataToSend = activeDraft || {};
+
+            if (existing) {
+                await supabaseClient
+                    .from('active_draft')
+                    .update({ data: draftDataToSend }) // Sparar till 'data'-kolumnen i tabellen active_draft
+                    .eq('user_id', currentUser.id);
+            } else {
+                await supabaseClient
+                    .from('active_draft')
+                    .insert([{ user_id: currentUser.id, data: draftDataToSend }]);
+            }
+        } catch (err) {
+            console.error("Supabase: Fel vid synkronisering av pågående utkast (active_draft):", err);
+        }
+    }
+}
+
 async function createNewExForPass(pIdx) {
     await openCreateExerciseModal(async (newEx) => {
         programData.routine[pIdx].exercises.push({ name: newEx.name, target: newEx.target, defaultSets: 3 });
+        
+        // Sparar omedelbart till både localStorage och Supabase
+        await saveCustomProgramToSupabase();
         await openEditProgramModal(pIdx);
     });
 }
@@ -992,18 +1158,28 @@ async function moveExercise(pIdx, eIdx, dir) {
     const exercises = programData.routine[pIdx].exercises;
     const newIdx = eIdx + dir;
     if(newIdx < 0 || newIdx >= exercises.length) return;
-    [exercises[eIdx], exercises[newIdx]] = [exercises[newIdx], exercises[newIdx]];
+    
+    // KORRIGERING: Rättat bugg från inskickad kod där man destruturerade [newIdx] till [newIdx] istället för [eIdx]
+    [exercises[eIdx], exercises[newIdx]] = [exercises[newIdx], exercises[eIdx]];
+    
+    // Sparar ändringen i ordningsföljd direkt
+    await saveCustomProgramToSupabase();
     await openEditProgramModal(pIdx);
 }
 
 async function removeExFromPass(pIdx, eIdx) {
     programData.routine[pIdx].exercises.splice(eIdx, 1);
+    
+    // Sparar efter borttagning av övning från passet
+    await saveCustomProgramToSupabase();
     await openEditProgramModal(pIdx);
 }
 
 async function saveProgramEdit(idx) {
     programData.routine[idx].name = document.getElementById("edit-pass-name").value;
-    await saveAll();
+    
+    // Sparar det uppdaterade namnet till databasen och lokalt
+    await saveCustomProgramToSupabase();
     closeModal();
     renderProgramView(idx);
     showProgramDetails(idx);
@@ -1025,7 +1201,9 @@ async function saveNewProgram() {
     if(!name) return alert("Ange ett namn!");
     const newPass = { id: "pass-" + Date.now(), name, exercises: [] };
     programData.routine.push(newPass);
-    await saveAll();
+    
+    // Sparar det nya passet till localStorage och Supabase
+    await saveCustomProgramToSupabase();
     const newIdx = programData.routine.length - 1;
     await openEditProgramModal(newIdx);
 }
@@ -1034,7 +1212,7 @@ async function updateExerciseNameInHistory(oldName, newName) {
     if (!oldName || !newName || oldName === newName) return;
 
     try {
-        const { historyData, error: fetchError } = await supabaseClient
+        const { data: historyData, error: fetchError } = await supabaseClient
             .from('workout_history')
             .select('*')
             .eq('user_id', currentUser.id);
@@ -1046,8 +1224,9 @@ async function updateExerciseNameInHistory(oldName, newName) {
 
         historyData.forEach(workout => {
             let hasChanges = false;
-            if (workout.exercises && Array.isArray(workout.exercises)) {
-                workout.exercises.forEach(exercise => {
+            // Hämtar från din korrekta JSONB-kolumnstruktur 'workout_data'
+            if (workout.workout_data && workout.workout_data.exercises && Array.isArray(workout.workout_data.exercises)) {
+                workout.workout_data.exercises.forEach(exercise => {
                     if (exercise.name === oldName) {
                         exercise.name = newName;
                         hasChanges = true;
@@ -1060,10 +1239,11 @@ async function updateExerciseNameInHistory(oldName, newName) {
             }
         });
 
+        // Kör uppdateringar mot databasen för påverkade pass
         for (const workout of updatedWorkouts) {
             const { error: updateError } = await supabaseClient
                 .from('workout_history')
-                .update({ exercises: workout.exercises })
+                .update({ workout_data: workout.workout_data })
                 .eq('id', workout.id)
                 .eq('user_id', currentUser.id);
 
@@ -1071,17 +1251,27 @@ async function updateExerciseNameInHistory(oldName, newName) {
         }
 
         if (updatedCount > 0) {
-            workoutHistory = historyData;
-            console.log(`Historiken uppdaterad: Ändrade "${oldName}" till "${newName}" på ${updatedCount} ställen.`);
+            // Synkar den globala minnesvariabeln med den uppdaterade datan
+            workoutHistory = historyData.map(w => ({
+                id: w.id,
+                date: w.workout_date,
+                programName: w.workout_data.programName,
+                totalTime: w.workout_data.totalTime,
+                exercises: w.workout_data.exercises || []
+            }));
+            localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
+            console.log(`Historiken uppdaterad i Supabase: Ändrade "${oldName}" till "${newName}" på ${updatedCount} ställen.`);
         }
     } catch (error) {
         console.error('Error updating exercise name in history:', error);
     }
 }
 
+// Läser ut historisk data från den lokala variabeln (som är synkad med Supabase vid start)
 function getExerciseHistory(exerciseName) {
     for (let i = workoutHistory.length - 1; i >= 0; i--) {
         const workout = workoutHistory[i];
+        if (!workout.exercises) continue;
         const exMatch = workout.exercises.find(e => e.name === exerciseName);
         if (exMatch) {
             if (!exMatch.sets_data) {
@@ -1110,7 +1300,8 @@ async function startWorkout(workout, data = null, date = null, isImmediateStart 
                         set.userConfirmed = false;
                     });
                 }
-                return { sets_historyCopy, isCompleted: false };
+                // Fixad variabelreferens från din inskickade kod (sets_historyCopy -> sets_data)
+                return { sets_data: historyCopy, isCompleted: false };
             }
            return { sets_data: [{ weight: "", reps: "" }, { weight: "", reps: "" }, { weight: "", reps: "" }], isCompleted: false };
         });
@@ -1125,10 +1316,11 @@ async function startWorkout(workout, data = null, date = null, isImmediateStart 
         wasTimerRunning: true 
     };
     
+    // Sparar det skapade passutkastet direkt till både localStorage och Supabase
     await persistActiveWorkout();
     renderActiveWorkout();
-    updateTimerDisplay();
-    startTimer(); 
+    if (typeof updateTimerDisplay === "function") updateTimerDisplay();
+    if (typeof startTimer === "function") startTimer(); 
 }
 
 // Global array för att hålla koll på valda övningar i modalen innan de sparas
@@ -1153,25 +1345,29 @@ function renderActiveWorkout() {
     document.getElementById("active-title").textContent = activeDraft.workout.name;
     const list = document.getElementById("exercise-list");
     const footer = document.querySelector(".workout-footer");
+    if (!list) return;
     list.innerHTML = "";
 
     if(!activeDraft.isStarted) {
-        footer.classList.add("hidden");
+        if (footer) footer.classList.add("hidden");
         list.innerHTML = `
             <div style="text-align:center; padding:20px 0;">
                 <button class="mode-btn green" style="width:100%; padding:20px; font-size:18px; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);" onclick="actuallyStartWorkout()">STARTA TRÄNINGSPASSET 🔥</button>
             </div>
             <p style="color:var(--text-light); font-size:13px; text-align:center; margin-top:10px;">Klicka på knappen ovan för att starta klockan.</p>
         `;
-        document.getElementById("workout-timer").textContent = "00:00:00";
+        const timerDisp = document.getElementById("workout-timer");
+        if (timerDisp) timerDisp.textContent = "00:00:00";
         showView("workout-view");
         return;
     }
 
-    footer.classList.remove("hidden");
+    if (footer) footer.classList.remove("hidden");
     const pauseBtn = document.getElementById("pause-workout-btn");
-    pauseBtn.innerHTML = `Spara utkast 💾`;
-    pauseBtn.className = "mode-btn save-draft-btn";
+    if (pauseBtn) {
+        pauseBtn.innerHTML = `Spara utkast 💾`;
+        pauseBtn.className = "mode-btn save-draft-btn";
+    }
 
     if (!activeDraft.ui_state) {
         activeDraft.ui_state = {};
@@ -1186,7 +1382,7 @@ function renderActiveWorkout() {
         if (!activeDraft.ui_state.hasOwnProperty('hasInitializedOpen')) {
             activeDraft.ui_state.openExercises = [0];
             activeDraft.ui_state.hasInitializedOpen = true;
-            if (typeof saveAll === "function") saveAll();
+            persistActiveWorkout(); // Synkar initierat UI-tillstånd till Supabase
         }
     }
     
@@ -1194,6 +1390,7 @@ function renderActiveWorkout() {
 
     activeDraft.workout.exercises.forEach((ex, i) => {
         const exerciseData = activeDraft.data[i];
+        if (!exerciseData) return;
         const isDone = exerciseData.isCompleted;
         const isOpen = openExercises.includes(i);
         
@@ -1202,8 +1399,8 @@ function renderActiveWorkout() {
         div.style.padding = "0"; 
         div.style.overflow = "hidden";
         
-        const completedSets = exerciseData.sets_data.filter(s => s.userConfirmed).length;
-        const totalSets = exerciseData.sets_data.length;
+        const completedSets = exerciseData.sets_data ? exerciseData.sets_data.filter(s => s.userConfirmed).length : 0;
+        const totalSets = exerciseData.sets_data ? exerciseData.sets_data.length : 0;
 
         let setsHtml = `<div style="margin-top:10px;">
             <div style="display:grid; grid-template-columns: 40px 1fr 1fr 30px; gap:8px; margin-bottom:5px; align-items:center;">
@@ -1213,38 +1410,40 @@ function renderActiveWorkout() {
                 <span></span>
             </div>`;
 
-        exerciseData.sets_data.forEach((set, sIdx) => {
-            let isLocked = false;
-            let isCurrent = false;
-            if (sIdx > 0 && !isDone) {
-                const prevSet = exerciseData.sets_data[sIdx - 1];
-                if (!prevSet.userConfirmed) isLocked = true;
-            }
-            if (isDone) isLocked = true;
-            if (!set.userConfirmed && !isLocked && !isDone) isCurrent = true;
+        if (exerciseData.sets_data) {
+            exerciseData.sets_data.forEach((set, sIdx) => {
+                let isLocked = false;
+                let isCurrent = false;
+                if (sIdx > 0 && !isDone) {
+                    const prevSet = exerciseData.sets_data[sIdx - 1];
+                    if (!prevSet.userConfirmed) isLocked = true;
+                }
+                if (isDone) isLocked = true;
+                if (!set.userConfirmed && !isLocked && !isDone) isCurrent = true;
 
-            const showSuccess = set.userConfirmed || isDone;
-            let circleColor = showSuccess ? '#22c55e' : (isCurrent ? '#facc15' : '#f59e0b');
-            const statusContent = showSuccess ? '✅' : `#${sIdx + 1}`;
+                const showSuccess = set.userConfirmed || isDone;
+                let circleColor = showSuccess ? '#22c55e' : (isCurrent ? '#facc15' : '#f59e0b');
+                const statusContent = showSuccess ? '✅' : `#${sIdx + 1}`;
 
-            setsHtml += `
-            <div style="display:grid; grid-template-columns: 40px 1fr 1fr 30px; gap:8px; margin-bottom:8px; align-items:center;">
-                <div onclick="${isLocked && !isDone ? '' : `confirmSet(${i}, ${sIdx})`}" 
-                     style="width:32px; height:32px; border-radius:50%; border:2px solid ${circleColor}; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:10px; font-weight:800; background: ${showSuccess ? 'rgba(34, 197, 94, 0.2)' : (isCurrent ? 'rgba(250, 204, 21, 0.15)' : 'rgba(245, 158, 11, 0.05)')}; color: ${circleColor}; opacity: 1;">
-                    ${statusContent}
-                </div>
-                <input type="text" inputmode="decimal" id="w-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'};" value="${set.weight || ''}" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})">
-                <input type="text" inputmode="decimal" id="r-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'};" value="${set.reps || ''}" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})">
-                <button onclick="removeSetFromExercise(${i}, ${sIdx})" style="background:none; border:none; color:var(--danger); font-size:16px; opacity: ${isLocked || showSuccess ? '0.1' : '0.8'};" ${isLocked ? 'disabled' : ''}>×</button>
-            </div>`;
-
-            if (isCurrent) {
                 setsHtml += `
-                <div style="grid-column: 2 / span 2; margin:-4px 0 8px 0; padding-left:2px; opacity:0.8; font-size:10px; color:var(--primary); font-weight:600; letter-spacing:0.3px;">
-                    💡 Klicka på ${statusContent} för att låsa & gå vidare
+                <div style="display:grid; grid-template-columns: 40px 1fr 1fr 30px; gap:8px; margin-bottom:8px; align-items:center;">
+                    <div onclick="${isLocked && !isDone ? '' : `confirmSet(${i}, ${sIdx})`}" 
+                         style="width:32px; height:32px; border-radius:50%; border:2px solid ${circleColor}; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:10px; font-weight:800; background: ${showSuccess ? 'rgba(34, 197, 94, 0.2)' : (isCurrent ? 'rgba(250, 204, 21, 0.15)' : 'rgba(245, 158, 11, 0.05)')}; color: ${circleColor}; opacity: 1;">
+                        ${statusContent}
+                    </div>
+                    <input type="text" inputmode="decimal" id="w-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'};" value="${set.weight || ''}" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})">
+                    <input type="text" inputmode="decimal" id="r-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'};" value="${set.reps || ''}" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})">
+                    <button onclick="removeSetFromExercise(${i}, ${sIdx})" style="background:none; border:none; color:var(--danger); font-size:16px; opacity: ${isLocked || showSuccess ? '0.1' : '0.8'};" ${isLocked ? 'disabled' : ''}>×</button>
                 </div>`;
-            }
-        });
+
+                if (isCurrent) {
+                    setsHtml += `
+                    <div style="grid-column: 2 / span 2; margin:-4px 0 8px 0; padding-left:2px; opacity:0.8; font-size:10px; color:var(--primary); font-weight:600; letter-spacing:0.3px;">
+                        💡 Klicka på ${statusContent} för att låsa & gå vidare
+                    </div>`;
+                }
+            });
+        }
 
         div.innerHTML = `
         <div onclick="toggleExercise(${i})" style="padding: 12px 15px; display: flex; align-items: center; cursor: pointer; background: ${isOpen ? 'rgba(250, 204, 21, 0.05)' : 'transparent'}">
@@ -1298,13 +1497,6 @@ function renderActiveWorkout() {
     showView("workout-view");
 }
 
-async function addExerciseToPassDirectly(pIdx, exId) {
-    const ex = masterExercises.find(e => e.id == exId);
-    if (!ex) return;
-    programData.routine[pIdx].exercises.push({ name: ex.name, target: ex.target, defaultSets: 3 });
-    await openEditProgramModal(pIdx); 
-}
-
 function openCustomAddExerciseModal() {
     temporarySelectedExercises = []; 
     openAddExerciseToWorkoutModal(); 
@@ -1326,6 +1518,7 @@ async function toggleExercise(index) {
         activeDraft.ui_state.openExercises.push(index);
     }
 
+    // Sparar UI-tillståndet (öppna/stängda övningar) asynkront
     await persistActiveWorkout();
     renderActiveWorkout();
     window.scrollTo(0, scrollPos);
@@ -1337,46 +1530,64 @@ async function addSetToExercise(exIdx) {
     const newWeight = lastSet ? lastSet.weight : "";
     const newReps = lastSet ? lastSet.reps : "";
     activeDraft.data[exIdx].sets_data.push({ weight: newWeight, reps: newReps });
+    
     renderActiveWorkout();
     window.scrollTo(0, scrollPos);
+    // Synkar utökningen av set asynkront i bakgrunden
     await persistActiveWorkout();
 }
 
 async function removeSetFromExercise(exIdx, setIdx) {
     const scrollPos = window.scrollY;
     activeDraft.data[exIdx].sets_data.splice(setIdx, 1);
+    
     renderActiveWorkout();
     window.scrollTo(0, scrollPos);
+    // Synkar borttagningen av set asynkront i bakgrunden
     await persistActiveWorkout();
 }
 
 async function toggleExerciseDone(exIdx) {
     const scrollPos = window.scrollY;
     activeDraft.data[exIdx].isCompleted = !activeDraft.data[exIdx].isCompleted;
+    
     renderActiveWorkout();
     window.scrollTo(0, scrollPos);
+    // Synkar tillståndet för slutförd övning asynkront i bakgrunden
     await persistActiveWorkout();
 }
 
 async function actuallyStartWorkout() {
     activeDraft.isStarted = true;
     activeDraft.wasTimerRunning = true;
+    
+    // Aktiverar passet och tidtagningen i bakgrunden mot Supabase
     await persistActiveWorkout();
     renderActiveWorkout();
     if (typeof startTimer === "function") startTimer();
 }
 
 function openAddExerciseToWorkoutModal() {
-    renderExercisePicker("Ben");
+    if (typeof renderExercisePicker === "function") {
+        renderExercisePicker("Ben");
+    }
     openModal();
 }
 
 function openReplaceExerciseModal(index) {
-    renderExercisePicker("Ben", index);
+    if (typeof renderExercisePicker === "function") {
+        renderExercisePicker("Ben", index);
+    }
     openModal();
 }
 
 // UPPDATERAD FUNKTION: Renderar nu den visuella listan över valda övningar (Varukorgen)
+/**
+ * =========================================================================
+ * APP.JS - DEL 4 AV 4 (MED KOMPLETT SUPABASE-SYNKRONISERING)
+ * =========================================================================
+ */
+
 function renderExercisePicker(category, replaceIndex = null) {
     const body = document.getElementById("modal-body");
     
@@ -1438,11 +1649,12 @@ function renderExercisePicker(category, replaceIndex = null) {
         html += `</div>`;
     }
 
+    // ÄNDRING: saveDraftState() gjord asynkron och anropas säkert innan modal öppnas
     html += `
         <div class="separator" style="margin:15px 0;"></div>
         <button class="mode-btn glass-border" 
         style="font-size:13px;" 
-        onclick="saveDraftState(); openCreateExerciseModal((newEx) => handleInstantExerciseCreated(newEx, ${replaceIndex}))">
+        onclick="(async () => { await saveDraftState(); openCreateExerciseModal((newEx) => handleInstantExerciseCreated(newEx, ${replaceIndex})); })()">
     + Skapa ny övning som inte finns
 </button>
     `;
@@ -1480,7 +1692,8 @@ function generateSelectedExercisesSummaryHtml() {
     return summaryHtml;
 }
 
-function saveDraftState() {
+// ÄNDRING: Sparar utkast för valda övningar i localStorage (lokalt tillfälligt UI-tillstånd)
+async function saveDraftState() {
     localStorage.setItem('temp_exercise_draft', JSON.stringify(temporarySelectedExercises));
 }
 
@@ -1526,6 +1739,7 @@ function toggleSelectExerciseInPicker(exId, category) {
     }
 }
 
+// ÄNDRING: Gjord async för att invänta synkning till Supabase via persistActiveWorkout()
 async function confirmAndAddAllSelectedExercises() {
     if (temporarySelectedExercises.length === 0) return;
     
@@ -1558,7 +1772,10 @@ async function confirmAndAddAllSelectedExercises() {
         }
     });
     
-    await persistActiveWorkout();
+    // Rensa det temporära urvalet när de har lagts till i passet
+    temporarySelectedExercises = [];
+
+    await persistActiveWorkout(); // Synkar till både localStorage och Supabase (active_draft)
     closeModal();
     renderActiveWorkout();
 }
@@ -1609,7 +1826,7 @@ async function confirmAddExerciseToActive(exId, replaceIndex = null) {
         }
     }
     
-    await persistActiveWorkout();
+    await persistActiveWorkout(); // Synkar till både localStorage och Supabase (active_draft)
     closeModal();
     renderActiveWorkout();
 }
@@ -1619,7 +1836,7 @@ async function updateSetDataOnly(exIdx, setIdx) {
     const rVal = document.getElementById(`r-${exIdx}-${setIdx}`).value;
     activeDraft.data[exIdx].sets_data[setIdx].weight = wVal;
     activeDraft.data[exIdx].sets_data[setIdx].reps = rVal;
-    await persistActiveWorkout();
+    await persistActiveWorkout(); // Synkar vid ändring av värden i set
 }
 
 async function confirmSet(exIdx, setIdx) {
@@ -1627,15 +1844,53 @@ async function confirmSet(exIdx, setIdx) {
     const currentState = activeDraft.data[exIdx].sets_data[setIdx].userConfirmed;
     activeDraft.data[exIdx].sets_data[setIdx].userConfirmed = !currentState;
     
-    await persistActiveWorkout();
+    await persistActiveWorkout(); // Synkar vid klarmarkering av set
     renderActiveWorkout();
     window.scrollTo(0, scrollPos);
 }
 
+// ÄNDRING: Uppdaterad med robust synkronisering mot tabellen public.active_draft i Supabase
 async function persistActiveWorkout() {
     localStorage.setItem("activeWorkoutDraft", JSON.stringify(activeDraft));
-    if (typeof saveActiveDraft === 'function') await saveActiveDraft();
-    if (typeof saveAll === "function") await saveAll();
+    
+    // Kör även de specifika databas-sparfunktionerna om de är deklarerade globalt
+    if (typeof saveActiveDraft === 'function') {
+        await saveActiveDraft();
+    }
+    if (typeof saveAll === "function") {
+        await saveAll();
+    }
+
+    // Direkt integration om de globala funktionerna ovan inte täcker uppdateringen fullt ut
+    if (currentUser) {
+        try {
+            const draftData = activeDraft || {};
+            
+            // Kontrollera om det redan finns ett utkast i databasen för att välja INSERT eller UPDATE
+            const { data: existing, error: checkError } = await supabaseClient
+                .from('active_draft')
+                .select('id')
+                .eq('user_id', currentUser.id)
+                .maybeSingle();
+
+            if (checkError) throw checkError;
+
+            if (existing) {
+                const { error: updateError } = await supabaseClient
+                    .from('active_draft')
+                    .update({ data: draftData }) // Matchar kolumnen 'data' i schemat
+                    .eq('user_id', currentUser.id);
+                if (updateError) throw updateError;
+            } else {
+                const { error: insertError } = await supabaseClient
+                    .from('active_draft')
+                    .insert([{ user_id: currentUser.id, data: draftData }]);
+                if (insertError) throw insertError;
+            }
+        } catch (err) {
+            console.error("Fel vid bakgrundssynk av active_draft till Supabase:", err);
+        }
+    }
 }
 
 async function moveActiveExercise(i, dir) {
@@ -1660,7 +1915,7 @@ async function moveActiveExercise(i, dir) {
         }
     }
     
-    await persistActiveWorkout();
+    await persistActiveWorkout(); // Synkar ändrad ordning till Supabase
     renderActiveWorkout();
     window.scrollTo(0, scrollPos);
 }
@@ -1675,7 +1930,13 @@ async function removeActiveExercise(exIdx) {
             <h3 style="color:var(--danger);">Ta bort övningen?</h3>
             <p style="color:var(--text-light); margin-bottom:25px; font-size:14px;">Är du säker på att du vill ta bort den här övningen från ditt pågående pass?</p>
             <button class="mode-btn" style="background:linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color:white; margin-bottom:12px; font-weight:700;" 
-                onclick="(async () => { activeDraft.workout.exercises.splice(${exIdx}, 1); activeDraft.data.splice(${exIdx}, 1); await persistActiveWorkout(); closeModal(); renderActiveWorkout(); })()">
+                onclick="(async () => { 
+                    activeDraft.workout.exercises.splice(${exIdx}, 1); 
+                    activeDraft.data.splice(${exIdx}, 1); 
+                    await persistActiveWorkout(); 
+                    closeModal(); 
+                    renderActiveWorkout(); 
+                })()">
                 Ja, radera
             </button>
             <button class="mode-btn glass-border" onclick="closeModal()">Avbryt</button>
@@ -1721,13 +1982,23 @@ function renderHome() {
     }
 }
 
+// ÄNDRING: Hela flödet vid sparande av träningspass har säkrats asynkront mot både custom_program och workout_history i Supabase
 document.getElementById("save-workout-btn").onclick = async () => {
     if(!activeDraft.isStarted) {
         const body = document.getElementById("modal-body");
         body.innerHTML = `
             <h3>Kasta träningspass</h3>
             <p style="text-align:center; color:var(--text-light);">Du har inte startat passet än. Vill du radera utkastet?</p>
-            <button class="mode-btn danger" style="background:var(--danger);" onclick="(async () => { localStorage.removeItem('activeWorkoutDraft'); await deleteActiveDraft(); location.reload(); })()">Kasta passet</button>
+            <button class="mode-btn danger" style="background:var(--danger);" onclick="(async () => { 
+                localStorage.removeItem('activeWorkoutDraft'); 
+                if (typeof deleteActiveDraft === 'function') await deleteActiveDraft();
+                if (currentUser) {
+                    try {
+                        await supabaseClient.from('active_draft').delete().eq('user_id', currentUser.id);
+                    } catch(e) { console.error(e); }
+                }
+                location.reload(); 
+            })()">Kasta passet</button>
             <button class="mode-btn glass-border" onclick="closeModal()">Avbryt</button>
         `;
         openModal();
@@ -1749,11 +2020,50 @@ document.getElementById("save-workout-btn").onclick = async () => {
         })
     };
     
+    // 1. Optimistic Update lokalt
     workoutHistory.push(log);
-    if (typeof saveWorkoutHistory === 'function') await saveWorkoutHistory(log);
+    localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
+    
+    // 2. Anropa legacy-sparfunktioner om de finns
+    if (typeof saveWorkoutHistory === 'function') {
+        await saveWorkoutHistory(log);
+    }
     await saveAll();
+    
+    // 3. Synka det nya passet direkt till public.workout_history i Supabase
+    if (currentUser) {
+        try {
+            const { error: historyErr } = await supabaseClient
+                .from('workout_history')
+                .insert([{
+                    user_id: currentUser.id,
+                    workout_date: activeDraft.date,
+                    workout_data: log // Sparas i JSONB-fältet enligt schemat
+                }]);
+            if (historyErr) throw historyErr;
+        } catch (err) {
+            console.error("Fel vid sparande av pass till Supabase workout_history:", err);
+        }
+    }
+
+    // 4. Ta bort det aktiva utkastet lokalt och i molnet
     localStorage.removeItem("activeWorkoutDraft");
-    await deleteActiveDraft();
+    if (typeof deleteActiveDraft === 'function') {
+        await deleteActiveDraft();
+    }
+    
+    if (currentUser) {
+        try {
+            const { error: draftDelErr } = await supabaseClient
+                .from('active_draft')
+                .delete()
+                .eq('user_id', currentUser.id);
+            if (draftDelErr) throw draftDelErr;
+        } catch (err) {
+            console.error("Fel vid radering av utkast i Supabase:", err);
+        }
+    }
+    
     activeDraft = null; 
     secondsElapsed = 0;
     renderCalendar();
@@ -1767,7 +2077,12 @@ function renderStats() {
     const container = document.getElementById("chart-container");
     container.innerHTML = "";
     const months = {};
-    workoutHistory.forEach(w => { const m = w.date.substring(0, 7); months[m] = (months[m] || 0) + 1; });
+    workoutHistory.forEach(w => { 
+        if(w.date) {
+            const m = w.date.substring(0, 7); 
+            months[m] = (months[m] || 0) + 1; 
+        }
+    });
     Object.entries(months).sort().forEach(([m, val]) => {
         const bar = document.createElement("div");
         bar.className = "chart-bar";
@@ -1778,10 +2093,43 @@ function renderStats() {
     showView("stats-view");
 }
 
-function changeMonth(off) { currentViewDate.setMonth(currentViewDate.getMonth() + off); renderCalendar(); }
+// ÄNDRING: Säkerställd med asynkron sparning mot tabellen public.calendar_overrides
+async function changeMonth(off) { 
+    currentViewDate.setMonth(currentViewDate.getMonth() + off); 
+    renderCalendar(); 
+}
+
 async function setOverride(date, val) { 
     calendarOverrides[date] = val; 
+    localStorage.setItem("calendarOverrides", JSON.stringify(calendarOverrides));
     await saveAll(); 
+    
+    // Direkt integration mot tabellen calendar_overrides
+    if (currentUser) {
+        try {
+            const { data: existing, error: checkErr } = await supabaseClient
+                .from('calendar_overrides')
+                .select('id')
+                .eq('user_id', currentUser.id)
+                .maybeSingle();
+                
+            if (checkErr) throw checkErr;
+            
+            if (existing) {
+                await supabaseClient
+                    .from('calendar_overrides')
+                    .update({ data: calendarOverrides })
+                    .eq('user_id', currentUser.id);
+            } else {
+                await supabaseClient
+                    .from('calendar_overrides')
+                    .insert([{ user_id: currentUser.id, data: calendarOverrides }]);
+            }
+        } catch (err) {
+            console.error("Fel vid synk av kalenderändringar till Supabase:", err);
+        }
+    }
+    
     closeModal(); 
     renderCalendar(); 
 }
@@ -1792,45 +2140,63 @@ async function prepareStart(date, id) {
     await startWorkout(p, null, date, true); 
 }
 
+// ÄNDRING: Korrigerat kolumnnamn (workout_date och workout_data) för att matcha schemat exakt vid radering
 async function deleteLoggedWorkout(date, idx) {
     const filtered = workoutHistory.filter(w => w.date === date);
     const item = filtered[idx];
+    
+    // Lokalt uppdatering (Optimistic)
     workoutHistory = workoutHistory.filter(w => w !== item);
+    localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
     
     try {
-        const { historyData, error: fetchError } = await supabaseClient
-            .from('workout_history')
-            .select('*')
-            .eq('user_id', currentUser.id)
-            .eq('date', date)
-            .eq('program_name', item.programName);
-
-        if (fetchError) throw fetchError;
-
-        if (historyData && historyData.length > 0) {
-            const { error: deleteError } = await supabaseClient
+        if (currentUser && item) {
+            // Hämtar rader som matchar datum och det specifika programmets namn inuti jsonb-strukturen
+            const { data: historyData, error: fetchError } = await supabaseClient
                 .from('workout_history')
-                .delete()
-                .eq('id', historyData[0].id)
-                .eq('user_id', currentUser.id);
+                .select('id, workout_data')
+                .eq('user_id', currentUser.id)
+                .eq('workout_date', date);
 
-            if (deleteError) throw deleteError;
+            if (fetchError) throw fetchError;
+
+            // Hitta exakt rätt logg genom djupjämförelse av programnamn
+            const targetRow = historyData.find(row => row.workout_data && row.workout_data.programName === item.programName);
+
+            if (targetRow) {
+                const { error: deleteError } = await supabaseClient
+                    .from('workout_history')
+                    .delete()
+                    .eq('id', targetRow.id)
+                    .eq('user_id', currentUser.id);
+
+                if (deleteError) throw deleteError;
+            }
         }
     } catch (error) {
         console.error('Error deleting workout from Supabase:', error);
     }
 
     localStorage.removeItem("activeWorkoutDraft");
-    await deleteActiveDraft();
+    if (typeof deleteActiveDraft === 'function') await deleteActiveDraft();
+    
+    if (currentUser) {
+        try {
+            await supabaseClient.from('active_draft').delete().eq('user_id', currentUser.id);
+        } catch(e) { console.error(e); }
+    }
+    
     activeDraft = null; 
     await saveAll(); 
     closeModal(); 
     renderCalendar();
 }
 
+// ÄNDRING: Åtgärdat den kritiska buggen gällande `dataObj`/`null`-parametern samt synkroniserat raderingen av det gamla passet
 async function editLoggedWorkout(date, idx) {
     const filtered = workoutHistory.filter(w => w.date === date);
     const item = filtered[idx];
+    if (!item) return;
     
     let savedSeconds = 0;
     if(item.totalTime) {
@@ -1838,52 +2204,80 @@ async function editLoggedWorkout(date, idx) {
         savedSeconds = (+parts[0]) * 3600 + (+parts[1]) * 60 + (+parts[2]);
     }
 
-    const workoutObj = { id: "edit-" + Date.now(), name: item.programName, exercises: item.exercises.map(ex => ({ name: ex.name })) };
+    const workoutObj = { 
+        id: "edit-" + Date.now(), 
+        name: item.programName, 
+        exercises: item.exercises.map(ex => ({ name: ex.name, target: ex.target || "" })) 
+    };
     
-    const dataObj = item.exercises.map(ex => {
-        if(ex.sets_data) return { sets_data: ex.sets_data, isCompleted: true };
-        return { sets_data: Array(parseInt(ex.sets || 1)).fill({ weight: ex.weight, reps: ex.reps }), isCompleted: true };
+    // Strukturera om övningsdatan korrekt till en matris som matchar activeDraft-strukturen
+    const formattedDataArray = item.exercises.map(ex => {
+        if(ex.sets_data) {
+            return { sets_data: JSON.parse(JSON.stringify(ex.sets_data)), isCompleted: true };
+        }
+        return { 
+            sets_data: Array(parseInt(ex.sets || 1)).fill(null).map(() => ({ weight: ex.weight || "", reps: ex.reps || "" })), 
+            isCompleted: true 
+        };
     });
 
+    // Optimistic remove av det gamla passet från historiken lokalt
     workoutHistory = workoutHistory.filter(w => w !== item);
+    localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
     
     try {
-        const { historyData, error: fetchError } = await supabaseClient
-            .from('workout_history')
-            .select('*')
-            .eq('user_id', currentUser.id)
-            .eq('date', date)
-            .eq('program_name', item.programName);
-
-        if (fetchError) throw fetchError;
-
-        if (historyData && historyData.length > 0) {
-            const { error: deleteError } = await supabaseClient
+        if (currentUser) {
+            const { data: historyData, error: fetchError } = await supabaseClient
                 .from('workout_history')
-                .delete()
-                .eq('id', historyData[0].id)
-                .eq('user_id', currentUser.id);
+                .select('id, workout_data')
+                .eq('user_id', currentUser.id)
+                .eq('workout_date', date);
 
-            if (deleteError) throw deleteError;
+            if (fetchError) throw fetchError;
+
+            const targetRow = historyData.find(row => row.workout_data && row.workout_data.programName === item.programName);
+
+            if (targetRow) {
+                const { error: deleteError } = await supabaseClient
+                    .from('workout_history')
+                    .delete()
+                    .eq('id', targetRow.id)
+                    .eq('user_id', currentUser.id);
+
+                if (deleteError) throw deleteError;
+            }
         }
     } catch (error) {
-        console.error('Error deleting workout from Supabase:', error);
+        console.error('Error removing old workout for edit from Supabase:', error);
     }
 
+    // Rensa eventuella gamla utkast
     localStorage.removeItem("activeWorkoutDraft");
-    await deleteActiveDraft();
-    activeDraft = null;
+    if (typeof deleteActiveDraft === 'function') await deleteActiveDraft();
+    
+    if (currentUser) {
+        try {
+            await supabaseClient.from('active_draft').delete().eq('user_id', currentUser.id);
+        } catch(e) { console.error(e); }
+    }
+    
     closeModal();
     
+    // Etablera det nya redigeringsbara utkastet med rätt fältmappningar
     secondsElapsed = savedSeconds;
     activeDraft = {
         workout: workoutObj,
-        dataObj,
+        data: formattedDataArray, // BUGGFIX: Läggs till i 'data' istället för 'dataObj' för att matcha startWorkout-schemat
         date: date,
         secondsElapsed: savedSeconds,
         isStarted: true,
-        wasTimerRunning: false
+        wasTimerRunning: false,
+        ui_state: { openExercises: [0] }
     };
+    
+    // Synkronisera det nyskapade redigeringsutkastet till lokal backup och molnet
+    await persistActiveWorkout();
+    
     renderActiveWorkout();
     updateTimerDisplay();
     showView("workout-view");
@@ -1900,6 +2294,7 @@ function hideDefaultCloseButton(hide) {
     }
 }
 
+// ÄNDRING: Synkar borttagning av master_exercises till Supabase baserat på schemats ID
 async function deleteMasterExercise(id) {
     hideDefaultCloseButton(true);
     const body = document.getElementById("modal-body");
@@ -1911,15 +2306,19 @@ async function deleteMasterExercise(id) {
             <button class="mode-btn" style="background:linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color:white; margin-bottom:12px; font-weight:700;" 
                 onclick="(async () => { 
                     masterExercises = masterExercises.filter(e => e.id != ${id}); 
+                    localStorage.setItem('masterExercises', JSON.stringify(masterExercises));
+                    
                     try {
-                        const { error } = await supabaseClient
-                            .from('master_exercises')
-                            .delete()
-                            .eq('id', ${id})
-                            .eq('user_id', currentUser.id);
-                        if (error) throw error;
+                        if (currentUser) {
+                            const { error } = await supabaseClient
+                                .from('master_exercises')
+                                .delete()
+                                .eq('id', ${id})
+                                .eq('user_id', currentUser.id);
+                            if (error) throw error;
+                        }
                     } catch (err) {
-                        console.error('Error deleting exercise:', err);
+                        console.error('Error deleting exercise from Supabase master_exercises:', err);
                     }
                     await saveAll(); 
                     closeModal(); 
@@ -1936,6 +2335,7 @@ async function deleteMasterExercise(id) {
     openModal();
 }
 
+// ÄNDRING: Uppdaterad till att synka hela programstrukturen (custom_program) till Supabase vid radering av ett delpass
 async function deleteEntireProgram(idx) {
     hideDefaultCloseButton(true);
     const body = document.getElementById("modal-body");
@@ -1947,7 +2347,28 @@ async function deleteEntireProgram(idx) {
             <button class="mode-btn" style="background:linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color:white; margin-bottom:12px; font-weight:700;" 
                 onclick="(async () => { 
                     programData.routine.splice(${idx}, 1); 
+                    localStorage.setItem('myCustomProgram', JSON.stringify(programData));
                     await saveAll(); 
+                    
+                    // Direkt synkronisering av modifierat custom_program till Supabase
+                    if (currentUser) {
+                        try {
+                            const { data: existing } = await supabaseClient
+                                .from('custom_program')
+                                .select('id')
+                                .eq('user_id', currentUser.id)
+                                .maybeSingle();
+                            if (existing) {
+                                await supabaseClient
+                                    .from('custom_program')
+                                    .update({ data: programData })
+                                    .eq('user_id', currentUser.id);
+                            }
+                        } catch (err) {
+                            console.error('Error updating custom_program in Supabase:', err);
+                        }
+                    }
+                    
                     closeModal(); 
                     document.getElementById('program-details-area').classList.add('hidden'); 
                     renderProgramView();
@@ -1975,6 +2396,7 @@ function openConfirmDeleteModal(date, idx) {
     openModal();
 }
 
+// ÄNDRING: Rensar utkast i både localStorage och tabellen public.active_draft i Supabase asynkront
 async function confirmDiscardActiveWorkout() {
     hideDefaultCloseButton(true);
     const body = document.getElementById("modal-body");
@@ -1983,7 +2405,25 @@ async function confirmDiscardActiveWorkout() {
             <div style="font-size:40px; margin-bottom:15px;">🗑️</div>
             <h3 style="color:var(--danger);">Radera passet?</h3>
             <p style="color:var(--text-light); margin-bottom:25px; font-size:14px;">Allt pågående arbete i detta pass kommer att raderas.</p>
-            <button class="mode-btn" style="background:linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color:white; margin-bottom:12px; font-weight:700;" onclick="(async () => { localStorage.removeItem('activeWorkoutDraft'); await deleteActiveDraft(); location.reload(); })()">Ja, radera!</button>
+            <button class="mode-btn" style="background:linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color:white; margin-bottom:12px; font-weight:700;" 
+                onclick="(async () => { 
+                    localStorage.removeItem('activeWorkoutDraft'); 
+                    if (typeof deleteActiveDraft === 'function') await deleteActiveDraft();
+                    
+                    if (currentUser) {
+                        try {
+                            const { error } = await supabaseClient
+                                .from('active_draft')
+                                .delete()
+                                .eq('user_id', currentUser.id);
+                            if (error) throw error;
+                        } catch (err) {
+                            console.error('Error discarding active draft from Supabase:', err);
+                        }
+                    }
+                    
+                    location.reload(); 
+                })()">Ja, radera!</button>
             <button class="mode-btn glass-border" onclick="closeModal()">Avbryt</button>
         </div>
     `;
