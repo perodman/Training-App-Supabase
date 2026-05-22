@@ -5,6 +5,7 @@ let activeDraft = null;
 let calendarOverrides = {};
 let currentViewDate = new Date();
 let currentExerciseCategory = "Ben";
+let currentUser = null; // LÄGG TILL DENNA RAD
  
 // Timer-variablerrf
 let timerInterval = null;
@@ -14,6 +15,15 @@ let isTimerRunning = false;
 // --- INIT ---
 async function initializeApp() {
     try {
+        // VÄNTA PÅ ATT ANVÄNDAREN ÄR INLOGGAD
+        const { { user } } = await supabaseClient.auth.getUser();
+        if (!user) {
+            console.error('No user logged in');
+            // Omdirigera till login eller visa felmeddelande
+            return;
+        }
+        currentUser = user;
+        
         // Hämta master exercises från Supabase
         const { exercisesData, error: exercisesError } = await supabaseClient
             .from('master_exercises')
@@ -118,12 +128,8 @@ async function initializeApp() {
     }
 }
  
-// Kör initializeringen
-fetch("program.json")
-    .then(r => r.json())
-    .then(json => {
-        initializeApp();
-    });
+// Kör initializeringen EFTER att Supabase är redo
+initializeApp();
  
 async function saveAll() {
     await saveCustomProgram();
