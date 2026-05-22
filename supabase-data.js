@@ -1,5 +1,5 @@
 // ==========================================================================
-// SUPABASE DATABASOPERATIONER (HELT KORRIGERAD & UTAN KRASCHER)
+// SUPABASE DATABASOPERATIONER
 // ==========================================================================
 
 async function loadUserData() {
@@ -7,6 +7,10 @@ async function loadUserData() {
 
     try {
         console.log("Startar laddning av data från Supabase...");
+
+        // Säkerställ att grundvariabler har korrekta startvärden innan rendering
+        if (!window.masterExercises) masterExercises = [];
+        if (!window.workoutHistory) workoutHistory = [];
 
         // 1. Ladda workout_history
         const { data: historyData, error: historyError } = await supabaseClient
@@ -22,10 +26,15 @@ async function loadUserData() {
                 date: w.workout_date,
                 programName: w.workout_data.programName,
                 totalTime: w.workout_data.totalTime,
-                exercises: w.workout_data.exercises
+                exercises: w.workout_data.exercises || []
             }));
             // MOLNET BESTÄMMER: Synka direkt till enhetens localStorage
             localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
+        }
+
+        // Om workoutHistory mot förmodan blev tom/felaktig, tvinga den till en array
+        if (!Array.isArray(workoutHistory)) {
+            workoutHistory = [];
         }
 
         // 2. Ladda calendar_overrides
@@ -95,13 +104,17 @@ async function loadUserData() {
             window.programData = programDataResult.data;
             localStorage.setItem("myCustomProgram", JSON.stringify(window.programData));
             
-            if (programDataResult.data.masterExercises) {
+            if (programDataResult.data.masterExercises && Array.isArray(programDataResult.data.masterExercises)) {
                 masterExercises = programDataResult.data.masterExercises;
                 localStorage.setItem("masterExercises", JSON.stringify(masterExercises));
+            } else {
+                // Om masterExercises saknas i molnets programData, hämta från localStorage eller kör tom array
+                masterExercises = JSON.parse(localStorage.getItem("masterExercises") || "[]");
             }
         } else {
             // Ingen sparad data i molnet - ladda från program.json
             window.programData = json;
+            masterExercises = [];
             
             json.routine.forEach(p => {
                 p.exercises.forEach(ex => {
@@ -122,6 +135,11 @@ async function loadUserData() {
             localStorage.setItem("myCustomProgram", JSON.stringify(window.programData));
             localStorage.setItem("masterExercises", JSON.stringify(masterExercises));
             await saveCustomProgram();
+        }
+
+        // Om masterExercises fortfarande är tom eller felaktig efter båda fallen, tvinga fram en array
+        if (!Array.isArray(masterExercises)) {
+            masterExercises = [];
         }
 
         // 5. Uppdatera animationer konsekvent
