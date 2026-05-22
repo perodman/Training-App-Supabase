@@ -1,5 +1,5 @@
 // ==========================================================================
-// SUPABASE DATABASOPERATIONER (ANVÄNDARVÄNLIG VERSION: INGA AUTOMATISKA PASS)
+// SUPABASE DATABASOPERATIONER (DUBBLETT-SÄKRAD MED UNIKA WORKOUT-ID:N)
 // ==========================================================================
 
 async function loadUserData() {
@@ -41,11 +41,9 @@ async function loadUserData() {
                 localStorage.setItem("masterExercises", JSON.stringify(masterExercises));
             }
         } else {
-            // Om användaren saknar program i molnet, hämta exempelpass från program.json
             await loadDefaultProgram();
         }
 
-        // Synka till app.js globala skop om variabeln existerar där
         if (typeof programData !== 'undefined') programData = window.programData;
 
         // 3. LADDAR WORKOUT_HISTORY (Genomförda pass)
@@ -59,6 +57,7 @@ async function loadUserData() {
             console.error('Fel vid laddning av historik:', historyError);
         } else if (historyData) {
             workoutHistory = historyData.map(w => ({
+                id: w.workout_data ? w.workout_data.id : (w.id || Date.now() + Math.random()), // Rädda/skapa ID
                 date: w.workout_date,
                 programName: w.workout_data ? w.workout_data.programName : "Okänt pass",
                 totalTime: w.workout_data ? w.workout_data.totalTime : 0,
@@ -79,11 +78,9 @@ async function loadUserData() {
         }
 
         if (calendarData && calendarData.data) {
-            // Om användaren har planerat pass tidigare, hämta dem
             calendarOverrides = calendarData.data;
             localStorage.setItem("calendarOverrides", JSON.stringify(calendarOverrides));
         } else {
-            // Annars startar vi med en ren, tom kalender (Användarvänligt & flexibelt!)
             calendarOverrides = {};
             localStorage.setItem("calendarOverrides", JSON.stringify(calendarOverrides));
         }
@@ -117,8 +114,6 @@ async function loadUserData() {
         }
 
         console.log("All data synkad i loadUserData. Renderar vyer.");
-        
-        // Rita upp gränssnittet
         if (typeof renderCalendar === 'function') renderCalendar();
         if (typeof renderHome === 'function') renderHome();
 
@@ -135,7 +130,6 @@ async function loadDefaultProgram() {
         
         window.programData = json;
         if (typeof programData !== 'undefined') programData = window.programData;
-        
         masterExercises = [];
         
         if (json && json.routine) {
@@ -160,29 +154,18 @@ async function loadDefaultProgram() {
 
         localStorage.setItem("myCustomProgram", JSON.stringify(window.programData));
         localStorage.setItem("masterExercises", JSON.stringify(masterExercises));
-        
         await saveCustomProgram();
     } catch (err) {
-        console.error('Fel vid laddning av standardprogram från program.json:', err);
+        console.error('Fel vid laddning av standardprogram:', err);
     }
 }
 
 async function saveCustomProgram() {
     if (!currentUser) return;
+    if (typeof programData !== 'undefined' && programData) window.programData = programData;
+    if (!window.programData || !window.programData.routine || window.programData.routine.length === 0) return;
 
-    if (typeof programData !== 'undefined' && programData) {
-        window.programData = programData;
-    }
-
-    if (!window.programData || !window.programData.routine || window.programData.routine.length === 0) {
-        return;
-    }
-
-    const dataToSave = {
-        ...window.programData,
-        masterExercises: masterExercises
-    };
-
+    const dataToSave = { ...window.programData, masterExercises: masterExercises };
     localStorage.setItem("myCustomProgram", JSON.stringify(window.programData));
     localStorage.setItem("masterExercises", JSON.stringify(masterExercises));
 
@@ -193,36 +176,65 @@ async function saveCustomProgram() {
         .maybeSingle();
 
     if (existing) {
-        await supabaseClient
-            .from('custom_program')
-            .update({ data:dataToSave })
-            .eq('user_id', currentUser.id);
+        await supabaseClient.from('custom_program').update({ data:dataToSave }).eq('user_id', currentUser.id);
     } else {
-        await supabaseClient
-            .from('custom_program')
-            .insert([{ user_id: currentUser.id, data:dataToSave }]);
+        await supabaseClient.from('custom_program').insert([{ user_id: currentUser.id, data:dataToSave }]);
     }
 }
 
+// STRÄNGT DUBBLETT-SÄKRAD FUNKTION MED UNIKA ID:N
 async function saveWorkoutHistory(workout) {
     if (!currentUser) return;
 
-    await supabaseClient
-        .from('workout_history')
-        .insert([{
-            user_id: currentUser.id,
-            workout_date: workout.date,
-            workout_data:{
-                programName: workout.programName,
-                totalTime: workout.totalTime,
-                exercises: workout.exercises
-            }
-        }]);
+    // 1. Skapa ett unikt ID om passet inte redan har fått ett från app.js vid start
+    const workoutId = workout.id || "workout_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
+
+    // 2. ID-KONTROLL: Kolla om detta EXAKTA ID redan finns i vår lokala historik array
+    const idExists = workoutHistory.some(existing => existing.id === workoutId);
+
+    if (idExists) {
+        console.warn(`Dubblett-spärr avbröt sparande! Passet med ID ${workoutId} är redan sparat.`);
+        return; // Avbryter direkt, databasen slipper dubbletter!
+    }
+
+    try {
+        const fullWorkoutObject = {
+            id: workoutId,
+            date: workout.date,
+            programName: workout.programName,
+            totalTime: workout.totalTime,
+            exercises: workout.exercises
+        };
+
+        // Lägg till i localStorage direkt för omedelbar UX
+        workoutHistory.unshift(fullWorkoutObject);
+        localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
+
+        // Skicka till Supabase
+        const { error } = await supabaseClient
+            .from('workout_history')
+            .insert([{
+                user_id: currentUser.id,
+                workout_date: workout.date,
+                workout_data: fullWorkoutObject // ID följer med in i JSON-objektet i Supabase
+            }]);
+
+        if (error) {
+            console.error('Fel vid sparande till Supabase:', error);
+            workoutHistory.shift(); // Ta bort lokalt om det misslyckades helt
+            localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
+        }
+
+        if (typeof renderCalendar === 'function') renderCalendar();
+        if (typeof renderHome === 'function') renderHome();
+
+    } catch (err) {
+        console.error("Internt fel i saveWorkoutHistory:", err);
+    }
 }
 
 async function saveCalendarOverrides() {
     if (!currentUser) return;
-
     localStorage.setItem("calendarOverrides", JSON.stringify(calendarOverrides));
 
     const { data : existing } = await supabaseClient
@@ -232,20 +244,14 @@ async function saveCalendarOverrides() {
         .maybeSingle();
 
     if (existing) {
-        await supabaseClient
-            .from('calendar_overrides')
-            .update({ data : calendarOverrides })
-            .eq('user_id', currentUser.id);
+        await supabaseClient.from('calendar_overrides').update({ data : calendarOverrides }).eq('user_id', currentUser.id);
     } else {
-        await supabaseClient
-            .from('calendar_overrides')
-            .insert([{ user_id: currentUser.id, data : calendarOverrides }]);
+        await supabaseClient.from('calendar_overrides').insert([{ user_id: currentUser.id, data : calendarOverrides }]);
     }
 }
 
 async function saveActiveDraft() {
     if (!currentUser) return;
-
     const draftData = activeDraft || {};
     localStorage.setItem("activeWorkoutDraft", JSON.stringify(draftData));
 
@@ -256,14 +262,9 @@ async function saveActiveDraft() {
         .maybeSingle();
 
     if (existing) {
-        await supabaseClient
-            .from('active_draft')
-            .update({ draft_data : draftData })
-            .eq('user_id', currentUser.id);
+        await supabaseClient.from('active_draft').update({ draft_data : draftData }).eq('user_id', currentUser.id);
     } else {
-        await supabaseClient
-            .from('active_draft')
-            .insert([{ user_id: currentUser.id, draft_data : draftData }]);
+        await supabaseClient.from('active_draft').insert([{ user_id: currentUser.id, draft_data : draftData }]);
     }
 }
 
@@ -272,16 +273,17 @@ async function deleteWorkoutFromHistory(date, idx) {
 
     const filtered = workoutHistory.filter(w => w.date === date);
     const item = filtered[idx];
+    if (!item) return;
     
     const { error } = await supabaseClient
         .from('workout_history')
         .delete()
         .eq('user_id', currentUser.id)
         .eq('workout_date', date)
-        .eq('workout_data->programName', item.programName);
+        .eq('workout_data->id', item.id); // Raderar specifikt utifrån ID:t nu!
 
     if (!error) {
-        workoutHistory = workoutHistory.filter(w => w !== item);
+        workoutHistory = workoutHistory.filter(w => w.id !== item.id);
         localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
         if (typeof renderCalendar === 'function') renderCalendar();
         if (typeof renderHome === 'function') renderHome();
@@ -290,12 +292,7 @@ async function deleteWorkoutFromHistory(date, idx) {
 
 async function clearActiveDraft() {
     if (!currentUser) return;
- 
     activeDraft = null;
     localStorage.removeItem("activeWorkoutDraft");
-
-    await supabaseClient
-        .from('active_draft')
-        .update({ draft_data : null })
-        .eq('user_id', currentUser.id);
+    await supabaseClient.from('active_draft').update({ draft_data : null }).eq('user_id', currentUser.id);
 }
