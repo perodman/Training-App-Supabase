@@ -1957,6 +1957,10 @@ document.getElementById("view-programs-btn").onclick = () => renderProgramView()
 document.getElementById("stats-mode").onclick = renderStats;
 document.getElementById("add-custom-pass-btn").onclick = openCreateProgramModal;
 
+// ==========================================================================
+// GRÄNSSNITT & KNAPPHANTERING (HOME & SAVE WORKOUT)
+// ==========================================================================
+
 function renderHome() {
     showView("home-view");
     
@@ -1982,7 +1986,7 @@ function renderHome() {
     }
 }
 
-// ÄNDRING: Hela flödet vid sparande av träningspass har säkrats asynkront mot både custom_program och workout_history i Supabase
+// ÄNDRING: Hela flödet vid sparande av träningspass har städats och dubblett-säkrats via supabase-data.js
 document.getElementById("save-workout-btn").onclick = async () => {
     if(!activeDraft.isStarted) {
         const body = document.getElementById("modal-body");
@@ -2008,7 +2012,11 @@ document.getElementById("save-workout-btn").onclick = async () => {
     pauseTimer();
     const finalTime = document.getElementById("workout-timer").textContent;
     
+    // Generera ett unikt ID för passet här så det garanterat hänger med överallt
+    const uniqueWorkoutId = "workout_" + Date.now() + "_" + Math.floor(Math.random() * 100);
+
     const log = {
+        id: uniqueWorkoutId, // Unikt ID skickas nu med i logg-objektet
         date: activeDraft.date,
         programName: activeDraft.workout.name,
         totalTime: finalTime,
@@ -2020,33 +2028,13 @@ document.getElementById("save-workout-btn").onclick = async () => {
         })
     };
     
-    // 1. Optimistic Update lokalt
-    workoutHistory.push(log);
-    localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
-    
-    // 2. Anropa legacy-sparfunktioner om de finns
+    // CENTRAL SPARFUNKTION: Sköter insättning i Supabase, localStorage samt synk på ett säkert sätt
     if (typeof saveWorkoutHistory === 'function') {
         await saveWorkoutHistory(log);
     }
-    await saveAll();
-    
-    // 3. Synka det nya passet direkt till public.workout_history i Supabase
-    if (currentUser) {
-        try {
-            const { error: historyErr } = await supabaseClient
-                .from('workout_history')
-                .insert([{
-                    user_id: currentUser.id,
-                    workout_date: activeDraft.date,
-                    workout_data: log // Sparas i JSONB-fältet enligt schemat
-                }]);
-            if (historyErr) throw historyErr;
-        } catch (err) {
-            console.error("Fel vid sparande av pass till Supabase workout_history:", err);
-        }
-    }
 
-    // 4. Ta bort det aktiva utkastet lokalt och i molnet
+
+    // Ta bort det aktiva utkastet lokalt och i molnet
     localStorage.removeItem("activeWorkoutDraft");
     if (typeof deleteActiveDraft === 'function') {
         await deleteActiveDraft();
@@ -2066,7 +2054,9 @@ document.getElementById("save-workout-btn").onclick = async () => {
     
     activeDraft = null; 
     secondsElapsed = 0;
-    renderCalendar();
+    
+    // Uppdaterar kalendervyn för att omedelbart reflektera det nya passet
+    if (typeof renderCalendar === 'function') renderCalendar();
 };
 
 document.getElementById("pause-workout-btn").onclick = () => { 
