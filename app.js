@@ -16,7 +16,7 @@ let isTimerRunning = false;
 async function initializeApp() {
     try {
         // VÄNTA PÅ ATT ANVÄNDAREN ÄR INLOGGAD
-        const { { user } } = await supabaseClient.auth.getUser();
+        const { data: { user } } = await supabaseClient.auth.getUser();
         if (!user) {
             console.error('No user logged in');
             // Omdirigera till login eller visa felmeddelande
