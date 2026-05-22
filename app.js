@@ -5,7 +5,6 @@ let activeDraft = null;
 let calendarOverrides = {};
 let currentViewDate = new Date();
 let currentExerciseCategory = "Ben";
-let currentUser = null; // LÄGG TILL DENNA RAD
  
 // Timer-variablerrf
 let timerInterval = null;
