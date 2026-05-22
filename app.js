@@ -14,7 +14,7 @@ let isTimerRunning = false;
 // --- INIT ---
 async function initializeApp() {
     try {
-        const { { user } } = await supabaseClient.auth.getUser();
+         const { data: { user } } = await = await supabaseClient.auth.getUser();
         if (!user) {
             console.error('No user logged in');
             return;
