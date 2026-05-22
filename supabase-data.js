@@ -1,5 +1,5 @@
 // ==========================================================================
-// SUPABASE DATABASOPERATIONER (STABILISERAD & SYNKRONISERAD)
+// SUPABASE DATABASOPERATIONER (FIXAT PROBLEM MED FÖRSVUNNA PASS)
 // ==========================================================================
 
 async function loadUserData() {
@@ -8,18 +8,26 @@ async function loadUserData() {
     try {
         console.log("Startar synkroniserad laddning av data från Supabase...");
 
-        // SÄKERHETSSPRÄRR: Ge appen säkra startvärden så att vyerna aldrig kan krascha direkt
-        if (typeof masterExercises === 'undefined' || !masterExercises) masterExercises = [];
-        if (typeof workoutHistory === 'undefined' || !workoutHistory) workoutHistory = [];
-        if (typeof calendarOverrides === 'undefined' || !calendarOverrides) calendarOverrides = {};
-        if (!window.programData) window.programData = { routine: [] };
+        // 1. SÄKERHETSSPRÄRR: Hämta först vad som finns i localStorage som akut backup
+        if (typeof masterExercises === 'undefined' || !masterExercises) {
+            masterExercises = JSON.parse(localStorage.getItem("masterExercises") || "[]");
+        }
+        if (typeof workoutHistory === 'undefined' || !workoutHistory) {
+            workoutHistory = JSON.parse(localStorage.getItem("workoutHistory") || "[]");
+        }
+        if (typeof calendarOverrides === 'undefined' || !calendarOverrides) {
+            calendarOverrides = JSON.parse(localStorage.getItem("calendarOverrides") || "{}");
+        }
+        if (!window.programData) {
+            window.programData = JSON.parse(localStorage.getItem("myCustomProgram")) || null;
+        }
 
-        // 1. LADDAR CUSTOM_PROGRAM (VÄNTAR TILLS DET ÄR KLART)
+        // 2. LADDAR CUSTOM_PROGRAM (Planerade pass och rutiner)
         const { data : programDataResult, error: programError } = await supabaseClient
             .from('custom_program')
             .select('data')
             .eq('user_id', currentUser.id)
-            .maybeSingle(); // maybeSingle förhindrar krasch om användaren saknar rad
+            .maybeSingle();
 
         if (programError) {
             console.error('Fel vid laddning av program:', programError);
@@ -34,16 +42,21 @@ async function loadUserData() {
                 localStorage.setItem("masterExercises", JSON.stringify(masterExercises));
             }
         } else {
-            // Om inget program finns i molnet, hämta från program.json och spara till molnet
-            await loadDefaultProgram();
+            // Om inget program finns i molnet OCH inget i localStorage, ladda från program.json
+            if (!window.programData || !window.programData.routine || window.programData.routine.length === 0) {
+                await loadDefaultProgram();
+            }
         }
 
-        // Extra säkerhetskontroll av programstrukturen efter laddning
-        if (!window.programData || !window.programData.routine) {
-            window.programData = { routine: [] };
+        // Dubbelkolla SISTA spärren så programData ALDRIG blir helt tomt om det fanns data innan
+        if (!window.programData) {
+            window.programData = JSON.parse(localStorage.getItem("myCustomProgram")) || { routine: [] };
+        }
+        if (!window.programData.routine) {
+            window.programData.routine = [];
         }
 
-        // 2. LADDAR WORKOUT_HISTORY (VÄNTAR TILLS DET ÄR KLART)
+        // 3. LADDAR WORKOUT_HISTORY (Genomförda pass)
         const { data : historyData, error: historyError } = await supabaseClient
             .from('workout_history')
             .select('*')
@@ -62,9 +75,11 @@ async function loadUserData() {
             localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
         }
 
-        if (!Array.isArray(workoutHistory)) workoutHistory = [];
+        if (!Array.isArray(workoutHistory)) {
+            workoutHistory = JSON.parse(localStorage.getItem("workoutHistory") || "[]");
+        }
 
-        // 3. LADDAR CALENDAR_OVERRIDES (VÄNTAR TILLS DET ÄR KLART)
+        // 4. LADDAR CALENDAR_OVERRIDES
         const { data : calendarData, error: calendarError } = await supabaseClient
             .from('calendar_overrides')
             .select('data')
@@ -78,12 +93,11 @@ async function loadUserData() {
         if (calendarData && calendarData.data) {
             calendarOverrides = calendarData.data;
             localStorage.setItem("calendarOverrides", JSON.stringify(calendarOverrides));
-        } else {
-            calendarOverrides = {};
-            localStorage.setItem("calendarOverrides", JSON.stringify(calendarOverrides));
+        } else if (Object.keys(calendarOverrides).length === 0) {
+            calendarOverrides = JSON.parse(localStorage.getItem("calendarOverrides") || "{}");
         }
 
-        // 4. LADDAR ACTIVE_DRAFT (VÄNTAR TILLS DET ÄR KLART)
+        // 5. LADDAR ACTIVE_DRAFT
         const { data : draftData, error: draftError } = await supabaseClient
             .from('active_draft')
             .select('draft_data')
@@ -111,9 +125,9 @@ async function loadUserData() {
             localStorage.removeItem("activeWorkoutDraft");
         }
 
-        console.log("All data har laddats i exakt ordning utan fel! Uppdaterar skärmen.");
+        console.log("All data laddad och säkrad stabil. Uppdaterar vyer.");
 
-        // Först NU när all data garanterat finns i minnet, tillåter vi appen att rita upp vyerna
+        // Rita upp gränssnittet
         if (typeof renderCalendar === 'function') renderCalendar();
         if (typeof renderHome === 'function') renderHome();
 
