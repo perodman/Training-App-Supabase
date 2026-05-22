@@ -1,71 +1,219 @@
 let programData;
-let masterExercises = JSON.parse(localStorage.getItem("masterExercises") || "[]");
-let workoutHistory = JSON.parse(localStorage.getItem("workoutHistory") || "[]");
-let activeDraft = JSON.parse(localStorage.getItem("activeWorkoutDraft") || "null");
-let calendarOverrides = JSON.parse(localStorage.getItem("calendarOverrides") || "{}");
+let masterExercises = [];
+let workoutHistory = [];
+let activeDraft = null;
+let calendarOverrides = {};
 let currentViewDate = new Date();
 let currentExerciseCategory = "Ben";
-
+ 
 // Timer-variablerrf
 let timerInterval = null;
 let secondsElapsed = 0;
 let isTimerRunning = false;
-
+ 
 // --- INIT ---
-fetch("program.json")
-.then(r => r.json())
-.then(json => {
-    const savedProgram = JSON.parse(localStorage.getItem("myCustomProgram"));
-    
-    if (masterExercises.length === 0) {
-        json.routine.forEach(p => {
-            p.exercises.forEach(ex => {
-                if (!masterExercises.find(m => m.name === ex.name)) {
-                    let animFile = "";
-                    if (ex.name === "Deadlift") animFile = "Gemini_Generated_Image_sqtn3ksqtn3ksqtn.mp4";
-                    if (ex.name === "Barbell Bench Press") animFile = "Skärmbild 2026-05-11 124104.mp4";
-                    
-                    masterExercises.push({ 
-                        ...ex, 
-                        id: Date.now() + Math.random(),
-                        animation: animFile 
-                    });
-                }
-            });
-        });
-        localStorage.setItem("masterExercises", JSON.stringify(masterExercises));
-    } else {
-        masterExercises.forEach(ex => {
-            if (ex.name === "Deadlift") ex.animation = "Gemini_Generated_Image_sqtn3ksqtn3ksqtn.mp4";
-            if (ex.name === "Barbell Bench Press") ex.animation = "Skärmbild 2026-05-11 124104.mp4";
-        });
-    }
-    
-    programData = savedProgram || json;
-
-    if(activeDraft && activeDraft.isStarted) {
-        secondsElapsed = activeDraft.secondsElapsed || 0;
-        if(activeDraft.wasTimerRunning) {
-            startTimer();
-        } else {
-            updateTimerDisplay();
+async function initializeApp() {
+    try {
+        // Hämta master exercises från Supabase
+        const { exercisesData, error: exercisesError } = await supabaseClient
+            .from('master_exercises')
+            .select('*')
+            .eq('user_id', currentUser.id);
+        
+        if (exercisesError) throw exercisesError;
+        
+        if (exercisesData && exercisesData.length > 0) {
+            masterExercises = exercisesData;
         }
+ 
+        // Hämta workout history från Supabase
+        const { historyData, error: historyError } = await supabaseClient
+            .from('workout_history')
+            .select('*')
+            .eq('user_id', currentUser.id);
+        
+        if (historyError) throw historyError;
+        
+        if (historyData) {
+            workoutHistory = historyData;
+        }
+ 
+        // Hämta active draft från Supabase
+        const { draftData, error: draftError } = await supabaseClient
+            .from('active_draft')
+            .select('*')
+            .eq('user_id', currentUser.id)
+            .single();
+        
+        if (draftError && draftError.code !== 'PGRST116') throw draftError;
+        
+        if (draftData) {
+            activeDraft = draftData.draft_data;
+        }
+ 
+        // Hämta calendar overrides från Supabase
+        const { overridesData, error: overridesError } = await supabaseClient
+            .from('calendar_overrides')
+            .select('*')
+            .eq('user_id', currentUser.id)
+            .single();
+        
+        if (overridesError && overridesError.code !== 'PGRST116') throw overridesError;
+        
+        if (overridesData) {
+            calendarOverrides = overridesData.overrides_data;
+        }
+ 
+        // Hämta custom program från Supabase
+        const { programDataResult, error: programError } = await supabaseClient
+            .from('custom_program')
+            .select('*')
+            .eq('user_id', currentUser.id)
+            .single();
+        
+        if (programError && programError.code !== 'PGRST116') throw programError;
+ 
+        // Ladda program.json
+        const response = await fetch("program.json");
+        const json = await response.json();
+        
+        if (masterExercises.length === 0) {
+            json.routine.forEach(p => {
+                p.exercises.forEach(ex => {
+                    if (!masterExercises.find(m => m.name === ex.name)) {
+                        let animFile = "";
+                        if (ex.name === "Deadlift") animFile = "Gemini_Generated_Image_sqtn3ksqtn3ksqtn.mp4";
+                        if (ex.name === "Barbell Bench Press") animFile = "Skärmbild 2026-05-11 124104.mp4";
+                        
+                        masterExercises.push({ 
+                            ...ex, 
+                            id: Date.now() + Math.random(),
+                            animation: animFile 
+                        });
+                    }
+                });
+            });
+            await saveMasterExercises();
+        } else {
+            masterExercises.forEach(ex => {
+                if (ex.name === "Deadlift") ex.animation = "Gemini_Generated_Image_sqtn3ksqtn3ksqtn.mp4";
+                if (ex.name === "Barbell Bench Press") ex.animation = "Skärmbild 2026-05-11 124104.mp4";
+            });
+        }
+        
+        programData = programDataResult ? programDataResult.program_data : json;
+ 
+        if(activeDraft && activeDraft.isStarted) {
+            secondsElapsed = activeDraft.secondsElapsed || 0;
+            if(activeDraft.wasTimerRunning) {
+                startTimer();
+            } else {
+                updateTimerDisplay();
+            }
+        }
+ 
+        renderHome();
+    } catch (error) {
+        console.error('Error initializing app:', error);
     }
-
-    renderHome();
-});
-
-function saveAll() {
-    localStorage.setItem("myCustomProgram", JSON.stringify(programData));
-    localStorage.setItem("masterExercises", JSON.stringify(masterExercises));
-    localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
-    localStorage.setItem("calendarOverrides", JSON.stringify(calendarOverrides));
-    
-    // Supabase-synk
-    if (typeof saveCustomProgram === 'function') saveCustomProgram();
-    if (typeof saveCalendarOverrides === 'function') saveCalendarOverrides();
 }
-
+ 
+// Kör initializeringen
+fetch("program.json")
+    .then(r => r.json())
+    .then(json => {
+        initializeApp();
+    });
+ 
+async function saveAll() {
+    await saveCustomProgram();
+    await saveCalendarOverrides();
+}
+ 
+async function saveCustomProgram() {
+    try {
+        const { existing, error: fetchError } = await supabaseClient
+            .from('custom_program')
+            .select('id')
+            .eq('user_id', currentUser.id)
+            .single();
+ 
+        if (fetchError && fetchError.code !== 'PGRST116') throw fetchError;
+ 
+        if (existing) {
+            const { error: updateError } = await supabaseClient
+                .from('custom_program')
+                .update({ program_programData })
+                .eq('user_id', currentUser.id);
+            
+            if (updateError) throw updateError;
+        } else {
+            const { error: insertError } = await supabaseClient
+                .from('custom_program')
+                .insert({ user_id: currentUser.id, program_programData });
+            
+            if (insertError) throw insertError;
+        }
+    } catch (error) {
+        console.error('Error saving custom program:', error);
+    }
+}
+ 
+async function saveCalendarOverrides() {
+    try {
+        const { existing, error: fetchError } = await supabaseClient
+            .from('calendar_overrides')
+            .select('id')
+            .eq('user_id', currentUser.id)
+            .single();
+ 
+        if (fetchError && fetchError.code !== 'PGRST116') throw fetchError;
+ 
+        if (existing) {
+            const { error: updateError } = await supabaseClient
+                .from('calendar_overrides')
+                .update({ overrides_calendarOverrides })
+                .eq('user_id', currentUser.id);
+            
+            if (updateError) throw updateError;
+        } else {
+            const { error: insertError } = await supabaseClient
+                .from('calendar_overrides')
+                .insert({ user_id: currentUser.id, overrides_calendarOverrides });
+            
+            if (insertError) throw insertError;
+        }
+    } catch (error) {
+        console.error('Error saving calendar overrides:', error);
+    }
+}
+ 
+async function saveMasterExercises() {
+    try {
+        // Ta bort alla befintliga övningar för användaren
+        const { error: deleteError } = await supabaseClient
+            .from('master_exercises')
+            .delete()
+            .eq('user_id', currentUser.id);
+        
+        if (deleteError) throw deleteError;
+ 
+        // Lägg till alla övningar på nytt
+        const exercisesToInsert = masterExercises.map(ex => ({
+            user_id: currentUser.id,
+            ...ex
+        }));
+ 
+        const { error: insertError } = await supabaseClient
+            .from('master_exercises')
+            .insert(exercisesToInsert);
+        
+        if (insertError) throw insertError;
+    } catch (error) {
+        console.error('Error saving master exercises:', error);
+    }
+}
+ 
 function showView(id) {
     const target = document.getElementById(id);
     if(!target) return;
@@ -79,7 +227,7 @@ function showView(id) {
     }
     window.scrollTo(0, 0);
 }
-
+ 
 function closeModal() {
     document.getElementById("workout-modal").classList.add("hidden");
     const video = document.querySelector("#modal-body video");
@@ -89,22 +237,22 @@ function closeModal() {
     if (typeof hideDefaultCloseButton === 'function') {
         hideDefaultCloseButton(false);
     }
-
+ 
     // HÄR ÅTERSTÄLLER VI DIN DRAFT
     restoreDraftState();
 }
-
+ 
 function openModal() {
     const modal = document.getElementById("workout-modal");
     if (modal) modal.classList.remove("hidden");
-
+ 
     // Samma logik här för att garantera toppen vid öppning
     setTimeout(() => {
         const modalContent = document.querySelector('.modal-content');
         if (modalContent) modalContent.scrollTop = 0;
     }, 20);
 }
-
+ 
 // --- TIMER LOGIK ---
 function updateTimerDisplay() {
     const hrs = String(Math.floor(secondsElapsed / 3600)).padStart(2, '0');
@@ -112,7 +260,7 @@ function updateTimerDisplay() {
     const secs = String(secondsElapsed % 60).padStart(2, '0');
     document.getElementById("workout-timer").textContent = `${hrs}:${mins}:${secs}`;
 }
-
+ 
 function startTimer() {
     if (isTimerRunning) return;
     isTimerRunning = true;
@@ -127,7 +275,7 @@ function startTimer() {
         }
     }, 1000);
 }
-
+ 
 function pauseTimer() {
     isTimerRunning = false;
     if(activeDraft) activeDraft.wasTimerRunning = false;
@@ -135,19 +283,19 @@ function pauseTimer() {
     document.getElementById("timer-toggle-btn").textContent = "Fortsätt ▶️";
     if(activeDraft) persistActiveWorkout();
 }
-
+ 
 document.getElementById("timer-toggle-btn").onclick = () => {
     if (isTimerRunning) pauseTimer();
     else startTimer();
 };
-
+ 
 // --- ÖVNINGAR & INSTÄLLNINGAR ---
-function openCreateExerciseModal(callback = null) {
+async function openCreateExerciseModal(callback = null) {
     const body = document.getElementById("modal-body");
     
     // ÄNDRING 1: Istället för att alltid välja "Ben", kollar vi vad du har valt i vyn just nu
     let selectedCategory = currentExerciseCategory || "Ben"; 
-
+ 
     const categories = [
         { id: "Ben", icon: "🦵" },
         { id: "Bröst", icon: "🏋️" },
@@ -156,7 +304,7 @@ function openCreateExerciseModal(callback = null) {
         { id: "Armar", icon: "💪" },
         { id: "Bål", icon: "🧘" }
     ];
-
+ 
     body.innerHTML = `
         <h3 style="text-align:center; margin-bottom: 20px;">Skapa Ny Övning</h3>
         
@@ -165,7 +313,7 @@ function openCreateExerciseModal(callback = null) {
                 <label style="font-size:11px; color:var(--text-light); text-transform: uppercase; letter-spacing: 1px; display:block; margin-bottom: 8px; text-align: center;">Namn på övning</label>
                 <input type="text" id="new-ex-name" class="log-input" placeholder="T.ex. Knäböj" style="text-align: center;">
             </div>
-
+ 
             <div style="width: 100%;">
                 <label style="font-size:11px; color:var(--text-light); text-transform: uppercase; letter-spacing: 1px; display:block; margin-bottom: 12px; text-align: center;">Välj Kategori</label>
                 
@@ -181,10 +329,10 @@ function openCreateExerciseModal(callback = null) {
                     `).join('')}
                 </div>
             </div>
-
+ 
             <button class="mode-btn blue" id="save-new-ex-btn" style="width: 100%; max-width: 300px; margin-top: 10px;">Spara Övning</button>
         </div>
-
+ 
         <style>
             .cat-select-item.active {
                 background: rgba(59, 130, 246, 0.2) !important;
@@ -196,14 +344,14 @@ function openCreateExerciseModal(callback = null) {
             }
         </style>
     `;
-
+ 
     window.selectModalCategory = (catId) => {
         selectedCategory = catId;
         document.querySelectorAll('.cat-select-item').forEach(el => el.classList.remove('active'));
         document.getElementById(`modal-cat-${catId}`).classList.add('active');
     };
-
-    document.getElementById("save-new-ex-btn").onclick = () => {
+ 
+    document.getElementById("save-new-ex-btn").onclick = async () => {
         const name = document.getElementById("new-ex-name").value.trim();
         if(!name) return alert("Ange ett namn!");
         
@@ -216,7 +364,7 @@ function openCreateExerciseModal(callback = null) {
         };
         
         masterExercises.push(newEx);
-        saveAll();
+        await saveMasterExercises();
         
         if(callback) callback(newEx);
         else { 
@@ -245,13 +393,13 @@ function filterExercises(category) {
                 showExerciseAnimation(ex.id);
             }
         };
-
+ 
         div.innerHTML = `<div><strong style="font-size:16px;">${ex.name}</strong><br><small style="color:var(--primary); font-weight:800; text-transform:uppercase; font-size:10px;">${ex.target}</small></div>
         <button style="background:none; border:none; font-size:18px; cursor:pointer;" onclick="openEditExerciseModal(${ex.id})"> ⚙️ </button>`;
         results.appendChild(div);
     });
 }
-
+ 
 function showExerciseAnimation(id) {
     const ex = masterExercises.find(e => e.id == id);
     if(!ex) return;
@@ -272,7 +420,7 @@ function showExerciseAnimation(id) {
             </div>
         `;
     }
-
+ 
     body.innerHTML = `
         <h3>${ex.name}</h3>
         ${videoHtml}
@@ -282,14 +430,14 @@ function showExerciseAnimation(id) {
     `;
     openModal();
 }
-
-function openEditExerciseModal(id) {
+ 
+async function openEditExerciseModal(id) {
     const ex = masterExercises.find(e => e.id == id);
     if(!ex) return;
     const body = document.getElementById("modal-body");
     
     let selectedCategory = ex.target; 
-
+ 
     const categories = [
         { id: "Ben", icon: "🦵" },
         { id: "Bröst", icon: "🏋️" },
@@ -298,7 +446,7 @@ function openEditExerciseModal(id) {
         { id: "Armar", icon: "💪" },
         { id: "Bål", icon: "🧘" }
     ];
-
+ 
     body.innerHTML = `
         <h3 style="text-align:center; margin-bottom: 20px;">Redigera Övning</h3>
         
@@ -308,7 +456,7 @@ function openEditExerciseModal(id) {
                 <label style="font-size:11px; color:var(--text-light); text-transform: uppercase; letter-spacing: 1px; display:block; margin-bottom: 8px; text-align: center;">Namn på övning</label>
                 <input type="text" id="edit-ex-name" class="log-input" value="${ex.name}" style="text-align: center;">
             </div>
-
+ 
             <div style="width: 100%;">
                 <label style="font-size:11px; color:var(--text-light); text-transform: uppercase; letter-spacing: 1px; display:block; margin-bottom: 12px; text-align: center;">Välj Kategori</label>
                 
@@ -324,11 +472,11 @@ function openEditExerciseModal(id) {
                     `).join('')}
                 </div>
             </div>
-
+ 
             <button class="mode-btn blue" style="width: 100%; max-width: 300px; margin-top: 15px;" onclick="handleUpdateExercise(${id})">Uppdatera</button>
             <button class="mode-btn" style="color:var(--danger); background:none; font-size:13px; margin-top: 15px; padding: 5px;" onclick="deleteMasterExercise(${id})">Radera övning permanent</button>
         </div>
-
+ 
         <style>
             .cat-select-item.active {
                 background: rgba(59, 130, 246, 0.2) !important;
@@ -340,14 +488,14 @@ function openEditExerciseModal(id) {
             }
         </style>
     `;
-
+ 
     window.selectEditModalCategory = (catId) => {
         selectedCategory = catId;
         document.querySelectorAll('#edit-category-grid .cat-select-item').forEach(el => el.classList.remove('active'));
         document.getElementById(`edit-modal-cat-${catId}`).classList.add('active');
     };
-
-    window.handleUpdateExercise = (exId) => {
+ 
+    window.handleUpdateExercise = async (exId) => {
         const nameInput = document.getElementById("edit-ex-name").value.trim();
         if(!nameInput) return alert("Namnet får inte vara tomt!");
         
@@ -355,29 +503,30 @@ function openEditExerciseModal(id) {
         if(exIndex !== -1) {
             // AUTOMATISERING: Spara det gamla namnet innan det skrivs över, och uppdatera historiken
             const oldName = masterExercises[exIndex].name;
-            updateExerciseNameInHistory(oldName, nameInput);
-
+            await updateExerciseNameInHistory(oldName, nameInput);
+ 
             // Din befintliga sparlogik
             masterExercises[exIndex].name = nameInput;
             masterExercises[exIndex].target = selectedCategory; 
-            saveAll();
+            await saveMasterExercises();
             closeModal();
             filterExercises(currentExerciseCategory);
         }
     };
-
+ 
     openModal();
 }
-
-function updateExercise(id) {
+ 
+async function updateExercise(id) {
     const ex = masterExercises.find(e => e.id == id);
     ex.name = document.getElementById("edit-ex-name").value;
     ex.target = document.getElementById("edit-ex-cat").value;
     ex.animation = document.getElementById("edit-ex-anim").value;
-    saveAll(); closeModal(); filterExercises(currentExerciseCategory);
+    await saveMasterExercises();
+    closeModal();
+    filterExercises(currentExerciseCategory);
 }
-
-
+ 
 // --- KALENDER ---
 function renderCalendar(isFromStartBtn = false) {
     const grid = document.getElementById("calendar-grid");
@@ -392,7 +541,7 @@ function renderCalendar(isFromStartBtn = false) {
             Välj vilken dag du vill starta eller schemalägga ett pass i kalendern nedan 📅
         </div>`;
     }
-
+ 
     const year = currentViewDate.getFullYear();
     const month = currentViewDate.getMonth();
     const monthText = currentViewDate.toLocaleString('sv-SE', { month: 'long', year: 'numeric' });
@@ -401,11 +550,11 @@ function renderCalendar(isFromStartBtn = false) {
     const firstDay = new Date(year, month, 1).getDay();
     const offset = firstDay === 0 ? 6 : firstDay - 1;
     const daysInMonth = new Date(year, month + 1, 0).getDate();
-
+ 
     // Hämta dagens faktiska datum för att matcha mot loopen
     const now = new Date();
     const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-
+ 
     for (let i = 0; i < offset; i++) grid.innerHTML += `<div></div>`;
     for (let d = 1; d <= daysInMonth; d++) {
         const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
@@ -416,7 +565,7 @@ function renderCalendar(isFromStartBtn = false) {
         if (dateStr === todayStr) {
             cell.classList.add("today");
         }
-
+ 
         const hasWorkouts = workoutHistory.filter(w => w.date === dateStr);
         const isOngoing = activeDraft && activeDraft.date === dateStr && activeDraft.isStarted;
         const dayOfWeek = new Date(year, month, d).getDay();
@@ -439,7 +588,7 @@ function renderCalendar(isFromStartBtn = false) {
     showView("calendar-view");
 }
 
-// NY FUNKTION: Öppnar en renodlad popup-ruta med övningarna (Likt showProgramDetails fast som modal)
+// FUNKTION: Öppnar en renodlad popup-ruta med övningarna (Likt showProgramDetails fast som modal)
 function openProgramPreviewModal(idx) {
     const pass = programData.routine[idx];
     
@@ -543,8 +692,8 @@ function handleTouchMove(event) {
         }
     }
 }
-
-function handleTouchEnd(idx, dateStr, programId, event) {
+ 
+async function handleTouchEnd(idx, dateStr, programId, event) {
     cancelPress();
     
     // Om användaren har scrollat eller om det var ett långtryck: avbryt klick
@@ -562,9 +711,9 @@ function handleTouchEnd(idx, dateStr, programId, event) {
     }
     
     // Detta var ett rent, snabbt klick utan scroll – utför bytet!
-    setOverrideSilent(dateStr, programId);
+    await setOverrideSilent(dateStr, programId);
 }
-
+ 
 // FUNKTION: Öppnar en renodlad popup-ruta med övningarna (Med mjuk animation)
 function openProgramPreviewModal(idx) {
     const pass = programData.routine[idx];
@@ -588,10 +737,10 @@ function openProgramPreviewModal(idx) {
         previewModal.style.transition = "opacity 0.2s ease-out";
         document.body.appendChild(previewModal);
     }
-
+ 
     previewModal.style.opacity = "0";
     previewModal.style.display = "flex";
-
+ 
     previewModal.innerHTML = `
         <div id="preview-modal-card" class="card glass" style="width: 90%; max-width: 400px; padding: 20px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); background: rgba(15, 23, 42, 0.95); margin-top: 40px; 
            transition: all 0.2s ease-out; transform: scale(0.95); opacity: 0;">
@@ -614,7 +763,7 @@ function openProgramPreviewModal(idx) {
             </button>
         </div>
     `;
-
+ 
     setTimeout(() => {
         previewModal.style.opacity = "1";
         const card = document.getElementById("preview-modal-card");
@@ -624,7 +773,7 @@ function openProgramPreviewModal(idx) {
         }
     }, 10);
 }
-
+ 
 function closePreviewModal() {
     const previewModal = document.getElementById("preview-modal");
     const card = document.getElementById("preview-modal-card");
@@ -645,7 +794,7 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
     if (typeof hideDefaultCloseButton === 'function') {
         hideDefaultCloseButton(false);
     }
-
+ 
     const body = document.getElementById("modal-body");
     
     if (body) {
@@ -765,7 +914,7 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
     ➕ Starta Fritt Pass
 </button>
         </div>`;
-
+ 
         // ÄNDRA PLANERING - SEKTIONSAVSKILJARE
         html += `
         <div style="margin-top: 1px; width: 100%;">
@@ -796,7 +945,7 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
                 const currentOpacity = isSelected ? "1" : "0.25";
                 const borderColor = `rgba(${c.r}, ${c.g}, ${c.b}, ${currentOpacity})`;
                 const btnBg = `rgba(${c.r}, ${c.g}, ${c.b}, 0.04)`;
-
+ 
                 html += `
                 <button class="mode-btn plan-override-btn ${isSelected ? 'active-choice' : ''}" 
                         id="btn-ovr-${p.id}" 
@@ -818,7 +967,7 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
                 </button>`;
             });
             
-            const isRestSelected = !planned;
+                        const isRestSelected = !planned;
             const restBorderColor = isRestSelected ? "rgba(253, 224, 71, 1)" : "rgba(253, 224, 71, 0.2)";
 
             html += `
@@ -841,9 +990,9 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
     openModal();
 }
 
-function setOverrideSilent(date, val) {
+async function setOverrideSilent(date, val) {
     calendarOverrides[date] = val;
-    saveAll();
+    await saveAll();
     
     document.querySelectorAll('.plan-override-btn').forEach(b => b.classList.remove('active-choice'));
     
@@ -939,7 +1088,6 @@ function renderExercisePickerForEdit(idx, category = "Ben") {
 
     html += `<p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin-bottom:10px;">Övningar (${category}):</p>`;
     
-    // Lista med unikt ID för scroll-hantering
     html += `<div id="exercise-picker-list" style="max-height:400px; overflow-y:auto; padding-right:5px; background:rgba(0,0,0,0.2); border-radius:15px; padding:10px;">`;
     
     const filtered = masterExercises.filter(ex => category === "Armar" ? (ex.target === "Biceps" || ex.target === "Triceps") : ex.target === category);
@@ -957,33 +1105,29 @@ function renderExercisePickerForEdit(idx, category = "Ben") {
     });
     html += `</div>`;
 
-    // Uppdatera DOM
     container.innerHTML = html;
 
-    // Tvinga scroll till toppen när innehållet renderats
-   setTimeout(() => {
-    // 1. Hitta modalens huvudbehållare (den med overflow-y: auto)
-    const modalContent = document.querySelector('.modal-content');
-    if (modalContent) {
-        modalContent.scrollTop = 0;
-    }
+    setTimeout(() => {
+        const modalContent = document.querySelector('.modal-content');
+        if (modalContent) {
+            modalContent.scrollTop = 0;
+        }
 
-    // 2. Hitta din lista inuti
-    const list = document.getElementById("exercise-picker-list");
-    if (list) {
-        list.scrollTop = 0;
-    }
-}, 50);
+        const list = document.getElementById("exercise-picker-list");
+        if (list) {
+            list.scrollTop = 0;
+        }
+    }, 50);
 }
 
-function addExerciseToPassDirectly(pIdx, exId) {
+async function addExerciseToPassDirectly(pIdx, exId) {
     const ex = masterExercises.find(e => e.id == exId);
     if (!ex) return;
     programData.routine[pIdx].exercises.push({ name: ex.name, target: ex.target, defaultSets: 3 });
-    openEditProgramModal(pIdx); 
+    await openEditProgramModal(pIdx); 
 }
 
-function openEditProgramModal(idx) {
+async function openEditProgramModal(idx) {
     const pass = programData.routine[idx];
     const body = document.getElementById("modal-body");
     body.innerHTML = `
@@ -1018,31 +1162,32 @@ function openEditProgramModal(idx) {
     openModal();
 }
 
-function createNewExForPass(pIdx) {
-    openCreateExerciseModal((newEx) => {
-        // Kontrollera om en övning med samma namn (men gammal stavning) fanns här innan, 
-        // eller om du döper om via banken – då körs uppdateringen i historiken.
+async function createNewExForPass(pIdx) {
+    await openCreateExerciseModal(async (newEx) => {
         programData.routine[pIdx].exercises.push({ name: newEx.name, target: newEx.target, defaultSets: 3 });
-        openEditProgramModal(pIdx);
+        await openEditProgramModal(pIdx);
     });
 }
 
-function moveExercise(pIdx, eIdx, dir) {
+async function moveExercise(pIdx, eIdx, dir) {
     const exercises = programData.routine[pIdx].exercises;
     const newIdx = eIdx + dir;
     if(newIdx < 0 || newIdx >= exercises.length) return;
-    [exercises[eIdx], exercises[newIdx]] = [exercises[newIdx], exercises[eIdx]];
-    openEditProgramModal(pIdx);
+    [exercises[eIdx], exercises[newIdx]] = [exercises[newIdx], exercises[newIdx]];
+    await openEditProgramModal(pIdx);
 }
 
-function removeExFromPass(pIdx, eIdx) {
+async function removeExFromPass(pIdx, eIdx) {
     programData.routine[pIdx].exercises.splice(eIdx, 1);
-    openEditProgramModal(pIdx);
+    await openEditProgramModal(pIdx);
 }
 
-function saveProgramEdit(idx) {
+async function saveProgramEdit(idx) {
     programData.routine[idx].name = document.getElementById("edit-pass-name").value;
-    saveAll(); closeModal(); renderProgramView(idx); showProgramDetails(idx);
+    await saveAll();
+    closeModal();
+    renderProgramView(idx);
+    showProgramDetails(idx);
 }
 
 function openCreateProgramModal() {
@@ -1056,43 +1201,65 @@ function openCreateProgramModal() {
     openModal();
 }
 
-function saveNewProgram() {
+async function saveNewProgram() {
     const name = document.getElementById("new-pass-name").value.trim();
     if(!name) return alert("Ange ett namn!");
     const newPass = { id: "pass-" + Date.now(), name, exercises: [] };
     programData.routine.push(newPass);
-    saveAll();
+    await saveAll();
     const newIdx = programData.routine.length - 1;
-    openEditProgramModal(newIdx);
+    await openEditProgramModal(newIdx);
 }
 
-// --- SÖK OCH ERSÄTT ÖVNINGSNAMN I TRÄNINGSHISTORIKEN ---
-function updateExerciseNameInHistory(oldName, newName) {
+async function updateExerciseNameInHistory(oldName, newName) {
     if (!oldName || !newName || oldName === newName) return;
 
-    let updatedCount = 0;
+    try {
+        const { historyData, error: fetchError } = await supabaseClient
+            .from('workout_history')
+            .select('*')
+            .eq('user_id', currentUser.id);
 
-    // Gå igenom hela träningshistoriken
-    workoutHistory.forEach(workout => {
-        if (workout.exercises && Array.isArray(workout.exercises)) {
-            // Leta efter övningar som har det gamla namnet
-            workout.exercises.forEach(exercise => {
-                if (exercise.name === oldName) {
-                    exercise.name = newName; // Byt till det nya namnet!
-                    updatedCount++;
-                }
-            });
+        if (fetchError) throw fetchError;
+
+        let updatedCount = 0;
+        const updatedWorkouts = [];
+
+        historyData.forEach(workout => {
+            let hasChanges = false;
+            if (workout.exercises && Array.isArray(workout.exercises)) {
+                workout.exercises.forEach(exercise => {
+                    if (exercise.name === oldName) {
+                        exercise.name = newName;
+                        hasChanges = true;
+                        updatedCount++;
+                    }
+                });
+            }
+            if (hasChanges) {
+                updatedWorkouts.push(workout);
+            }
+        });
+
+        for (const workout of updatedWorkouts) {
+            const { error: updateError } = await supabaseClient
+                .from('workout_history')
+                .update({ exercises: workout.exercises })
+                .eq('id', workout.id)
+                .eq('user_id', currentUser.id);
+
+            if (updateError) throw updateError;
         }
-    });
 
-    // Om vi ändrade namn, spara till localStorage
-    if (updatedCount > 0) {
-        localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
-        console.log(`Historiken uppdaterad: Ändrade "${oldName}" till "${newName}" på ${updatedCount} ställen.`);
+        if (updatedCount > 0) {
+            workoutHistory = historyData;
+            console.log(`Historiken uppdaterad: Ändrade "${oldName}" till "${newName}" på ${updatedCount} ställen.`);
+        }
+    } catch (error) {
+        console.error('Error updating exercise name in history:', error);
     }
 }
 
-// --- LOGIK FÖR HISTORIK ---
 function getExerciseHistory(exerciseName) {
     for (let i = workoutHistory.length - 1; i >= 0; i--) {
         const workout = workoutHistory[i];
@@ -1107,8 +1274,7 @@ function getExerciseHistory(exerciseName) {
     return null;
 }
 
-// --- AKTIVT PASS ---
-function startWorkout(workout, data = null, date = null, isImmediateStart = false) {
+async function startWorkout(workout, data = null, date = null, isImmediateStart = false) {
     if(!activeDraft || !activeDraft.secondsElapsed) {
         secondsElapsed = 0;
     } else {
@@ -1125,22 +1291,22 @@ function startWorkout(workout, data = null, date = null, isImmediateStart = fals
                         set.userConfirmed = false;
                     });
                 }
-                return { sets_data: historyCopy, isCompleted: false };
+                return { sets_historyCopy, isCompleted: false };
             }
-            return { sets_data: [{ weight: "", reps: "" }, { weight: "", reps: "" }, { weight: "", reps: "" }], isCompleted: false };
+            return { sets_[{ weight: "", reps: "" }, { weight: "", reps: "" }, { weight: "", reps: "" }], isCompleted: false };
         });
     }
 
     activeDraft = { 
         workout: JSON.parse(JSON.stringify(workout)), 
-        data: data, 
+        data, 
         date: date || new Date().toISOString().split('T')[0],
         secondsElapsed: secondsElapsed,
         isStarted: true, 
         wasTimerRunning: true 
     };
     
-    persistActiveWorkout();
+    await persistActiveWorkout();
     renderActiveWorkout();
     updateTimerDisplay();
     startTimer(); 
@@ -1196,7 +1362,6 @@ function renderActiveWorkout() {
         activeDraft.ui_state.openExercises = [];
     }
 
-    // SPECIALHANTERING FÖR INITIALISERING AV VANLIGA PASS
     const isFrittPass = activeDraft.workout.name === "Fritt Pass";
     if (!isFrittPass) {
         if (!activeDraft.ui_state.hasOwnProperty('hasInitializedOpen')) {
@@ -1314,11 +1479,11 @@ function renderActiveWorkout() {
     showView("workout-view");
 }
 
-function addExerciseToPassDirectly(pIdx, exId) {
+async function addExerciseToPassDirectly(pIdx, exId) {
     const ex = masterExercises.find(e => e.id == exId);
     if (!ex) return;
     programData.routine[pIdx].exercises.push({ name: ex.name, target: ex.target, defaultSets: 3 });
-    openEditProgramModal(pIdx); 
+    await openEditProgramModal(pIdx); 
 }
 
 function openCustomAddExerciseModal() {
@@ -1326,7 +1491,7 @@ function openCustomAddExerciseModal() {
     openAddExerciseToWorkoutModal(); 
 }
 
-function toggleExercise(index) {
+async function toggleExercise(index) {
     const scrollPos = window.scrollY;
     
     if (!activeDraft.ui_state) activeDraft.ui_state = {};
@@ -1342,12 +1507,12 @@ function toggleExercise(index) {
         activeDraft.ui_state.openExercises.push(index);
     }
 
-    persistActiveWorkout();
+    await persistActiveWorkout();
     renderActiveWorkout();
     window.scrollTo(0, scrollPos);
 }
 
-function addSetToExercise(exIdx) {
+async function addSetToExercise(exIdx) {
     const scrollPos = window.scrollY;
     const lastSet = activeDraft.data[exIdx].sets_data[activeDraft.data[exIdx].sets_data.length - 1];
     const newWeight = lastSet ? lastSet.weight : "";
@@ -1355,29 +1520,29 @@ function addSetToExercise(exIdx) {
     activeDraft.data[exIdx].sets_data.push({ weight: newWeight, reps: newReps });
     renderActiveWorkout();
     window.scrollTo(0, scrollPos);
-    persistActiveWorkout();
+    await persistActiveWorkout();
 }
 
-function removeSetFromExercise(exIdx, setIdx) {
+async function removeSetFromExercise(exIdx, setIdx) {
     const scrollPos = window.scrollY;
     activeDraft.data[exIdx].sets_data.splice(setIdx, 1);
     renderActiveWorkout();
     window.scrollTo(0, scrollPos);
-    persistActiveWorkout();
+    await persistActiveWorkout();
 }
 
-function toggleExerciseDone(exIdx) {
+async function toggleExerciseDone(exIdx) {
     const scrollPos = window.scrollY;
     activeDraft.data[exIdx].isCompleted = !activeDraft.data[exIdx].isCompleted;
     renderActiveWorkout();
     window.scrollTo(0, scrollPos);
-    persistActiveWorkout();
+    await persistActiveWorkout();
 }
 
-function actuallyStartWorkout() {
+async function actuallyStartWorkout() {
     activeDraft.isStarted = true;
     activeDraft.wasTimerRunning = true;
-    persistActiveWorkout();
+    await persistActiveWorkout();
     renderActiveWorkout();
     if (typeof startTimer === "function") startTimer();
 }
@@ -1449,7 +1614,6 @@ function renderExercisePicker(category, replaceIndex = null) {
     html += `</div>`;
 
     if (replaceIndex === null) {
-        // Generera listan över valda övningar (Varukorgen) dynamically
         html += `<div id="selected-summary-container" style="margin-bottom:15px;">`;
         html += generateSelectedExercisesSummaryHtml();
         html += `</div>`;
@@ -1467,7 +1631,6 @@ function renderExercisePicker(category, replaceIndex = null) {
     body.innerHTML = html;
 }
 
-// NY HJÄLPFUNKTION: Bygger HTML för listan över valda övningar direkt ovanför sparaknappen
 function generateSelectedExercisesSummaryHtml() {
     const hasChoices = temporarySelectedExercises.length > 0;
     if (!hasChoices) return "";
@@ -1498,25 +1661,19 @@ function generateSelectedExercisesSummaryHtml() {
     return summaryHtml;
 }
 
-// Spara draften innan vi lämnar vyn
 function saveDraftState() {
     localStorage.setItem('temp_exercise_draft', JSON.stringify(temporarySelectedExercises));
 }
 
-// Återställ draften när vi kommer tillbaka
 function restoreDraftState() {
     const saved = localStorage.getItem('temp_exercise_draft');
     if (saved) {
         temporarySelectedExercises = JSON.parse(saved);
-        // Rensa efter oss så att det inte ligger kvar nästa gång
         localStorage.removeItem('temp_exercise_draft');
-        
-        // Uppdatera vyn (du behöver troligen anropa din render-funktion här)
         updateExerciseSelectionView(); 
     }
 }
 
-// UPPDATERAD FUNKTION: Uppdaterar nu varukorgslistan live istället för att bara gömma/visa en knapp
 function toggleSelectExerciseInPicker(exId, category) {
     const index = temporarySelectedExercises.indexOf(exId);
     const card = document.getElementById(`picker-ex-${exId}`);
@@ -1544,15 +1701,13 @@ function toggleSelectExerciseInPicker(exId, category) {
         }
     }
     
-    // Uppdatera hela sammanfattningen live!
     const container = document.getElementById("selected-summary-container");
     if (container) {
         container.innerHTML = generateSelectedExercisesSummaryHtml();
     }
 }
 
-// 4. Den städade confirmAndAddAllSelectedExercises
-function confirmAndAddAllSelectedExercises() {
+async function confirmAndAddAllSelectedExercises() {
     if (temporarySelectedExercises.length === 0) return;
     
     const isFrittPass = activeDraft.workout.name === "Fritt Pass";
@@ -1566,9 +1721,9 @@ function confirmAndAddAllSelectedExercises() {
         let newDataEntry;
         const history = getExerciseHistory(ex.name);
         if (history) {
-            newDataEntry = { sets_data: JSON.parse(JSON.stringify(history)), isCompleted: false };
+            newDataEntry = { sets_JSON.parse(JSON.stringify(history)), isCompleted: false };
         } else {
-            newDataEntry = { sets_data: [{ weight: "", reps: "" }, { weight: "", reps: "" }, { weight: "", reps: "" }], isCompleted: false };
+            newDataEntry = { sets_[{ weight: "", reps: "" }, { weight: "", reps: "" }, { weight: "", reps: "" }], isCompleted: false };
         }
 
         activeDraft.workout.exercises.push(newExObj);
@@ -1584,7 +1739,7 @@ function confirmAndAddAllSelectedExercises() {
         }
     });
     
-    persistActiveWorkout();
+    await persistActiveWorkout();
     closeModal();
     renderActiveWorkout();
 }
@@ -1610,16 +1765,16 @@ function handleInstantExerciseCreated(newEx, replaceIndex = null) {
     }
 }
 
-function confirmAddExerciseToActive(exId, replaceIndex = null) {
+async function confirmAddExerciseToActive(exId, replaceIndex = null) {
     const ex = masterExercises.find(e => e.id == exId);
     const newExObj = { name: ex.name, target: ex.target };
     
     let newDataEntry;
     const history = getExerciseHistory(ex.name);
     if(history) {
-        newDataEntry = { sets_data: JSON.parse(JSON.stringify(history)), isCompleted: false };
+        newDataEntry = { sets_JSON.parse(JSON.stringify(history)), isCompleted: false };
     } else {
-        newDataEntry = { sets_data: [{ weight: "", reps: "" }, { weight: "", reps: "" }, { weight: "", reps: "" }], isCompleted: false };
+        newDataEntry = { sets_[{ weight: "", reps: "" }, { weight: "", reps: "" }, { weight: "", reps: "" }], isCompleted: false };
     }
 
     if(replaceIndex !== null) {
@@ -1635,39 +1790,36 @@ function confirmAddExerciseToActive(exId, replaceIndex = null) {
         }
     }
     
-    persistActiveWorkout();
+    await persistActiveWorkout();
     closeModal();
     renderActiveWorkout();
 }
 
-function updateSetDataOnly(exIdx, setIdx) {
+async function updateSetDataOnly(exIdx, setIdx) {
     const wVal = document.getElementById(`w-${exIdx}-${setIdx}`).value;
     const rVal = document.getElementById(`r-${exIdx}-${setIdx}`).value;
     activeDraft.data[exIdx].sets_data[setIdx].weight = wVal;
     activeDraft.data[exIdx].sets_data[setIdx].reps = rVal;
-    persistActiveWorkout();
+    await persistActiveWorkout();
 }
 
-function confirmSet(exIdx, setIdx) {
+async function confirmSet(exIdx, setIdx) {
     const scrollPos = window.scrollY;
     const currentState = activeDraft.data[exIdx].sets_data[setIdx].userConfirmed;
     activeDraft.data[exIdx].sets_data[setIdx].userConfirmed = !currentState;
     
-    persistActiveWorkout();
+    await persistActiveWorkout();
     renderActiveWorkout();
     window.scrollTo(0, scrollPos);
 }
 
-// --- DIN MASTER-FUNKTION ---
-function persistActiveWorkout() {
+async function persistActiveWorkout() {
     localStorage.setItem("activeWorkoutDraft", JSON.stringify(activeDraft));
-    if (typeof saveActiveDraft === 'function') saveActiveDraft();
-    if (typeof saveAll === "function") saveAll();
+    if (typeof saveActiveDraft === 'function') await saveActiveDraft();
+    if (typeof saveAll === "function") await saveAll();
 }
 
-// --- UPPDATERADE FUNKTIONER ---
-
-function moveActiveExercise(i, dir) {
+async function moveActiveExercise(i, dir) {
     const scrollPos = window.scrollY;
     const newIdx = i + dir;
     if (newIdx < 0 || newIdx >= activeDraft.workout.exercises.length) return;
@@ -1689,12 +1841,12 @@ function moveActiveExercise(i, dir) {
         }
     }
     
-    persistActiveWorkout();
+    await persistActiveWorkout();
     renderActiveWorkout();
     window.scrollTo(0, scrollPos);
 }
 
-function removeActiveExercise(exIdx) {
+async function removeActiveExercise(exIdx) {
     if (typeof hideDefaultCloseButton === "function") hideDefaultCloseButton(true);
     const body = document.getElementById("modal-body");
     
@@ -1704,7 +1856,7 @@ function removeActiveExercise(exIdx) {
             <h3 style="color:var(--danger);">Ta bort övningen?</h3>
             <p style="color:var(--text-light); margin-bottom:25px; font-size:14px;">Är du säker på att du vill ta bort den här övningen från ditt pågående pass?</p>
             <button class="mode-btn" style="background:linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color:white; margin-bottom:12px; font-weight:700;" 
-                onclick="activeDraft.workout.exercises.splice(${exIdx}, 1); activeDraft.data.splice(${exIdx}, 1); persistActiveWorkout(); closeModal(); renderActiveWorkout();">
+                onclick="(async () => { activeDraft.workout.exercises.splice(${exIdx}, 1); activeDraft.data.splice(${exIdx}, 1); await persistActiveWorkout(); closeModal(); renderActiveWorkout(); })()">
                 Ja, radera
             </button>
             <button class="mode-btn glass-border" onclick="closeModal()">Avbryt</button>
@@ -1713,10 +1865,9 @@ function removeActiveExercise(exIdx) {
     openModal();
 }
 
-// --- STANDARD-LOGIK ---
 document.getElementById("global-home").addEventListener("click", () => {
-    renderHome();         // Bygger om knapparna (utkast etc.)
-    showView("home-view"); // Visar startsidan
+    renderHome();
+    showView("home-view");
 });
 
 document.getElementById("start-new-btn").onclick = () => renderCalendar(true);
@@ -1729,11 +1880,9 @@ document.getElementById("add-custom-pass-btn").onclick = openCreateProgramModal;
 function renderHome() {
     showView("home-view");
     
-    // Punkt 1: Permanent avgränsande linje på startsidan
     const homeView = document.getElementById("home-view");
     const headerP = homeView.querySelector("header p");
     
-    // Ta bort ev gamla kopior först för att undvika dubletter vid omladdning
     homeView.querySelectorAll(".home-separator").forEach(s => s.remove());
     
     if (headerP) {
@@ -1753,13 +1902,13 @@ function renderHome() {
     }
 }
 
-document.getElementById("save-workout-btn").onclick = () => {
+document.getElementById("save-workout-btn").onclick = async () => {
     if(!activeDraft.isStarted) {
         const body = document.getElementById("modal-body");
         body.innerHTML = `
             <h3>Kasta träningspass</h3>
             <p style="text-align:center; color:var(--text-light);">Du har inte startat passet än. Vill du radera utkastet?</p>
-            <button class="mode-btn danger" style="background:var(--danger);" onclick="localStorage.removeItem('activeWorkoutDraft'); location.reload();">Kasta passet</button>
+            <button class="mode-btn danger" style="background:var(--danger);" onclick="(async () => { localStorage.removeItem('activeWorkoutDraft'); await deleteActiveDraft(); location.reload(); })()">Kasta passet</button>
             <button class="mode-btn glass-border" onclick="closeModal()">Avbryt</button>
         `;
         openModal();
@@ -1776,15 +1925,16 @@ document.getElementById("save-workout-btn").onclick = () => {
         exercises: activeDraft.workout.exercises.map((ex, i) => {
             return {
                 name: ex.name,
-                sets_data: activeDraft.data[i].sets_data 
+                sets_activeDraft.data[i].sets_data 
             };
         })
     };
     
     workoutHistory.push(log);
-if (typeof saveWorkoutHistory === 'function') saveWorkoutHistory(log);
-saveAll();
+    if (typeof saveWorkoutHistory === 'function') await saveWorkoutHistory(log);
+    await saveAll();
     localStorage.removeItem("activeWorkoutDraft");
+    await deleteActiveDraft();
     activeDraft = null; 
     secondsElapsed = 0;
     renderCalendar();
@@ -1810,24 +1960,56 @@ function renderStats() {
 }
 
 function changeMonth(off) { currentViewDate.setMonth(currentViewDate.getMonth() + off); renderCalendar(); }
-function setOverride(date, val) { calendarOverrides[date] = val; saveAll(); closeModal(); renderCalendar(); }
-
-function prepareStart(date, id) { 
-    const p = programData.routine.find(x => x.id === id); 
+async function setOverride(date, val) { 
+    calendarOverrides[date] = val; 
+    await saveAll(); 
     closeModal(); 
-    startWorkout(p, null, date, true); 
+    renderCalendar(); 
 }
 
-function deleteLoggedWorkout(date, idx) {
+async function prepareStart(date, id) { 
+    const p = programData.routine.find(x => x.id === id); 
+    closeModal(); 
+    await startWorkout(p, null, date, true); 
+}
+
+async function deleteLoggedWorkout(date, idx) {
     const filtered = workoutHistory.filter(w => w.date === date);
     const item = filtered[idx];
     workoutHistory = workoutHistory.filter(w => w !== item);
+    
+    try {
+        const { historyData, error: fetchError } = await supabaseClient
+            .from('workout_history')
+            .select('*')
+            .eq('user_id', currentUser.id)
+            .eq('date', date)
+            .eq('program_name', item.programName);
+
+        if (fetchError) throw fetchError;
+
+        if (historyData && historyData.length > 0) {
+            const { error: deleteError } = await supabaseClient
+                .from('workout_history')
+                .delete()
+                .eq('id', historyData[0].id)
+                .eq('user_id', currentUser.id);
+
+            if (deleteError) throw deleteError;
+        }
+    } catch (error) {
+        console.error('Error deleting workout from Supabase:', error);
+    }
+
     localStorage.removeItem("activeWorkoutDraft");
+    await deleteActiveDraft();
     activeDraft = null; 
-    saveAll(); closeModal(); renderCalendar();
+    await saveAll(); 
+    closeModal(); 
+    renderCalendar();
 }
 
-function editLoggedWorkout(date, idx) {
+async function editLoggedWorkout(date, idx) {
     const filtered = workoutHistory.filter(w => w.date === date);
     const item = filtered[idx];
     
@@ -1840,19 +2022,44 @@ function editLoggedWorkout(date, idx) {
     const workoutObj = { id: "edit-" + Date.now(), name: item.programName, exercises: item.exercises.map(ex => ({ name: ex.name })) };
     
     const dataObj = item.exercises.map(ex => {
-        if(ex.sets_data) return { sets_data: ex.sets_data, isCompleted: true };
-        return { sets_data: Array(parseInt(ex.sets || 1)).fill({ weight: ex.weight, reps: ex.reps }), isCompleted: true };
+        if(ex.sets_data) return { sets_ex.sets_data, isCompleted: true };
+        return { sets_Array(parseInt(ex.sets || 1)).fill({ weight: ex.weight, reps: ex.reps }), isCompleted: true };
     });
 
     workoutHistory = workoutHistory.filter(w => w !== item);
+    
+    try {
+        const { historyData, error: fetchError } = await supabaseClient
+            .from('workout_history')
+            .select('*')
+            .eq('user_id', currentUser.id)
+            .eq('date', date)
+            .eq('program_name', item.programName);
+
+        if (fetchError) throw fetchError;
+
+        if (historyData && historyData.length > 0) {
+            const { error: deleteError } = await supabaseClient
+                .from('workout_history')
+                .delete()
+                .eq('id', historyData[0].id)
+                .eq('user_id', currentUser.id);
+
+            if (deleteError) throw deleteError;
+        }
+    } catch (error) {
+        console.error('Error deleting workout from Supabase:', error);
+    }
+
     localStorage.removeItem("activeWorkoutDraft");
+    await deleteActiveDraft();
     activeDraft = null;
     closeModal();
     
     secondsElapsed = savedSeconds;
     activeDraft = {
         workout: workoutObj,
-        data: dataObj,
+        dataObj,
         date: date,
         secondsElapsed: savedSeconds,
         isStarted: true,
@@ -1863,26 +2070,19 @@ function editLoggedWorkout(date, idx) {
     showView("workout-view");
 }
 
-// ==========================================================================
-// ALLA RADERINGSMODALER (ENHETLIG PREMIUM-STIL UTAN "STÄNG"-KNAPP)
-// ==========================================================================
-
-// Hjälpfunktion för att dölja den fasta "Stäng"-knappen i HTML
 function hideDefaultCloseButton(hide) {
-    // Letar upp stängknappen som ligger direkt efter #modal-body i din index.html
     const closeBtn = document.querySelector("#workout-modal .modal-content > button");
     if (closeBtn) {
         if (hide) {
-            closeBtn.style.display = "none"; // Gömmer knappen helt
+            closeBtn.style.display = "none";
         } else {
-            closeBtn.style.display = "block"; // Visar den igen (standard)
+            closeBtn.style.display = "block";
         }
     }
 }
 
-// 1. RADERA ÖVNING PERMANENT (UPPDATERAD MED BACK-TO-EDIT LOGIK)
-function deleteMasterExercise(id) {
-    hideDefaultCloseButton(true); // Dölj "Stäng" inför raderingsbekräftelsen
+async function deleteMasterExercise(id) {
+    hideDefaultCloseButton(true);
     const body = document.getElementById("modal-body");
     body.innerHTML = `
         <div style="text-align:center; padding:10px;">
@@ -1890,7 +2090,22 @@ function deleteMasterExercise(id) {
             <h3 style="color:var(--danger);">Radera övning?</h3>
             <p style="color:var(--text-light); margin-bottom:25px; font-size:14px;">Vill du radera denna övning permanent?</p>
             <button class="mode-btn" style="background:linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color:white; margin-bottom:12px; font-weight:700;" 
-                onclick="masterExercises = masterExercises.filter(e => e.id != ${id}); saveAll(); closeModal(); filterExercises(currentExerciseCategory);">
+                onclick="(async () => { 
+                    masterExercises = masterExercises.filter(e => e.id != ${id}); 
+                    try {
+                        const { error } = await supabaseClient
+                            .from('master_exercises')
+                            .delete()
+                            .eq('id', ${id})
+                            .eq('user_id', currentUser.id);
+                        if (error) throw error;
+                    } catch (err) {
+                        console.error('Error deleting exercise:', err);
+                    }
+                    await saveAll(); 
+                    closeModal(); 
+                    filterExercises(currentExerciseCategory);
+                })()">
                 Ja, radera
             </button>
             
@@ -1902,9 +2117,8 @@ function deleteMasterExercise(id) {
     openModal();
 }
 
-// 2. RADERA TRÄNINGSPASS/RUTIN PERMANENT
-function deleteEntireProgram(idx) {
-    hideDefaultCloseButton(true); // Dölj "Stäng"
+async function deleteEntireProgram(idx) {
+    hideDefaultCloseButton(true);
     const body = document.getElementById("modal-body");
     body.innerHTML = `
         <div style="text-align:center; padding:10px;">
@@ -1912,7 +2126,13 @@ function deleteEntireProgram(idx) {
             <h3 style="color:var(--danger);">Radera permanent?</h3>
             <p style="color:var(--text-light); margin-bottom:25px; font-size:14px;">Vill du radera hela detta pass permanent? Det här valet går inte att ångra.</p>
             <button class="mode-btn" style="background:linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color:white; margin-bottom:12px; font-weight:700;" 
-                onclick="programData.routine.splice(${idx}, 1); saveAll(); closeModal(); document.getElementById('program-details-area').classList.add('hidden'); renderProgramView();">
+                onclick="(async () => { 
+                    programData.routine.splice(${idx}, 1); 
+                    await saveAll(); 
+                    closeModal(); 
+                    document.getElementById('program-details-area').classList.add('hidden'); 
+                    renderProgramView();
+                })()">
                 Ja, radera passet
             </button>
             <button class="mode-btn glass-border" onclick="closeModal()">Avbryt</button>
@@ -1921,9 +2141,8 @@ function deleteEntireProgram(idx) {
     openModal();
 }
 
-// 3. RADERA LOGGAT PASS FRÅN HISTORIKEN
 function openConfirmDeleteModal(date, idx) {
-    hideDefaultCloseButton(true); // Dölj "Stäng"
+    hideDefaultCloseButton(true);
     const body = document.getElementById("modal-body");
     body.innerHTML = `
         <div style="text-align:center; padding:10px;">
@@ -1937,16 +2156,15 @@ function openConfirmDeleteModal(date, idx) {
     openModal();
 }
 
-// 4. RADERA PÅGÅENDE UTKAST
-function confirmDiscardActiveWorkout() {
-    hideDefaultCloseButton(true); // Dölj "Stäng"
+async function confirmDiscardActiveWorkout() {
+    hideDefaultCloseButton(true);
     const body = document.getElementById("modal-body");
     body.innerHTML = `
         <div style="text-align:center; padding:10px;">
             <div style="font-size:40px; margin-bottom:15px;">🗑️</div>
             <h3 style="color:var(--danger);">Radera passet?</h3>
             <p style="color:var(--text-light); margin-bottom:25px; font-size:14px;">Allt pågående arbete i detta pass kommer att raderas.</p>
-            <button class="mode-btn" style="background:linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color:white; margin-bottom:12px; font-weight:700;" onclick="localStorage.removeItem('activeWorkoutDraft'); location.reload();">Ja, radera!</button>
+            <button class="mode-btn" style="background:linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color:white; margin-bottom:12px; font-weight:700;" onclick="(async () => { localStorage.removeItem('activeWorkoutDraft'); await deleteActiveDraft(); location.reload(); })()">Ja, radera!</button>
             <button class="mode-btn glass-border" onclick="closeModal()">Avbryt</button>
         </div>
     `;
