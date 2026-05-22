@@ -2023,7 +2023,7 @@ async function editLoggedWorkout(date, idx) {
     
     const dataObj = item.exercises.map(ex => {
         if(ex.sets_data) return { sets_data: ex.sets_data, isCompleted: true };
-        return { sets_Array(parseInt(ex.sets || 1)).fill({ weight: ex.weight, reps: ex.reps }), isCompleted: true };
+        return { sets_data: Array(parseInt(ex.sets || 1)).fill({ weight: ex.weight, reps: ex.reps }), isCompleted: true };
     });
 
     workoutHistory = workoutHistory.filter(w => w !== item);
