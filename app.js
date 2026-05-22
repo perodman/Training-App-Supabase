@@ -2194,8 +2194,9 @@ async function editLoggedWorkout(date, idx) {
         savedSeconds = (+parts[0]) * 3600 + (+parts[1]) * 60 + (+parts[2]);
     }
 
+    // Behåll passets ursprungliga ID (viktigt så att vi inte skapar ett nytt pass när vi sparar ediseringen!)
     const workoutObj = { 
-        id: "edit-" + Date.now(), 
+        id: item.id, 
         name: item.programName, 
         exercises: item.exercises.map(ex => ({ name: ex.name, target: ex.target || "" })) 
     };
@@ -2211,12 +2212,13 @@ async function editLoggedWorkout(date, idx) {
         };
     });
 
-    // Optimistic remove av det gamla passet från historiken lokalt
-    workoutHistory = workoutHistory.filter(w => w !== item);
+    // Ta bort det gamla passet från historiken lokalt (Optimistic)
+    workoutHistory = workoutHistory.filter(w => w.id !== item.id);
     localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
     
     try {
         if (currentUser) {
+            // ÄNDRING: Hämta rader för det specifika datumet
             const { data: historyData, error: fetchError } = await supabaseClient
                 .from('workout_history')
                 .select('id, workout_data')
@@ -2225,7 +2227,10 @@ async function editLoggedWorkout(date, idx) {
 
             if (fetchError) throw fetchError;
 
-            const targetRow = historyData.find(row => row.workout_data && row.workout_data.programName === item.programName);
+            // ÄNDRING: Hitta exakt rätt rad genom att matcha det unika ID:t istället för bara namnet!
+            const targetRow = historyData.find(row => 
+                row.workout_data && (row.workout_data.id === item.id || row.id === item.id)
+            );
 
             if (targetRow) {
                 const { error: deleteError } = await supabaseClient
@@ -2241,7 +2246,7 @@ async function editLoggedWorkout(date, idx) {
         console.error('Error removing old workout for edit from Supabase:', error);
     }
 
-    // Rensa eventuella gamla utkast
+    // Rensa eventuella gamla utkast i bakgrunden
     localStorage.removeItem("activeWorkoutDraft");
     if (typeof deleteActiveDraft === 'function') await deleteActiveDraft();
     
@@ -2253,11 +2258,12 @@ async function editLoggedWorkout(date, idx) {
     
     closeModal();
     
-    // Etablera det nya redigeringsbara utkastet med rätt fältmappningar
+    // Etablera det nya redigeringsbara utkastet med rätt fältmappningar (och behåll ID:t!)
     secondsElapsed = savedSeconds;
     activeDraft = {
+        id: item.id, // ID följer med in i utkastet
         workout: workoutObj,
-        data: formattedDataArray, // BUGGFIX: Läggs till i 'data' istället för 'dataObj' för att matcha startWorkout-schemat
+        data: formattedDataArray, 
         date: date,
         secondsElapsed: savedSeconds,
         isStarted: true,
@@ -2266,10 +2272,14 @@ async function editLoggedWorkout(date, idx) {
     };
     
     // Synkronisera det nyskapade redigeringsutkastet till lokal backup och molnet
-    await persistActiveWorkout();
+    if (typeof persistActiveWorkout === 'function') {
+        await persistActiveWorkout();
+    } else if (typeof saveActiveDraft === 'function') {
+        await saveActiveDraft();
+    }
     
-    renderActiveWorkout();
-    updateTimerDisplay();
+    if (typeof renderActiveWorkout === 'function') renderActiveWorkout();
+    if (typeof updateTimerDisplay === 'function') updateTimerDisplay();
     showView("workout-view");
 }
 
