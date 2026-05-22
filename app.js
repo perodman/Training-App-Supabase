@@ -1721,9 +1721,9 @@ async function confirmAndAddAllSelectedExercises() {
         let newDataEntry;
         const history = getExerciseHistory(ex.name);
         if (history) {
-            newDataEntry = { sets_JSON.parse(JSON.stringify(history)), isCompleted: false };
+            newDataEntry = { sets_data: JSON.parse(JSON.stringify(history)), isCompleted: false };
         } else {
-            newDataEntry = { sets_[{ weight: "", reps: "" }, { weight: "", reps: "" }, { weight: "", reps: "" }], isCompleted: false };
+            newDataEntry = { sets_data: [{ weight: "", reps: "" }, { weight: "", reps: "" }, { weight: "", reps: "" }], isCompleted: false };
         }
 
         activeDraft.workout.exercises.push(newExObj);
