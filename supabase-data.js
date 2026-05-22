@@ -183,21 +183,35 @@ async function saveCustomProgram() {
 }
 
 // STRÄNGT DUBBLETT-SÄKRAD FUNKTION MED UNIKA ID:N
+// GLOBAL VARIABEL FÖR ATT STOPPA BLIXTSNABBA DUBBELANROP (Lägg denna precis ovanför funktionen)
+let lastWorkoutSavedTime = 0;
+
 async function saveWorkoutHistory(workout) {
     if (!currentUser) return;
 
-    // 1. Skapa ett unikt ID om passet inte redan har fått ett från app.js vid start
-    const workoutId = workout.id || "workout_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
+    const nowTimestamp = Date.now();
+    
+    // 1. TIDSSPÄRR: Om det var mindre än 5 sekunder sedan vi sparade ett pass, blockera direkt!
+    if (nowTimestamp - lastWorkoutSavedTime < 5000) {
+        console.warn("⚠️ DUBBLETT-SPÄRR (Tidslås): Funktionen anropades igen alldeles för snabbt! Avbryter.");
+        return; 
+    }
+    
+    // Uppdatera tidsstämpeln direkt så att nästa anrop (inom 5 sek) kraschar i spärren ovan
+    lastWorkoutSavedTime = nowTimestamp;
 
-    // 2. ID-KONTROLL: Kolla om detta EXAKTA ID redan finns i vår lokala historik array
+    // 2. ID-KONTROLL: Skapa eller kontrollera unikt ID
+    const workoutId = workout.id || "workout_" + nowTimestamp + "_" + Math.floor(Math.random() * 1000);
     const idExists = workoutHistory.some(existing => existing.id === workoutId);
 
     if (idExists) {
-        console.warn(`Dubblett-spärr avbröt sparande! Passet med ID ${workoutId} är redan sparat.`);
-        return; // Avbryter direkt, databasen slipper dubbletter!
+        console.warn(`⚠️ DUBBLETT-SPÄRR (ID): Passet med ID ${workoutId} finns redan! Avbryter.`);
+        return;
     }
 
     try {
+        console.log("🚀 saveWorkoutHistory körs! Sparar passet:", workout.programName);
+
         const fullWorkoutObject = {
             id: workoutId,
             date: workout.date,
@@ -206,7 +220,7 @@ async function saveWorkoutHistory(workout) {
             exercises: workout.exercises
         };
 
-        // Lägg till i localStorage direkt för omedelbar UX
+        // Lägg till i localStorage direkt för snabb UX
         workoutHistory.unshift(fullWorkoutObject);
         localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
 
@@ -216,13 +230,16 @@ async function saveWorkoutHistory(workout) {
             .insert([{
                 user_id: currentUser.id,
                 workout_date: workout.date,
-                workout_data: fullWorkoutObject // ID följer med in i JSON-objektet i Supabase
+                workout_data: fullWorkoutObject
             }]);
 
         if (error) {
             console.error('Fel vid sparande till Supabase:', error);
-            workoutHistory.shift(); // Ta bort lokalt om det misslyckades helt
+            workoutHistory.shift(); // Ångra om det misslyckades
             localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
+            lastWorkoutSavedTime = 0; // Återställ tidslåset vid fel
+        } else {
+            console.log("✅ Passet sparades framgångsrikt i Supabase!");
         }
 
         if (typeof renderCalendar === 'function') renderCalendar();
@@ -230,6 +247,7 @@ async function saveWorkoutHistory(workout) {
 
     } catch (err) {
         console.error("Internt fel i saveWorkoutHistory:", err);
+        lastWorkoutSavedTime = 0;
     }
 }
 
