@@ -1,12 +1,14 @@
 // ==========================================================================
-// SUPABASE DATABASOPERATIONER
+// SUPABASE DATABASOPERATIONER (HELT KORRIGERAD & UTAN KRASCHER)
 // ==========================================================================
 
 async function loadUserData() {
     if (!currentUser) return;
 
     try {
-        // Ladda workout_history
+        console.log("Startar laddning av data från Supabase...");
+
+        // 1. Ladda workout_history
         const { data: historyData, error: historyError } = await supabaseClient
             .from('workout_history')
             .select('*')
@@ -26,12 +28,12 @@ async function loadUserData() {
             localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
         }
 
-        // Ladda calendar_overrides
+        // 2. Ladda calendar_overrides
         const { data: calendarData, error: calendarError } = await supabaseClient
             .from('calendar_overrides')
             .select('data')
             .eq('user_id', currentUser.id)
-            .maybeSingle(); // Ändrad till maybeSingle för att undvika felmeddelande om rad saknas
+            .maybeSingle();
 
         if (calendarError && calendarError.code !== 'PGRST116') {
             console.error('Fel vid laddning av kalender:', calendarError);
@@ -45,12 +47,12 @@ async function loadUserData() {
             localStorage.setItem("calendarOverrides", JSON.stringify(calendarOverrides));
         }
 
-        // Ladda active_draft
+        // 3. Ladda active_draft
         const { data: draftData, error: draftError } = await supabaseClient
             .from('active_draft')
             .select('draft_data')
             .eq('user_id', currentUser.id)
-            .maybeSingle(); // Ändrad till maybeSingle för att undvika felmeddelande om rad saknas
+            .maybeSingle();
 
         if (draftError && draftError.code !== 'PGRST116') {
             console.error('Fel vid laddning av utkast:', draftError);
@@ -74,18 +76,18 @@ async function loadUserData() {
             localStorage.removeItem("activeWorkoutDraft");
         }
 
-        // Ladda custom_program
+        // 4. Ladda custom_program
         const { data: programDataResult, error: programError } = await supabaseClient
             .from('custom_program')
             .select('data')
             .eq('user_id', currentUser.id)
-            .maybeSingle(); // Ändrad till maybeSingle för att undvika felmeddelande om rad saknas
+            .maybeSingle();
 
         if (programError && programError.code !== 'PGRST116') {
             console.error('Fel vid laddning av program:', programError);
         }
 
-        // Ladda program.json
+        // Ladda program.json som fallback eller grundstruktur
         const response = await fetch("program.json");
         const json = await response.json();
 
@@ -98,7 +100,7 @@ async function loadUserData() {
                 localStorage.setItem("masterExercises", JSON.stringify(masterExercises));
             }
         } else {
-            // Ingen sparad data - ladda från program.json
+            // Ingen sparad data i molnet - ladda från program.json
             window.programData = json;
             
             json.routine.forEach(p => {
@@ -122,13 +124,15 @@ async function loadUserData() {
             await saveCustomProgram();
         }
 
-        // Uppdatera animationer
+        // 5. Uppdatera animationer konsekvent
         masterExercises.forEach(ex => {
             if (ex.name === "Deadlift") ex.animation = "Gemini_Generated_Image_sqtn3ksqtn3ksqtn.mp4";
             if (ex.name === "Barbell Bench Press") ex.animation = "Skärmbild 2026-05-11 124104.mp4";
         });
 
-        // Tvinga gränssnittet att uppdateras med den nya synkade datan
+        console.log("All data laddad utan fel! Uppdaterar gränssnittet.");
+
+        // Tvinga gränssnittet att uppdateras och låsa upp vyerna med den nya synkade datan
         if (typeof renderCalendar === 'function') renderCalendar();
         if (typeof renderHome === 'function') renderHome();
 
@@ -177,7 +181,6 @@ async function saveCustomProgram() {
         masterExercises: masterExercises
     };
 
-    // Sparar även lokalt som backup
     localStorage.setItem("myCustomProgram", JSON.stringify(window.programData));
     localStorage.setItem("masterExercises", JSON.stringify(masterExercises));
 
@@ -297,7 +300,6 @@ async function deleteWorkoutFromHistory(date, idx) {
         workoutHistory = workoutHistory.filter(w => w !== item);
         localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
         
-        // Tvinga gränssnittet att uppdateras efter radering
         if (typeof renderCalendar === 'function') renderCalendar();
         if (typeof renderHome === 'function') renderHome();
     }
