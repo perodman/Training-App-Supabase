@@ -6,14 +6,32 @@ async function loadUserData() {
     if (!currentUser) return;
 
     try {
-        console.log("Startar laddning av data från Supabase...");
+        // Ladda custom_program (Detta MÅSTE ligga först!)
+        const { data : programData, error: programError } = await supabaseClient
+            .from('custom_program')
+            .select('data')
+            .eq('user_id', currentUser.id)
+            .single();
 
-        // Säkerställ att grundvariabler har korrekta startvärden innan rendering
-        if (!window.masterExercises) masterExercises = [];
-        if (!window.workoutHistory) workoutHistory = [];
+        if (programError && programError.code !== 'PGRST116') {
+            console.error('Fel vid laddning av program:', programError);
+        }
 
-        // 1. Ladda workout_history
-        const { data: historyData, error: historyError } = await supabaseClient
+        if (programData && programData.data) {
+            window.programData = programData.data;
+            // MOLNET BESTÄMMER: Synka direkt till enhetens localStorage
+            localStorage.setItem("myCustomProgram", JSON.stringify(window.programData));
+            
+            if (programData.data.masterExercises) {
+                masterExercises = programData.data.masterExercises;
+                localStorage.setItem("masterExercises", JSON.stringify(masterExercises));
+            }
+        } else {
+            await loadDefaultProgram();
+        }
+
+        // Ladda workout_history
+        const { data : historyData, error: historyError } = await supabaseClient
             .from('workout_history')
             .select('*')
             .eq('user_id', currentUser.id)
@@ -26,23 +44,18 @@ async function loadUserData() {
                 date: w.workout_date,
                 programName: w.workout_data.programName,
                 totalTime: w.workout_data.totalTime,
-                exercises: w.workout_data.exercises || []
+                exercises: w.workout_data.exercises
             }));
             // MOLNET BESTÄMMER: Synka direkt till enhetens localStorage
             localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
         }
 
-        // Om workoutHistory mot förmodan blev tom/felaktig, tvinga den till en array
-        if (!Array.isArray(workoutHistory)) {
-            workoutHistory = [];
-        }
-
-        // 2. Ladda calendar_overrides
-        const { data: calendarData, error: calendarError } = await supabaseClient
+        // Ladda calendar_overrides
+        const { data : calendarData, error: calendarError } = await supabaseClient
             .from('calendar_overrides')
             .select('data')
             .eq('user_id', currentUser.id)
-            .maybeSingle();
+            .single();
 
         if (calendarError && calendarError.code !== 'PGRST116') {
             console.error('Fel vid laddning av kalender:', calendarError);
@@ -56,12 +69,12 @@ async function loadUserData() {
             localStorage.setItem("calendarOverrides", JSON.stringify(calendarOverrides));
         }
 
-        // 3. Ladda active_draft
-        const { data: draftData, error: draftError } = await supabaseClient
+        // Ladda active_draft
+        const { data : draftData, error: draftError } = await supabaseClient
             .from('active_draft')
             .select('draft_data')
             .eq('user_id', currentUser.id)
-            .maybeSingle();
+            .single();
 
         if (draftError && draftError.code !== 'PGRST116') {
             console.error('Fel vid laddning av utkast:', draftError);
@@ -85,72 +98,7 @@ async function loadUserData() {
             localStorage.removeItem("activeWorkoutDraft");
         }
 
-        // 4. Ladda custom_program
-        const { data: programDataResult, error: programError } = await supabaseClient
-            .from('custom_program')
-            .select('data')
-            .eq('user_id', currentUser.id)
-            .maybeSingle();
-
-        if (programError && programError.code !== 'PGRST116') {
-            console.error('Fel vid laddning av program:', programError);
-        }
-
-        // Ladda program.json som fallback eller grundstruktur
-        const response = await fetch("program.json");
-        const json = await response.json();
-
-        if (programDataResult && programDataResult.data) {
-            window.programData = programDataResult.data;
-            localStorage.setItem("myCustomProgram", JSON.stringify(window.programData));
-            
-            if (programDataResult.data.masterExercises && Array.isArray(programDataResult.data.masterExercises)) {
-                masterExercises = programDataResult.data.masterExercises;
-                localStorage.setItem("masterExercises", JSON.stringify(masterExercises));
-            } else {
-                // Om masterExercises saknas i molnets programData, hämta från localStorage eller kör tom array
-                masterExercises = JSON.parse(localStorage.getItem("masterExercises") || "[]");
-            }
-        } else {
-            // Ingen sparad data i molnet - ladda från program.json
-            window.programData = json;
-            masterExercises = [];
-            
-            json.routine.forEach(p => {
-                p.exercises.forEach(ex => {
-                    if (!masterExercises.find(m => m.name === ex.name)) {
-                        let animFile = "";
-                        if (ex.name === "Deadlift") animFile = "Gemini_Generated_Image_sqtn3ksqtn3ksqtn.mp4";
-                        if (ex.name === "Barbell Bench Press") animFile = "Skärmbild 2026-05-11 124104.mp4";
-                        
-                        masterExercises.push({ 
-                            ...ex, 
-                            id: Date.now() + Math.random(),
-                            animation: animFile 
-                        });
-                    }
-                });
-            });
-            
-            localStorage.setItem("myCustomProgram", JSON.stringify(window.programData));
-            localStorage.setItem("masterExercises", JSON.stringify(masterExercises));
-            await saveCustomProgram();
-        }
-
-        // Om masterExercises fortfarande är tom eller felaktig efter båda fallen, tvinga fram en array
-        if (!Array.isArray(masterExercises)) {
-            masterExercises = [];
-        }
-
-        // 5. Uppdatera animationer konsekvent
-        masterExercises.forEach(ex => {
-            if (ex.name === "Deadlift") ex.animation = "Gemini_Generated_Image_sqtn3ksqtn3ksqtn.mp4";
-            if (ex.name === "Barbell Bench Press") ex.animation = "Skärmbild 2026-05-11 124104.mp4";
-        });
-
-        console.log("All data laddad utan fel! Uppdaterar gränssnittet.");
-
-        // Tvinga gränssnittet att uppdateras och låsa upp vyerna med den nya synkade datan
+        // Tvinga gränssnittet att ritas upp med den färska datan
         if (typeof renderCalendar === 'function') renderCalendar();
         if (typeof renderHome === 'function') renderHome();
 
@@ -202,23 +150,23 @@ async function saveCustomProgram() {
     localStorage.setItem("myCustomProgram", JSON.stringify(window.programData));
     localStorage.setItem("masterExercises", JSON.stringify(masterExercises));
 
-    const { data: existing } = await supabaseClient
+    const { data : existing } = await supabaseClient
         .from('custom_program')
         .select('id')
         .eq('user_id', currentUser.id)
-        .maybeSingle();
+        .single();
 
     if (existing) {
         const { error } = await supabaseClient
             .from('custom_program')
-            .update({ data: dataToSave })
+            .update({ data:dataToSave })
             .eq('user_id', currentUser.id);
 
         if (error) console.error('Fel vid uppdatering av program:', error);
     } else {
         const { error } = await supabaseClient
             .from('custom_program')
-            .insert([{ user_id: currentUser.id, data: dataToSave }]);
+            .insert([{ user_id: currentUser.id, data:dataToSave }]);
 
         if (error) console.error('Fel vid skapande av program:', error);
     }
@@ -232,7 +180,7 @@ async function saveWorkoutHistory(workout) {
         .insert([{
             user_id: currentUser.id,
             workout_date: workout.date,
-            workout_data: {
+            workout_data:{
                 programName: workout.programName,
                 totalTime: workout.totalTime,
                 exercises: workout.exercises
@@ -249,23 +197,23 @@ async function saveCalendarOverrides() {
 
     localStorage.setItem("calendarOverrides", JSON.stringify(calendarOverrides));
 
-    const { data: existing } = await supabaseClient
+    const { data : existing } = await supabaseClient
         .from('calendar_overrides')
         .select('id')
         .eq('user_id', currentUser.id)
-        .maybeSingle();
+        .single();
 
     if (existing) {
         const { error } = await supabaseClient
             .from('calendar_overrides')
-            .update({ data: calendarOverrides })
+            .update({ data : calendarOverrides })
             .eq('user_id', currentUser.id);
 
         if (error) console.error('Fel vid uppdatering av kalender:', error);
     } else {
         const { error } = await supabaseClient
             .from('calendar_overrides')
-            .insert([{ user_id: currentUser.id, data: calendarOverrides }]);
+            .insert([{ user_id: currentUser.id, data : calendarOverrides }]);
 
         if (error) console.error('Fel vid skapande av kalender:', error);
     }
@@ -277,23 +225,23 @@ async function saveActiveDraft() {
     const draftData = activeDraft || {};
     localStorage.setItem("activeWorkoutDraft", JSON.stringify(draftData));
 
-    const { data: existing } = await supabaseClient
+    const { data : existing } = await supabaseClient
         .from('active_draft')
         .select('id')
         .eq('user_id', currentUser.id)
-        .maybeSingle();
+        .single();
 
     if (existing) {
         const { error } = await supabaseClient
             .from('active_draft')
-            .update({ draft_data: draftData })
+            .update({ draft_data : draftData })
             .eq('user_id', currentUser.id);
 
         if (error) console.error('Fel vid uppdatering av utkast:', error);
     } else {
         const { error } = await supabaseClient
             .from('active_draft')
-            .insert([{ user_id: currentUser.id, draft_data: draftData }]);
+            .insert([{ user_id: currentUser.id, draft_data : draftData }]);
 
         if (error) console.error('Fel vid skapande av utkast:', error);
     }
@@ -331,7 +279,7 @@ async function clearActiveDraft() {
 
     const { error } = await supabaseClient
         .from('active_draft')
-        .update({ draft_data: null })
+        .update({ draft_data : null })
         .eq('user_id', currentUser.id);
  
     if (error) {
