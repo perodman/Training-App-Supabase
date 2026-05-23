@@ -209,7 +209,7 @@ function openCreateExerciseModal(callback = null) {
         document.getElementById(`modal-cat-${catId}`).classList.add('active');
     };
 
-    document.getElementById("save-new-ex-btn").onclick = () => {
+    document.getElementById("save-new-ex-btn").onclick = async () => {
         const name = document.getElementById("new-ex-name").value.trim();
         if(!name) return alert("Ange ett namn!");
         
@@ -223,6 +223,11 @@ function openCreateExerciseModal(callback = null) {
         
         masterExercises.push(newEx);
         saveAll();
+        
+        // SKOTTSÄKRING: Skicka den nya övningen till Supabase direkt!
+        if (typeof saveCustomProgram === 'function') {
+            await saveCustomProgram();
+        }
         
         if(callback) callback(newEx);
         else { 
@@ -332,7 +337,7 @@ function openEditExerciseModal(id) {
                 </div>
             </div>
 
-            <button class="mode-btn blue" style="width: 100%; max-width: 300px; margin-top: 15px;" onclick="handleUpdateExercise(${id})">Uppdatera</button>
+            <button class="mode-btn blue" style="width: 100%; max-width: 300px; margin-top: 15px;" id="update-exercise-confirm-btn">Uppdatera</button>
             <button class="mode-btn" style="color:var(--danger); background:none; font-size:13px; margin-top: 15px; padding: 5px;" onclick="deleteMasterExercise(${id})">Radera övning permanent</button>
         </div>
 
@@ -354,11 +359,11 @@ function openEditExerciseModal(id) {
         document.getElementById(`edit-modal-cat-${catId}`).classList.add('active');
     };
 
-    window.handleUpdateExercise = (exId) => {
+    document.getElementById("update-exercise-confirm-btn").onclick = async () => {
         const nameInput = document.getElementById("edit-ex-name").value.trim();
         if(!nameInput) return alert("Namnet får inte vara tomt!");
         
-        const exIndex = masterExercises.findIndex(e => e.id == exId);
+        const exIndex = masterExercises.findIndex(e => e.id == id);
         if(exIndex !== -1) {
             // AUTOMATISERING: Spara det gamla namnet innan det skrivs över, och uppdatera historiken
             const oldName = masterExercises[exIndex].name;
@@ -370,6 +375,12 @@ function openEditExerciseModal(id) {
             masterExercises[exIndex].name = nameInput;
             masterExercises[exIndex].target = selectedCategory; 
             saveAll();
+            
+            // SKOTTSÄKRING: Synka den redigerade övningen till Supabase direkt!
+            if (typeof saveCustomProgram === 'function') {
+                await saveCustomProgram();
+            }
+            
             closeModal();
             filterExercises(currentExerciseCategory);
         }
