@@ -162,23 +162,55 @@ async function loadDefaultProgram() {
 
 async function saveCustomProgram() {
     if (!currentUser) return;
-    if (typeof programData !== 'undefined' && programData) window.programData = programData;
-    if (!window.programData || !window.programData.routine || window.programData.routine.length === 0) return;
+    
+    // Synka de två variablerna så de garanterat innehåller samma sak
+    if (typeof programData !== 'undefined' && programData) {
+        window.programData = programData;
+    } else if (window.programData) {
+        programData = window.programData;
+    }
 
-    const dataToSave = { ...window.programData, masterExercises: masterExercises };
-    localStorage.setItem("myCustomProgram", JSON.stringify(window.programData));
-    localStorage.setItem("masterExercises", JSON.stringify(masterExercises));
+    // Om datan är helt tom, förbered ett grundobjekt så det inte kraschar
+    const currentData = window.programData || { routine: [] };
+    const dataToSave = { ...currentData, masterExercises: (typeof masterExercises !== 'undefined' ? masterExercises : []) };
+    
+    // Spara lokalt i webbläsaren
+    localStorage.setItem("myCustomProgram", JSON.stringify(currentData));
+    if (typeof masterExercises !== 'undefined') {
+        localStorage.setItem("masterExercises", JSON.stringify(masterExercises));
+    }
 
-    const { data : existing } = await supabaseClient
-        .from('custom_program')
-        .select('id')
-        .eq('user_id', currentUser.id)
-        .maybeSingle();
+    console.log("Skickar uppdaterat custom_program till Supabase:", dataToSave);
 
-    if (existing) {
-        await supabaseClient.from('custom_program').update({ data:dataToSave }).eq('user_id', currentUser.id);
-    } else {
-        await supabaseClient.from('custom_program').insert([{ user_id: currentUser.id, data:dataToSave }]);
+    try {
+        // Kolla om det redan finns en rad för användaren
+        const { data : existing, error: fetchErr } = await supabaseClient
+            .from('custom_program')
+            .select('id')
+            .eq('user_id', currentUser.id)
+            .maybeSingle();
+
+        if (fetchErr) throw fetchErr;
+
+        if (existing) {
+            console.log("Uppdaterar befintligt program i Supabase (ID:", existing.id, ")");
+            const { error: updateErr } = await supabaseClient
+                .from('custom_program')
+                .update({ data: dataToSave })
+                .eq('user_id', currentUser.id);
+                
+            if (updateErr) throw updateErr;
+        } else {
+            console.log("Skapar nytt program i Supabase för användaren");
+            const { error: insertErr } = await supabaseClient
+                .from('custom_program')
+                .insert([{ user_id: currentUser.id, data: dataToSave }]);
+                
+            if (insertErr) throw insertErr;
+        }
+        console.log("✅ Custom program sparades framgångsrikt i Supabase!");
+    } catch (err) {
+        console.error("Fel vid sparande av custom_program i Supabase:", err);
     }
 }
 
