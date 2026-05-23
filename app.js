@@ -151,7 +151,6 @@ document.getElementById("timer-toggle-btn").onclick = () => {
 function openCreateExerciseModal(callback = null) {
     const body = document.getElementById("modal-body");
     
-    // ÄNDRING 1: Istället för att alltid välja "Ben", kollar vi vad du har valt i vyn just nu
     let selectedCategory = currentExerciseCategory || "Ben"; 
 
     const categories = [
@@ -209,25 +208,32 @@ function openCreateExerciseModal(callback = null) {
         document.getElementById(`modal-cat-${catId}`).classList.add('active');
     };
 
-    // HÄR ÄR FIXEN: Vi lägger till 'async' precis före pilen () =>
     document.getElementById("save-new-ex-btn").onclick = async () => {
         const name = document.getElementById("new-ex-name").value.trim();
         if(!name) return alert("Ange ett namn!");
         
+        // FIX: Om man väljer "Armar", sätter vi target till "Biceps" (eller behåller "Armar" om du ändrar ditt filter)
+        // Detta matchar ditt filter: (ex.target === "Biceps" || ex.target === "Triceps")
+        let finalTarget = selectedCategory;
+        if (selectedCategory === "Armar") {
+            finalTarget = "Biceps"; 
+        }
+        
         const newEx = { 
             id: Date.now(), 
             name, 
-            target: selectedCategory, 
+            target: finalTarget, 
             defaultSets: 3, 
             animation: "" 
         };
         
+        // Peta in i den globala arrayen
         masterExercises.push(newEx);
         
-        // Sparar lokalt i localStorage via din befintliga funktion
+        // Sparar lokalt i localStorage
         if (typeof saveAll === 'function') saveAll();
         
-        // Skicka den nya övningen till Supabase direkt i bakgrunden
+        // Skicka till Supabase direkt
         if (typeof saveCustomProgram === 'function') {
             await saveCustomProgram();
         }
@@ -236,7 +242,8 @@ function openCreateExerciseModal(callback = null) {
             callback(newEx);
         } else { 
             closeModal(); 
-            // Uppdaterar vyn så att du ser din nya övning i listan direkt
+            
+            // Tvinga gränssnittet att hoppa till rätt kategori och rita ut listan på nytt
             if (typeof filterExercises === 'function') {
                 filterExercises(selectedCategory); 
             }
