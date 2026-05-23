@@ -209,6 +209,7 @@ function openCreateExerciseModal(callback = null) {
         document.getElementById(`modal-cat-${catId}`).classList.add('active');
     };
 
+    // HÄR ÄR FIXEN: Vi lägger till 'async' precis före pilen () =>
     document.getElementById("save-new-ex-btn").onclick = async () => {
         const name = document.getElementById("new-ex-name").value.trim();
         if(!name) return alert("Ange ett namn!");
@@ -222,18 +223,23 @@ function openCreateExerciseModal(callback = null) {
         };
         
         masterExercises.push(newEx);
-        saveAll();
         
-        // SKOTTSÄKRING: Skicka den nya övningen till Supabase direkt!
+        // Sparar lokalt i localStorage via din befintliga funktion
+        if (typeof saveAll === 'function') saveAll();
+        
+        // Skicka den nya övningen till Supabase direkt i bakgrunden
         if (typeof saveCustomProgram === 'function') {
             await saveCustomProgram();
         }
         
-        if(callback) callback(newEx);
-        else { 
+        if(callback) {
+            callback(newEx);
+        } else { 
             closeModal(); 
-            // ÄNDRING 2: Vi filtrerar på 'selectedCategory' så att vyn hoppar till den nya övningens kategori
-            filterExercises(selectedCategory); 
+            // Uppdaterar vyn så att du ser din nya övning i listan direkt
+            if (typeof filterExercises === 'function') {
+                filterExercises(selectedCategory); 
+            }
         }
     };
     
