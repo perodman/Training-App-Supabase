@@ -1088,9 +1088,15 @@ async function openEditProgramModal(idx) {
 
 // Central hjälpfunktion för att asynkront spara hela programrutinen till localStorage och Supabase
 async function saveCustomProgramToSupabase() {
+    // 1. Spara till localStorage direkt för snabb UX
     localStorage.setItem("myCustomProgram", JSON.stringify(programData));
     
-    if (typeof currentUser !== 'undefined' && currentUser) {
+    // 2. Använd den centrala, säkra sparfunktionen från supabase-data.js om den finns
+    if (typeof saveCustomProgram === 'function') {
+        console.log("Anropar central saveCustomProgram från supabase-data.js...");
+        await saveCustomProgram();
+    } else if (typeof currentUser !== 'undefined' && currentUser) {
+        // Fallback: Om supabase-data.js av någon anledning inte är laddad, kör gamla koden
         try {
             const { data: existing } = await supabaseClient
                 .from('custom_program')
