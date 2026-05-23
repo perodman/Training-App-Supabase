@@ -1088,35 +1088,19 @@ async function openEditProgramModal(idx) {
 
 // Central hjälpfunktion för att asynkront spara hela programrutinen till localStorage och Supabase
 async function saveCustomProgramToSupabase() {
-    // 1. Spara till localStorage direkt för snabb UX
+    console.log("saveCustomProgramToSupabase anropad med aktuell programData:", programData);
+    
+    // 1. Säkra att fönstret har tillgång till exakt samma data
+    window.programData = programData;
+    
+    // 2. Spara till localStorage direkt för snabb UX
     localStorage.setItem("myCustomProgram", JSON.stringify(programData));
     
-    // 2. Använd den centrala, säkra sparfunktionen från supabase-data.js om den finns
+    // 3. Använd den centrala, säkra sparfunktionen från supabase-data.js
     if (typeof saveCustomProgram === 'function') {
-        console.log("Anropar central saveCustomProgram från supabase-data.js...");
         await saveCustomProgram();
-    } else if (typeof currentUser !== 'undefined' && currentUser) {
-        // Fallback: Om supabase-data.js av någon anledning inte är laddad, kör gamla koden
-        try {
-            const { data: existing } = await supabaseClient
-                .from('custom_program')
-                .select('id')
-                .eq('user_id', currentUser.id)
-                .maybeSingle();
-
-            if (existing) {
-                await supabaseClient
-                    .from('custom_program')
-                    .update({ data: programData })
-                    .eq('user_id', currentUser.id);
-            } else {
-                await supabaseClient
-                    .from('custom_program')
-                    .insert([{ user_id: currentUser.id, data: programData }]);
-            }
-        } catch (err) {
-            console.error("Supabase: Fel vid synkronisering av custom_program:", err);
-        }
+    } else {
+        console.warn("Kunde inte hitta saveCustomProgram i supabase-data.js");
     }
 }
 
