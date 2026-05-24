@@ -65,7 +65,8 @@ function saveAll() {
     localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
     localStorage.setItem("calendarOverrides", JSON.stringify(calendarOverrides));
     
-    // Supabase-synk: Anropar de globala asynkrona funktionerna från dina konfigurationsfiler
+    // Supabase-synk: Båda ligger kvar och sköter sitt i bakgrunden,
+    // men eftersom vi städat upp raderingen kommer de inte längre att krocka!
     if (typeof saveCustomProgram === 'function') saveCustomProgram();
     if (typeof saveCalendarOverrides === 'function') saveCalendarOverrides();
 }
