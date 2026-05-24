@@ -2527,3 +2527,30 @@ function confirmDiscardActiveWorkout() {
 
     openModal();
 }
+
+// NY FUNKTION (Punkt 3): Denna funktion kopplar du till din "Spara utkast"-knapp i HTML/Vyn.
+// Den sparar ner tillståndet exakt som hemknappen gör och lämnar utkastet redo på startsidan.
+async function saveDraftAndGoHome() {
+    if (!activeDraft) return;
+
+    // Synkronisera aktuell tid till utkastet innan vi sparar ut det
+    activeDraft.secondsElapsed = secondsElapsed;
+
+    // Spara ner till localStorage och molnet utan att rensa bort objektet
+    localStorage.setItem("activeWorkoutDraft", JSON.stringify(activeDraft));
+    
+    if (typeof persistActiveWorkout === 'function') {
+        await persistActiveWorkout();
+    } else if (typeof saveActiveDraft === 'function') {
+        await saveActiveDraft();
+    }
+
+    // Pausa timern (om funktionen finns), men nollställ den INTE
+    if (typeof stopTimer === 'function') {
+        stopTimer();
+    }
+
+    // Skicka användaren till hemskärmen och rita om den så att "Fortsätt träningspass" dyker upp
+    if (typeof showView === 'function') showView("home-view");
+    if (typeof renderHome === 'function') renderHome();
+}
