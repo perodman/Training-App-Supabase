@@ -2275,7 +2275,7 @@ async function editLoggedWorkout(date, idx) {
         } catch(e) { console.error(e); }
     }
     
-    closeModal();
+    // ÄNDRING PUNKT 2: closeModal flyttad till slutet av funktionen för att förhindra blinkning på startsidan
     
     // Etablera det nya redigeringsbara utkastet med rätt fältmappningar (och behåll ID:t!)
     secondsElapsed = savedSeconds;
@@ -2290,7 +2290,8 @@ async function editLoggedWorkout(date, idx) {
         ui_state: { openExercises: [0] }
     };
     
-    // Synkronisera det nyskapade redigeringsutkastet till lokal backup och molnet
+    // Synkronisera det nyskapade redigeringsutkastet till lokal backup och molnet (PUNKT 3 - Säkrar spara utkast)
+    localStorage.setItem("activeWorkoutDraft", JSON.stringify(activeDraft));
     if (typeof persistActiveWorkout === 'function') {
         await persistActiveWorkout();
     } else if (typeof saveActiveDraft === 'function') {
@@ -2300,6 +2301,9 @@ async function editLoggedWorkout(date, idx) {
     if (typeof renderActiveWorkout === 'function') renderActiveWorkout();
     if (typeof updateTimerDisplay === 'function') updateTimerDisplay();
     showView("workout-view");
+
+    // Slutför stängningen här efter att vyn har skiftat helt
+    closeModal();
 }
 
 function hideDefaultCloseButton(hide) {
@@ -2411,7 +2415,7 @@ function openConfirmDeleteModal(dateStr, idx) {
     body.innerHTML = `
         <div style="text-align:center; padding:10px;">
             <div style="font-size:40px; margin-bottom:15px;">🗑️</div>
-            <h3 style="color:var(--danger); margin: 0 0 10px 0; font-size:22px;">Radera sparat pass?</h3>
+            <h3 style="color:var(--danger);">Radera sparat pass?</h3>
             <p style="color:var(--text-light); margin-bottom:25px; font-size:14px; line-height:1.4;">
                 Är du säker på att du vill ta bort detta slutförda pass från din historik? Detta går inte att ångra.
             </p>
@@ -2454,19 +2458,30 @@ function confirmDiscardActiveWorkout() {
     const body = document.getElementById("modal-body");
     if (!body) return;
 
+    // ÄNDRING PUNKT 1: Kontrollera dynamiskt om detta är ett redigerat historiskt pass eller ett nytt utkast
+    const isEditingHistorical = (activeDraft && activeDraft.date);
+
+    const titleText = isEditingHistorical ? "Radera passet?" : "Avbryta träningspasset?";
+    const bodyText = isEditingHistorical 
+        ? "Är du säker på att du vill radera detta sparade träningspass ur din historik? Detta går inte att ångra."
+        : "Är du säker på att du vill radera och avsluta detta pågående pass? Inga set kommer att sparas i din historik.";
+    const mainBtnText = isEditingHistorical ? "Ja, radera passet permanent" : "Ja, radera passet";
+    const cancelBtnText = isEditingHistorical ? "Avbryt" : "Nej, fortsätt träna";
+    const icon = isEditingHistorical ? "🗑️" : "⚠️";
+
     body.innerHTML = `
         <div style="text-align:center; padding:10px;">
-            <div style="font-size:40px; margin-bottom:15px;">⚠️</div>
-            <h3 style="color:var(--danger); margin: 0 0 10px 0; font-size:22px;">Avbryta träningspasset?</h3>
+            <div style="font-size:40px; margin-bottom:15px;">${icon}</div>
+            <h3 style="color:var(--danger); margin: 0 0 10px 0; font-size:22px;">${titleText}</h3>
             <p style="color:var(--text-light); margin-bottom:25px; font-size:14px; line-height:1.4;">
-                Är du säker på att du vill radera och avsluta detta pågående pass? Inga set kommer att sparas i din historik.
+                ${bodyText}
             </p>
             <button class="mode-btn" id="confirm-discard-draft-btn" style="background:linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color:white; margin-bottom:12px; font-weight:700; width:100%; padding:14px; border-radius:12px; border:none; cursor:pointer;">
-                Ja, radera passet
+                ${mainBtnText}
             </button>
             
             <button class="mode-btn glass-border" id="cancel-discard-draft-btn" style="width:100%; padding:12px; border-radius:12px; background:rgba(255,255,255,0.05); color:var(--text); cursor:pointer;">
-                Nej, fortsätt träna
+                ${cancelBtnText}
             </button>
         </div>
     `;
@@ -2477,6 +2492,13 @@ function confirmDiscardActiveWorkout() {
     };
 
     document.getElementById("confirm-discard-draft-btn").onclick = async () => {
+        // ÄNDRING PUNKT 4: Om det är ett historiskt pass som ska raderas permanent, säkra anropet till Supabase/Historik
+        if (isEditingHistorical && typeof deleteWorkoutFromHistory === 'function') {
+            const dateStr = activeDraft.date;
+            // Eftersom editLoggedWorkout redan kört filter lokalt, skickar vi med datumet till din databasfunktion
+            await deleteWorkoutFromHistory(dateStr, 0); 
+        }
+
         activeDraft = null;
         localStorage.removeItem("activeWorkoutDraft");
         
