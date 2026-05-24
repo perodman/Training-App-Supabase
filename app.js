@@ -2198,10 +2198,10 @@ async function deleteLoggedWorkout(date, idx) {
 }
 
 // ==========================================================================
-// CENTRAL HANTERING AV RADERING OCH EDITERING (SÄKRAD OCH REPARERAD)
+// CENTRAL HANTERING AV RADERING OCH EDITERING (ÅTERSTÄLLD TILL ORIGINALDESIGN)
 // ==========================================================================
 
-// 1. ÖPPNA EDITERINGSLÄGET FÖR ETT HISTORISKT PASS
+// 1. ÖPPNA EDITERINGSLÄGET FÖR ETT HISTORISKT PASS (ÅTERSTÄLLD TILL STANDARD)
 function editLoggedWorkout(dateStr, idx) {
     const filtered = workoutHistory.filter(w => w.date === dateStr);
     const workoutToEdit = filtered[idx];
@@ -2218,49 +2218,45 @@ function editLoggedWorkout(dateStr, idx) {
         hideDefaultCloseButton(true);
     }
 
-    // Din fullständiga, snygga premiumdesign återställd exakt som den ska vara
+    // Återställd till din rena originalstruktur utan den påtvingade premium-stylingen
     let html = `
-        <div style="text-align: center; margin: 0 !important; padding: 0 !important;">
-            <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: var(--primary); font-weight: 600; display: block;">Redigerar historik</span>
-            <h2 class="section-title modern-header" style="margin: 8px 0 0 0 !important; padding: 0 !important; display: inline-block; font-size: 24px; line-height: 1.1 !important;">
-                ${workoutToEdit.programName}
-            </h2>
-            <span style="font-size: 12px; color: var(--text-light); display: block; margin-top: 5px;">📅 ${dateStr}</span>
+        <div class="edit-historic-header">
+            <h2>Redigera historik</h2>
+            <h3>${workoutToEdit.programName}</h3>
+            <p class="date-subtitle">📅 ${dateStr}</p>
         </div>
         
-        <div style="display: flex; flex-direction: column; gap: 15px; max-height: 350px; overflow-y: auto; margin-top: 15px; padding-right: 5px;">
+        <div class="edit-workout-exercises-container">
     `;
 
     workoutToEdit.exercises.forEach((ex, exIdx) => {
         html += `
-            <div class="card glass" style="border-left: 4px solid var(--primary); text-align: left; margin: 0; padding: 15px; border-radius: 16px;">
-                <strong style="font-size: 15px; color: var(--text); display: block; margin-bottom: 8px;">${ex.name}</strong>
-                <div style="background: rgba(0,0,0,0.15); padding: 12px; border-radius: 12px; display: flex; flex-direction: column; gap: 10px;">
-                    <div style="display:grid; grid-template-columns: 40px 1fr 1fr; gap:8px; align-items:center;">
-                        <small style="text-align:left; color:var(--text-light); font-size:9px; font-weight:700; padding-left:2px;">SET</small>
-                        <small style="text-align:center; color:var(--text-light); font-size:9px; font-weight:700;">KG</small>
-                        <small style="text-align:center; color:var(--text-light); font-size:9px; font-weight:700;">REPS</small>
+            <div class="exercise-card">
+                <strong>${ex.name}</strong>
+                <div class="exercise-sets-table">
+                    <div class="sets-table-header">
+                        <span>SET</span>
+                        <span>KG</span>
+                        <span>REPS</span>
                     </div>
         `;
         
         if (ex.sets_data) {
             ex.sets_data.forEach((set, sIdx) => {
                 html += `
-                    <div style="display: grid; grid-template-columns: 40px 1fr 1fr; gap: 8px; align-items: center;">
-                        <div style="width:28px; height:28px; border-radius:50%; border:2px solid var(--primary); display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:800; color:var(--primary); background:rgba(34, 211, 238, 0.1);">
-                            #${sIdx + 1}
-                        </div>
-                        <input type="text" inputmode="decimal" class="log-input" style="margin:0; padding:10px; text-align:center;" value="${set.weight || ''}" id="edit-w-${exIdx}-${sIdx}">
-                        <input type="text" inputmode="decimal" class="log-input" style="margin:0; padding:10px; text-align:center;" value="${set.reps || ''}" id="edit-r-${exIdx}-${sIdx}">
+                    <div class="sets-table-row">
+                        <span class="set-number">#${sIdx + 1}</span>
+                        <input type="text" inputmode="decimal" class="log-input" value="${set.weight || ''}" id="edit-w-${exIdx}-${sIdx}">
+                        <input type="text" inputmode="decimal" class="log-input" value="${set.reps || ''}" id="edit-r-${exIdx}-${sIdx}">
                     </div>
                 `;
             });
         } else {
             html += `
-                <div style="display: grid; grid-template-columns: 40px 1fr 1fr; gap: 8px; align-items: center;">
-                    <div style="width:28px; height:28px; border-radius:50%; border:2px solid var(--primary); display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:800; color:var(--primary);">#1</div>
-                    <input type="text" inputmode="decimal" class="log-input" style="margin:0; padding:10px; text-align:center;" value="${ex.weight || ''}" id="edit-w-${exIdx}-0">
-                    <input type="text" inputmode="decimal" class="log-input" style="margin:0; padding:10px; text-align:center;" value="${ex.reps || ''}" id="edit-r-${exIdx}-0">
+                <div class="sets-table-row">
+                    <span class="set-number">#1</span>
+                    <input type="text" inputmode="decimal" class="log-input" value="${ex.weight || ''}" id="edit-w-${exIdx}-0">
+                    <input type="text" inputmode="decimal" class="log-input" value="${ex.reps || ''}" id="edit-r-${exIdx}-0">
                 </div>
             `;
         }
@@ -2271,16 +2267,16 @@ function editLoggedWorkout(dateStr, idx) {
     html += `
         </div>
 
-        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 15px; width: 100%;">
-            <button class="mode-btn premium-action-btn premium-green-btn" id="save-historic-edit-btn" style="width:100% !important; margin: 0 !important; padding: 12px !important;">
+        <div class="modal-actions-vertical">
+            <button class="mode-btn save-btn" id="save-historic-edit-btn">
                 Spara ändringar 💾
             </button>
             
-            <button class="mode-btn" id="delete-historic-from-edit-btn" style="background: rgba(239, 68, 68, 0.1); color: var(--danger); font-size: 13px; font-weight:600; border: 1px solid rgba(239, 68, 68, 0.2); width: 100% !important; margin: 0 !important; padding: 10px !important; border-radius: 12px; cursor: pointer;">
-                Radera passet permanent 🗑️
+            <button class="mode-btn delete-btn" id="delete-historic-from-edit-btn">
+                Radera passet 🗑️
             </button>
 
-            <button class="mode-btn glass-border" id="back-to-day-manager-btn" style="width:100% !important; margin: 0 !important; padding: 10px !important; border-radius: 12px;">
+            <button class="mode-btn cancel-btn" id="back-to-day-manager-btn">
                 Tillbaka
             </button>
         </div>
@@ -2329,7 +2325,7 @@ function editLoggedWorkout(dateStr, idx) {
     openModal();
 }
 
-// 2. SKRÄDDARSYDD POPUP FÖR HISTORISK RADERING (Med rätt design och korrekta texter)
+// 2. SKRÄDDARSYDD POPUP FÖR HISTORISK RADERING (Den specifika lilla rutan du ville justera)
 function confirmDeleteFromEditMode(dateStr, idx) {
     const body = document.getElementById("modal-body");
     if (!body) return;
