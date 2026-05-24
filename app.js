@@ -2317,27 +2317,7 @@ async function deleteMasterExercise(id) {
             <div style="font-size:40px; margin-bottom:15px;">🗑️</div>
             <h3 style="color:var(--danger);">Radera övning?</h3>
             <p style="color:var(--text-light); margin-bottom:25px; font-size:14px;">Vill du radera denna övning permanent?</p>
-            <button class="mode-btn" style="background:linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color:white; margin-bottom:12px; font-weight:700;" 
-                onclick="(async () => { 
-                    masterExercises = masterExercises.filter(e => e.id != ${id}); 
-                    localStorage.setItem('masterExercises', JSON.stringify(masterExercises));
-                    
-                    try {
-                        if (currentUser) {
-                            const { error } = await supabaseClient
-                                .from('master_exercises')
-                                .delete()
-                                .eq('id', ${id})
-                                .eq('user_id', currentUser.id);
-                            if (error) throw error;
-                        }
-                    } catch (err) {
-                        console.error('Error deleting exercise from Supabase master_exercises:', err);
-                    }
-                    await saveAll(); 
-                    closeModal(); 
-                    filterExercises(currentExerciseCategory);
-                })()">
+            <button class="mode-btn" id="confirm-delete-ex-btn" style="background:linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color:white; margin-bottom:12px; font-weight:700;">
                 Ja, radera
             </button>
             
@@ -2346,6 +2326,28 @@ async function deleteMasterExercise(id) {
             </button>
         </div>
     `;
+    
+    document.getElementById("confirm-delete-ex-btn").onclick = async () => { 
+        // 1. Filtrera bort övningen lokalt
+        masterExercises = masterExercises.filter(e => e.id != id); 
+        
+        // 2. Spara i localStorage direkt för snabb UX
+        localStorage.setItem('masterExercises', JSON.stringify(masterExercises));
+        
+        // 3. Skicka upp den uppdaterade listan direkt till rätt tabell (custom_program) via saveCustomProgram
+        if (typeof saveCustomProgram === 'function') {
+            await saveCustomProgram(); 
+        }
+        
+        // 4. Stäng modalen och stanna kvar i övningsvyn utan att blinka eller hoppa till hemmenyn!
+        hideDefaultCloseButton(false);
+        closeModal(); 
+        
+        if (typeof filterExercises === 'function') {
+            filterExercises(currentExerciseCategory);
+        }
+    };
+
     openModal();
 }
 
