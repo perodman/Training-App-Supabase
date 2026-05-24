@@ -1378,10 +1378,13 @@ function renderActiveWorkout() {
     }
 
     if (footer) footer.classList.remove("hidden");
+    
+    // KORRIGERING: Vi sätter onclick-funktionen här i JavaScript så att den inte skrivs över!
     const pauseBtn = document.getElementById("pause-workout-btn");
     if (pauseBtn) {
         pauseBtn.innerHTML = `Spara utkast 💾`;
         pauseBtn.className = "mode-btn save-draft-btn";
+        pauseBtn.onclick = saveDraftAndGoHome; // Denna rad säkrar att knappen faktiskt kör spara-funktionen!
     }
 
     if (!activeDraft.ui_state) {
@@ -1397,7 +1400,7 @@ function renderActiveWorkout() {
         if (!activeDraft.ui_state.hasOwnProperty('hasInitializedOpen')) {
             activeDraft.ui_state.openExercises = [0];
             activeDraft.ui_state.hasInitializedOpen = true;
-            persistActiveWorkout(); // Synkar initierat UI-tillstånd till Supabase
+            persistActiveWorkout(); 
         }
     }
     
@@ -2533,24 +2536,25 @@ function confirmDiscardActiveWorkout() {
 async function saveDraftAndGoHome() {
     if (!activeDraft) return;
 
-    // Synkronisera aktuell tid till utkastet innan vi sparar ut det
+    // Spara klockans aktuella tid
     activeDraft.secondsElapsed = secondsElapsed;
 
-    // Spara ner till localStorage och molnet utan att rensa bort objektet
+    // Lagra tillståndet lokalt
     localStorage.setItem("activeWorkoutDraft", JSON.stringify(activeDraft));
     
+    // Synka med Supabase/molnet
     if (typeof persistActiveWorkout === 'function') {
         await persistActiveWorkout();
     } else if (typeof saveActiveDraft === 'function') {
         await saveActiveDraft();
     }
 
-    // Pausa timern (om funktionen finns), men nollställ den INTE
+    // Stoppa klockan utan att nollställa
     if (typeof stopTimer === 'function') {
         stopTimer();
     }
 
-    // Skicka användaren till hemskärmen och rita om den så att "Fortsätt träningspass" dyker upp
+    // Skicka till hemskärmen och rita om för att tvinga fram "Fortsätt träningspass"
     if (typeof showView === 'function') showView("home-view");
     if (typeof renderHome === 'function') renderHome();
 }
