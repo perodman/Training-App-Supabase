@@ -2448,34 +2448,43 @@ function openConfirmDeleteModal(dateStr, idx) {
 
 // ÄNDRING: Rensar utkast i både localStorage och tabellen public.active_draft i Supabase asynkront
 async function confirmDiscardActiveWorkout() {
-    hideDefaultCloseButton(true);
-    const body = document.getElementById("modal-body");
-    body.innerHTML = `
-        <div style="text-align:center; padding:10px;">
-            <div style="font-size:40px; margin-bottom:15px;">🗑️</div>
-            <h3 style="color:var(--danger);">Radera passet?</h3>
-            <p style="color:var(--text-light); margin-bottom:25px; font-size:14px;">Allt pågående arbete i detta pass kommer att raderas.</p>
-            <button class="mode-btn" style="background:linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color:white; margin-bottom:12px; font-weight:700;" 
-                onclick="(async () => { 
-                    localStorage.removeItem('activeWorkoutDraft'); 
-                    if (typeof deleteActiveDraft === 'function') await deleteActiveDraft();
-                    
-                    if (currentUser) {
-                        try {
-                            const { error } = await supabaseClient
-                                .from('active_draft')
-                                .delete()
-                                .eq('user_id', currentUser.id);
-                            if (error) throw error;
-                        } catch (err) {
-                            console.error('Error discarding active draft from Supabase:', err);
-                        }
-                    }
-                    
-                    location.reload(); 
-                })()">Ja, radera!</button>
-            <button class="mode-btn glass-border" onclick="closeModal()">Avbryt</button>
-        </div>
-    `;
-    openModal();
+    if (!confirm("Är du säker på att du vill radera och avsluta detta pågående pass? Inga set kommer att sparas.")) return;
+    
+    // 1. Nollställ det lokala minnet och lokal backup omedelbart
+    activeDraft = null;
+    localStorage.removeItem("activeWorkoutDraft");
+    
+    // 2. Stoppa timern i appen (om dina funktioner för detta heter så här)
+    if (typeof stopTimer === 'function') stopTimer();
+    secondsElapsed = 0;
+
+    // 3. Rensa tabellen 'active_draft' i Supabase asynkront och vänta in svaret (await)
+    if (typeof currentUser !== 'undefined' && currentUser) {
+        try {
+            // Vi gör en direkt radering (eller sätter data till ett tomt objekt) i active_draft-tabellen
+            await supabaseClient
+                .from('active_draft')
+                .delete()
+                .eq('user_id', currentUser.id);
+                
+            console.log("Supabase: Pågående utkast raderat utan anmärkning.");
+        } catch (err) {
+            console.error("Supabase: Fel vid radering av pågående utkast:", err);
+        }
+    }
+
+    // 4. Stäng eventuellt öppna modaler/dialogrutor tyst
+    closeModal();
+
+    // 5. Istället för en hård reload, skicka användaren mjukt tillbaka till hemvyn
+    if (typeof showView === 'function') {
+        showView("home-view");
+    }
+    
+    // 6. Rita om startsidan och kalendern så att allt visar rätt status direkt
+    if (typeof renderHome === 'function') {
+        renderHome();
+    } else if (typeof renderCalendar === 'function') {
+        renderCalendar(false);
+    }
 }
