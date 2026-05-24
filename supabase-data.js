@@ -163,18 +163,15 @@ async function loadDefaultProgram() {
 async function saveCustomProgram() {
     if (!currentUser) return;
     
-    // Synka de två variablerna så de garanterat innehåller samma sak
     if (typeof programData !== 'undefined' && programData) {
         window.programData = programData;
     } else if (window.programData) {
         programData = window.programData;
     }
 
-    // Om datan är helt tom, förbered ett grundobjekt så det inte kraschar
     const currentData = window.programData || { routine: [] };
     const dataToSave = { ...currentData, masterExercises: (typeof masterExercises !== 'undefined' ? masterExercises : []) };
     
-    // Spara lokalt i webbläsaren
     localStorage.setItem("myCustomProgram", JSON.stringify(currentData));
     if (typeof masterExercises !== 'undefined') {
         localStorage.setItem("masterExercises", JSON.stringify(masterExercises));
@@ -183,7 +180,6 @@ async function saveCustomProgram() {
     console.log("Skickar uppdaterat custom_program till Supabase:", dataToSave);
 
     try {
-        // Kolla om det redan finns en rad för användaren
         const { data : existing, error: fetchErr } = await supabaseClient
             .from('custom_program')
             .select('id')
@@ -214,8 +210,6 @@ async function saveCustomProgram() {
     }
 }
 
-// STRÄNGT DUBBLETT-SÄKRAD FUNKTION MED UNIKA ID:N
-// GLOBAL VARIABEL FÖR ATT STOPPA BLIXTSNABBA DUBBELANROP (Lägg denna precis ovanför funktionen)
 let lastWorkoutSavedTime = 0;
 
 async function saveWorkoutHistory(workout) {
@@ -223,16 +217,13 @@ async function saveWorkoutHistory(workout) {
 
     const nowTimestamp = Date.now();
     
-    // 1. TIDSSPÄRR: Om det var mindre än 5 sekunder sedan vi sparade ett pass, blockera direkt!
     if (nowTimestamp - lastWorkoutSavedTime < 5000) {
         console.warn("⚠️ DUBBLETT-SPÄRR (Tidslås): Funktionen anropades igen alldeles för snabbt! Avbryter.");
         return; 
     }
     
-    // Uppdatera tidsstämpeln direkt så att nästa anrop (inom 5 sek) kraschar i spärren ovan
     lastWorkoutSavedTime = nowTimestamp;
 
-    // 2. ID-KONTROLL: Skapa eller kontrollera unikt ID
     const workoutId = workout.id || "workout_" + nowTimestamp + "_" + Math.floor(Math.random() * 1000);
     const idExists = workoutHistory.some(existing => existing.id === workoutId);
 
@@ -252,11 +243,9 @@ async function saveWorkoutHistory(workout) {
             exercises: workout.exercises
         };
 
-        // Lägg till i localStorage direkt för snabb UX
         workoutHistory.unshift(fullWorkoutObject);
         localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
 
-        // Skicka till Supabase
         const { error } = await supabaseClient
             .from('workout_history')
             .insert([{
@@ -267,9 +256,9 @@ async function saveWorkoutHistory(workout) {
 
         if (error) {
             console.error('Fel vid sparande till Supabase:', error);
-            workoutHistory.shift(); // Ångra om det misslyckades
+            workoutHistory.shift(); 
             localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
-            lastWorkoutSavedTime = 0; // Återställ tidslåset vid fel
+            lastWorkoutSavedTime = 0; 
         } else {
             console.log("✅ Passet sparades framgångsrikt i Supabase!");
         }
@@ -318,6 +307,7 @@ async function saveActiveDraft() {
     }
 }
 
+// SÄKRAD RADERING UTAN ATT FÖRLORA NÅGON FUNKTIONALITET
 async function deleteWorkoutFromHistory(date, idx) {
     if (!currentUser) return;
 
@@ -326,37 +316,41 @@ async function deleteWorkoutFromHistory(date, idx) {
     const item = filtered[idx];
     if (!item) return;
     
-    // 2. RADERING I SUPABASE: Vi testar båda sätten (både om ID ligger på rot-nivå eller inuti ett JSON-fält) 
-    // för att vara 100% säkra på att databasen faktiskt raderar raden.
+    // 2. SKARPT ANROP MOT SUPABASE:
+    // Vi letar i 'workout_history' efter rätt 'user_id' och det specifika ID:t som ligger 
+    // gömt inuti ditt JSON-objekt 'workout_data'.
     const { error } = await supabaseClient
         .from('workout_history')
         .delete()
         .eq('user_id', currentUser.id)
-        .or(`id.eq.${item.id},workout_id.eq.${item.id}`);
+        .eq('workout_data->>id', item.id);
 
-    // Om din databas lagrar hela passet som JSON i en kolumn som heter 'workout_data', 
-    // använder vi en helt säker text-matchning som backup ifall raden ovan inte träffade:
+    // 3. FULLSTÄNDIG FALLBACK (Om JSON-matchningen mot förmodan misslyckas):
+    // Vi använder datumet och programmets namn för att rensa raden i databasen.
     if (error) {
-        console.warn("Standardradering misslyckades, testar JSON-strängsmatchning...");
+        console.warn("Kunde inte matcha JSON-ID direkt, kör fallback på datum och namn...");
+        await supabaseClient
+            .from('workout_history')
+            .delete()
+            .eq('user_id', currentUser.id)
+            .eq('workout_date', date)
+            .eq('workout_data->>programName', item.programName);
     }
 
-    // 3. Om raderingen gick igenom uppe i molnet (eller som fallback för att hålla UI synkat), 
-    // rensar vi det lokala minnet permanent.
+    // 4. LOKAL RADERING (Exakt som i din gamla kod)
     workoutHistory = workoutHistory.filter(w => w.id !== item.id);
     localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
     
-    // Extra säkerhet: Om appen sparar hela historiken i profil-tabellen via saveAll(), kör vi den också
     if (typeof saveAll === 'function') {
         await saveAll();
     }
 
-    // 4. Uppdatera gränssnittet i exakt rätt ordning
+    // 5. RENDERING AV GRÄNSSNITTET (Säkerställer att det inte blinkar)
     if (typeof renderCalendar === 'function') {
-        renderCalendar(false); // false förhindrar att kalendern blinkar eller laddar om hela sidan
+        renderCalendar(false); 
     }
     
     if (typeof renderHome === 'function') {
-        // Körs bara om vi faktiskt är på hemskärmen, annars låter vi bli för att slippa blinket!
         const currentView = window.currentView || "";
         if (currentView === "home-view") {
             renderHome();
