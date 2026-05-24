@@ -2398,18 +2398,51 @@ async function deleteEntireProgram(idx) {
     openModal();
 }
 
-function openConfirmDeleteModal(date, idx) {
+function openConfirmDeleteModal(dateStr, idx) {
     hideDefaultCloseButton(true);
     const body = document.getElementById("modal-body");
+    if (!body) return;
+
     body.innerHTML = `
         <div style="text-align:center; padding:10px;">
             <div style="font-size:40px; margin-bottom:15px;">🗑️</div>
-            <h3 style="color:var(--danger);">Radera passet?</h3>
-            <p style="color:var(--text-light); margin-bottom:25px; font-size:14px;">Detta pass kommer att tas bort permanent från din historik.</p>
-            <button class="mode-btn" style="background:linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color:white; margin-bottom:12px; font-weight:700;" onclick="deleteLoggedWorkout('${date}', ${idx})">Ja, radera</button>
-            <button class="mode-btn glass-border" onclick="closeModal()">Avbryt</button>
+            <h3 style="color:var(--danger);">Radera pass ur historiken?</h3>
+            <p style="color:var(--text-light); margin-bottom:25px; font-size:14px;">Detta pass kommer att tas bort från din kalender permanent.</p>
+            <button class="mode-btn" id="confirm-delete-history-btn" style="background:linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color:white; margin-bottom:12px; font-weight:700;">
+                Ja, radera
+            </button>
+            
+            <button class="mode-btn glass-border" id="cancel-delete-history-btn">
+                Avbryt
+            </button>
         </div>
     `;
+
+    // OM MAN ÅNGRAR SIG: Gå bara tillbaka till dagshanteraren utan blink
+    document.getElementById("cancel-delete-history-btn").onclick = () => {
+        hideDefaultCloseButton(false);
+        const filtered = workoutHistory.filter(w => w.date === dateStr);
+        const plannedPass = calendarOverrides[dateStr] === 'none' ? null : programData.routine.find(x => x.id === calendarOverrides[dateStr]);
+        openDayManager(dateStr, plannedPass, filtered, false);
+    };
+
+    // OM MAN VILL RADERA:
+    document.getElementById("confirm-delete-history-btn").onclick = async () => {
+        if (typeof deleteWorkoutFromHistory === 'function') {
+            // Anropa din säkra funktion från supabase-data.js med await
+            await deleteWorkoutFromHistory(dateStr, idx);
+        }
+        
+        // Återställ knapparna och stäng modalen tyst
+        hideDefaultCloseButton(false);
+        closeModal();
+        
+        // Tvinga kalendern på skärmen att rita om sig för att ta bort det gröna passet direkt
+        if (typeof renderCalendar === 'function') {
+            renderCalendar(false); 
+        }
+    };
+
     openModal();
 }
 
