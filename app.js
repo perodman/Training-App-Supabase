@@ -2392,12 +2392,12 @@ function openConfirmDeleteModal(dateStr, idx) {
     body.innerHTML = `
         <div style="text-align:center; padding:10px;">
             <div style="font-size:40px; margin-bottom:15px;">🗑️</div>
-            <h3 style="color:var(--danger);">Radera sparat pass?</h3>
+            <h3 style="color:var(--danger); margin: 0 0 10px 0; font-size:22px;">Radera pass ur historiken?</h3>
             <p style="color:var(--text-light); margin-bottom:25px; font-size:14px; line-height:1.4;">
-                Är du säker på att du vill ta bort detta slutförda pass från din historik? Detta går inte att ångra.
+                This pass will be permanently removed from your calendar and disappear from the database.
             </p>
             <button class="mode-btn" id="confirm-delete-history-btn" style="background:linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color:white; margin-bottom:12px; font-weight:700; width:100%; padding:14px; border-radius:12px; border:none; cursor:pointer;">
-                Ja, ta bort permanent
+                Ja, radera passet
             </button>
             
             <button class="mode-btn glass-border" id="cancel-delete-history-btn" style="width:100%; padding:12px; border-radius:12px; background:rgba(255,255,255,0.05); color:var(--text); cursor:pointer;">
@@ -2406,6 +2406,7 @@ function openConfirmDeleteModal(dateStr, idx) {
         </div>
     `;
 
+    // AVBRYT: Gå tillbaka till dagshanteraren utan blink
     document.getElementById("cancel-delete-history-btn").onclick = () => {
         hideDefaultCloseButton(false);
         const filtered = workoutHistory.filter(w => w.date === dateStr);
@@ -2413,44 +2414,44 @@ function openConfirmDeleteModal(dateStr, idx) {
         openDayManager(dateStr, plannedPass, filtered, false);
     };
 
+    // BEKRÄFTA RADERING:
     document.getElementById("confirm-delete-history-btn").onclick = async () => {
+        // 1. Hitta exakt rätt pass i den filtrerade listan för dagen via indexet (idx)
         const filtered = workoutHistory.filter(w => w.date === dateStr);
         const itemToDelete = filtered[idx];
 
         if (itemToDelete) {
-            // 1. Radera lokalt i minnet baserat på det unika ID-numret
-            workoutHistory = workoutHistory.filter(w => w.id !== itemToDelete.id);
-            localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
-            
-            // 2. Tvinga en direkt synk till databasen via din existerande saveAll-funktion
-            if (typeof saveAll === 'function') {
-                await saveAll();
+            // Hitta passets exakta index i den globala workoutHistory-arrayen baserat på dess unika ID
+            const globalIdx = workoutHistory.findIndex(w => w.id === itemToDelete.id);
+            if (globalIdx !== -1) {
+                workoutHistory.splice(globalIdx, 1);
             }
-            
-            // 3. Om du har en specifik Supabase-tabell för historikrader, kör vi den med ID:t
-            if (currentUser) {
-                try {
-                    await supabaseClient
-                        .from('workout_history')
-                        .delete()
-                        .eq('user_id', currentUser.id)
-                        .eq('id', itemToDelete.id); // Radera exakt rätt rad i Supabase
-                } catch (dbErr) {
-                    console.error("Kunde inte radera passet direkt från Supabase-tabellen:", dbErr);
-                }
+        } else {
+            // Fallback: Om ID saknas, ta bort baserat på datum som din tidigare kod gjorde
+            const globalIdx = workoutHistory.findIndex(w => w.date === dateStr);
+            if (globalIdx !== -1) {
+                workoutHistory.splice(globalIdx, 1);
             }
         }
+        
+        // 2. Spara den rensade listan till LocalStorage direkt för omedelbar respons
+        localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
+        
+        // 3. Stäng fönstret och uppdatera kalendervyn i appen direkt
+        hideDefaultCloseButton(false);
+        closeModal();
+        if (typeof renderCalendar === 'function') {
+            renderCalendar(false); 
+        }
 
-        // Kör din gamla callback om den finns kvar som fallback
+        // 4. Skicka raderingen asynkront till Supabase i bakgrunden via din funktion i supabase-data.js
         if (typeof deleteWorkoutFromHistory === 'function') {
             await deleteWorkoutFromHistory(dateStr, idx);
         }
         
-        hideDefaultCloseButton(false);
-        closeModal();
-        
-        if (typeof renderCalendar === 'function') {
-            renderCalendar(false); 
+        // SÄKERHETS-SYNCHRONISERING: Tvinga även en saveAll() för att skriva över 'workout_history' i tabellen ifall delete-funktionen missar
+        if (typeof saveAll === 'function') {
+            await saveAll();
         }
     };
 
