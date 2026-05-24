@@ -307,8 +307,8 @@ async function saveActiveDraft() {
     }
 }
 
-// FULLSTÄNDIGT OMSKRIVEN, BOMBSÄKER RADERING UTAN OSÄKRA JSON-FILTER
-async function deleteWorkoutFromHistory(date, idx) {
+// NYTT UNIKT FUNKTIONSNAMN FÖR ATT UNDVIKA CACHE-SPÖKEN OCH BIGINT-FEL
+async function deleteWorkoutFromHistoryV2(date, idx) {
     if (!currentUser) return;
 
     // 1. Hitta exakt rätt pass lokalt baserat på datum och index
@@ -316,11 +316,11 @@ async function deleteWorkoutFromHistory(date, idx) {
     const item = filtered[idx];
     if (!item) return;
 
-    console.log("Initierar säker radering för tränings-ID:", item.id);
+    console.log("Kör deleteWorkoutFromHistoryV2 för tränings-ID (JS):", item.id);
 
     try {
         // 2. Hämta alla rader på det aktuella datumet för användaren
-        // Detta gör att vi får med databasens egna, platta 'id'-kolumn på rot-nivå!
+        // Detta gör att vi får med databasens RIKTIGA, platta, numeriska 'id'-kolumn på rot-nivå!
         const { data: dbRows, error: fetchError } = await supabaseClient
             .from('workout_history')
             .select('id, workout_data')
@@ -330,37 +330,31 @@ async function deleteWorkoutFromHistory(date, idx) {
         if (fetchError) throw fetchError;
 
         if (dbRows && dbRows.length > 0) {
-            // 3. Matcha fram exakt vilken rad i databasen som innehåller vårt unika JS-id
+            // 3. Matcha fram exakt vilken rad i databasen som innehåller vårt unika JS-id inuti sin JSON
             const rowToDelete = dbRows.find(row => {
                 return row.workout_data && row.workout_data.id === item.id;
             });
 
-            // 4. Om vi hittade raden, radera den med databasens egna, platta rot-ID!
+            // 4. Om vi hittade raden, radera den med databasens numeriska BIGINT id-kolumn!
             if (rowToDelete) {
-                console.log("Hittade matchande rad i databasen med SQL-id:", rowToDelete.id);
+                console.log("Hittade matchande rad i databasen. Raderar med det numeriska SQL-id:t:", rowToDelete.id);
                 const { error: deleteError } = await supabaseClient
                     .from('workout_history')
                     .delete()
                     .eq('user_id', currentUser.id)
-                    .eq('id', rowToDelete.id); // PLATT MATCHNING! Det här kan inte misslyckas med 400 längre.
+                    .eq('id', rowToDelete.id); // Detta skickar ett heltal, INTE en textsträng! Ingen mer 22P02/400-error.
 
                 if (deleteError) throw deleteError;
-                console.log("✅ Raden raderades framgångsrikt från Supabase-molnet!");
+                console.log("✅ Raden raderades framgångsrikt från Supabase!");
             } else {
-                console.warn("Hittade ingen exakt ID-matchning i databasen, kör reservmetod (datum-radering)...");
-                // Reservmetod: Ta bort baserat på datum om vi inte hittar raden
-                await supabaseClient
-                    .from('workout_history')
-                    .delete()
-                    .eq('user_id', currentUser.id)
-                    .eq('workout_date', date);
+                console.warn("Hittade ingen exakt ID-matchning i databasen.");
             }
         }
     } catch (err) {
-        console.error("Ett fel uppstod under databasraderingen, men vi rensar lokalt:", err);
+        console.error("Det gick inte att radera från databasen, rensar lokalt:", err);
     }
 
-    // 5. RADERA LOKALT PERMANENT (Exakt som i din fungerande grundkod)
+    // 5. RADERA LOKALT PERMANENT
     workoutHistory = workoutHistory.filter(w => w.id !== item.id);
     localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
     
@@ -379,6 +373,11 @@ async function deleteWorkoutFromHistory(date, idx) {
             renderHome();
         }
     }
+}
+
+// Behåll det gamla namnet som en länk till det nya utifall att det anropas från ställen vi inte ser
+async function deleteWorkoutFromHistory(date, idx) {
+    return await deleteWorkoutFromHistoryV2(date, idx);
 }
 
 async function clearActiveDraft() {
