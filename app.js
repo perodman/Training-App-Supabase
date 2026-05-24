@@ -709,8 +709,13 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
         </div>
     `;
     
-    // 1. Slutförda pass på detta datum (Hämtas från det synkroniserade workoutHistory-objektet)
+    // SECTION 1: Slutförda pass på detta datum
     if (completed && completed.length > 0) {
+        html += `<div style="display: flex; align-items: center; gap: 10px; margin-top: 10px; width: 100%;">
+            <span style="font-size: 11px; text-transform: uppercase; color: var(--text-light); font-weight: 700; letter-spacing: 1px;">Historik</span>
+            <div style="flex-grow: 1; height: 1px; background: rgba(255,255,255,0.08);"></div>
+        </div>`;
+
         completed.forEach((w, idx) => {
             const timeStr = w.totalTime ? `⏱️ ${w.totalTime}` : "";
             html += `
@@ -759,8 +764,9 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
             html += `</div></div>`;
         });
     } 
-    // 2. Pågående aktivt utkast (activeDraft)
-    else if (isOngoing) {
+
+    // SECTION 2: Pågående aktivt utkast (activeDraft) på detta datum
+    if (isOngoing && activeDraft) {
         html += `
         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px; width: 100%; margin-top: 16px;">
             <div style="flex-grow: 1; height: 1px; background: rgba(255,255,255,0.08);"></div>
@@ -779,91 +785,89 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
             </button>
         </div>`;
     }
-    // 3. Planerad träning eller vila för dagen
-    else {
+    
+    // SECTION 3: Planering / Starta nytt pass för dagen (Denna visas ALLTID nu om det inte är pågående)
+    if (!isOngoing) {
         html += `
         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px; width: 100%; margin-top: 16px;">
             <div style="flex-grow: 1; height: 1px; background: rgba(255,255,255,0.08);"></div>
-            <span class="status-box-title" style="font-size: 12px !important; text-transform: uppercase; color: var(--text-light); font-weight: 700; letter-spacing: 1px; margin: 0 !important; white-space: nowrap;">Status</span>
+            <span class="status-box-title" style="font-size: 12px !important; text-transform: uppercase; color: var(--text-light); font-weight: 700; letter-spacing: 1px; margin: 0 !important; white-space: nowrap;">Planering</span>
             <div style="flex-grow: 1; height: 1px; background: rgba(255,255,255,0.08);"></div>
         </div>
         
-        <div class="modern-status-card day-manager-status-box" style="padding: 30px 15px 30px 15px !important; align-items: stretch !important; margin-top: -10px !important;">
+        <div class="modern-status-card day-manager-status-box" style="padding: 20px 15px 20px 15px !important; align-items: stretch !important;">
             
-            <p id="current-planned-label" class="status-box-text" style="margin: 0 0 8px 0 !important; text-align: center !important; font-size: 16px; font-weight: 600; padding: 0 !important; line-height: 1.2 !important;">
-                ${planned ? `📋 <span class="status-highlight-text">${planned.name}</span>` : '🧘 Planerad Vila'}
+            <p id="current-planned-label" class="status-box-text" style="margin: 0 0 12px 0 !important; text-align: center !important; font-size: 16px; font-weight: 600; padding: 0 !important; line-height: 1.2 !important;">
+                ${planned ? `📋 Planerad: <span class="status-highlight-text" style="color:var(--primary);">${planned.name}</span>` : '🧘 Planerad Vila'}
             </p>
         
-            <div id="day-manager-action-btn-container" class="status-btn-container" style="width: 100% !important; display: flex; flex-direction: column; gap: 10px; margin-top: 5px;">`;
+            <div id="day-manager-action-btn-container" class="status-btn-container" style="width: 100% !important; display: flex; flex-direction: column; gap: 10px;">`;
             
             if(planned) {
                 html += `
-                <button class="mode-btn premium-action-btn premium-green-btn" onclick="prepareStart('${dateStr}', '${planned.id}')" style="width: 100% !important; margin: 0 !important; padding: 12px !important;">
-                    Starta Träning 🔥
+                <button class="mode-btn premium-action-btn premium-green-btn" onclick="prepareStart('${dateStr}', '${planned.id}')" style="width: 100% !important; margin: 0 !important; padding: 12px !important; font-weight: 700;">
+                    Starta Planerat Pass 🔥
                 </button>`;
             }
             
         html += `
+                <button class="mode-btn premium-action-btn premium-free-btn" 
+                    onclick="closeModal(); startFreeWorkoutOnDate('${dateStr}')" 
+                    style="width: 100% !important; margin: 0 !important; padding: 12px !important; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #ffffff; cursor: pointer; font-weight: 700;">
+                    ➕ Starta Fritt Pass
+                </button>
             </div>
-            
-           <button class="mode-btn premium-action-btn premium-free-btn" 
-                onclick="closeModal(); startFreeWorkoutOnDate('${dateStr}')" 
-                style="width: 100% !important; margin: 10px 0 0 0 !important; padding: 10px !important; touch-action: manipulation; -webkit-tap-highlight-color: transparent; cursor: pointer;">
-                ➕ Starta Fritt Pass
-           </button>
         </div>`;
 
         // ÄNDRA PLANERING - GRID MED ALLA PASS I RUTINEN
         html += `
-        <div style="margin-top: 1px; width: 100%;">
-            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+        <div style="margin-top: 5px; width: 100%;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
                 <div style="flex-grow: 1; height: 1px; background: rgba(255,255,255,0.08);"></div>
-                <p style="font-size: 12px; text-transform: uppercase; color: var(--text-light); font-weight: 700; letter-spacing: 1px; margin: 0 !important; white-space: nowrap;">Ändra planering</p>
+                <p style="font-size: 12px; text-transform: uppercase; color: var(--text-light); font-weight: 700; letter-spacing: 1px; margin: 0 !important; white-space: nowrap;">Ändra schema</p>
                 <div style="flex-grow: 1; height: 1px; background: rgba(255,255,255,0.08);"></div>
-            </div>
-            
-            <div style="text-align: center; margin-bottom: 12px;">
-                <span style="font-size: 11px; color: var(--text-light); opacity: 0.5; font-weight: 500; letter-spacing: 0.3px;">💡 Håll inne ett pass för att se övningar</span>
             </div>
             
             <div class="plan-override-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; width: 100%;">`;
             
-            programData.routine.forEach((p, idx) => {
-                const isSelected = planned && p.id === planned.id;
-                
-                const colors = [
-                    { r: 239, g: 68,  b: 68 },   // Röd
-                    { r: 59,  g: 130, b: 246 },  // Blå
-                    { r: 16,  g: 185, b: 129 },  // Grön
-                    { r: 168, g: 85,  b: 247 }   // Lila
-                ];
-                
-                const colorIndex = idx % colors.length;
-                const c = colors[colorIndex];
-                const currentOpacity = isSelected ? "1" : "0.25";
-                const borderColor = `rgba(${c.r}, ${c.g}, ${c.b}, ${currentOpacity})`;
-                const btnBg = `rgba(${c.r}, ${c.g}, ${c.b}, 0.04)`;
- 
-                html += `
-                <button class="mode-btn plan-override-btn ${isSelected ? 'active-choice' : ''}" 
-                        id="btn-ovr-${p.id}" 
-                        
-                        onmousedown="startPress(${idx}, event)"
-                        onmouseup="if(!isLongPress && !hasScrolled) setOverrideSilent('${dateStr}', '${p.id}'); cancelPress();"
-                        onmouseleave="cancelPress();"
-                        
-                        ontouchstart="startPress(${idx}, event)"
-                        ontouchend="handleTouchEnd(${idx}, '${dateStr}', '${p.id}', event)"
-                        ontouchmove="handleTouchMove(event)"
-                        
-                        style="margin: 0; padding: 15px 12px; font-size: 13px; border-radius: 12px; font-weight: 600; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; width: 100%;
-                               background: ${isSelected ? 'rgba(255,255,255,0.1)' : btnBg} !important;
-                               border-top: 2px solid ${borderColor} !important;
-                               color: ${isSelected ? '#ffffff' : 'var(--text-light)'} !important;
-                               user-select: none !important; -webkit-user-select: none !important; -webkit-touch-callout: none !important;">
-                    ${p.name}
-                </button>`;
-            });
+            if (programData && programData.routine) {
+                programData.routine.forEach((p, idx) => {
+                    const isSelected = planned && p.id === planned.id;
+                    
+                    const colors = [
+                        { r: 239, g: 68,  b: 68 },  // Röd
+                        { r: 59,  g: 130, b: 246 },  // Blå
+                        { r: 16,  g: 185, b: 129 },  // Grön
+                        { r: 168, g: 85,  b: 247 }   // Lila
+                    ];
+                    
+                    const colorIndex = idx % colors.length;
+                    const c = colors[colorIndex];
+                    const currentOpacity = isSelected ? "1" : "0.25";
+                    const borderColor = `rgba(${c.r}, ${c.g}, ${c.b}, ${currentOpacity})`;
+                    const btnBg = `rgba(${c.r}, ${c.g}, ${c.b}, 0.04)`;
+     
+                    html += `
+                    <button class="mode-btn plan-override-btn ${isSelected ? 'active-choice' : ''}" 
+                            id="btn-ovr-${p.id}" 
+                            
+                            onmousedown="startPress(${idx}, event)"
+                            onmouseup="if(!isLongPress && !hasScrolled) setOverrideSilent('${dateStr}', '${p.id}'); cancelPress();"
+                            onmouseleave="cancelPress();"
+                            
+                            ontouchstart="startPress(${idx}, event)"
+                            ontouchend="handleTouchEnd(${idx}, '${dateStr}', '${p.id}', event)"
+                            ontouchmove="handleTouchMove(event)"
+                            
+                            style="margin: 0; padding: 15px 12px; font-size: 13px; border-radius: 12px; font-weight: 600; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; width: 100%;
+                                   background: ${isSelected ? 'rgba(255,255,255,0.1)' : btnBg} !important;
+                                   border-top: 2px solid ${borderColor} !important;
+                                   color: ${isSelected ? '#ffffff' : 'var(--text-light)'} !important;
+                                   user-select: none !important; -webkit-user-select: none !important; -webkit-touch-callout: none !important;">
+                        ${p.name}
+                    </button>`;
+                });
+            }
             
             const isRestSelected = !planned;
             const restBorderColor = isRestSelected ? "rgba(253, 224, 71, 1)" : "rgba(253, 224, 71, 0.2)";
@@ -928,8 +932,32 @@ async function setOverrideSilent(date, val) {
 }
 
 function startFreeWorkoutOnDate(date) {
-    const freePass = { id: "free-" + Date.now(), name: "Fritt Pass", exercises: [] };
-    startWorkout(freePass, null, date, true); 
+    console.log("🚀 Initierar Fritt Pass för datum:", date);
+    const freePass = { 
+        id: "free-" + Date.now(), 
+        name: "Fritt Pass", 
+        exercises: [] 
+    };
+    
+    // Nollställ eventuella gamla rester i data och tvinga igång tillståndet ordentligt
+    if (typeof startWorkout === 'function') {
+        startWorkout(freePass, [], date, true);
+        
+        // Sätt flaggan direkt så att renderActiveWorkout inte fastnar på startskärmen
+        if (activeDraft) {
+            activeDraft.isStarted = true;
+            if (typeof persistActiveWorkout === 'function') {
+                persistActiveWorkout();
+            }
+        }
+        
+        // Kör renderingen direkt för att hoppa förbi klockstart-knappen om det behövs
+        if (typeof renderActiveWorkout === 'function') {
+            renderActiveWorkout();
+        }
+    } else {
+        console.error("❌ startWorkout-funktionen saknas i appen!");
+    }
 }
 
 function openMonthPicker() {
@@ -1342,10 +1370,14 @@ async function startWorkout(workout, data = null, date = null, isImmediateStart 
 let temporarySelectedExercises = [];
 
 function renderActiveWorkout() {
-    if (activeDraft && activeDraft.data) {
+    if (!activeDraft || !activeDraft.workout) {
+        console.warn("⚠️ Inget aktivt utkast tillgängligt.");
+        return;
+    }
+
+    if (activeDraft.data) {
         activeDraft.data.forEach((exerciseData, i) => {
             if (!exerciseData.isCompleted && exerciseData.sets_data) {
-                const hasInputValues = exerciseData.sets_data.some(s => s.weight || s.reps);
                 const isBrandNewAndGhostChecked = exerciseData.sets_data.every(s => s.userConfirmed === true) && !activeDraft.ui_state?.openExercises?.includes(i);
                 
                 if (isBrandNewAndGhostChecked && exerciseData.sets_data.length > 0) {
@@ -1363,6 +1395,7 @@ function renderActiveWorkout() {
     if (!list) return;
     list.innerHTML = "";
 
+    // Om passet inte är flaggat som startat, visa startknappen
     if(!activeDraft.isStarted) {
         if (footer) footer.classList.add("hidden");
         list.innerHTML = `
@@ -1379,12 +1412,11 @@ function renderActiveWorkout() {
 
     if (footer) footer.classList.remove("hidden");
     
-    // KORRIGERING: Vi sätter onclick-funktionen här i JavaScript så att den inte skrivs över!
     const pauseBtn = document.getElementById("pause-workout-btn");
     if (pauseBtn) {
         pauseBtn.innerHTML = `Spara utkast 💾`;
         pauseBtn.className = "mode-btn save-draft-btn";
-        pauseBtn.onclick = saveDraftAndGoHome; // Denna rad säkrar att knappen faktiskt kör spara-funktionen!
+        pauseBtn.onclick = saveDraftAndGoHome; 
     }
 
     if (!activeDraft.ui_state) {
@@ -1400,103 +1432,110 @@ function renderActiveWorkout() {
         if (!activeDraft.ui_state.hasOwnProperty('hasInitializedOpen')) {
             activeDraft.ui_state.openExercises = [0];
             activeDraft.ui_state.hasInitializedOpen = true;
-            persistActiveWorkout(); 
+            if (typeof persistActiveWorkout === 'function') persistActiveWorkout(); 
         }
     }
     
     const openExercises = activeDraft.ui_state.openExercises;
 
-    activeDraft.workout.exercises.forEach((ex, i) => {
-        const exerciseData = activeDraft.data[i];
-        if (!exerciseData) return;
-        const isDone = exerciseData.isCompleted;
-        const isOpen = openExercises.includes(i);
-        
-        const div = document.createElement("div");
-        div.className = "card glass" + (isDone ? " exercise-done" : "");
-        div.style.padding = "0"; 
-        div.style.overflow = "hidden";
-        
-        const completedSets = exerciseData.sets_data ? exerciseData.sets_data.filter(s => s.userConfirmed).length : 0;
-        const totalSets = exerciseData.sets_data ? exerciseData.sets_data.length : 0;
+    if (activeDraft.workout.exercises && activeDraft.workout.exercises.length > 0) {
+        activeDraft.workout.exercises.forEach((ex, i) => {
+            const exerciseData = activeDraft.data[i];
+            if (!exerciseData) return;
+            const isDone = exerciseData.isCompleted;
+            const isOpen = openExercises.includes(i);
+            
+            const div = document.createElement("div");
+            div.className = "card glass" + (isDone ? " exercise-done" : "");
+            div.style.padding = "0"; 
+            div.style.overflow = "hidden";
+            
+            const completedSets = exerciseData.sets_data ? exerciseData.sets_data.filter(s => s.userConfirmed).length : 0;
+            const totalSets = exerciseData.sets_data ? exerciseData.sets_data.length : 0;
 
-        let setsHtml = `<div style="margin-top:10px;">
-            <div style="display:grid; grid-template-columns: 40px 1fr 1fr 30px; gap:8px; margin-bottom:5px; align-items:center;">
-                <small style="text-align:left; padding-left:5px; color:var(--text-light); font-size:9px; font-weight:700;">SET</small>
-                <small style="text-align:center; color:var(--text-light); font-size:9px;">KG</small>
-                <small style="text-align:center; color:var(--text-light); font-size:9px;">REPS</small>
-                <span></span>
-            </div>`;
-
-        if (exerciseData.sets_data) {
-            exerciseData.sets_data.forEach((set, sIdx) => {
-                let isLocked = false;
-                let isCurrent = false;
-                if (sIdx > 0 && !isDone) {
-                    const prevSet = exerciseData.sets_data[sIdx - 1];
-                    if (!prevSet.userConfirmed) isLocked = true;
-                }
-                if (isDone) isLocked = true;
-                if (!set.userConfirmed && !isLocked && !isDone) isCurrent = true;
-
-                const showSuccess = set.userConfirmed || isDone;
-                let circleColor = showSuccess ? '#22c55e' : (isCurrent ? '#facc15' : '#f59e0b');
-                const statusContent = showSuccess ? '✅' : `#${sIdx + 1}`;
-
-                setsHtml += `
-                <div style="display:grid; grid-template-columns: 40px 1fr 1fr 30px; gap:8px; margin-bottom:8px; align-items:center;">
-                    <div onclick="${isLocked && !isDone ? '' : `confirmSet(${i}, ${sIdx})`}" 
-                         style="width:32px; height:32px; border-radius:50%; border:2px solid ${circleColor}; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:10px; font-weight:800; background: ${showSuccess ? 'rgba(34, 197, 94, 0.2)' : (isCurrent ? 'rgba(250, 204, 21, 0.15)' : 'rgba(245, 158, 11, 0.05)')}; color: ${circleColor}; opacity: 1;">
-                        ${statusContent}
-                    </div>
-                    <input type="text" inputmode="decimal" id="w-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'};" value="${set.weight || ''}" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})">
-                    <input type="text" inputmode="decimal" id="r-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'};" value="${set.reps || ''}" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})">
-                    <button onclick="removeSetFromExercise(${i}, ${sIdx})" style="background:none; border:none; color:var(--danger); font-size:16px; opacity: ${isLocked || showSuccess ? '0.1' : '0.8'};" ${isLocked ? 'disabled' : ''}>×</button>
+            let setsHtml = `<div style="margin-top:10px;">
+                <div style="display:grid; grid-template-columns: 40px 1fr 1fr 30px; gap:8px; margin-bottom:5px; align-items:center;">
+                    <small style="text-align:left; padding-left:5px; color:var(--text-light); font-size:9px; font-weight:700;">SET</small>
+                    <small style="text-align:center; color:var(--text-light); font-size:9px;">KG</small>
+                    <small style="text-align:center; color:var(--text-light); font-size:9px;">REPS</small>
+                    <span></span>
                 </div>`;
 
-                if (isCurrent) {
+            if (exerciseData.sets_data) {
+                exerciseData.sets_data.forEach((set, sIdx) => {
+                    let isLocked = false;
+                    let isCurrent = false;
+                    if (sIdx > 0 && !isDone) {
+                        const prevSet = exerciseData.sets_data[sIdx - 1];
+                        if (!prevSet.userConfirmed) isLocked = true;
+                    }
+                    if (isDone) isLocked = true;
+                    if (!set.userConfirmed && !isLocked && !isDone) isCurrent = true;
+
+                    const showSuccess = set.userConfirmed || isDone;
+                    let circleColor = showSuccess ? '#22c55e' : (isCurrent ? '#facc15' : '#f59e0b');
+                    const statusContent = showSuccess ? '✅' : `#${sIdx + 1}`;
+
                     setsHtml += `
-                    <div style="grid-column: 2 / span 2; margin:-4px 0 8px 0; padding-left:2px; opacity:0.8; font-size:10px; color:var(--primary); font-weight:600; letter-spacing:0.3px;">
-                        💡 Klicka på ${statusContent} för att låsa & gå vidare
+                    <div style="display:grid; grid-template-columns: 40px 1fr 1fr 30px; gap:8px; margin-bottom:8px; align-items:center;">
+                        <div onclick="${isLocked && !isDone ? '' : `confirmSet(${i}, ${sIdx})`}" 
+                             style="width:32px; height:32px; border-radius:50%; border:2px solid ${circleColor}; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:10px; font-weight:800; background: ${showSuccess ? 'rgba(34, 197, 94, 0.2)' : (isCurrent ? 'rgba(250, 204, 21, 0.15)' : 'rgba(245, 158, 11, 0.05)')}; color: ${circleColor}; opacity: 1;">
+                            ${statusContent}
+                        </div>
+                        <input type="text" inputmode="decimal" id="w-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'};" value="${set.weight || ''}" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})">
+                        <input type="text" inputmode="decimal" id="r-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'};" value="${set.reps || ''}" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})">
+                        <button onclick="removeSetFromExercise(${i}, ${sIdx})" style="background:none; border:none; color:var(--danger); font-size:16px; opacity: ${isLocked || showSuccess ? '0.1' : '0.8'};" ${isLocked ? 'disabled' : ''}>×</button>
                     </div>`;
-                }
-            });
-        }
 
-        div.innerHTML = `
-        <div onclick="toggleExercise(${i})" style="padding: 12px 15px; display: flex; align-items: center; cursor: pointer; background: ${isOpen ? 'rgba(250, 204, 21, 0.05)' : 'transparent'}">
+                    if (isCurrent) {
+                        setsHtml += `
+                        <div style="grid-column: 2 / span 2; margin:-4px 0 8px 0; padding-left:2px; opacity:0.8; font-size:10px; color:var(--primary); font-weight:600; letter-spacing:0.3px;">
+                            💡 Klicka på ${statusContent} för att låsa & gå vidare
+                        </div>`;
+                    }
+                });
+            }
+
+            div.innerHTML = `
+            <div onclick="toggleExercise(${i})" style="padding: 12px 15px; display: flex; align-items: center; cursor: pointer; background: ${isOpen ? 'rgba(250, 204, 21, 0.05)' : 'transparent'}">
+                <div style="display: flex; gap: 4px; margin-right: 12px; flex-shrink: 0;">
+                    <button class="reorder-btn" onclick="event.stopPropagation(); moveActiveExercise(${i}, -1)" ${isDone ? 'disabled' : ''} style="padding: 4px 6px; font-size: 10px;">▲</button>
+                    <button class="reorder-btn" onclick="event.stopPropagation(); moveActiveExercise(${i}, 1)" ${isDone ? 'disabled' : ''} style="padding: 4px 6px; font-size: 10px;">▼</button>
+                </div>
+
+                <div style="display: flex; flex-direction: column; min-width:0; flex-grow:1;">
+                    <strong style="font-size: 14px; color: ${isDone ? 'var(--text-light)' : 'var(--text)'}; text-decoration: ${isDone ? 'line-through' : 'none'}; white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">
+                        ${ex.name}
+                    </strong>
+                    <small style="color: ${isDone ? '#22c55e' : 'var(--primary)'}; font-size: 10px;">
+                        ${isDone ? 'KLAR ✅' : `${completedSets}/${totalSets} set`}
+                    </small>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0; margin-left: 10px;">
+                    <button onclick="event.stopPropagation(); openReplaceExerciseModal(${i})" style="background:none; border:none; font-size:14px; padding:5px; opacity: 0.7;" ${isDone ? 'disabled' : ''}>🔄</button>
+                    <button onclick="event.stopPropagation(); removeActiveExercise(${i})" style="background:none; border:none; font-size:14px; padding:5px; opacity: 0.7;" ${isDone ? 'disabled' : ''}>✖</button>
+                    <span style="font-size: 10px; color: var(--text-light); margin-left: 5px; transform: ${isOpen ? 'rotate(180deg)' : 'rotate(0)'}; transition: 0.3s;">▼</span>
+                </div>
+            </div>
+
+            <div style="padding: 0 15px 15px 15px; display: ${isOpen ? 'block' : 'none'}; border-top: 1px solid rgba(255,255,255,0.05);">
+                ${setsHtml}
+                <button class="mode-border glass-border" style="padding:8px; font-size:11px; margin-top:10px; border-style:dashed; width:100%;" onclick="addSetToExercise(${i})" ${isDone ? 'disabled' : ''}>+ Lägg till set</button>
+                <button class="mode-btn ${isDone ? 'blue' : 'green'}" style="padding:12px; font-size:13px; margin-top:15px; width:100%; font-weight:bold;" onclick="toggleExerciseDone(${i})">
+                    ${isDone ? 'Ångra Klar ↩️' : 'Markera övning som klar ✅'}
+                </button>
+            </div>`;
             
-            <div style="display: flex; gap: 4px; margin-right: 12px; flex-shrink: 0;">
-                <button class="reorder-btn" onclick="event.stopPropagation(); moveActiveExercise(${i}, -1)" ${isDone ? 'disabled' : ''} style="padding: 4px 6px; font-size: 10px;">▲</button>
-                <button class="reorder-btn" onclick="event.stopPropagation(); moveActiveExercise(${i}, 1)" ${isDone ? 'disabled' : ''} style="padding: 4px 6px; font-size: 10px;">▼</button>
-            </div>
-
-            <div style="display: flex; flex-direction: column; min-width:0; flex-grow:1;">
-                <strong style="font-size: 14px; color: ${isDone ? 'var(--text-light)' : 'var(--text)'}; text-decoration: ${isDone ? 'line-through' : 'none'}; white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">
-                    ${ex.name}
-                </strong>
-                <small style="color: ${isDone ? '#22c55e' : 'var(--primary)'}; font-size: 10px;">
-                    ${isDone ? 'KLAR ✅' : `${completedSets}/${totalSets} set`}
-                </small>
-            </div>
-
-            <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0; margin-left: 10px;">
-                <button onclick="event.stopPropagation(); openReplaceExerciseModal(${i})" style="background:none; border:none; font-size:14px; padding:5px; opacity: 0.7;" ${isDone ? 'disabled' : ''}>🔄</button>
-                <button onclick="event.stopPropagation(); removeActiveExercise(${i})" style="background:none; border:none; font-size:14px; padding:5px; opacity: 0.7;" ${isDone ? 'disabled' : ''}>✖</button>
-                <span style="font-size: 10px; color: var(--text-light); margin-left: 5px; transform: ${isOpen ? 'rotate(180deg)' : 'rotate(0)'}; transition: 0.3s;">▼</span>
-            </div>
-        </div>
-
-        <div style="padding: 0 15px 15px 15px; display: ${isOpen ? 'block' : 'none'}; border-top: 1px solid rgba(255,255,255,0.05);">
-            ${setsHtml}
-            <button class="mode-border glass-border" style="padding:8px; font-size:11px; margin-top:10px; border-style:dashed; width:100%;" onclick="addSetToExercise(${i})" ${isDone ? 'disabled' : ''}>+ Lägg till set</button>
-            <button class="mode-btn ${isDone ? 'blue' : 'green'}" style="padding:12px; font-size:13px; margin-top:15px; width:100%; font-weight:bold;" onclick="toggleExerciseDone(${i})">
-                ${isDone ? 'Ångra Klar ↩️' : 'Markera övning som klar ✅'}
-            </button>
-        </div>`;
-        
-        list.appendChild(div);
-    });
+            list.appendChild(div);
+        });
+    } else {
+        // Om det är ett helt tomt Fritt Pass, lägg till en informativ textrad
+        const emptyNotice = document.createElement("p");
+        emptyNotice.style.cssText = "color: var(--text-light); text-align: center; padding: 30px 10px; font-size: 14px;";
+        emptyNotice.innerHTML = "Det här passet är tomt.<br>Klicka på knappen nedan för att lägga till dina övningar! 👇";
+        list.appendChild(emptyNotice);
+    }
 
     const addBtn = document.createElement("button");
     addBtn.className = "mode-btn glass-border";
