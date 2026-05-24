@@ -308,70 +308,70 @@ async function saveActiveDraft() {
 }
 
 // NYTT UNIKT FUNKTIONSNAMN FÖR ATT UNDVIKA CACHE-SPÖKEN OCH BIGINT-FEL
-async function deleteWorkoutFromHistoryV2(date, idx) {
-    if (!currentUser) return;
-
-    // 1. Hitta exakt rätt pass lokalt baserat på datum och index
-    const filtered = workoutHistory.filter(w => w.date === date);
-    const item = filtered[idx];
-    if (!item) return;
-
-    console.log("Kör deleteWorkoutFromHistoryV2 för tränings-ID (JS):", item.id);
+async function deleteWorkoutFromHistoryV2(dateStr, idx, passedId = null) {
+    console.log("📥 [SUPABASE-DATA] deleteWorkoutFromHistoryV2 startad. Datum:", dateStr, "Index:", idx, "Skickat ID:", passedId);
+    
+    if (!currentUser) {
+        console.warn("⚠️ [SUPABASE-DATA] Ingen inloggad användare, avbryter databasradering.");
+        return { success: false, error: "No user" };
+    }
 
     try {
-        // 2. Hämta alla rader på det aktuella datumet för användaren
-        // Detta gör att vi får med databasens RIKTIGA, platta, numeriska 'id'-kolumn på rot-nivå!
-        const { data: dbRows, error: fetchError } = await supabaseClient
+        let workoutIdToDelete = passedId;
+
+        // Om inget ID skickades med, försök hitta det via localStorage som fallback
+        if (!workoutIdToDelete) {
+            const localHistory = JSON.parse(localStorage.getItem("workoutHistory") || "[]");
+            const filtered = localHistory.filter(w => w.date === dateStr);
+            if (filtered[idx]) {
+                workoutIdToDelete = filtered[idx].id;
+            }
+        }
+
+        if (!workoutIdToDelete) {
+            console.error("❌ [SUPABASE-DATA] Kunde inte fastställa vilket tränings-ID som ska raderas.");
+            return { success: false, error: "No ID found" };
+        }
+
+        console.log("🔎 [SUPABASE-DATA] Letar efter raden i 'workout_history' som har JS-id:", workoutIdToDelete);
+
+        // 1. Hämta raden från Supabase för att få det RIKTIGA internt genererade bigint-id:t
+        const { data, error: fetchError } = await supabaseClient
             .from('workout_history')
             .select('id, workout_data')
-            .eq('user_id', currentUser.id)
-            .eq('workout_date', date);
+            .eq('user_id', currentUser.id);
 
         if (fetchError) throw fetchError;
 
-        if (dbRows && dbRows.length > 0) {
-            // 3. Matcha fram exakt vilken rad i databasen som innehåller vårt unika JS-id inuti sin JSON
-            const rowToDelete = dbRows.find(row => {
-                return row.workout_data && row.workout_data.id === item.id;
-            });
+        // Hitta raden där datan matchar vårt unika tränings-id (oavsett om det är text eller siffra lokalt)
+        const rowToDelete = data.find(item => {
+            if (item.workout_data && item.workout_data.id === workoutIdToDelete) return true;
+            if (item.workout_data && String(item.workout_data.id) === String(workoutIdToDelete)) return true;
+            return false;
+        });
 
-            // 4. Om vi hittade raden, radera den med databasens numeriska BIGINT id-kolumn!
-            if (rowToDelete) {
-                console.log("Hittade matchande rad i databasen. Raderar med det numeriska SQL-id:t:", rowToDelete.id);
-                const { error: deleteError } = await supabaseClient
-                    .from('workout_history')
-                    .delete()
-                    .eq('user_id', currentUser.id)
-                    .eq('id', rowToDelete.id); // Detta skickar ett heltal, INTE en textsträng! Ingen mer 22P02/400-error.
-
-                if (deleteError) throw deleteError;
-                console.log("✅ Raden raderades framgångsrikt från Supabase!");
-            } else {
-                console.warn("Hittade ingen exakt ID-matchning i databasen.");
-            }
+        if (!rowToDelete) {
+            console.warn("⚠️ [SUPABASE-DATA] Hittade ingen matchande rad i databasen för ID:", workoutIdToDelete, "- Den kan redan vara raderad.");
+            return { success: true, info: "Already deleted or not found" };
         }
+
+        console.log("🔥 [SUPABASE-DATA] Hittade rad i databasen! Intern-ID (bigint):", rowToDelete.id, ". Raderar nu...");
+
+        // 2. Radera raden med det RIKTIGA databas-id:t (bigint)
+        const { error: deleteError } = await supabaseClient
+            .from('workout_history')
+            .delete()
+            .eq('id', rowToDelete.id)
+            .eq('user_id', currentUser.id);
+
+        if (deleteError) throw deleteError;
+
+        console.log("✅ [SUPABASE-DATA] Raden raderades framgångsrikt från Supabase!");
+        return { success: true };
+
     } catch (err) {
-        console.error("Det gick inte att radera från databasen, rensar lokalt:", err);
-    }
-
-    // 5. RADERA LOKALT PERMANENT
-    workoutHistory = workoutHistory.filter(w => w.id !== item.id);
-    localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
-    
-    if (typeof saveAll === 'function') {
-        await saveAll();
-    }
-
-    // 6. RENDERING AV GRÄNSSNITTET DIREKT UTAN ATT DET BLINKAR
-    if (typeof renderCalendar === 'function') {
-        renderCalendar(false); 
-    }
-    
-    if (typeof renderHome === 'function') {
-        const currentView = window.currentView || "";
-        if (currentView === "home-view") {
-            renderHome();
-        }
+        console.error("❌ [SUPABASE-DATA] Allvarligt fel i deleteWorkoutFromHistoryV2:", err);
+        return { success: false, error: err.message };
     }
 }
 
