@@ -2528,3 +2528,56 @@ function confirmDiscardActiveWorkout() {
 
     openModal();
 }
+
+// NY SKRÄDDARSYDD POPUP FÖR ATT RADERA ETT HISTORISKT PASS INIFRÅN EDITERINGSLÄGET
+// Denna har nu helt rätt benämning och text anpassat för ett historiskt pass!
+function confirmDeleteFromEditMode(dateStr, idx) {
+    const body = document.getElementById("modal-body");
+    if (!body) return;
+
+    body.innerHTML = `
+        <div style="text-align:center; padding:10px;">
+            <div style="font-size:40px; margin-bottom:15px;">🗑️</div>
+            <h3 style="color:var(--danger); margin: 0 0 10px 0; font-size:22px;">Radera sparat pass?</h3>
+            <p style="color:var(--text-light); margin-bottom:25px; font-size:14px; line-height:1.4;">
+                Är du säker på att du vill ta bort detta slutförda pass från din historik? Detta går inte att ångra.
+            </p>
+            <button class="mode-btn" id="execute-delete-from-edit-btn" style="background:linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color:white; margin-bottom:12px; font-weight:700; width:100%; padding:14px; border-radius:12px; border:none; cursor:pointer;">
+                Ja, ta bort permanent
+            </button>
+            
+            <button class="mode-btn glass-border" id="abort-delete-from-edit-btn" style="width:100%; padding:12px; border-radius:12px; background:rgba(255,255,255,0.05); color:var(--text); cursor:pointer;">
+                Avbryt
+            </button>
+        </div>
+    `;
+
+    // AVBRYT: Skicka tillbaka användaren till editeringsläget igen direkt utan blink
+    document.getElementById("abort-delete-from-edit-btn").onclick = () => {
+        editLoggedWorkout(dateStr, idx);
+    };
+
+    // VERKSTÄLL RADERING:
+    document.getElementById("execute-delete-from-edit-btn").onclick = async () => {
+        // 1. Lokalisera och ta bort från den globala historiken i minnet
+        const globalIdx = workoutHistory.findIndex(w => w.date === dateStr);
+        if (globalIdx !== -1) {
+            workoutHistory.splice(globalIdx, 1);
+        }
+        
+        // 2. Spara till localStorage
+        localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
+        
+        // 3. Stäng ner fönstret helt och uppdatera kalendern omedelbart
+        hideDefaultCloseButton(false);
+        closeModal();
+        if (typeof renderCalendar === 'function') {
+            renderCalendar(false); 
+        }
+
+        // 4. Utför raderingen asynkront mot Supabase i bakgrunden
+        if (typeof deleteWorkoutFromHistory === 'function') {
+            await deleteWorkoutFromHistory(dateStr, idx);
+        }
+    };
+}
