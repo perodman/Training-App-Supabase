@@ -2417,29 +2417,52 @@ function openConfirmDeleteModal(dateStr, idx) {
     document.getElementById("confirm-delete-history-btn").onclick = async () => {
         console.log("👉 Klickade på BEKRÄFTA RADERA. Datum:", dateStr, "Index:", idx);
 
-        // STEG 1: Kör databasraderingen FÖRST medan passet fortfarande finns kvar i listan på sitt index!
-        if (typeof deleteWorkoutFromHistoryV2 === 'function') {
-            console.log("🚀 Anropar deleteWorkoutFromHistoryV2...");
-            await deleteWorkoutFromHistoryV2(dateStr, idx);
-        } else {
-            console.error("❌ FEL: Hittade inte funktionen deleteWorkoutFromHistoryV2!");
-            
-            // Fallback om V2 saknas: Radera lokalt direkt så appen inte hänger sig
-            const filtered = workoutHistory.filter(w => w.date === dateStr);
-            const itemToDelete = filtered[idx];
-            if (itemToDelete) {
-                const globalIdx = workoutHistory.findIndex(w => w.id === itemToDelete.id);
-                if (globalIdx !== -1) workoutHistory.splice(globalIdx, 1);
-            }
-            localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
-        }
-        
-        // STEG 2: Stäng fönstret och uppdatera gränssnittet
+        // Hitta passet lokalt först så vi vet vad det är innan vi gör något annat
+        const filtered = workoutHistory.filter(w => w.date === dateStr);
+        const itemToDelete = filtered[idx];
+        const isCustomProgram = itemToDelete && (itemToDelete.isCustom || itemToDelete.id === "custom");
+
+        // STEG 1: Stäng modalen och städa gränssnittet OMEDELBART så appen aldrig fryser fast
         hideDefaultCloseButton(false);
         closeModal();
+
+        // STEG 2: Utför den lokala raderingen direkt i minnet för omedelbar respons
+        if (itemToDelete) {
+            const globalIdx = workoutHistory.findIndex(w => w.id === itemToDelete.id);
+            if (globalIdx !== -1) {
+                workoutHistory.splice(globalIdx, 1);
+            }
+        } else {
+            const globalIdx = workoutHistory.findIndex(w => w.date === dateStr);
+            if (globalIdx !== -1) {
+                workoutHistory.splice(globalIdx, 1);
+            }
+        }
         
+        // Spara till localStorage direkt och rita om kalendern
+        localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
         if (typeof renderCalendar === 'function') {
             renderCalendar(false); 
+        }
+
+        // STEG 3: Skicka ändringarna till Supabase asynkront i bakgrunden (utan await som låser knappen!)
+        if (typeof deleteWorkoutFromHistoryV2 === 'function') {
+            console.log("🚀 Startar bakgrundsradering i deleteWorkoutFromHistoryV2...");
+            
+            // Vi kör denna utan await i huvudtråden så att UI inte blockeras om databasen tar tid
+            deleteWorkoutFromHistoryV2(dateStr, idx).then(async () => {
+                console.log("✅ Bakgrundsradering klar.");
+                
+                // Om det var ett fritt pass/custom program, se till att synka profilen centralt så att start-funktionaliteten lagas!
+                if (isCustomProgram && typeof saveAll === 'function') {
+                    console.log("🔄 Synkar custom program centralt via saveAll...");
+                    await saveAll();
+                }
+            }).catch(err => {
+                console.error("❌ Fel vid radering i bakgrunden:", err);
+            });
+        } else {
+            console.error("❌ FEL: Hittade inte funktionen deleteWorkoutFromHistoryV2!");
         }
     };
 
