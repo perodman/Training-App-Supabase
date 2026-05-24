@@ -2415,48 +2415,31 @@ function openConfirmDeleteModal(dateStr, idx) {
 
     // BEKRÄFTA RADERING:
     document.getElementById("confirm-delete-history-btn").onclick = async () => {
-        console.log("👉 Klickade på BEKRÄFTA RADERA i modalen for datum:", dateStr, "index:", idx);
+        console.log("👉 Klickade på BEKRÄFTA RADERA. Datum:", dateStr, "Index:", idx);
 
-        // 1. Hitta exakt rätt pass i den filtrerade listan för dagen via indexet (idx)
-        const filtered = workoutHistory.filter(w => w.date === dateStr);
-        const itemToDelete = filtered[idx];
-
-        if (itemToDelete) {
-            console.log("Hittade lokalt pass att ta bort, ID:", itemToDelete.id);
-            const globalIdx = workoutHistory.findIndex(w => w.id === itemToDelete.id);
-            if (globalIdx !== -1) {
-                workoutHistory.splice(globalIdx, 1);
-            }
-        } else {
-            console.warn("⚠️ Fallback: Hittade inget pass via index, kör på datum istället.");
-            const globalIdx = workoutHistory.findIndex(w => w.date === dateStr);
-            if (globalIdx !== -1) {
-                workoutHistory.splice(globalIdx, 1);
-            }
-        }
-        
-        // 2. Spara den rensade listan till LocalStorage direkt för omedelbar respons
-        localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
-        
-        // 3. Stäng fönstret och uppdatera kalendervyn i appen direkt
-        hideDefaultCloseButton(false);
-        closeModal();
-        if (typeof renderCalendar === 'function') {
-            renderCalendar(false); 
-        }
-
-        // 4. Skicka raderingen asynkront till Supabase i bakgrunden via den smarta V2-funktionen
-        console.log("Kollar om deleteWorkoutFromHistoryV2 existerar...", typeof deleteWorkoutFromHistoryV2);
+        // STEF 1: Kör databasraderingen FÖRST medan passet fortfarande finns kvar i listan på sitt index!
         if (typeof deleteWorkoutFromHistoryV2 === 'function') {
-            console.log("🚀 Anropar deleteWorkoutFromHistoryV2 nu!");
+            console.log("🚀 Anropar deleteWorkoutFromHistoryV2...");
             await deleteWorkoutFromHistoryV2(dateStr, idx);
         } else {
-            console.error("❌ FEL: Hittade inte funktionen deleteWorkoutFromHistoryV2 i appen!");
+            console.error("❌ FEL: Hittade inte funktionen deleteWorkoutFromHistoryV2!");
+            
+            // Fallback om V2 saknas: Radera lokalt direkt så appen inte hänger sig
+            const filtered = workoutHistory.filter(w => w.date === dateStr);
+            const itemToDelete = filtered[idx];
+            if (itemToDelete) {
+                const globalIdx = workoutHistory.findIndex(w => w.id === itemToDelete.id);
+                if (globalIdx !== -1) workoutHistory.splice(globalIdx, 1);
+            }
+            localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
         }
         
-        // 5. Synka ändringar centralt om den funktionen finns tillgänglig
-        if (typeof saveAll === 'function') {
-            await saveAll();
+        // STEG 2: Stäng fönstret och uppdatera gränssnittet
+        hideDefaultCloseButton(false);
+        closeModal();
+        
+        if (typeof renderCalendar === 'function') {
+            renderCalendar(false); 
         }
     };
 
