@@ -2415,18 +2415,20 @@ function openConfirmDeleteModal(dateStr, idx) {
 
     // BEKRÄFTA RADERING:
     document.getElementById("confirm-delete-history-btn").onclick = async () => {
+        console.log("👉 Klickade på BEKRÄFTA RADERA i modalen for datum:", dateStr, "index:", idx);
+
         // 1. Hitta exakt rätt pass i den filtrerade listan för dagen via indexet (idx)
         const filtered = workoutHistory.filter(w => w.date === dateStr);
         const itemToDelete = filtered[idx];
 
         if (itemToDelete) {
-            // Hitta passets exakta index i den globala workoutHistory-arrayen baserat på dess unika ID
+            console.log("Hittade lokalt pass att ta bort, ID:", itemToDelete.id);
             const globalIdx = workoutHistory.findIndex(w => w.id === itemToDelete.id);
             if (globalIdx !== -1) {
                 workoutHistory.splice(globalIdx, 1);
             }
         } else {
-            // Fallback: Om ID saknas, ta bort baserat på datum
+            console.warn("⚠️ Fallback: Hittade inget pass via index, kör på datum istället.");
             const globalIdx = workoutHistory.findIndex(w => w.date === dateStr);
             if (globalIdx !== -1) {
                 workoutHistory.splice(globalIdx, 1);
@@ -2444,8 +2446,12 @@ function openConfirmDeleteModal(dateStr, idx) {
         }
 
         // 4. Skicka raderingen asynkront till Supabase i bakgrunden via den smarta V2-funktionen
+        console.log("Kollar om deleteWorkoutFromHistoryV2 existerar...", typeof deleteWorkoutFromHistoryV2);
         if (typeof deleteWorkoutFromHistoryV2 === 'function') {
+            console.log("🚀 Anropar deleteWorkoutFromHistoryV2 nu!");
             await deleteWorkoutFromHistoryV2(dateStr, idx);
+        } else {
+            console.error("❌ FEL: Hittade inte funktionen deleteWorkoutFromHistoryV2 i appen!");
         }
         
         // 5. Synka ändringar centralt om den funktionen finns tillgänglig
