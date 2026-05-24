@@ -2197,9 +2197,12 @@ async function deleteLoggedWorkout(date, idx) {
     renderCalendar();
 }
 
-// ÄNDRING: Åtgärdat den kritiska buggen gällande `dataObj`/`null`-parametern samt synkroniserat raderingen av det gamla passet
-async function editLoggedWorkout(dateStr, idx) {
-    // Hitta passet i historiken baserat på datum och index
+/ ==========================================================================
+// REDIGERING OCH SÄKER RADERING AV HISTORISKA PASS (MED FULLSTÄNDIG DESIGN)
+// ==========================================================================
+
+// 1. ÖPPNA EDITERINGSLÄGET FÖR ETT HISTORISKT PASS (Med din fullständiga originaldesign)
+function editLoggedWorkout(dateStr, idx) {
     const filtered = workoutHistory.filter(w => w.date === dateStr);
     const workoutToEdit = filtered[idx];
     
@@ -2208,56 +2211,84 @@ async function editLoggedWorkout(dateStr, idx) {
         return;
     }
 
-    // Stäng dagshanteraren (om det behövs) men gå DIREKT till edit-vyn utan att passera gå (startsidan)
     const body = document.getElementById("modal-body");
     if (!body) return;
 
     hideDefaultCloseButton(true);
 
-    // Generera HTML för redigeringsläget inuti modalen (eller din dedikerade vy)
+    // Återställer den stora, snygga designen med fullständiga marginaler och textstilar
     let html = `
-        <div style="text-align: left; padding: 5px;">
-            <span style="font-size: 11px; text-transform: uppercase; color: var(--primary); font-weight: 700; letter-spacing: 1px;">Redigerar slutfört pass</span>
-            <h3 style="margin: 5px 0 20px 0; font-size: 22px;">${workoutToEdit.programName}</h3>
-            <p style="font-size: 12px; color: var(--text-light); margin-top: -15px; margin-bottom: 20px;">Datum: ${dateStr}</p>
-            
-            <div style="display: flex; flex-direction: column; gap: 15px; max-height: 350px; overflow-y: auto; margin-bottom: 20px; padding-right: 5px;">
+        <div style="text-align: center; margin: 0 !important; padding: 0 !important;">
+            <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: var(--primary); font-weight: 600; display: block; margin: 0 !important; padding: 0 !important;">Redigerar historik</span>
+            <h2 class="section-title modern-header" style="margin: 8px 0 0 0 !important; padding: 0 !important; display: inline-block; font-size: 24px; line-height: 1.1 !important;">
+                ${workoutToEdit.programName}
+            </h2>
+            <span style="font-size: 12px; color: var(--text-light); display: block; margin-top: 5px;">📅 ${dateStr}</span>
+        </div>
+        
+        <div style="display: flex; flex-direction: column; gap: 15px; max-height: 380px; overflow-y: auto; margin-top: 10px; padding-right: 5px;">
     `;
 
-    // Loopa ut övningarna och dess set så att användaren kan se/ändra dem
+    // Loopar ut övningarna i dina korrekta "card glass"-boxar med exakt samma CSS som i kalendern
     workoutToEdit.exercises.forEach((ex, exIdx) => {
         html += `
-            <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); padding: 12px; border-radius: 12px;">
-                <strong style="font-size: 14px; color: #ffffff; display: block; margin-bottom: 8px;">${ex.name}</strong>
+            <div class="card glass" style="border-left: 4px solid var(--primary); text-align: left; margin: 0; padding: 15px; border-radius: 16px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <div>
+                        <strong style="font-size: 15px; color: var(--text); display: block;">${ex.name}</strong>
+                        <span style="font-size: 10px; color: var(--text-light); font-weight: 800; text-transform: uppercase;">${ex.target || 'Övning'}</span>
+                    </div>
+                </div>
+                
+                <div style="background: rgba(0,0,0,0.15); padding: 12px; border-radius: 12px; display: flex; flex-direction: column; gap: 10px;">
+                    <div style="display:grid; grid-template-columns: 40px 1fr 1fr; gap:8px; align-items:center;">
+                        <small style="text-align:left; color:var(--text-light); font-size:9px; font-weight:700; padding-left:2px;">SET</small>
+                        <small style="text-align:center; color:var(--text-light); font-size:9px; font-weight:700;">KG</small>
+                        <small style="text-align:center; color:var(--text-light); font-size:9px; font-weight:700;">REPS</small>
+                    </div>
         `;
         
         if (ex.sets_data) {
             ex.sets_data.forEach((set, sIdx) => {
                 html += `
-                    <div style="display: grid; grid-template-columns: 50px 1fr 1fr; gap: 8px; margin-bottom: 6px; align-items: center;">
-                        <span style="font-size: 11px; color: var(--primary); font-weight: 600;">Set ${sIdx + 1}</span>
-                        <input type="text" inputmode="decimal" class="log-input" style="margin:0; padding:8px; font-size:14px;" value="${set.weight || ''}" id="edit-hist-w-${exIdx}-${sIdx}">
-                        <input type="text" inputmode="decimal" class="log-input" style="margin:0; padding:8px; font-size:14px;" value="${set.reps || ''}" id="edit-hist-r-${exIdx}-${sIdx}">
+                    <div style="display: grid; grid-template-columns: 40px 1fr 1fr; gap: 8px; align-items: center;">
+                        <div style="width:28px; height:28px; border-radius:50%; border:2px solid var(--primary); display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:800; background:rgba(34, 211, 238, 0.1); color:var(--primary);">
+                            #${sIdx + 1}
+                        </div>
+                        <input type="text" inputmode="decimal" class="log-input" style="margin:0; padding:10px; font-size:16px; text-align:center;" value="${set.weight || ''}" id="edit-hist-w-${exIdx}-${sIdx}">
+                        <input type="text" inputmode="decimal" class="log-input" style="margin:0; padding:10px; font-size:16px; text-align:center;" value="${set.reps || ''}" id="edit-hist-r-${exIdx}-${sIdx}">
                     </div>
                 `;
             });
+        } else {
+            // Backup om passet sparats i det gamla formatet utan split-set
+            html += `
+                <div style="display: grid; grid-template-columns: 40px 1fr 1fr; gap: 8px; align-items: center;">
+                    <div style="width:28px; height:28px; border-radius:50%; border:2px solid var(--primary); display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:800; color:var(--primary);">
+                        All
+                    </div>
+                    <input type="text" inputmode="decimal" class="log-input" style="margin:0; padding:10px; font-size:16px; text-align:center;" value="${ex.weight || ''}" id="edit-hist-w-${exIdx}-0">
+                    <input type="text" inputmode="decimal" class="log-input" style="margin:0; padding:10px; font-size:16px; text-align:center;" value="${ex.reps || ''}" id="edit-hist-r-${exIdx}-0">
+                </div>
+            `;
         }
         
-        html += `</div>`;
+        html += `</div></div>`;
     });
 
     html += `
-            </div>
+        </div>
 
-            <button class="mode-btn blue" id="save-historic-edit-btn" style="width:100%; padding:14px; border-radius:12px; font-weight:700; margin-bottom:12px;">
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px; width: 100%;">
+            <button class="mode-btn premium-action-btn premium-green-btn" id="save-historic-edit-btn" style="width:100% !important; margin: 0 !important; padding: 14px !important;">
                 Spara ändringar 💾
             </button>
             
-            <button class="mode-btn" id="delete-historic-from-edit-btn" style="background:none; color:var(--danger); font-size:14px; border:1px solid rgba(239, 68, 68, 0.2); width:100%; padding:10px; border-radius:12px; margin-bottom:12px;">
+            <button class="mode-btn" id="delete-historic-from-edit-btn" style="background: rgba(239, 68, 68, 0.1); color: var(--danger); font-size: 13px; font-weight:600; border: 1px solid rgba(239, 68, 68, 0.2); width: 100% !important; margin: 0 !important; padding: 10px !important; border-radius: 12px; cursor: pointer;">
                 Radera passet permanent 🗑️
             </button>
 
-            <button class="mode-btn glass-border" id="back-to-day-manager-btn" style="width:100%; padding:10px; border-radius:12px;">
+            <button class="mode-btn glass-border" id="back-to-day-manager-btn" style="width:100% !important; margin: 0 !important; padding: 10px !important; border-radius: 12px; background: rgba(255,255,255,0.02);">
                 Tillbaka
             </button>
         </div>
@@ -2265,15 +2296,14 @@ async function editLoggedWorkout(dateStr, idx) {
 
     body.innerHTML = html;
 
-    // EVENT: TILLBAKA-KNAPPEN (Skicka tillbaka till dagshanteraren mjukt)
+    // EVENT: TILLBAKA (Skicka tillbaka till dagshanteraren direkt och snyggt)
     document.getElementById("back-to-day-manager-btn").onclick = () => {
         hideDefaultCloseButton(false);
         openDayManager(dateStr, calendarOverrides[dateStr] === 'none' ? null : programData.routine.find(x => x.id === calendarOverrides[dateStr]), filtered, false);
     };
 
-    // EVENT: SPARA-KNAPPEN
+    // EVENT: SPARA ÄNDRINGAR
     document.getElementById("save-historic-edit-btn").onclick = async () => {
-        // Samla in eventuella ändrade värden från input-fälten
         workoutToEdit.exercises.forEach((ex, exIdx) => {
             if (ex.sets_data) {
                 ex.sets_data.forEach((set, sIdx) => {
@@ -2282,22 +2312,24 @@ async function editLoggedWorkout(dateStr, idx) {
                     if (wInput) set.weight = wInput.value;
                     if (rInput) set.reps = rInput.value;
                 });
+            } else {
+                const wInput = document.getElementById(`edit-hist-w-${exIdx}-0`);
+                const rInput = document.getElementById(`edit-hist-r-${exIdx}-0`);
+                if (wInput) ex.weight = wInput.value;
+                if (rInput) ex.reps = rInput.value;
             }
         });
 
-        // Uppdatera localStorage
         localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
         
-        // Stäng tyst och uppdatera kalendern
         hideDefaultCloseButton(false);
         closeModal();
         if (typeof renderCalendar === 'function') renderCalendar(false);
 
-        // Synka till Supabase i bakgrunden (om du har en generell spara-historik-funktion)
         if (typeof saveWorkoutHistory === 'function') await saveWorkoutHistory();
     };
 
-    // EVENT: RADERA-KNAPPEN (Här kopplar vi på den helt nya, korrekta funktionen!)
+    // EVENT: RADERA (Öppnar den anpassade raderings-popupen med korrekt text)
     document.getElementById("delete-historic-from-edit-btn").onclick = () => {
         confirmDeleteFromEditMode(dateStr, idx);
     };
