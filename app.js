@@ -2405,7 +2405,6 @@ function openConfirmDeleteModal(dateStr, idx) {
         </div>
     `;
 
-    // AVBRYT: Gå tillbaka till dagshanteraren utan blink
     document.getElementById("cancel-delete-history-btn").onclick = () => {
         hideDefaultCloseButton(false);
         const filtered = workoutHistory.filter(w => w.date === dateStr);
@@ -2413,56 +2412,48 @@ function openConfirmDeleteModal(dateStr, idx) {
         openDayManager(dateStr, plannedPass, filtered, false);
     };
 
-    // BEKRÄFTA RADERING:
     document.getElementById("confirm-delete-history-btn").onclick = async () => {
-        console.log("👉 Klickade på BEKRÄFTA RADERA. Datum:", dateStr, "Index:", idx);
+        console.log("👉 [MODAL] Klickade på BEKRÄFTA RADERA. Datum:", dateStr, "Index för dagen:", idx);
 
-        // Hitta passet lokalt först så vi vet vad det är innan vi gör något annat
+        // 1. Hitta passet i den filtrerade listan för dagen innan vi rör något
         const filtered = workoutHistory.filter(w => w.date === dateStr);
         const itemToDelete = filtered[idx];
-        const isCustomProgram = itemToDelete && (itemToDelete.isCustom || itemToDelete.id === "custom");
+        
+        if (!itemToDelete) {
+            console.error("❌ [MODAL] Kunde inte hitta något pass på index", idx, "för datum", dateStr);
+            hideDefaultCloseButton(false);
+            closeModal();
+            return;
+        }
 
-        // STEG 1: Stäng modalen och städa gränssnittet OMEDELBART så appen aldrig fryser fast
-        hideDefaultCloseButton(false);
-        closeModal();
+        const targetId = itemToDelete.id;
+        console.log("👉 [MODAL] Hittade passet som ska raderas. Unikt ID:", targetId);
 
-        // STEG 2: Utför den lokala raderingen direkt i minnet för omedelbar respons
-        if (itemToDelete) {
-            const globalIdx = workoutHistory.findIndex(w => w.id === itemToDelete.id);
-            if (globalIdx !== -1) {
-                workoutHistory.splice(globalIdx, 1);
-            }
-        } else {
-            const globalIdx = workoutHistory.findIndex(w => w.date === dateStr);
-            if (globalIdx !== -1) {
-                workoutHistory.splice(globalIdx, 1);
-            }
+        // 2. Uppdatera den lokala arrayen OMEDELBART med hjälp av det unika ID:t (inte index!)
+        const globalIdx = workoutHistory.findIndex(w => w.id === targetId);
+        if (globalIdx !== -1) {
+            workoutHistory.splice(globalIdx, 1);
+            console.log("✅ [MODAL] Passet borttaget ur lokal workoutHistory-array.");
         }
         
-        // Spara till localStorage direkt och rita om kalendern
+        // Spara till localStorage och rita om kalendern direkt för direkt respons i UI
         localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
+        hideDefaultCloseButton(false);
+        closeModal();
+        
         if (typeof renderCalendar === 'function') {
             renderCalendar(false); 
         }
 
-        // STEG 3: Skicka ändringarna till Supabase asynkront i bakgrunden (utan await som låser knappen!)
+        // 3. Skicka raderingen till Supabase asynkront i bakgrunden via det unika ID:t
         if (typeof deleteWorkoutFromHistoryV2 === 'function') {
-            console.log("🚀 Startar bakgrundsradering i deleteWorkoutFromHistoryV2...");
-            
-            // Vi kör denna utan await i huvudtråden så att UI inte blockeras om databasen tar tid
-            deleteWorkoutFromHistoryV2(dateStr, idx).then(async () => {
-                console.log("✅ Bakgrundsradering klar.");
-                
-                // Om det var ett fritt pass/custom program, se till att synka profilen centralt så att start-funktionaliteten lagas!
-                if (isCustomProgram && typeof saveAll === 'function') {
-                    console.log("🔄 Synkar custom program centralt via saveAll...");
-                    await saveAll();
-                }
-            }).catch(err => {
-                console.error("❌ Fel vid radering i bakgrunden:", err);
+            console.log("🚀 [MODAL] Anropar deleteWorkoutFromHistoryV2 med ID:", targetId);
+            // Vi kör utan 'await' här så att UI aldrig kan frysa fast
+            deleteWorkoutFromHistoryV2(dateStr, idx, targetId).catch(err => {
+                console.error("❌ [MODAL] Fel i bakgrundsraderingen:", err);
             });
         } else {
-            console.error("❌ FEL: Hittade inte funktionen deleteWorkoutFromHistoryV2!");
+            console.error("❌ [MODAL] Hittade inte funktionen deleteWorkoutFromHistoryV2!");
         }
     };
 
