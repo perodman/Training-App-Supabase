@@ -2197,11 +2197,11 @@ async function deleteLoggedWorkout(date, idx) {
     renderCalendar();
 }
 
-/ ==========================================================================
-// CENTRAL HANTERING AV RADERING OCH EDITERING (SÄKRAD OCH ÅTERSTÄLLD)
+// ==========================================================================
+// CENTRAL HANTERING AV RADERING OCH EDITERING (SÄKRAD OCH REPARERAD)
 // ==========================================================================
 
-// 1. ÅTERSTÄLLD OCH SÄKRAD: Öppna editeringsläget för ett historiskt pass
+// 1. ÖPPNA EDITERINGSLÄGET FÖR ETT HISTORISKT PASS
 function editLoggedWorkout(dateStr, idx) {
     const filtered = workoutHistory.filter(w => w.date === dateStr);
     const workoutToEdit = filtered[idx];
@@ -2288,13 +2288,14 @@ function editLoggedWorkout(dateStr, idx) {
 
     body.innerHTML = html;
 
-    // EVENT HANTERING - helt enligt din trygga originalmodell
+    // EVENT HANTERING - Tillbakaknapp
     document.getElementById("back-to-day-manager-btn").onclick = () => {
         if (typeof hideDefaultCloseButton === 'function') hideDefaultCloseButton(false);
         const plannedPass = calendarOverrides[dateStr] === 'none' ? null : programData.routine.find(x => x.id === calendarOverrides[dateStr]);
-        openDayManager(dateStr, plannedPass, filtered, false); // Mjuk övergång tillbaka
+        openDayManager(dateStr, plannedPass, filtered, false);
     };
 
+    // EVENT HANTERING - Spara ändringar
     document.getElementById("save-historic-edit-btn").onclick = async () => {
         workoutToEdit.exercises.forEach((ex, exIdx) => {
             if (ex.sets_data) {
@@ -2320,270 +2321,9 @@ function editLoggedWorkout(dateStr, idx) {
         if (typeof saveWorkoutHistory === 'function') await saveWorkoutHistory();
     };
 
+    // EVENT HANTERING - Öppna raderings-modal
     document.getElementById("delete-historic-from-edit-btn").onclick = () => {
         confirmDeleteFromEditMode(dateStr, idx);
-    };
-
-    openModal();
-}
-
-// HJÄLPFUNKTION: TILLBAKA-KNAPPEN
-function goBackToDayManager(dateStr) {
-    if (typeof hideDefaultCloseButton === 'function') hideDefaultCloseButton(false);
-    const filtered = workoutHistory.filter(w => w.date === dateStr);
-    const plannedPass = calendarOverrides[dateStr] === 'none' ? null : programData.routine.find(x => x.id === calendarOverrides[dateStr]);
-    openDayManager(dateStr, plannedPass, filtered, false);
-}
-
-// HJÄLPFUNKTION: SPARA HISTORISKA ÄNDRINGAR
-async function saveHistoricWorkoutChanges(dateStr, idx) {
-    const filtered = workoutHistory.filter(w => w.date === dateStr);
-    const workoutToEdit = filtered[idx];
-    if (!workoutToEdit) return;
-
-    workoutToEdit.exercises.forEach((ex, exIdx) => {
-        if (ex.sets_data) {
-            ex.sets_data.forEach((set, sIdx) => {
-                const wInput = document.getElementById(`edit-w-${exIdx}-${sIdx}`);
-                const rInput = document.getElementById(`edit-r-${exIdx}-${sIdx}`);
-                if (wInput) set.weight = wInput.value;
-                if (rInput) set.reps = rInput.value;
-            });
-        } else {
-            const wInput = document.getElementById(`edit-w-${exIdx}-0`);
-            const rInput = document.getElementById(`edit-r-${exIdx}-0`);
-            if (wInput) ex.weight = wInput.value;
-            if (rInput) ex.reps = rInput.value;
-        }
-    });
-
-    localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
-    
-    if (typeof hideDefaultCloseButton === 'function') hideDefaultCloseButton(false);
-    closeModal();
-    if (typeof renderCalendar === 'function') renderCalendar(false);
-    if (typeof saveWorkoutHistory === 'function') await saveWorkoutHistory();
-}
-
-function hideDefaultCloseButton(hide) {
-    const closeBtn = document.querySelector("#workout-modal .modal-content > button");
-    if (closeBtn) {
-        if (hide) {
-            closeBtn.style.display = "none";
-        } else {
-            closeBtn.style.display = "block";
-        }
-    }
-}
-
-// ÄNDRING: Synkar borttagning av master_exercises till Supabase baserat på schemats ID
-async function deleteMasterExercise(id) {
-    hideDefaultCloseButton(true);
-    const body = document.getElementById("modal-body");
-    body.innerHTML = `
-        <div style="text-align:center; padding:10px;">
-            <div style="font-size:40px; margin-bottom:15px;">🗑️</div>
-            <h3 style="color:var(--danger);">Radera övning?</h3>
-            <p style="color:var(--text-light); margin-bottom:25px; font-size:14px;">Vill du radera denna övning permanent?</p>
-            <button class="mode-btn" id="confirm-delete-ex-btn" style="background:linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color:white; margin-bottom:12px; font-weight:700;">
-                Ja, radera
-            </button>
-            
-            <button class="mode-btn glass-border" onclick="hideDefaultCloseButton(false); openEditExerciseModal(${id});">
-                Avbryt
-            </button>
-        </div>
-    `;
-    
-    document.getElementById("confirm-delete-ex-btn").onclick = async () => { 
-        // 1. Filtrera bort övningen lokalt
-        masterExercises = masterExercises.filter(e => e.id != id); 
-        
-        // 2. Spara i localStorage direkt för snabb UX
-        localStorage.setItem('masterExercises', JSON.stringify(masterExercises));
-        
-        // 3. Skicka upp den uppdaterade listan direkt till rätt tabell (custom_program) via saveCustomProgram
-        if (typeof saveCustomProgram === 'function') {
-            await saveCustomProgram(); 
-        }
-        
-        // 4. Stäng modalen och stanna kvar i övningsvyn utan att blinka eller hoppa till hemmenyn!
-        hideDefaultCloseButton(false);
-        closeModal(); 
-        
-        if (typeof filterExercises === 'function') {
-            filterExercises(currentExerciseCategory);
-        }
-    };
-
-    openModal();
-}
-
-// ÄNDRING: Uppdaterad till att synka hela programstrukturen (custom_program) till Supabase vid radering av ett delpass
-async function deleteEntireProgram(idx) {
-    hideDefaultCloseButton(true);
-    const body = document.getElementById("modal-body");
-    body.innerHTML = `
-        <div style="text-align:center; padding:10px;">
-            <div style="font-size:40px; margin-bottom:15px;">🗑️</div>
-            <h3 style="color:var(--danger);">Radera permanent?</h3>
-            <p style="color:var(--text-light); margin-bottom:25px; font-size:14px;">Vill du radera hela detta pass permanent? Det här valet går inte att ångra.</p>
-            <button class="mode-btn" style="background:linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color:white; margin-bottom:12px; font-weight:700;" 
-                onclick="(async () => { 
-                    programData.routine.splice(${idx}, 1); 
-                    localStorage.setItem('myCustomProgram', JSON.stringify(programData));
-                    await saveAll(); 
-                    
-                    // Direkt synkronisering av modifierat custom_program till Supabase
-                    if (currentUser) {
-                        try {
-                            const { data: existing } = await supabaseClient
-                                .from('custom_program')
-                                .select('id')
-                                .eq('user_id', currentUser.id)
-                                .maybeSingle();
-                            if (existing) {
-                                await supabaseClient
-                                    .from('custom_program')
-                                    .update({ data: programData })
-                                    .eq('user_id', currentUser.id);
-                            }
-                        } catch (err) {
-                            console.error('Error updating custom_program in Supabase:', err);
-                        }
-                    }
-                    
-                    closeModal(); 
-                    document.getElementById('program-details-area').classList.add('hidden'); 
-                    renderProgramView();
-                })()">
-                Ja, radera passet
-            </button>
-            <button class="mode-btn glass-border" onclick="closeModal()">Avbryt</button>
-        </div>
-    `;
-    openModal();
-}
-
-function openConfirmDeleteModal(dateStr, idx) {
-    hideDefaultCloseButton(true);
-    const body = document.getElementById("modal-body");
-    if (!body) return;
-
-    body.innerHTML = `
-        <div style="text-align:center; padding:10px;">
-            <div style="font-size:40px; margin-bottom:15px;">🗑️</div>
-            <h3 style="color:var(--danger); margin: 0 0 10px 0; font-size:22px;">Radera pass ur historiken?</h3>
-            <p style="color:var(--text-light); margin-bottom:25px; font-size:14px; line-height:1.4;">
-                Detta pass kommer att tas bort från din kalender permanent och försvinna från databasen.
-            </p>
-            <button class="mode-btn" id="confirm-delete-history-btn" style="background:linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color:white; margin-bottom:12px; font-weight:700; width:100%; padding:14px; border-radius:12px; border:none; cursor:pointer;">
-                Ja, radera passet
-            </button>
-            
-            <button class="mode-btn glass-border" id="cancel-delete-history-btn" style="width:100%; padding:12px; border-radius:12px; background:rgba(255,255,255,0.05); color:var(--text); cursor:pointer;">
-                Avbryt
-            </button>
-        </div>
-    `;
-
-    // AVBRYT: Gå tillbaka till dagshanteraren utan blink
-    document.getElementById("cancel-delete-history-btn").onclick = () => {
-        hideDefaultCloseButton(false);
-        const filtered = workoutHistory.filter(w => w.date === dateStr);
-        const plannedPass = calendarOverrides[dateStr] === 'none' ? null : programData.routine.find(x => x.id === calendarOverrides[dateStr]);
-        openDayManager(dateStr, plannedPass, filtered, false);
-    };
-
-    // BEKRÄFTA RADERING:
-    document.getElementById("confirm-delete-history-btn").onclick = async () => {
-        // 1. Hitta rätt index i den globala workoutHistory-arrayen och ta bort det lokalt
-        // (Eftersom listan kan vara filtrerad per datum matchar vi mot unika värden)
-        const globalIdx = workoutHistory.findIndex(w => w.date === dateStr);
-        if (globalIdx !== -1) {
-            workoutHistory.splice(globalIdx, 1);
-        }
-        
-        // 2. Spara den rensade listan till LocalStorage direkt för omedelbar respons
-        localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
-        
-        // 3. Stäng fönstret och uppdatera kalendervyn i appen direkt
-        hideDefaultCloseButton(false);
-        closeModal();
-        if (typeof renderCalendar === 'function') {
-            renderCalendar(false); 
-        }
-
-        // 4. Skicka raderingen asynkront till Supabase i bakgrunden utan att störa UI
-        if (typeof deleteWorkoutFromHistory === 'function') {
-            await deleteWorkoutFromHistory(dateStr, idx);
-        }
-    };
-
-    openModal();
-}
-
-// ÄNDRING: Rensar utkast i både localStorage och tabellen public.active_draft i Supabase asynkront
-function confirmDiscardActiveWorkout() {
-    hideDefaultCloseButton(true);
-    const body = document.getElementById("modal-body");
-    if (!body) return;
-
-    // Öppna din egen snygga glass-modal istället för webbläsarens confirm()
-    body.innerHTML = `
-        <div style="text-align:center; padding:10px;">
-            <div style="font-size:40px; margin-bottom:15px;">⚠️</div>
-            <h3 style="color:var(--danger); margin: 0 0 10px 0; font-size:22px;">Avbryta träningspasset?</h3>
-            <p style="color:var(--text-light); margin-bottom:25px; font-size:14px; line-height:1.4;">
-                Är du säker på att du vill radera och avsluta detta pågående pass? Inga set kommer att sparas i din historik.
-            </p>
-            <button class="mode-btn" id="confirm-discard-draft-btn" style="background:linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color:white; margin-bottom:12px; font-weight:700; width:100%; padding:14px; border-radius:12px; border:none; cursor:pointer;">
-                Ja, radera passet
-            </button>
-            
-            <button class="mode-btn glass-border" id="cancel-discard-draft-btn" style="width:100%; padding:12px; border-radius:12px; background:rgba(255,255,255,0.05); color:var(--text); cursor:pointer;">
-                Nej, fortsätt träna
-            </button>
-        </div>
-    `;
-
-    // OM MAN VILL FORTSÄTTA TRÄNA: Stäng bara modalen och låt passet vara kvar active
-    document.getElementById("cancel-discard-draft-btn").onclick = () => {
-        hideDefaultCloseButton(false);
-        closeModal();
-    };
-
-    // OM MAN VILL RADERA UTKASTET PERMANENT:
-    document.getElementById("confirm-discard-draft-btn").onclick = async () => {
-        // 1. Nollställ minnet och lokal backup direkt
-        activeDraft = null;
-        localStorage.removeItem("activeWorkoutDraft");
-        
-        // 2. Stoppa klockan
-        if (typeof stopTimer === 'function') stopTimer();
-        secondsElapsed = 0;
-
-        // 3. Stäng modalen och flytta användaren direkt till hemvyn i appen
-        hideDefaultCloseButton(false);
-        closeModal();
-        if (typeof showView === 'function') {
-            showView("home-view");
-        }
-        if (typeof renderHome === 'function') {
-            renderHome();
-        }
-
-        // 4. Rensa databasen asynkront i bakgrunden utan att låsa gränssnittet
-        if (typeof currentUser !== 'undefined' && currentUser) {
-            try {
-                await supabaseClient
-                    .from('active_draft')
-                    .delete()
-                    .eq('user_id', currentUser.id);
-            } catch (err) {
-                console.error("Supabase: Fel vid radering av pågående utkast:", err);
-            }
-        }
     };
 
     openModal();
@@ -2611,30 +2351,196 @@ function confirmDeleteFromEditMode(dateStr, idx) {
         </div>
     `;
 
+    // AVBRYT: Tillbaka till editeringsläget direkt utan blink
     document.getElementById("abort-delete-from-edit-btn").onclick = () => {
-        editLoggedWorkout(dateStr, idx); // Går omedelbart tillbaka till redigeringen utan blink
+        editLoggedWorkout(dateStr, idx);
     };
 
+    // BEKRÄFTA: Ta bort passet helt ur minne, localStorage och Supabase
     document.getElementById("execute-delete-from-edit-btn").onclick = async () => {
-        // 1. Ta bort från det lokala minnet direkt
         const globalIdx = workoutHistory.findIndex(w => w.date === dateStr);
         if (globalIdx !== -1) {
             workoutHistory.splice(globalIdx, 1);
         }
         
-        // 2. Spara lokalt till LocalStorage
         localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
         
-        // 3. Stäng fönstret och tvinga kalendern att rita om sig direkt
         if (typeof hideDefaultCloseButton === 'function') hideDefaultCloseButton(false);
         closeModal();
+        
         if (typeof renderCalendar === 'function') {
             renderCalendar(false); 
         }
 
-        // 4. Utför databas-synk i bakgrunden utan att frysa UI
         if (typeof deleteWorkoutFromHistory === 'function') {
             await deleteWorkoutFromHistory(dateStr, idx);
         }
     };
+}
+
+// 3. SKRÄDDARSYDD POPUP FÖR ATT AVBRYTA ETT PÅGÅENDE PASS (DRAFT)
+function confirmDiscardActiveWorkout() {
+    if (typeof hideDefaultCloseButton === 'function') {
+        hideDefaultCloseButton(true);
+    }
+    const body = document.getElementById("modal-body");
+    if (!body) return;
+
+    body.innerHTML = `
+        <div style="text-align:center; padding:10px;">
+            <div style="font-size:40px; margin-bottom:15px;">⚠️</div>
+            <h3 style="color:var(--danger); margin: 0 0 10px 0; font-size:22px;">Avbryta träningspasset?</h3>
+            <p style="color:var(--text-light); margin-bottom:25px; font-size:14px; line-height:1.4;">
+                Är du säker på att du vill radera och avsluta detta pågående pass? Inga set kommer att sparas i din historik.
+            </p>
+            <button class="mode-btn" id="confirm-discard-draft-btn" style="background:linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color:white; margin-bottom:12px; font-weight:700; width:100%; padding:14px; border-radius:12px; border:none; cursor:pointer;">
+                Ja, radera passet
+            </button>
+            
+            <button class="mode-btn glass-border" id="cancel-discard-draft-btn" style="width:100%; padding:12px; border-radius:12px; background:rgba(255,255,255,0.05); color:var(--text); cursor:pointer;">
+                Nej, fortsätt träna
+            </button>
+        </div>
+    `;
+
+    document.getElementById("cancel-discard-draft-btn").onclick = () => {
+        if (typeof hideDefaultCloseButton === 'function') hideDefaultCloseButton(false);
+        closeModal();
+    };
+
+    document.getElementById("confirm-discard-draft-btn").onclick = async () => {
+        activeDraft = null;
+        localStorage.removeItem("activeWorkoutDraft");
+        
+        if (typeof stopTimer === 'function') stopTimer();
+        secondsElapsed = 0;
+
+        if (typeof hideDefaultCloseButton === 'function') hideDefaultCloseButton(false);
+        closeModal();
+        
+        if (typeof showView === 'function') showView("home-view");
+        if (typeof renderHome === 'function') renderHome();
+
+        if (typeof currentUser !== 'undefined' && currentUser) {
+            try {
+                await supabaseClient
+                    .from('active_draft')
+                    .delete()
+                    .eq('user_id', currentUser.id);
+            } catch (err) {
+                console.error("Supabase: Fel vid radering av pågående utkast:", err);
+            }
+        }
+    };
+
+    openModal();
+}
+
+// 4. HJÄLPFUNKTION: STÄNG/VISA MODALENS STÄNGNINGSKNAPP
+function hideDefaultCloseButton(hide) {
+    const closeBtn = document.querySelector("#workout-modal .modal-content > button");
+    if (closeBtn) {
+        closeBtn.style.display = hide ? "none" : "block";
+    }
+}
+
+// 5. RADERA EN ENSTAKA ÖVNING PERMANENT UR SYSTEMET
+async function deleteMasterExercise(id) {
+    if (typeof hideDefaultCloseButton === 'function') hideDefaultCloseButton(true);
+    const body = document.getElementById("modal-body");
+    if (!body) return;
+
+    body.innerHTML = `
+        <div style="text-align:center; padding:10px;">
+            <div style="font-size:40px; margin-bottom:15px;">🗑️</div>
+            <h3 style="color:var(--danger);">Radera övning?</h3>
+            <p style="color:var(--text-light); margin-bottom:25px; font-size:14px;">Vill du radera denna övning permanent?</p>
+            <button class="mode-btn" id="confirm-delete-ex-btn" style="background:linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color:white; margin-bottom:12px; font-weight:700;">
+                Ja, radera
+            </button>
+            
+            <button class="mode-btn glass-border" id="cancel-delete-ex-btn">
+                Avbryt
+            </button>
+        </div>
+    `;
+    
+    document.getElementById("cancel-delete-ex-btn").onclick = () => {
+        if (typeof hideDefaultCloseButton === 'function') hideDefaultCloseButton(false);
+        if (typeof openEditExerciseModal === 'function') openEditExerciseModal(id);
+    };
+
+    document.getElementById("confirm-delete-ex-btn").onclick = async () => { 
+        masterExercises = masterExercises.filter(e => e.id != id); 
+        localStorage.setItem('masterExercises', JSON.stringify(masterExercises));
+        
+        if (typeof saveCustomProgram === 'function') {
+            await saveCustomProgram(); 
+        }
+        
+        if (typeof hideDefaultCloseButton === 'function') hideDefaultCloseButton(false);
+        closeModal(); 
+        
+        if (typeof filterExercises === 'function') {
+            filterExercises(currentExerciseCategory);
+        }
+    };
+
+    openModal();
+}
+
+// 6. RADERA ETT HELT TRÄNINGSPROGRAM/RUTIN UR SYSTEMET
+async function deleteEntireProgram(idx) {
+    if (typeof hideDefaultCloseButton === 'function') hideDefaultCloseButton(true);
+    const body = document.getElementById("modal-body");
+    if (!body) return;
+
+    body.innerHTML = `
+        <div style="text-align:center; padding:10px;">
+            <div style="font-size:40px; margin-bottom:15px;">🗑️</div>
+            <h3 style="color:var(--danger);">Radera permanent?</h3>
+            <p style="color:var(--text-light); margin-bottom:25px; font-size:14px;">Vill du radera hela detta pass permanent? Det här valet går inte att ångra.</p>
+            <button class="mode-btn" id="execute-delete-program-btn" style="background:linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color:white; margin-bottom:12px; font-weight:700;">
+                Ja, radera passet
+            </button>
+            <button class="mode-btn glass-border" id="cancel-delete-program-btn">Avbryt</button>
+        </div>
+    `;
+
+    document.getElementById("cancel-delete-program-btn").onclick = () => {
+        if (typeof hideDefaultCloseButton === 'function') hideDefaultCloseButton(false);
+        closeModal();
+    };
+
+    document.getElementById("execute-delete-program-btn").onclick = async () => { 
+        programData.routine.splice(idx, 1); 
+        localStorage.setItem('myCustomProgram', JSON.stringify(programData));
+        if (typeof saveAll === 'function') await saveAll(); 
+        
+        if (typeof currentUser !== 'undefined' && currentUser) {
+            try {
+                const { data: existing } = await supabaseClient
+                    .from('custom_program')
+                    .select('id')
+                    .eq('user_id', currentUser.id)
+                    .maybeSingle();
+                if (existing) {
+                    await supabaseClient
+                        .from('custom_program')
+                        .update({ data: programData })
+                        .eq('user_id', currentUser.id);
+                }
+            } catch (err) {
+                console.error('Error updating custom_program in Supabase:', err);
+            }
+        }
+        
+        if (typeof hideDefaultCloseButton === 'function') hideDefaultCloseButton(false);
+        closeModal(); 
+        const detailsArea = document.getElementById('program-details-area');
+        if (detailsArea) detailsArea.classList.add('hidden'); 
+        if (typeof renderProgramView === 'function') renderProgramView();
+    };
+
+    openModal();
 }
