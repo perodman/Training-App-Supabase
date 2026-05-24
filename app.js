@@ -1994,7 +1994,11 @@ function renderHome() {
         headerP.after(sep);
     }
 
-    if(activeDraft) {
+    // SÄKERHETSSPÄRR: Hämta det aktuella visningsläget för appen (om sparat på body/variabel)
+    // Om vi precis har sparat och är på väg till kalendern, tvingar vi utkastet att hållas dolt.
+    const currentAppView = document.body.getAttribute("data-current-view") || window.currentView || "";
+
+    if (activeDraft && currentAppView !== "calendar-view") {
         document.getElementById("draft-alert").classList.remove("hidden");
         document.getElementById("start-new-btn").classList.add("hidden");
         document.getElementById("resume-workout-btn").onclick = () => startWorkout(activeDraft.workout, activeDraft.data, activeDraft.date);
@@ -2051,7 +2055,6 @@ document.getElementById("save-workout-btn").onclick = async () => {
         await saveWorkoutHistory(log);
     }
 
-
     // Ta bort det aktiva utkastet lokalt och i molnet
     localStorage.removeItem("activeWorkoutDraft");
     if (typeof deleteActiveDraft === 'function') {
@@ -2073,8 +2076,15 @@ document.getElementById("save-workout-btn").onclick = async () => {
     activeDraft = null; 
     secondsElapsed = 0;
     
+    // SÄKERHETSSPÄRR: Sätt appens aktuella vy-tillstånd till kalendern precis innan renderingen sker
+    if (typeof window.currentView !== 'undefined') window.currentView = "calendar-view";
+    document.body.setAttribute("data-current-view", "calendar-view");
+
     // Uppdaterar kalendervyn för att omedelbart reflektera det nya passet
     if (typeof renderCalendar === 'function') renderCalendar();
+    
+    // UX-OPTIMERING: Tvinga vyn till träningsdagboken direkt så att hemskärmen inte hinner blinka till i bakgrunden
+    if (typeof showView === 'function') showView("calendar-view");
 };
 
 document.getElementById("pause-workout-btn").onclick = () => { 
