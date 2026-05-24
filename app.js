@@ -1,4 +1,4 @@
-let programData;a
+let programData;
 let masterExercises = JSON.parse(localStorage.getItem("masterExercises") || "[]");
 let workoutHistory = JSON.parse(localStorage.getItem("workoutHistory") || "[]");
 let activeDraft = JSON.parse(localStorage.getItem("activeWorkoutDraft") || "null");
