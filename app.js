@@ -2417,7 +2417,7 @@ function openConfirmDeleteModal(dateStr, idx) {
     document.getElementById("confirm-delete-history-btn").onclick = async () => {
         console.log("👉 Klickade på BEKRÄFTA RADERA. Datum:", dateStr, "Index:", idx);
 
-        // STEF 1: Kör databasraderingen FÖRST medan passet fortfarande finns kvar i listan på sitt index!
+        // STEG 1: Kör databasraderingen FÖRST medan passet fortfarande finns kvar i listan på sitt index!
         if (typeof deleteWorkoutFromHistoryV2 === 'function') {
             console.log("🚀 Anropar deleteWorkoutFromHistoryV2...");
             await deleteWorkoutFromHistoryV2(dateStr, idx);
