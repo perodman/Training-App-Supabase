@@ -2198,10 +2198,10 @@ async function deleteLoggedWorkout(date, idx) {
 }
 
 / ==========================================================================
-// REDIGERING OCH SÄKER RADERING AV HISTORISKA PASS (MED FULLSTÄNDIG DESIGN)
+// CENTRAL HANTERING AV RADERING OCH EDITERING (SÄKRAD OCH ÅTERSTÄLLD)
 // ==========================================================================
 
-// 1. ÖPPNA EDITERINGSLÄGET FÖR ETT HISTORISKT PASS (Med din fullständiga originaldesign)
+// 1. ÅTERSTÄLLD OCH SÄKRAD: Öppna editeringsläget för ett historiskt pass
 function editLoggedWorkout(dateStr, idx) {
     const filtered = workoutHistory.filter(w => w.date === dateStr);
     const workoutToEdit = filtered[idx];
@@ -2214,32 +2214,27 @@ function editLoggedWorkout(dateStr, idx) {
     const body = document.getElementById("modal-body");
     if (!body) return;
 
-    hideDefaultCloseButton(true);
+    if (typeof hideDefaultCloseButton === 'function') {
+        hideDefaultCloseButton(true);
+    }
 
-    // Återställer den stora, snygga designen med fullständiga marginaler och textstilar
+    // Din fullständiga, snygga premiumdesign återställd exakt som den ska vara
     let html = `
         <div style="text-align: center; margin: 0 !important; padding: 0 !important;">
-            <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: var(--primary); font-weight: 600; display: block; margin: 0 !important; padding: 0 !important;">Redigerar historik</span>
+            <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: var(--primary); font-weight: 600; display: block;">Redigerar historik</span>
             <h2 class="section-title modern-header" style="margin: 8px 0 0 0 !important; padding: 0 !important; display: inline-block; font-size: 24px; line-height: 1.1 !important;">
                 ${workoutToEdit.programName}
             </h2>
             <span style="font-size: 12px; color: var(--text-light); display: block; margin-top: 5px;">📅 ${dateStr}</span>
         </div>
         
-        <div style="display: flex; flex-direction: column; gap: 15px; max-height: 380px; overflow-y: auto; margin-top: 10px; padding-right: 5px;">
+        <div style="display: flex; flex-direction: column; gap: 15px; max-height: 350px; overflow-y: auto; margin-top: 15px; padding-right: 5px;">
     `;
 
-    // Loopar ut övningarna i dina korrekta "card glass"-boxar med exakt samma CSS som i kalendern
     workoutToEdit.exercises.forEach((ex, exIdx) => {
         html += `
             <div class="card glass" style="border-left: 4px solid var(--primary); text-align: left; margin: 0; padding: 15px; border-radius: 16px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                    <div>
-                        <strong style="font-size: 15px; color: var(--text); display: block;">${ex.name}</strong>
-                        <span style="font-size: 10px; color: var(--text-light); font-weight: 800; text-transform: uppercase;">${ex.target || 'Övning'}</span>
-                    </div>
-                </div>
-                
+                <strong style="font-size: 15px; color: var(--text); display: block; margin-bottom: 8px;">${ex.name}</strong>
                 <div style="background: rgba(0,0,0,0.15); padding: 12px; border-radius: 12px; display: flex; flex-direction: column; gap: 10px;">
                     <div style="display:grid; grid-template-columns: 40px 1fr 1fr; gap:8px; align-items:center;">
                         <small style="text-align:left; color:var(--text-light); font-size:9px; font-weight:700; padding-left:2px;">SET</small>
@@ -2252,23 +2247,20 @@ function editLoggedWorkout(dateStr, idx) {
             ex.sets_data.forEach((set, sIdx) => {
                 html += `
                     <div style="display: grid; grid-template-columns: 40px 1fr 1fr; gap: 8px; align-items: center;">
-                        <div style="width:28px; height:28px; border-radius:50%; border:2px solid var(--primary); display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:800; background:rgba(34, 211, 238, 0.1); color:var(--primary);">
+                        <div style="width:28px; height:28px; border-radius:50%; border:2px solid var(--primary); display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:800; color:var(--primary); background:rgba(34, 211, 238, 0.1);">
                             #${sIdx + 1}
                         </div>
-                        <input type="text" inputmode="decimal" class="log-input" style="margin:0; padding:10px; font-size:16px; text-align:center;" value="${set.weight || ''}" id="edit-hist-w-${exIdx}-${sIdx}">
-                        <input type="text" inputmode="decimal" class="log-input" style="margin:0; padding:10px; font-size:16px; text-align:center;" value="${set.reps || ''}" id="edit-hist-r-${exIdx}-${sIdx}">
+                        <input type="text" inputmode="decimal" class="log-input" style="margin:0; padding:10px; text-align:center;" value="${set.weight || ''}" id="edit-w-${exIdx}-${sIdx}">
+                        <input type="text" inputmode="decimal" class="log-input" style="margin:0; padding:10px; text-align:center;" value="${set.reps || ''}" id="edit-r-${exIdx}-${sIdx}">
                     </div>
                 `;
             });
         } else {
-            // Backup om passet sparats i det gamla formatet utan split-set
             html += `
                 <div style="display: grid; grid-template-columns: 40px 1fr 1fr; gap: 8px; align-items: center;">
-                    <div style="width:28px; height:28px; border-radius:50%; border:2px solid var(--primary); display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:800; color:var(--primary);">
-                        All
-                    </div>
-                    <input type="text" inputmode="decimal" class="log-input" style="margin:0; padding:10px; font-size:16px; text-align:center;" value="${ex.weight || ''}" id="edit-hist-w-${exIdx}-0">
-                    <input type="text" inputmode="decimal" class="log-input" style="margin:0; padding:10px; font-size:16px; text-align:center;" value="${ex.reps || ''}" id="edit-hist-r-${exIdx}-0">
+                    <div style="width:28px; height:28px; border-radius:50%; border:2px solid var(--primary); display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:800; color:var(--primary);">#1</div>
+                    <input type="text" inputmode="decimal" class="log-input" style="margin:0; padding:10px; text-align:center;" value="${ex.weight || ''}" id="edit-w-${exIdx}-0">
+                    <input type="text" inputmode="decimal" class="log-input" style="margin:0; padding:10px; text-align:center;" value="${ex.reps || ''}" id="edit-r-${exIdx}-0">
                 </div>
             `;
         }
@@ -2279,8 +2271,8 @@ function editLoggedWorkout(dateStr, idx) {
     html += `
         </div>
 
-        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px; width: 100%;">
-            <button class="mode-btn premium-action-btn premium-green-btn" id="save-historic-edit-btn" style="width:100% !important; margin: 0 !important; padding: 14px !important;">
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 15px; width: 100%;">
+            <button class="mode-btn premium-action-btn premium-green-btn" id="save-historic-edit-btn" style="width:100% !important; margin: 0 !important; padding: 12px !important;">
                 Spara ändringar 💾
             </button>
             
@@ -2288,7 +2280,7 @@ function editLoggedWorkout(dateStr, idx) {
                 Radera passet permanent 🗑️
             </button>
 
-            <button class="mode-btn glass-border" id="back-to-day-manager-btn" style="width:100% !important; margin: 0 !important; padding: 10px !important; border-radius: 12px; background: rgba(255,255,255,0.02);">
+            <button class="mode-btn glass-border" id="back-to-day-manager-btn" style="width:100% !important; margin: 0 !important; padding: 10px !important; border-radius: 12px;">
                 Tillbaka
             </button>
         </div>
@@ -2296,25 +2288,25 @@ function editLoggedWorkout(dateStr, idx) {
 
     body.innerHTML = html;
 
-    // EVENT: TILLBAKA (Skicka tillbaka till dagshanteraren direkt och snyggt)
+    // EVENT HANTERING - helt enligt din trygga originalmodell
     document.getElementById("back-to-day-manager-btn").onclick = () => {
-        hideDefaultCloseButton(false);
-        openDayManager(dateStr, calendarOverrides[dateStr] === 'none' ? null : programData.routine.find(x => x.id === calendarOverrides[dateStr]), filtered, false);
+        if (typeof hideDefaultCloseButton === 'function') hideDefaultCloseButton(false);
+        const plannedPass = calendarOverrides[dateStr] === 'none' ? null : programData.routine.find(x => x.id === calendarOverrides[dateStr]);
+        openDayManager(dateStr, plannedPass, filtered, false); // Mjuk övergång tillbaka
     };
 
-    // EVENT: SPARA ÄNDRINGAR
     document.getElementById("save-historic-edit-btn").onclick = async () => {
         workoutToEdit.exercises.forEach((ex, exIdx) => {
             if (ex.sets_data) {
                 ex.sets_data.forEach((set, sIdx) => {
-                    const wInput = document.getElementById(`edit-hist-w-${exIdx}-${sIdx}`);
-                    const rInput = document.getElementById(`edit-hist-r-${exIdx}-${sIdx}`);
+                    const wInput = document.getElementById(`edit-w-${exIdx}-${sIdx}`);
+                    const rInput = document.getElementById(`edit-r-${exIdx}-${sIdx}`);
                     if (wInput) set.weight = wInput.value;
                     if (rInput) set.reps = rInput.value;
                 });
             } else {
-                const wInput = document.getElementById(`edit-hist-w-${exIdx}-0`);
-                const rInput = document.getElementById(`edit-hist-r-${exIdx}-0`);
+                const wInput = document.getElementById(`edit-w-${exIdx}-0`);
+                const rInput = document.getElementById(`edit-r-${exIdx}-0`);
                 if (wInput) ex.weight = wInput.value;
                 if (rInput) ex.reps = rInput.value;
             }
@@ -2322,19 +2314,55 @@ function editLoggedWorkout(dateStr, idx) {
 
         localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
         
-        hideDefaultCloseButton(false);
+        if (typeof hideDefaultCloseButton === 'function') hideDefaultCloseButton(false);
         closeModal();
         if (typeof renderCalendar === 'function') renderCalendar(false);
-
         if (typeof saveWorkoutHistory === 'function') await saveWorkoutHistory();
     };
 
-    // EVENT: RADERA (Öppnar den anpassade raderings-popupen med korrekt text)
     document.getElementById("delete-historic-from-edit-btn").onclick = () => {
         confirmDeleteFromEditMode(dateStr, idx);
     };
 
     openModal();
+}
+
+// HJÄLPFUNKTION: TILLBAKA-KNAPPEN
+function goBackToDayManager(dateStr) {
+    if (typeof hideDefaultCloseButton === 'function') hideDefaultCloseButton(false);
+    const filtered = workoutHistory.filter(w => w.date === dateStr);
+    const plannedPass = calendarOverrides[dateStr] === 'none' ? null : programData.routine.find(x => x.id === calendarOverrides[dateStr]);
+    openDayManager(dateStr, plannedPass, filtered, false);
+}
+
+// HJÄLPFUNKTION: SPARA HISTORISKA ÄNDRINGAR
+async function saveHistoricWorkoutChanges(dateStr, idx) {
+    const filtered = workoutHistory.filter(w => w.date === dateStr);
+    const workoutToEdit = filtered[idx];
+    if (!workoutToEdit) return;
+
+    workoutToEdit.exercises.forEach((ex, exIdx) => {
+        if (ex.sets_data) {
+            ex.sets_data.forEach((set, sIdx) => {
+                const wInput = document.getElementById(`edit-w-${exIdx}-${sIdx}`);
+                const rInput = document.getElementById(`edit-r-${exIdx}-${sIdx}`);
+                if (wInput) set.weight = wInput.value;
+                if (rInput) set.reps = rInput.value;
+            });
+        } else {
+            const wInput = document.getElementById(`edit-w-${exIdx}-0`);
+            const rInput = document.getElementById(`edit-r-${exIdx}-0`);
+            if (wInput) ex.weight = wInput.value;
+            if (rInput) ex.reps = rInput.value;
+        }
+    });
+
+    localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
+    
+    if (typeof hideDefaultCloseButton === 'function') hideDefaultCloseButton(false);
+    closeModal();
+    if (typeof renderCalendar === 'function') renderCalendar(false);
+    if (typeof saveWorkoutHistory === 'function') await saveWorkoutHistory();
 }
 
 function hideDefaultCloseButton(hide) {
@@ -2584,27 +2612,27 @@ function confirmDeleteFromEditMode(dateStr, idx) {
     `;
 
     document.getElementById("abort-delete-from-edit-btn").onclick = () => {
-        editLoggedWorkout(dateStr, idx); // Tillbaka till editeringsvyn direkt utan blink
+        editLoggedWorkout(dateStr, idx); // Går omedelbart tillbaka till redigeringen utan blink
     };
 
     document.getElementById("execute-delete-from-edit-btn").onclick = async () => {
-        // 1. Ta bort från minnet direkt
+        // 1. Ta bort från det lokala minnet direkt
         const globalIdx = workoutHistory.findIndex(w => w.date === dateStr);
         if (globalIdx !== -1) {
             workoutHistory.splice(globalIdx, 1);
         }
         
-        // 2. Spara lokalt
+        // 2. Spara lokalt till LocalStorage
         localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
         
         // 3. Stäng fönstret och tvinga kalendern att rita om sig direkt
-        hideDefaultCloseButton(false);
+        if (typeof hideDefaultCloseButton === 'function') hideDefaultCloseButton(false);
         closeModal();
         if (typeof renderCalendar === 'function') {
             renderCalendar(false); 
         }
 
-        // 4. Utför databas-synk tyst i bakgrunden
+        // 4. Utför databas-synk i bakgrunden utan att frysa UI
         if (typeof deleteWorkoutFromHistory === 'function') {
             await deleteWorkoutFromHistory(dateStr, idx);
         }
