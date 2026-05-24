@@ -2198,104 +2198,111 @@ async function deleteLoggedWorkout(date, idx) {
 }
 
 // ÄNDRING: Åtgärdat den kritiska buggen gällande `dataObj`/`null`-parametern samt synkroniserat raderingen av det gamla passet
-async function editLoggedWorkout(date, idx) {
-    const filtered = workoutHistory.filter(w => w.date === date);
-    const item = filtered[idx];
-    if (!item) return;
+async function editLoggedWorkout(dateStr, idx) {
+    // Hitta passet i historiken baserat på datum och index
+    const filtered = workoutHistory.filter(w => w.date === dateStr);
+    const workoutToEdit = filtered[idx];
     
-    let savedSeconds = 0;
-    if(item.totalTime) {
-        const parts = item.totalTime.split(':');
-        savedSeconds = (+parts[0]) * 3600 + (+parts[1]) * 60 + (+parts[2]);
+    if (!workoutToEdit) {
+        console.error("Kunde inte hitta det slutförda passet för editering.");
+        return;
     }
 
-    // Behåll passets ursprungliga ID (viktigt så att vi inte skapar ett nytt pass när vi sparar ediseringen!)
-    const workoutObj = { 
-        id: item.id, 
-        name: item.programName, 
-        exercises: item.exercises.map(ex => ({ name: ex.name, target: ex.target || "" })) 
-    };
-    
-    // Strukturera om övningsdatan korrekt till en matris som matchar activeDraft-strukturen
-    const formattedDataArray = item.exercises.map(ex => {
-        if(ex.sets_data) {
-            return { sets_data: JSON.parse(JSON.stringify(ex.sets_data)), isCompleted: true };
+    // Stäng dagshanteraren (om det behövs) men gå DIREKT till edit-vyn utan att passera gå (startsidan)
+    const body = document.getElementById("modal-body");
+    if (!body) return;
+
+    hideDefaultCloseButton(true);
+
+    // Generera HTML för redigeringsläget inuti modalen (eller din dedikerade vy)
+    let html = `
+        <div style="text-align: left; padding: 5px;">
+            <span style="font-size: 11px; text-transform: uppercase; color: var(--primary); font-weight: 700; letter-spacing: 1px;">Redigerar slutfört pass</span>
+            <h3 style="margin: 5px 0 20px 0; font-size: 22px;">${workoutToEdit.programName}</h3>
+            <p style="font-size: 12px; color: var(--text-light); margin-top: -15px; margin-bottom: 20px;">Datum: ${dateStr}</p>
+            
+            <div style="display: flex; flex-direction: column; gap: 15px; max-height: 350px; overflow-y: auto; margin-bottom: 20px; padding-right: 5px;">
+    `;
+
+    // Loopa ut övningarna och dess set så att användaren kan se/ändra dem
+    workoutToEdit.exercises.forEach((ex, exIdx) => {
+        html += `
+            <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); padding: 12px; border-radius: 12px;">
+                <strong style="font-size: 14px; color: #ffffff; display: block; margin-bottom: 8px;">${ex.name}</strong>
+        `;
+        
+        if (ex.sets_data) {
+            ex.sets_data.forEach((set, sIdx) => {
+                html += `
+                    <div style="display: grid; grid-template-columns: 50px 1fr 1fr; gap: 8px; margin-bottom: 6px; align-items: center;">
+                        <span style="font-size: 11px; color: var(--primary); font-weight: 600;">Set ${sIdx + 1}</span>
+                        <input type="text" inputmode="decimal" class="log-input" style="margin:0; padding:8px; font-size:14px;" value="${set.weight || ''}" id="edit-hist-w-${exIdx}-${sIdx}">
+                        <input type="text" inputmode="decimal" class="log-input" style="margin:0; padding:8px; font-size:14px;" value="${set.reps || ''}" id="edit-hist-r-${exIdx}-${sIdx}">
+                    </div>
+                `;
+            });
         }
-        return { 
-            sets_data: Array(parseInt(ex.sets || 1)).fill(null).map(() => ({ weight: ex.weight || "", reps: ex.reps || "" })), 
-            isCompleted: true 
-        };
+        
+        html += `</div>`;
     });
 
-    // Ta bort det gamla passet från historiken lokalt (Optimistic)
-    workoutHistory = workoutHistory.filter(w => w.id !== item.id);
-    localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
-    
-    try {
-        if (currentUser) {
-            // ÄNDRING: Hämta rader för det specifika datumet
-            const { data: historyData, error: fetchError } = await supabaseClient
-                .from('workout_history')
-                .select('id, workout_data')
-                .eq('user_id', currentUser.id)
-                .eq('workout_date', date);
+    html += `
+            </div>
 
-            if (fetchError) throw fetchError;
+            <button class="mode-btn blue" id="save-historic-edit-btn" style="width:100%; padding:14px; border-radius:12px; font-weight:700; margin-bottom:12px;">
+                Spara ändringar 💾
+            </button>
+            
+            <button class="mode-btn" id="delete-historic-from-edit-btn" style="background:none; color:var(--danger); font-size:14px; border:1px solid rgba(239, 68, 68, 0.2); width:100%; padding:10px; border-radius:12px; margin-bottom:12px;">
+                Radera passet permanent 🗑️
+            </button>
 
-            // ÄNDRING: Hitta exakt rätt rad genom att matcha det unika ID:t istället för bara namnet!
-            const targetRow = historyData.find(row => 
-                row.workout_data && (row.workout_data.id === item.id || row.id === item.id)
-            );
+            <button class="mode-btn glass-border" id="back-to-day-manager-btn" style="width:100%; padding:10px; border-radius:12px;">
+                Tillbaka
+            </button>
+        </div>
+    `;
 
-            if (targetRow) {
-                const { error: deleteError } = await supabaseClient
-                    .from('workout_history')
-                    .delete()
-                    .eq('id', targetRow.id)
-                    .eq('user_id', currentUser.id);
+    body.innerHTML = html;
 
-                if (deleteError) throw deleteError;
-            }
-        }
-    } catch (error) {
-        console.error('Error removing old workout for edit from Supabase:', error);
-    }
-
-    // Rensa eventuella gamla utkast i bakgrunden
-    localStorage.removeItem("activeWorkoutDraft");
-    if (typeof deleteActiveDraft === 'function') await deleteActiveDraft();
-    
-    if (currentUser) {
-        try {
-            await supabaseClient.from('active_draft').delete().eq('user_id', currentUser.id);
-        } catch(e) { console.error(e); }
-    }
-    
-    closeModal();
-    
-    // Etablera det nya redigeringsbara utkastet med rätt fältmappningar (och behåll ID:t!)
-    secondsElapsed = savedSeconds;
-    activeDraft = {
-        id: item.id, // ID följer med in i utkastet
-        workout: workoutObj,
-        data: formattedDataArray, 
-        date: date,
-        secondsElapsed: savedSeconds,
-        isStarted: true,
-        wasTimerRunning: false,
-        ui_state: { openExercises: [0] }
+    // EVENT: TILLBAKA-KNAPPEN (Skicka tillbaka till dagshanteraren mjukt)
+    document.getElementById("back-to-day-manager-btn").onclick = () => {
+        hideDefaultCloseButton(false);
+        openDayManager(dateStr, calendarOverrides[dateStr] === 'none' ? null : programData.routine.find(x => x.id === calendarOverrides[dateStr]), filtered, false);
     };
-    
-    // Synkronisera det nyskapade redigeringsutkastet till lokal backup och molnet
-    if (typeof persistActiveWorkout === 'function') {
-        await persistActiveWorkout();
-    } else if (typeof saveActiveDraft === 'function') {
-        await saveActiveDraft();
-    }
-    
-    if (typeof renderActiveWorkout === 'function') renderActiveWorkout();
-    if (typeof updateTimerDisplay === 'function') updateTimerDisplay();
-    showView("workout-view");
+
+    // EVENT: SPARA-KNAPPEN
+    document.getElementById("save-historic-edit-btn").onclick = async () => {
+        // Samla in eventuella ändrade värden från input-fälten
+        workoutToEdit.exercises.forEach((ex, exIdx) => {
+            if (ex.sets_data) {
+                ex.sets_data.forEach((set, sIdx) => {
+                    const wInput = document.getElementById(`edit-hist-w-${exIdx}-${sIdx}`);
+                    const rInput = document.getElementById(`edit-hist-r-${exIdx}-${sIdx}`);
+                    if (wInput) set.weight = wInput.value;
+                    if (rInput) set.reps = rInput.value;
+                });
+            }
+        });
+
+        // Uppdatera localStorage
+        localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
+        
+        // Stäng tyst och uppdatera kalendern
+        hideDefaultCloseButton(false);
+        closeModal();
+        if (typeof renderCalendar === 'function') renderCalendar(false);
+
+        // Synka till Supabase i bakgrunden (om du har en generell spara-historik-funktion)
+        if (typeof saveWorkoutHistory === 'function') await saveWorkoutHistory();
+    };
+
+    // EVENT: RADERA-KNAPPEN (Här kopplar vi på den helt nya, korrekta funktionen!)
+    document.getElementById("delete-historic-from-edit-btn").onclick = () => {
+        confirmDeleteFromEditMode(dateStr, idx);
+    };
+
+    openModal();
 }
 
 function hideDefaultCloseButton(hide) {
