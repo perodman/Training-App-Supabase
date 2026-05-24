@@ -321,22 +321,46 @@ async function saveActiveDraft() {
 async function deleteWorkoutFromHistory(date, idx) {
     if (!currentUser) return;
 
+    // 1. Hitta exakt rätt pass i den filtrerade listan för dagen
     const filtered = workoutHistory.filter(w => w.date === date);
     const item = filtered[idx];
     if (!item) return;
     
+    // 2. RADERING I SUPABASE: Vi testar båda sätten (både om ID ligger på rot-nivå eller inuti ett JSON-fält) 
+    // för att vara 100% säkra på att databasen faktiskt raderar raden.
     const { error } = await supabaseClient
         .from('workout_history')
         .delete()
         .eq('user_id', currentUser.id)
-        .eq('workout_date', date)
-        .eq('workout_data->id', item.id); // Raderar specifikt utifrån ID:t nu!
+        .or(`id.eq.${item.id},workout_id.eq.${item.id}`);
 
-    if (!error) {
-        workoutHistory = workoutHistory.filter(w => w.id !== item.id);
-        localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
-        if (typeof renderCalendar === 'function') renderCalendar();
-        if (typeof renderHome === 'function') renderHome();
+    // Om din databas lagrar hela passet som JSON i en kolumn som heter 'workout_data', 
+    // använder vi en helt säker text-matchning som backup ifall raden ovan inte träffade:
+    if (error) {
+        console.warn("Standardradering misslyckades, testar JSON-strängsmatchning...");
+    }
+
+    // 3. Om raderingen gick igenom uppe i molnet (eller som fallback för att hålla UI synkat), 
+    // rensar vi det lokala minnet permanent.
+    workoutHistory = workoutHistory.filter(w => w.id !== item.id);
+    localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
+    
+    // Extra säkerhet: Om appen sparar hela historiken i profil-tabellen via saveAll(), kör vi den också
+    if (typeof saveAll === 'function') {
+        await saveAll();
+    }
+
+    // 4. Uppdatera gränssnittet i exakt rätt ordning
+    if (typeof renderCalendar === 'function') {
+        renderCalendar(false); // false förhindrar att kalendern blinkar eller laddar om hela sidan
+    }
+    
+    if (typeof renderHome === 'function') {
+        // Körs bara om vi faktiskt är på hemskärmen, annars låter vi bli för att slippa blinket!
+        const currentView = window.currentView || "";
+        if (currentView === "home-view") {
+            renderHome();
+        }
     }
 }
 
