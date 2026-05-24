@@ -2406,19 +2406,21 @@ function openConfirmDeleteModal(dateStr, idx) {
     body.innerHTML = `
         <div style="text-align:center; padding:10px;">
             <div style="font-size:40px; margin-bottom:15px;">🗑️</div>
-            <h3 style="color:var(--danger);">Radera pass ur historiken?</h3>
-            <p style="color:var(--text-light); margin-bottom:25px; font-size:14px;">Detta pass kommer att tas bort från din kalender permanent.</p>
-            <button class="mode-btn" id="confirm-delete-history-btn" style="background:linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color:white; margin-bottom:12px; font-weight:700;">
-                Ja, radera
+            <h3 style="color:var(--danger); margin: 0 0 10px 0; font-size:22px;">Radera pass ur historiken?</h3>
+            <p style="color:var(--text-light); margin-bottom:25px; font-size:14px; line-height:1.4;">
+                Detta pass kommer att tas bort från din kalender permanent och försvinna från databasen.
+            </p>
+            <button class="mode-btn" id="confirm-delete-history-btn" style="background:linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color:white; margin-bottom:12px; font-weight:700; width:100%; padding:14px; border-radius:12px; border:none; cursor:pointer;">
+                Ja, radera passet
             </button>
             
-            <button class="mode-btn glass-border" id="cancel-delete-history-btn">
+            <button class="mode-btn glass-border" id="cancel-delete-history-btn" style="width:100%; padding:12px; border-radius:12px; background:rgba(255,255,255,0.05); color:var(--text); cursor:pointer;">
                 Avbryt
             </button>
         </div>
     `;
 
-    // OM MAN ÅNGRAR SIG: Gå bara tillbaka till dagshanteraren utan blink
+    // AVBRYT: Gå tillbaka till dagshanteraren utan blink
     document.getElementById("cancel-delete-history-btn").onclick = () => {
         hideDefaultCloseButton(false);
         const filtered = workoutHistory.filter(w => w.date === dateStr);
@@ -2426,20 +2428,28 @@ function openConfirmDeleteModal(dateStr, idx) {
         openDayManager(dateStr, plannedPass, filtered, false);
     };
 
-    // OM MAN VILL RADERA:
+    // BEKRÄFTA RADERING:
     document.getElementById("confirm-delete-history-btn").onclick = async () => {
-        if (typeof deleteWorkoutFromHistory === 'function') {
-            // Anropa din säkra funktion från supabase-data.js med await
-            await deleteWorkoutFromHistory(dateStr, idx);
+        // 1. Hitta rätt index i den globala workoutHistory-arrayen och ta bort det lokalt
+        // (Eftersom listan kan vara filtrerad per datum matchar vi mot unika värden)
+        const globalIdx = workoutHistory.findIndex(w => w.date === dateStr);
+        if (globalIdx !== -1) {
+            workoutHistory.splice(globalIdx, 1);
         }
         
-        // Återställ knapparna och stäng modalen tyst
+        // 2. Spara den rensade listan till LocalStorage direkt för omedelbar respons
+        localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
+        
+        // 3. Stäng fönstret och uppdatera kalendervyn i appen direkt
         hideDefaultCloseButton(false);
         closeModal();
-        
-        // Tvinga kalendern på skärmen att rita om sig för att ta bort det gröna passet direkt
         if (typeof renderCalendar === 'function') {
             renderCalendar(false); 
+        }
+
+        // 4. Skicka raderingen asynkront till Supabase i bakgrunden utan att störa UI
+        if (typeof deleteWorkoutFromHistory === 'function') {
+            await deleteWorkoutFromHistory(dateStr, idx);
         }
     };
 
@@ -2447,44 +2457,67 @@ function openConfirmDeleteModal(dateStr, idx) {
 }
 
 // ÄNDRING: Rensar utkast i både localStorage och tabellen public.active_draft i Supabase asynkront
-async function confirmDiscardActiveWorkout() {
-    if (!confirm("Är du säker på att du vill radera och avsluta detta pågående pass? Inga set kommer att sparas.")) return;
-    
-    // 1. Nollställ det lokala minnet och lokal backup omedelbart
-    activeDraft = null;
-    localStorage.removeItem("activeWorkoutDraft");
-    
-    // 2. Stoppa timern i appen (om dina funktioner för detta heter så här)
-    if (typeof stopTimer === 'function') stopTimer();
-    secondsElapsed = 0;
+function confirmDiscardActiveWorkout() {
+    hideDefaultCloseButton(true);
+    const body = document.getElementById("modal-body");
+    if (!body) return;
 
-    // 3. Rensa tabellen 'active_draft' i Supabase asynkront och vänta in svaret (await)
-    if (typeof currentUser !== 'undefined' && currentUser) {
-        try {
-            // Vi gör en direkt radering (eller sätter data till ett tomt objekt) i active_draft-tabellen
-            await supabaseClient
-                .from('active_draft')
-                .delete()
-                .eq('user_id', currentUser.id);
-                
-            console.log("Supabase: Pågående utkast raderat utan anmärkning.");
-        } catch (err) {
-            console.error("Supabase: Fel vid radering av pågående utkast:", err);
+    // Öppna din egen snygga glass-modal istället för webbläsarens confirm()
+    body.innerHTML = `
+        <div style="text-align:center; padding:10px;">
+            <div style="font-size:40px; margin-bottom:15px;">⚠️</div>
+            <h3 style="color:var(--danger); margin: 0 0 10px 0; font-size:22px;">Avbryta träningspasset?</h3>
+            <p style="color:var(--text-light); margin-bottom:25px; font-size:14px; line-height:1.4;">
+                Är du säker på att du vill radera och avsluta detta pågående pass? Inga set kommer att sparas i din historik.
+            </p>
+            <button class="mode-btn" id="confirm-discard-draft-btn" style="background:linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color:white; margin-bottom:12px; font-weight:700; width:100%; padding:14px; border-radius:12px; border:none; cursor:pointer;">
+                Ja, radera passet
+            </button>
+            
+            <button class="mode-btn glass-border" id="cancel-discard-draft-btn" style="width:100%; padding:12px; border-radius:12px; background:rgba(255,255,255,0.05); color:var(--text); cursor:pointer;">
+                Nej, fortsätt träna
+            </button>
+        </div>
+    `;
+
+    // OM MAN VILL FORTSÄTTA TRÄNA: Stäng bara modalen och låt passet vara kvar active
+    document.getElementById("cancel-discard-draft-btn").onclick = () => {
+        hideDefaultCloseButton(false);
+        closeModal();
+    };
+
+    // OM MAN VILL RADERA UTKASTET PERMANENT:
+    document.getElementById("confirm-discard-draft-btn").onclick = async () => {
+        // 1. Nollställ minnet och lokal backup direkt
+        activeDraft = null;
+        localStorage.removeItem("activeWorkoutDraft");
+        
+        // 2. Stoppa klockan
+        if (typeof stopTimer === 'function') stopTimer();
+        secondsElapsed = 0;
+
+        // 3. Stäng modalen och flytta användaren direkt till hemvyn i appen
+        hideDefaultCloseButton(false);
+        closeModal();
+        if (typeof showView === 'function') {
+            showView("home-view");
         }
-    }
+        if (typeof renderHome === 'function') {
+            renderHome();
+        }
 
-    // 4. Stäng eventuellt öppna modaler/dialogrutor tyst
-    closeModal();
+        // 4. Rensa databasen asynkront i bakgrunden utan att låsa gränssnittet
+        if (typeof currentUser !== 'undefined' && currentUser) {
+            try {
+                await supabaseClient
+                    .from('active_draft')
+                    .delete()
+                    .eq('user_id', currentUser.id);
+            } catch (err) {
+                console.error("Supabase: Fel vid radering av pågående utkast:", err);
+            }
+        }
+    };
 
-    // 5. Istället för en hård reload, skicka användaren mjukt tillbaka till hemvyn
-    if (typeof showView === 'function') {
-        showView("home-view");
-    }
-    
-    // 6. Rita om startsidan och kalendern så att allt visar rätt status direkt
-    if (typeof renderHome === 'function') {
-        renderHome();
-    } else if (typeof renderCalendar === 'function') {
-        renderCalendar(false);
-    }
+    openModal();
 }
