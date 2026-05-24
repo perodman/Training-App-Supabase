@@ -2418,10 +2418,30 @@ function openConfirmDeleteModal(dateStr, idx) {
         const itemToDelete = filtered[idx];
 
         if (itemToDelete) {
+            // 1. Radera lokalt i minnet baserat på det unika ID-numret
             workoutHistory = workoutHistory.filter(w => w.id !== itemToDelete.id);
             localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
+            
+            // 2. Tvinga en direkt synk till databasen via din existerande saveAll-funktion
+            if (typeof saveAll === 'function') {
+                await saveAll();
+            }
+            
+            // 3. Om du har en specifik Supabase-tabell för historikrader, kör vi den med ID:t
+            if (currentUser) {
+                try {
+                    await supabaseClient
+                        .from('workout_history')
+                        .delete()
+                        .eq('user_id', currentUser.id)
+                        .eq('id', itemToDelete.id); // Radera exakt rätt rad i Supabase
+                } catch (dbErr) {
+                    console.error("Kunde inte radera passet direkt från Supabase-tabellen:", dbErr);
+                }
+            }
         }
 
+        // Kör din gamla callback om den finns kvar som fallback
         if (typeof deleteWorkoutFromHistory === 'function') {
             await deleteWorkoutFromHistory(dateStr, idx);
         }
