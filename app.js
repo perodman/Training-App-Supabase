@@ -2203,6 +2203,7 @@ async function deleteLoggedWorkout(date, idx) {
 
 // 1. ÖPPNA EDITERINGSLÄGET FÖR ETT HISTORISKT PASS (ÅTERSTÄLLD TILL STANDARD)
 async function editLoggedWorkout(date, idx) {
+    // Skapa en djup kopia av workoutHistory så att vi inte manipulerar originalet förrän användaren godkänner
     const filtered = workoutHistory.filter(w => w.date === date);
     const item = filtered[idx];
     if (!item) return;
@@ -2231,39 +2232,9 @@ async function editLoggedWorkout(date, idx) {
         };
     });
 
-    // Ta bort det gamla passet från historiken lokalt (Optimistic)
-    workoutHistory = workoutHistory.filter(w => w.id !== item.id);
-    localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
-    
-    try {
-        if (currentUser) {
-            // ÄNDRING: Hämta rader för det specifika datumet
-            const { data: historyData, error: fetchError } = await supabaseClient
-                .from('workout_history')
-                .select('id, workout_data')
-                .eq('user_id', currentUser.id)
-                .eq('workout_date', date);
-
-            if (fetchError) throw fetchError;
-
-            // ÄNDRING: Hitta exakt rätt rad genom att matcha det unika ID:t istället för bara namnet!
-            const targetRow = historyData.find(row => 
-                row.workout_data && (row.workout_data.id === item.id || row.id === item.id)
-            );
-
-            if (targetRow) {
-                const { error: deleteError } = await supabaseClient
-                    .from('workout_history')
-                    .delete()
-                    .eq('id', targetRow.id)
-                    .eq('user_id', currentUser.id);
-
-                if (deleteError) throw deleteError;
-            }
-        }
-    } catch (error) {
-        console.error('Error removing old workout for edit from Supabase:', error);
-    }
+    // CORRECTION (Punkt 1 & 2): Vi tar INTE bort passet från historiken här omedvetet. 
+    // Det raderas först när användaren bekräftar i "Radera passet" eller sparar det nya editerade passet.
+    // Detta förhindrar att kalendern/DayManager kraschar eller tappar bort kryssets referens.
 
     // Rensa eventuella gamla utkast i bakgrunden
     localStorage.removeItem("activeWorkoutDraft");
@@ -2275,23 +2246,22 @@ async function editLoggedWorkout(date, idx) {
         } catch(e) { console.error(e); }
     }
     
-    // ÄNDRING PUNKT 2: closeModal flyttad till slutet av funktionen för att förhindra blinkning på startsidan
-    
     // Etablera det nya redigeringsbara utkastet med rätt fältmappningar (och behåll ID:t!)
     secondsElapsed = savedSeconds;
     activeDraft = {
-        id: item.id, // ID följer med in i utkastet
+        id: item.id, 
         workout: workoutObj,
         data: formattedDataArray, 
-        date: date,
+        date: date, // Håller koll på ursprungsdatumet vid editering
         secondsElapsed: savedSeconds,
         isStarted: true,
         wasTimerRunning: false,
         ui_state: { openExercises: [0] }
     };
     
-    // Synkronisera det nyskapade redigeringsutkastet till lokal backup och molnet (PUNKT 3 - Säkrar spara utkast)
+    // PUNKT 3: Spara direkt till localStorage så att "Fortsätt träningspass" har tillgång till det omedelbart
     localStorage.setItem("activeWorkoutDraft", JSON.stringify(activeDraft));
+    
     if (typeof persistActiveWorkout === 'function') {
         await persistActiveWorkout();
     } else if (typeof saveActiveDraft === 'function') {
@@ -2300,9 +2270,9 @@ async function editLoggedWorkout(date, idx) {
     
     if (typeof renderActiveWorkout === 'function') renderActiveWorkout();
     if (typeof updateTimerDisplay === 'function') updateTimerDisplay();
+    
+    // ÄNDRING PUNKT 2: Byt vy först, stäng modalen sen för att ta bort blinket på hemskärmen helt
     showView("workout-view");
-
-    // Slutför stängningen här efter att vyn har skiftat helt
     closeModal();
 }
 
@@ -2337,18 +2307,13 @@ async function deleteMasterExercise(id) {
     `;
     
     document.getElementById("confirm-delete-ex-btn").onclick = async () => { 
-        // 1. Filtrera bort övningen lokalt
         masterExercises = masterExercises.filter(e => e.id != id); 
-        
-        // 2. Spara i localStorage direkt för snabb UX
         localStorage.setItem('masterExercises', JSON.stringify(masterExercises));
         
-        // 3. Skicka upp den uppdaterade listan direkt till rätt tabell (custom_program) via saveCustomProgram
         if (typeof saveCustomProgram === 'function') {
             await saveCustomProgram(); 
         }
         
-        // 4. Stäng modalen och stanna kvar i övningsvyn utan att blinka eller hoppa till hemmenyn!
         hideDefaultCloseButton(false);
         closeModal(); 
         
@@ -2375,7 +2340,6 @@ async function deleteEntireProgram(idx) {
                     localStorage.setItem('myCustomProgram', JSON.stringify(programData));
                     await saveAll(); 
                     
-                    // Direkt synkronisering av modifierat custom_program till Supabase
                     if (currentUser) {
                         try {
                             const { data: existing } = await supabaseClient
@@ -2406,7 +2370,7 @@ async function deleteEntireProgram(idx) {
     openModal();
 }
 
-// PREMIUM POPUP: Den snygga informationsrutan när man väljer att radera ett sparat pass ur historiken
+// PUNKT 1 & 4: Säkrad radering direkt inifrån dagshanteraren/kalenderns kryss-knapp
 function openConfirmDeleteModal(dateStr, idx) {
     hideDefaultCloseButton(true);
     const body = document.getElementById("modal-body");
@@ -2437,6 +2401,15 @@ function openConfirmDeleteModal(dateStr, idx) {
     };
 
     document.getElementById("confirm-delete-history-btn").onclick = async () => {
+        // Hitta rätt pass i historiken baserat på indexet och kör raderingen synkroniserat
+        const filtered = workoutHistory.filter(w => w.date === dateStr);
+        const itemToDelete = filtered[idx];
+
+        if (itemToDelete) {
+            workoutHistory = workoutHistory.filter(w => w.id !== itemToDelete.id);
+            localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
+        }
+
         if (typeof deleteWorkoutFromHistory === 'function') {
             await deleteWorkoutFromHistory(dateStr, idx);
         }
@@ -2452,13 +2425,13 @@ function openConfirmDeleteModal(dateStr, idx) {
     openModal();
 }
 
-// PREMIUM POPUP: Den snygga informationsrutan när man väljer att avbryta ett pågående pass (Ersätter standard confirm)
+// PREMIUM POPUP: Den snygga informationsrutan när man väljer att avbryta eller radera inifrån ett pass (PUNKT 1 & 2)
 function confirmDiscardActiveWorkout() {
     hideDefaultCloseButton(true);
     const body = document.getElementById("modal-body");
     if (!body) return;
 
-    // ÄNDRING PUNKT 1: Kontrollera dynamiskt om detta är ett redigerat historiskt pass eller ett nytt utkast
+    // Känn av om detta är ett redigerat historiskt pass eller ett vanligt pågående utkast
     const isEditingHistorical = (activeDraft && activeDraft.date);
 
     const titleText = isEditingHistorical ? "Radera passet?" : "Avbryta träningspasset?";
@@ -2492,13 +2465,42 @@ function confirmDiscardActiveWorkout() {
     };
 
     document.getElementById("confirm-discard-draft-btn").onclick = async () => {
-        // ÄNDRING PUNKT 4: Om det är ett historiskt pass som ska raderas permanent, säkra anropet till Supabase/Historik
-        if (isEditingHistorical && typeof deleteWorkoutFromHistory === 'function') {
+        // Om användaren klickar på RADERA i ett editerat pass, kör vi borttagningen nu istället för i förväg
+        if (isEditingHistorical) {
             const dateStr = activeDraft.date;
-            // Eftersom editLoggedWorkout redan kört filter lokalt, skickar vi med datumet till din databasfunktion
-            await deleteWorkoutFromHistory(dateStr, 0); 
+            const workoutId = activeDraft.id;
+            
+            // Lokalt
+            workoutHistory = workoutHistory.filter(w => w.id !== workoutId);
+            localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
+            
+            // Mot databasen
+            if (currentUser) {
+                try {
+                    const { data: historyData } = await supabaseClient
+                        .from('workout_history')
+                        .select('id, workout_data')
+                        .eq('user_id', currentUser.id)
+                        .eq('workout_date', dateStr);
+
+                    const targetRow = historyData?.find(row => 
+                        row.workout_data && (row.workout_data.id === workoutId || row.id === workoutId)
+                    );
+
+                    if (targetRow) {
+                        await supabaseClient
+                            .from('workout_history')
+                            .delete()
+                            .eq('id', targetRow.id)
+                            .eq('user_id', currentUser.id);
+                    }
+                } catch (error) {
+                    console.error('Error removing old workout from database:', error);
+                }
+            }
         }
 
+        // Återställ det aktiva utkastet fullständigt
         activeDraft = null;
         localStorage.removeItem("activeWorkoutDraft");
         
