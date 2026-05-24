@@ -2383,7 +2383,6 @@ async function deleteEntireProgram(idx) {
     openModal();
 }
 
-// PUNKT 1 & 4: Säkrad radering direkt inifrån dagshanteraren/kalenderns kryss-knapp
 function openConfirmDeleteModal(dateStr, idx) {
     hideDefaultCloseButton(true);
     const body = document.getElementById("modal-body");
@@ -2419,8 +2418,10 @@ function openConfirmDeleteModal(dateStr, idx) {
         // 1. Hitta exakt rätt pass i den filtrerade listan för dagen via indexet (idx)
         const filtered = workoutHistory.filter(w => w.date === dateStr);
         const itemToDelete = filtered[idx];
+        let deletedItemId = null;
 
         if (itemToDelete) {
+            deletedItemId = itemToDelete.id;
             // Hitta passets exakta index i den globala workoutHistory-arrayen baserat på dess unika ID
             const globalIdx = workoutHistory.findIndex(w => w.id === itemToDelete.id);
             if (globalIdx !== -1) {
@@ -2444,14 +2445,29 @@ function openConfirmDeleteModal(dateStr, idx) {
             renderCalendar(false); 
         }
 
-        // 4. Skicka raderingen asynkront till Supabase i bakgrunden via din funktion i supabase-data.js
+        // 4. Skicka raderingen asynkront till Supabase i bakgrunden
+        // Vi kör din befintliga funktion först
         if (typeof deleteWorkoutFromHistory === 'function') {
             await deleteWorkoutFromHistory(dateStr, idx);
         }
         
-        // SÄKERHETS-SYNCHRONISERING: Tvinga även en saveAll() för att skriva över 'workout_history' i tabellen ifall delete-funktionen missar
+        // DIRECT DATABASE LINK: Om appen sparar hela historik-arrayen i en användarprofil-rad, kör vi din centrala sparfunktion
         if (typeof saveAll === 'function') {
             await saveAll();
+        }
+
+        // BACKUP-LÖSNING: Om din Supabase har en separat tabell som heter 'workout_history' där varje pass är en egen rad,
+        // så raderar vi raden direkt med dess unika ID så att det aldrig kan laddas ner igen.
+        if (currentUser && deletedItemId && typeof supabaseClient !== 'undefined') {
+            try {
+                await supabaseClient
+                    .from('workout_history')
+                    .delete()
+                    .eq('user_id', currentUser.id)
+                    .eq('id', deletedItemId);
+            } catch (dbErr) {
+                console.log("Noterad separat historiktabell-skrivning ej aktiv, sparar via profil-synk istället.");
+            }
         }
     };
 
