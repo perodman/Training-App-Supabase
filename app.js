@@ -2274,8 +2274,8 @@ async function editLoggedWorkout(date, idx) {
     if (typeof renderActiveWorkout === 'function') renderActiveWorkout();
     if (typeof updateTimerDisplay === 'function') updateTimerDisplay();
     
-    // ÄNDRING PUNKT 2: Byt vy först, stäng modalen sen för att ta bort blinket på hemskärmen helt
-    showView("workout-view");
+    // UX-OPTIMERING: Byt vy först så att träningspasset ligger redo på skärmen, stäng sedan modalen. Tar bort kalenderblicken helt!
+    if (typeof showView === 'function') showView("workout-view");
     closeModal();
 }
 
@@ -2404,7 +2404,6 @@ function openConfirmDeleteModal(dateStr, idx) {
     };
 
     document.getElementById("confirm-delete-history-btn").onclick = async () => {
-        // Hitta rätt pass i historiken baserat på indexet och kör raderingen synkroniserat
         const filtered = workoutHistory.filter(w => w.date === dateStr);
         const itemToDelete = filtered[idx];
 
@@ -2434,7 +2433,6 @@ function confirmDiscardActiveWorkout() {
     const body = document.getElementById("modal-body");
     if (!body) return;
 
-    // Känn av om detta är ett redigerat historiskt pass eller ett vanligt pågående utkast
     const isEditingHistorical = (activeDraft && activeDraft.date);
 
     const titleText = isEditingHistorical ? "Radera passet?" : "Avbryta träningspasset?";
@@ -2468,16 +2466,13 @@ function confirmDiscardActiveWorkout() {
     };
 
     document.getElementById("confirm-discard-draft-btn").onclick = async () => {
-        // Om användaren klickar på RADERA i ett editerat pass, kör vi borttagningen nu istället för i förväg
         if (isEditingHistorical) {
             const dateStr = activeDraft.date;
             const workoutId = activeDraft.id;
             
-            // Lokalt
             workoutHistory = workoutHistory.filter(w => w.id !== workoutId);
             localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
             
-            // Mot databasen
             if (currentUser) {
                 try {
                     const { data: historyData } = await supabaseClient
@@ -2503,7 +2498,6 @@ function confirmDiscardActiveWorkout() {
             }
         }
 
-        // Återställ det aktiva utkastet fullständigt
         activeDraft = null;
         localStorage.removeItem("activeWorkoutDraft");
         
@@ -2521,11 +2515,12 @@ function confirmDiscardActiveWorkout() {
             }
         }
 
-        hideDefaultCloseButton(false);
-        closeModal();
-
+        // UX-OPTIMERING: Skifta gränssnittet till hemskärmen OMEDELBART innan vi stänger popupen/modalen. Detta förhindrar layout-flash.
         if (typeof showView === 'function') showView("home-view");
         if (typeof renderHome === 'function') renderHome();
+        
+        hideDefaultCloseButton(false);
+        closeModal();
     };
 
     openModal();
@@ -2554,7 +2549,7 @@ async function saveDraftAndGoHome() {
         stopTimer();
     }
 
-    // Skicka till hemskärmen och rita om för att tvinga fram "Fortsätt träningspass"
+    // UX-OPTIMERING: Vi skiftar vyn till "home-view" FÖRST. På så sätt döljs själva omritningen av DOM-trädet (`renderHome()`) bakom rätt skärmläge.
     if (typeof showView === 'function') showView("home-view");
     if (typeof renderHome === 'function') renderHome();
 }
