@@ -2553,3 +2553,67 @@ async function saveDraftAndGoHome() {
     if (typeof showView === 'function') showView("home-view");
     if (typeof renderHome === 'function') renderHome();
 }
+
+// ==========================================================================
+// TILLAGDA SPAR- OCH PROGRAMFUNKTIONER (EXAKT BIBEHÅLLEN ORIGINALFUNKTIONALITET)
+// ==========================================================================
+
+// Central spara-allt-funktion för lokal lagring och bakgrundssynk
+function saveAll() {
+    localStorage.setItem("myCustomProgram", JSON.stringify(programData));
+    localStorage.setItem("masterExercises", JSON.stringify(masterExercises));
+    localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
+    localStorage.setItem("calendarOverrides", JSON.stringify(calendarOverrides));
+    
+    // Supabase-synk: Båda ligger kvar och sköter sitt i bakgrunden,
+    // men eftersom vi städat upp raderingen kommer de inte längre att krocka!
+    if (typeof saveCustomProgram === 'function') saveCustomProgram();
+    if (typeof saveCalendarOverrides === 'function') saveCalendarOverrides();
+}
+
+// Sparar utkast för valda övningar i localStorage (lokalt tillfälligt UI-tillstånd)
+async function saveDraftState() {
+    localStorage.setItem('temp_exercise_draft', JSON.stringify(temporarySelectedExercises));
+}
+
+// Skapar och sparar ett helt nytt träningspass/program till lokal lagring och databas
+async function saveNewProgram() {
+    const name = document.getElementById("new-pass-name").value.trim();
+    if(!name) return alert("Ange ett namn!");
+    const newPass = { id: "pass-" + Date.now(), name, exercises: [] };
+    programData.routine.push(newPass);
+    
+    // Sparar det nya passet till localStorage och Supabase
+    await saveCustomProgramToSupabase();
+    const newIdx = programData.routine.length - 1;
+    await openEditProgramModal(newIdx);
+}
+
+// Sparar ändringar av ett befintligt programnamn till lokal lagring och databas
+async function saveProgramEdit(idx) {
+    programData.routine[idx].name = document.getElementById("edit-pass-name").value;
+    
+    // Sparar det uppdaterade namnet till databasen och lokalt
+    await saveCustomProgramToSupabase();
+    closeModal();
+    renderProgramView(idx);
+    showProgramDetails(idx);
+}
+
+// Central, säker synkronisering av hela programstrukturen (custom_program) till Supabase
+async function saveCustomProgramToSupabase() {
+    console.log("saveCustomProgramToSupabase anropad med aktuell programData:", programData);
+    
+    // 1. Säkra att fönstret har tillgång till exakt samma data
+    window.programData = programData;
+    
+    // 2. Spara till localStorage direkt för snabb UX
+    localStorage.setItem("myCustomProgram", JSON.stringify(programData));
+    
+    // 3. Använd den centrala, säkra sparfunktionen från supabase-data.js
+    if (typeof saveCustomProgram === 'function') {
+        await saveCustomProgram();
+    } else {
+        console.warn("Kunde inte hitta saveCustomProgram i supabase-data.js");
+    }
+}
