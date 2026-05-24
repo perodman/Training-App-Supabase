@@ -2561,8 +2561,7 @@ function confirmDiscardActiveWorkout() {
     openModal();
 }
 
-// NY SKRÄDDARSYDD POPUP FÖR ATT RADERA ETT HISTORISKT PASS INIFRÅN EDITERINGSLÄGET
-// Denna har nu helt rätt benämning och text anpassat för ett historiskt pass!
+// 2. SKRÄDDARSYDD POPUP FÖR HISTORISK RADERING (Med rätt design och korrekta texter)
 function confirmDeleteFromEditMode(dateStr, idx) {
     const body = document.getElementById("modal-body");
     if (!body) return;
@@ -2584,30 +2583,28 @@ function confirmDeleteFromEditMode(dateStr, idx) {
         </div>
     `;
 
-    // AVBRYT: Skicka tillbaka användaren till editeringsläget igen direkt utan blink
     document.getElementById("abort-delete-from-edit-btn").onclick = () => {
-        editLoggedWorkout(dateStr, idx);
+        editLoggedWorkout(dateStr, idx); // Tillbaka till editeringsvyn direkt utan blink
     };
 
-    // VERKSTÄLL RADERING:
     document.getElementById("execute-delete-from-edit-btn").onclick = async () => {
-        // 1. Lokalisera och ta bort från den globala historiken i minnet
+        // 1. Ta bort från minnet direkt
         const globalIdx = workoutHistory.findIndex(w => w.date === dateStr);
         if (globalIdx !== -1) {
             workoutHistory.splice(globalIdx, 1);
         }
         
-        // 2. Spara till localStorage
+        // 2. Spara lokalt
         localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
         
-        // 3. Stäng ner fönstret helt och uppdatera kalendern omedelbart
+        // 3. Stäng fönstret och tvinga kalendern att rita om sig direkt
         hideDefaultCloseButton(false);
         closeModal();
         if (typeof renderCalendar === 'function') {
             renderCalendar(false); 
         }
 
-        // 4. Utför raderingen asynkront mot Supabase i bakgrunden
+        // 4. Utför databas-synk tyst i bakgrunden
         if (typeof deleteWorkoutFromHistory === 'function') {
             await deleteWorkoutFromHistory(dateStr, idx);
         }
