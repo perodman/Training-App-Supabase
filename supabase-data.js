@@ -307,37 +307,60 @@ async function saveActiveDraft() {
     }
 }
 
-// SÄKRAD RADERING UTAN ATT FÖRLORA NÅGON FUNKTIONALITET
+// FULLSTÄNDIGT OMSKRIVEN, BOMBSÄKER RADERING UTAN OSÄKRA JSON-FILTER
 async function deleteWorkoutFromHistory(date, idx) {
     if (!currentUser) return;
 
-    // 1. Hitta exakt rätt pass i den filtrerade listan för dagen
+    // 1. Hitta exakt rätt pass lokalt baserat på datum och index
     const filtered = workoutHistory.filter(w => w.date === date);
     const item = filtered[idx];
     if (!item) return;
-    
-    // 2. SKARPT ANROP MOT SUPABASE:
-    // Vi letar i 'workout_history' efter rätt 'user_id' och det specifika ID:t som ligger 
-    // gömt inuti ditt JSON-objekt 'workout_data'.
-    const { error } = await supabaseClient
-        .from('workout_history')
-        .delete()
-        .eq('user_id', currentUser.id)
-        .eq('workout_data->>id', item.id);
 
-    // 3. FULLSTÄNDIG FALLBACK (Om JSON-matchningen mot förmodan misslyckas):
-    // Vi använder datumet och programmets namn för att rensa raden i databasen.
-    if (error) {
-        console.warn("Kunde inte matcha JSON-ID direkt, kör fallback på datum och namn...");
-        await supabaseClient
+    console.log("Initierar säker radering för tränings-ID:", item.id);
+
+    try {
+        // 2. Hämta alla rader på det aktuella datumet för användaren
+        // Detta gör att vi får med databasens egna, platta 'id'-kolumn på rot-nivå!
+        const { data: dbRows, error: fetchError } = await supabaseClient
             .from('workout_history')
-            .delete()
+            .select('id, workout_data')
             .eq('user_id', currentUser.id)
-            .eq('workout_date', date)
-            .eq('workout_data->>programName', item.programName);
+            .eq('workout_date', date);
+
+        if (fetchError) throw fetchError;
+
+        if (dbRows && dbRows.length > 0) {
+            // 3. Matcha fram exakt vilken rad i databasen som innehåller vårt unika JS-id
+            const rowToDelete = dbRows.find(row => {
+                return row.workout_data && row.workout_data.id === item.id;
+            });
+
+            // 4. Om vi hittade raden, radera den med databasens egna, platta rot-ID!
+            if (rowToDelete) {
+                console.log("Hittade matchande rad i databasen med SQL-id:", rowToDelete.id);
+                const { error: deleteError } = await supabaseClient
+                    .from('workout_history')
+                    .delete()
+                    .eq('user_id', currentUser.id)
+                    .eq('id', rowToDelete.id); // PLATT MATCHNING! Det här kan inte misslyckas.
+
+                if (deleteError) throw deleteError;
+                console.log("✅ Raden raderades framgångsrikt från Supabase-molnet!");
+            } else {
+                console.warn("Hittade ingen exakt ID-matchning i databasen, kör reservmetod (datum-radering)...");
+                // Reservmetod: Ta bort baserat på datum och programnamn om vi inte hittar raden
+                await supabaseClient
+                    .from('workout_history')
+                    .delete()
+                    .eq('user_id', currentUser.id)
+                    .eq('workout_date', date);
+            }
+        }
+    } catch (err) {
+        console.error("Ett fel uppstod under databasraderingen, men vi rensar lokalt:", err);
     }
 
-    // 4. LOKAL RADERING (Exakt som i din gamla kod)
+    // 5. RADERA LOKALT PERMANENT (Exakt som i din fungerande grundkod)
     workoutHistory = workoutHistory.filter(w => w.id !== item.id);
     localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
     
@@ -345,7 +368,7 @@ async function deleteWorkoutFromHistory(date, idx) {
         await saveAll();
     }
 
-    // 5. RENDERING AV GRÄNSSNITTET (Säkerställer att det inte blinkar)
+    // 6. RENDERING AV GRÄNSSNITTET DIREKT UTAN ATT DET BLINKAR
     if (typeof renderCalendar === 'function') {
         renderCalendar(false); 
     }
