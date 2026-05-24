@@ -2447,8 +2447,8 @@ function openConfirmDeleteModal(dateStr, idx) {
 
         // 4. Skicka raderingen asynkront till Supabase i bakgrunden
         // Vi kör din befintliga funktion först
-        if (typeof deleteWorkoutFromHistory === 'function') {
-            await deleteWorkoutFromHistory(dateStr, idx);
+        if (typeof deleteWorkoutFromHistoryV2 === 'function') {
+            await deleteWorkoutFromHistoryV2(dateStr, idx);
         }
         
         // DIRECT DATABASE LINK: Om appen sparar hela historik-arrayen i en användarprofil-rad, kör vi din centrala sparfunktion
