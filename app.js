@@ -908,8 +908,8 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
 
 // --- SYNKRONISERADE OCH LIVE-UPPDATERANDE OVERRIDES ---
 
-async function setOverrideSilent(dateStr, programId) {
-    // 1. Uppdatera det lokala tillståndet
+function setOverrideSilent(dateStr, programId) {
+    // 1. Uppdatera det lokala tillståndet OMEDELBART
     if (programId === "none" || programId === "") {
         calendarOverrides[dateStr] = "none";
     } else {
@@ -917,39 +917,13 @@ async function setOverrideSilent(dateStr, programId) {
     }
     
     localStorage.setItem("calendarOverrides", JSON.stringify(calendarOverrides));
-    await saveAll();
     
-    // 2. Skottsäker integration mot Supabase (PGRST116-säkrad)
-    if (typeof currentUser !== 'undefined' && currentUser) {
-        try {
-            const { data: existingRows, error: checkErr } = await supabaseClient
-                .from('calendar_overrides')
-                .select('id')
-                .eq('user_id', currentUser.id);
-                
-            if (checkErr) throw checkErr;
-            
-            if (existingRows && existingRows.length > 0) {
-                await supabaseClient
-                    .from('calendar_overrides')
-                    .update({ data: calendarOverrides })
-                    .eq('user_id', currentUser.id);
-            } else {
-                await supabaseClient
-                    .from('calendar_overrides')
-                    .insert([{ user_id: currentUser.id, data: calendarOverrides }]);
-            }
-        } catch (err) {
-            console.error("Fel vid synk av kalenderändringar till Supabase (Silent):", err);
-        }
-    }
-    
-    // 3. Uppdatera bakomliggande kalendervy
+    // 2. Uppdatera bakomliggande kalendervy direkt
     if (typeof renderCalendar === "function") {
         renderCalendar();
     }
     
-    // 4. LÖSNING: Hämta de korrekta och aktuella tillstånden live istället för sparad historiksträngar
+    // 3. Hämta de korrekta och aktuella tillstånden live istället för sparad historiksträngar
     let nextPlannedProgram = null;
     if (programId !== "none" && programId !== "") {
         nextPlannedProgram = programData.routine.find(p => p.id === programId) || null;
@@ -959,8 +933,40 @@ async function setOverrideSilent(dateStr, programId) {
     const currentCompleted = typeof workoutHistory !== 'undefined' ? workoutHistory.filter(w => w.date === dateStr) : [];
     const currentIsOngoing = typeof activeDraft !== 'undefined' && activeDraft && activeDraft.date === dateStr;
     
-    // Ladda om vyn helt utan risk för trasig JSON-strängar
+    // Ladda om vyn direkt utan fördröjning (Gränssnittet uppdateras här på under 1ms!)
     openDayManager(dateStr, nextPlannedProgram, currentCompleted, currentIsOngoing);
+
+    // 4. KÖR DE TUNGA SPAR- OCH SUPABASE-ANROPEN I BAKGRUNDEN
+    // Genom att lägga detta i en setTimeout frigörs huvudtråden så att appen inte laggar eller låser sig
+    setTimeout(async () => {
+        try {
+            // Sparar i bakgrunden
+            await saveAll();
+            
+            // Skottsäker integration mot Supabase (PGRST116-säkrad) i bakgrunden
+            if (typeof currentUser !== 'undefined' && currentUser) {
+                const { data: existingRows, error: checkErr } = await supabaseClient
+                    .from('calendar_overrides')
+                    .select('id')
+                    .eq('user_id', currentUser.id);
+                    
+                if (checkErr) throw checkErr;
+                
+                if (existingRows && existingRows.length > 0) {
+                    await supabaseClient
+                        .from('calendar_overrides')
+                        .update({ data: calendarOverrides })
+                        .eq('user_id', currentUser.id);
+                } else {
+                    await supabaseClient
+                        .from('calendar_overrides')
+                        .insert([{ user_id: currentUser.id, data: calendarOverrides }]);
+                }
+            }
+        } catch (err) {
+            console.error("Fel vid bakgrundssynk av kalenderändringar till Supabase:", err);
+        }
+    }, 0);
 }
 
 function startFreeWorkoutOnDate(date) {
@@ -2188,39 +2194,44 @@ async function changeMonth(off) {
     renderCalendar(); 
 }
 
-async function setOverride(date, val) { 
+function setOverride(date, val) { 
     calendarOverrides[date] = val; 
     localStorage.setItem("calendarOverrides", JSON.stringify(calendarOverrides));
-    await saveAll(); 
     
-    if (currentUser) {
-        try {
-            const { data: existingRows, error: checkErr } = await supabaseClient
-                .from('calendar_overrides')
-                .select('id')
-                .eq('user_id', currentUser.id);
-                
-            if (checkErr) throw checkErr;
-            
-            if (existingRows && existingRows.length > 0) {
-                await supabaseClient
-                    .from('calendar_overrides')
-                    .update({ data: calendarOverrides })
-                    .eq('user_id', currentUser.id);
-            } else {
-                await supabaseClient
-                    .from('calendar_overrides')
-                    .insert([{ user_id: currentUser.id, data: calendarOverrides }]);
-            }
-        } catch (err) {
-            console.error("Fel vid synk av kalenderändringar till Supabase:", err);
-        }
-    }
-    
+    // Stäng rutan och uppdatera kalendern OMEDELBART (Ingen väntetid för användaren)
     closeModal(); 
     if (typeof renderCalendar === "function") {
         renderCalendar(); 
     }
+    
+    // Spara till servern och Supabase i bakgrunden utan att blockera appen
+    setTimeout(async () => {
+        try {
+            await saveAll(); 
+            
+            if (currentUser) {
+                const { data: existingRows, error: checkErr } = await supabaseClient
+                    .from('calendar_overrides')
+                    .select('id')
+                    .eq('user_id', currentUser.id);
+                    
+                if (checkErr) throw checkErr;
+                
+                if (existingRows && existingRows.length > 0) {
+                    await supabaseClient
+                        .from('calendar_overrides')
+                        .update({ data: calendarOverrides })
+                        .eq('user_id', currentUser.id);
+                } else {
+                    await supabaseClient
+                        .from('calendar_overrides')
+                        .insert([{ user_id: currentUser.id, data: calendarOverrides }]);
+                }
+            }
+        } catch (err) {
+            console.error("Bakgrundssynk av setOverride misslyckades:", err);
+        }
+    }, 0);
 }
 
 async function prepareStart(date, id) { 
