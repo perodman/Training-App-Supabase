@@ -386,16 +386,17 @@ async function saveActiveDraft() {
     const draftData = activeDraft || {};
     localStorage.setItem("activeWorkoutDraft", JSON.stringify(draftData));
 
-    const { data : existing } = await supabaseClient
+    // Använd 'data' istället för 'draft_data'
+    const { data: existing } = await supabaseClient
         .from('active_draft')
         .select('id')
         .eq('user_id', currentUser.id)
         .maybeSingle();
 
     if (existing) {
-        await supabaseClient.from('active_draft').update({ draft_data : draftData }).eq('user_id', currentUser.id);
+        await supabaseClient.from('active_draft').update({ data : draftData }).eq('user_id', currentUser.id);
     } else {
-        await supabaseClient.from('active_draft').insert([{ user_id: currentUser.id, draft_data : draftData }]);
+        await supabaseClient.from('active_draft').insert([{ user_id: currentUser.id, data : draftData }]);
     }
 }
 
