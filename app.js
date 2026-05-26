@@ -2338,13 +2338,18 @@ async function editLoggedWorkout(date, idx) {
     // Rensa eventuella gamla utkast i bakgrunden utan att frysa appen
     localStorage.removeItem("activeWorkoutDraft");
     
-    // Kör rensningen asynkront mot Supabase i bakgrunden så att gränssnittet laddar direkt
     if (typeof deleteActiveDraft === 'function') deleteActiveDraft();
     
-    if (currentUser && typeof supabaseClient !== 'undefined') {
-        supabaseClient.from('active_draft').delete().eq('user_id', currentUser.id)
-            .catch(e => console.error("Fel vid borttagning av gammalt utkast i Supabase:", e));
-    }
+    // FIX: Kör borttagningen av utkastet i en isolerad bakgrundstråd med korrekt try/catch
+    setTimeout(async () => {
+        if (currentUser && typeof supabaseClient !== 'undefined') {
+            try {
+                await supabaseClient.from('active_draft').delete().eq('user_id', currentUser.id);
+            } catch (e) {
+                console.error("Fel vid borttagning av gammalt utkast i Supabase:", e);
+            }
+        }
+    }, 0);
     
     // Etablera det nya redigeringsbara utkastet
     secondsElapsed = savedSeconds;
