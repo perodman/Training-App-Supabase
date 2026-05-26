@@ -1968,24 +1968,27 @@ async function persistActiveWorkout() {
     // 1. Spara lokalt omedelbart för UI-responsivitet
     localStorage.setItem("activeWorkoutDraft", JSON.stringify(activeDraft));
     
-    // 2. BEHÅLL dessa anrop för att inte tappa funktionalitet i andra delar av appen
-    if (typeof saveActiveDraft === 'function') await saveActiveDraft();
-    if (typeof saveAll === "function") await saveAll();
-
     if (!currentUser) return;
 
     try {
-        // 3. Den effektiva Upsert-metoden
-        const { error } = await supabaseClient
+        // 2. Radera det gamla utkastet (vi vet att DELETE fungerar i din setup)
+        await supabaseClient
             .from('active_draft')
-            .upsert({ 
+            .delete()
+            .eq('user_id', currentUser.id);
+
+        // 3. Skapa det nya utkastet (vi vet att INSERT fungerar i din setup)
+        const { error: insertError } = await supabaseClient
+            .from('active_draft')
+            .insert([{ 
                 user_id: currentUser.id, 
                 data: activeDraft 
-            }, { onConflict: 'user_id' });
+            }]);
 
-        if (error) throw error;
-        
-        console.log("✅ Data sparad i databasen!");
+        if (insertError) throw insertError;
+
+        console.log("✅ Data sparad genom radering och ny-insättning!");
+
     } catch (err) {
         console.error("❌ Fel vid sparande till Supabase:", err);
     }
