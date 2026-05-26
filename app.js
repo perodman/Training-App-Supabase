@@ -905,22 +905,45 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
 
 // --- SYNKRONISERADE OCH LIVE-UPPDATERANDE OVERRIDES ---
 
-function setOverrideSilent(dateStr, programId, completedHistory = null, isOngoingWorkout = false) {
-    if (programId === "none") {
+async function setOverrideSilent(dateStr, programId, completedHistory = null, isOngoingWorkout = false) {
+    if (programId === "none" || programId === "") {
         calendarOverrides[dateStr] = "none";
     } else {
         calendarOverrides[dateStr] = programId;
     }
     
-    // Spara ner till localStorage via din befintliga master-save
-    saveAll();
+    localStorage.setItem("calendarOverrides", JSON.stringify(calendarOverrides));
+    await saveAll();
     
-    // Uppdatera bakomliggande kalendervy live
+    if (currentUser) {
+        try {
+            const { data: existing, error: checkErr } = await supabaseClient
+                .from('calendar_overrides')
+                .select('id')
+                .eq('user_id', currentUser.id)
+                .maybeSingle();
+                
+            if (checkErr) throw checkErr;
+            
+            if (existing) {
+                await supabaseClient
+                    .from('calendar_overrides')
+                    .update({ data: calendarOverrides })
+                    .eq('user_id', currentUser.id);
+            } else {
+                await supabaseClient
+                    .from('calendar_overrides')
+                    .insert([{ user_id: currentUser.id, data: calendarOverrides }]);
+            }
+        } catch (err) {
+            console.error("Fel vid synk av kalenderändringar till Supabase (Silent):", err);
+        }
+    }
+    
     if (typeof renderCalendar === "function") {
         renderCalendar();
     }
     
-    // SLUTGILTIG LÖSNING: Slå upp det nya tilldelade objektet och rita direkt om den öppna modalen live!
     let nextPlannedProgram = null;
     if (programId !== "none" && programId !== "") {
         nextPlannedProgram = programData.routine.find(p => p.id === programId) || null;
@@ -2168,7 +2191,6 @@ async function setOverride(date, val) {
     localStorage.setItem("calendarOverrides", JSON.stringify(calendarOverrides));
     await saveAll(); 
     
-    // Direkt integration mot tabellen calendar_overrides
     if (currentUser) {
         try {
             const { data: existing, error: checkErr } = await supabaseClient
@@ -2195,9 +2217,10 @@ async function setOverride(date, val) {
     }
     
     closeModal(); 
-    renderCalendar(); 
+    if (typeof renderCalendar === "function") {
+        renderCalendar(); 
+    }
 }
-
 async function prepareStart(date, id) { 
     const p = programData.routine.find(x => x.id === id); 
     closeModal(); 
