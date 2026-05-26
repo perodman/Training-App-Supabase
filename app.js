@@ -605,7 +605,7 @@ async function handleTouchEnd(idx, dateStr, programId, event) {
     }
     
     // Detta var ett rent, snabbt klick utan scroll eller långtryck – utför schemaändringen!
-    await setOverrideSilent(dateStr, programId);
+    await setOverride(dateStr, programId);
 }
  
 // FUNKTION: Öppnar en renodlad popup-ruta med övningarna (Med mjuk animation vid långtryck)
