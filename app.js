@@ -2335,11 +2335,12 @@ async function editLoggedWorkout(date, idx) {
     }
 
     // Behåll passets ursprungliga ID och dess globala position i historiken
-    const workoutObj = { 
-        id: item.id, 
-        name: item.programName, 
-        exercises: item.exercises.map(ex => ({ name: ex.name, target: ex.target || "" })) 
-    };
+        const workoutObj = { 
+            id: item.id, 
+            name: item.programName,
+            programName: item.programName,  // ← LÄGG TILL DENNA RAD
+            exercises: item.exercises.map(ex => ({ name: ex.name, target: ex.target || "" })) 
+        };
     
     // Strukturera om övningsdatan korrekt till en matris som matchar activeDraft-strukturen
     const formattedDataArray = item.exercises.map(ex => {
