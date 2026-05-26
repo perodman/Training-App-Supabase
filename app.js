@@ -1966,11 +1966,15 @@ async function confirmAddExerciseToActive(exId, replaceIndex = null) {
 }
 
 async function updateSetDataOnly(exIdx, setIdx) {
-    const wVal = document.getElementById(`w-${exIdx}-${setIdx}`).value;
-    const rVal = document.getElementById(`r-${exIdx}-${setIdx}`).value;
-    activeDraft.data[exIdx].sets_data[setIdx].weight = wVal;
-    activeDraft.data[exIdx].sets_data[setIdx].reps = rVal;
-    await persistActiveWorkout(); // Synkar vid ändring av värden i set
+    const wInput = document.getElementById(`w-${exIdx}-${setIdx}`);
+    const rInput = document.getElementById(`r-${exIdx}-${setIdx}`);
+    
+    if (wInput && rInput) {
+        activeDraft.data[exIdx].sets_data[setIdx].weight = wInput.value;
+        activeDraft.data[exIdx].sets_data[setIdx].reps = rInput.value;
+        // Synka till localStorage och Supabase (active_draft)
+        await persistActiveWorkout(); 
+    }
 }
 
 async function confirmSet(exIdx, setIdx) {
