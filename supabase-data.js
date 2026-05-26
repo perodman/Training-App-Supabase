@@ -23,14 +23,17 @@ async function loadUserData() {
         if (!window.programData) {
             try { window.programData = JSON.parse(localStorage.getItem("myCustomProgram")); } catch(e) { window.programData = null; }
         }
-        if (typeof masterExercises === 'undefined' || !masterExercises) {
-            try { masterExercises = JSON.parse(localStorage.getItem("masterExercises") || "[]"); } catch(e) { masterExercises = []; }
+        if (typeof window.masterExercises === 'undefined' || !window.masterExercises) {
+            try { window.masterExercises = JSON.parse(localStorage.getItem("masterExercises") || "[]"); } catch(e) { window.masterExercises = []; }
         }
-        if (typeof workoutHistory === 'undefined' || !workoutHistory) {
-            try { workoutHistory = JSON.parse(localStorage.getItem("workoutHistory") || "[]"); } catch(e) { workoutHistory = []; }
+        if (typeof window.workoutHistory === 'undefined' || !window.workoutHistory) {
+            try { window.workoutHistory = JSON.parse(localStorage.getItem("workoutHistory") || "[]"); } catch(e) { window.workoutHistory = []; }
         }
-        if (typeof calendarOverrides === 'undefined' || !calendarOverrides) {
-            try { calendarOverrides = JSON.parse(localStorage.getItem("calendarOverrides") || "{}"); } catch(e) { calendarOverrides = {}; }
+        if (typeof window.calendarOverrides === 'undefined' || !window.calendarOverrides) {
+            try { window.calendarOverrides = JSON.parse(localStorage.getItem("calendarOverrides") || "{}"); } catch(e) { window.calendarOverrides = {}; }
+        }
+        if (typeof window.activeDraft === 'undefined') {
+            try { window.activeDraft = JSON.parse(localStorage.getItem("activeWorkoutDraft") || "null"); } catch(e) { window.activeDraft = null; }
         }
 
         // 2. LADDAR CUSTOM_PROGRAM
@@ -46,8 +49,8 @@ async function loadUserData() {
             window.programData = programDataResult.data;
             localStorage.setItem("myCustomProgram", JSON.stringify(window.programData));
             if (programDataResult.data.masterExercises) {
-                masterExercises = programDataResult.data.masterExercises;
-                localStorage.setItem("masterExercises", JSON.stringify(masterExercises));
+                window.masterExercises = programDataResult.data.masterExercises;
+                localStorage.setItem("masterExercises", JSON.stringify(window.masterExercises));
             }
         } else {
             if (!window.programData || !window.programData.routine || window.programData.routine.length === 0) {
@@ -55,7 +58,11 @@ async function loadUserData() {
             }
         }
 
+        // Synka globala variabler i app.js
         if (typeof programData !== 'undefined') programData = window.programData;
+        if (typeof masterExercises !== 'undefined') masterExercises = window.masterExercises;
+        if (typeof workoutHistory !== 'undefined') workoutHistory = window.workoutHistory;
+        if (typeof calendarOverrides !== 'undefined') calendarOverrides = window.calendarOverrides;
 
         // 3. LADDAR WORKOUT_HISTORY
         const { data : historyData, error: historyError } = await supabaseClient
@@ -67,14 +74,15 @@ async function loadUserData() {
         if (historyError) {
             console.error('Fel vid laddning av historik:', historyError);
         } else if (historyData) {
-            workoutHistory = historyData.map(w => ({
+            window.workoutHistory = historyData.map(w => ({
                 id: w.workout_data ? w.workout_data.id : (w.id || Date.now() + Math.random()),
                 date: w.workout_date,
                 programName: w.workout_data ? w.workout_data.programName : "Okänt pass",
                 totalTime: w.workout_data ? w.workout_data.totalTime : 0,
                 exercises: (w.workout_data && w.workout_data.exercises) ? w.workout_data.exercises : []
             }));
-            localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
+            localStorage.setItem("workoutHistory", JSON.stringify(window.workoutHistory));
+            if (typeof workoutHistory !== 'undefined') workoutHistory = window.workoutHistory;
         }
 
         // 4. LADDAR CALENDAR_OVERRIDES
@@ -87,17 +95,18 @@ async function loadUserData() {
         if (calendarError) console.error('Fel vid laddning av kalender:', calendarError);
 
         if (calendarData && calendarData.data) {
-            calendarOverrides = calendarData.data;
-            localStorage.setItem("calendarOverrides", JSON.stringify(calendarOverrides));
+            window.calendarOverrides = calendarData.data;
+            localStorage.setItem("calendarOverrides", JSON.stringify(window.calendarOverrides));
         } else {
-            calendarOverrides = {};
-            localStorage.setItem("calendarOverrides", JSON.stringify(calendarOverrides));
+            window.calendarOverrides = {};
+            localStorage.setItem("calendarOverrides", JSON.stringify(window.calendarOverrides));
         }
+        if (typeof calendarOverrides !== 'undefined') calendarOverrides = window.calendarOverrides;
 
         // 5. LADDAR ACTIVE_DRAFT (UPPDATERAD TILL KOLUMNEN 'data')
         const { data : draftRow, error: draftError } = await supabaseClient
             .from('active_draft')
-            .select('data') // Hämtar från kolumnen 'data'
+            .select('data')
             .eq('user_id', currentUser.id)
             .maybeSingle();
 
@@ -107,32 +116,38 @@ async function loadUserData() {
 
         // Kontrollerar att vi har en rad och att den har innehåll i kolumnen 'data'
         if (draftRow && draftRow.data && Object.keys(draftRow.data).length > 0) {
-            activeDraft = draftRow.data;
-            localStorage.setItem("activeWorkoutDraft", JSON.stringify(activeDraft));
+            window.activeDraft = draftRow.data;
+            localStorage.setItem("activeWorkoutDraft", JSON.stringify(window.activeDraft));
             
-            if (activeDraft && activeDraft.isStarted) {
-                secondsElapsed = activeDraft.secondsElapsed || 0;
-                if (activeDraft.wasTimerRunning) {
+            // Synka till app.js om variabeln finns
+            if (typeof activeDraft !== 'undefined') activeDraft = window.activeDraft;
+            
+            if (window.activeDraft && window.activeDraft.isStarted) {
+                if (typeof secondsElapsed !== 'undefined') {
+                    secondsElapsed = window.activeDraft.secondsElapsed || 0;
+                }
+                if (window.activeDraft.wasTimerRunning) {
                     if (typeof startTimer === 'function') startTimer();
                 } else {
                     if (typeof updateTimerDisplay === 'function') updateTimerDisplay();
                 }
             }
         } else {
-            if (!activeDraft || !activeDraft.isStarted) {
-                activeDraft = null;
+            if (!window.activeDraft || !window.activeDraft.isStarted) {
+                window.activeDraft = null;
                 localStorage.removeItem("activeWorkoutDraft");
+                if (typeof activeDraft !== 'undefined') activeDraft = null;
             }
         }
 
-        console.log("All data synkad i loadUserData. Renderar vyer.");
+        console.log("✅ All data synkad i loadUserData. Renderar vyer.");
         window.supabaseDataLoadedOnce = true;
 
         if (typeof renderCalendar === 'function') renderCalendar();
         if (typeof renderHome === 'function') renderHome();
 
     } catch (err) {
-        console.error('Kritiskt fel i loadUserData:', err);
+        console.error('❌ Kritiskt fel i loadUserData:', err);
     }
 }
 
