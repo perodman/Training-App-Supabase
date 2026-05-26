@@ -241,21 +241,24 @@ async function saveWorkoutHistory(workout) {
     let workoutId = workout.id;
     let isEdit = false;
 
-    // 1. SÄKERSTÄLL OM DETTA ÄR EN EDIT (ÄVEN OM APP.JS RÅKAT GENERERA NYTT ID)
-    // Vi letar efter ett pass i historiken som har EXAKT samma ID...
+    // --- DETEKTIVARBETE: VI KOLLIER OM DETTA ÄR EN EDIT ---
+    
+    // 1. Koll: Finns ID:t redan i vår historik?
     if (workoutId && workoutHistory.some(e => e.id === workoutId)) {
         isEdit = true;
-    } else {
-        // ...eller om det finns ett pass på exakt samma datum med samma programnamn (Backup-matchning för Edit)
+    } 
+    
+    // 2. Koll (Backup): Om ID:t saknas eller är nytt, men det redan finns ett pass på EXAKT samma datum och med EXAKT samma programnamn...
+    if (!isEdit) {
         const matchandeLokaltPass = workoutHistory.find(e => e.date === workout.date && e.programName === workout.programName);
         if (matchandeLokaltPass) {
             isEdit = true;
-            workoutId = matchandeLokaltPass.id; // Tvinga tillbaka det ursprungliga ID:t!
-            console.log("🔄 [SUPABASE-DATA] Backup-matchning aktiverad: Återanvänder ursprungligt ID:", workoutId);
+            workoutId = matchandeLokaltPass.id; // Tvingar appen att använda det GAMLA id:t istället för det nya!
+            console.log("🕵️‍♂️ [DETEKTIV] Detta är en edit! Hittade gammalt pass på samma datum. Återanvänder ID:", workoutId);
         }
     }
 
-    // 2. TIDSLÅS (Gäller endast helt nya pass för att förhindra dubbelklick på "Slutför")
+    // --- TIDSLÅS (Hindre dubbelklick, men bara vid helt nya pass) ---
     if (!isEdit && (nowTimestamp - lastWorkoutSavedTime < 5000)) {
         console.warn("⚠️ DUBBLETT-SPÄRR (Tidslås): Funktionen anropades igen alldeles för snabbt! Avbryter.");
         return; 
@@ -265,7 +268,7 @@ async function saveWorkoutHistory(workout) {
         lastWorkoutSavedTime = nowTimestamp;
     }
 
-    // Om det är ett genuint nytt pass och saknar ID, generera ett här
+    // Om det är ett genuint nytt pass och saknar ID, då skapar vi ett nu
     if (!workoutId) {
         workoutId = "workout_" + nowTimestamp + "_" + Math.floor(Math.random() * 1000);
     }
@@ -281,13 +284,15 @@ async function saveWorkoutHistory(workout) {
             exercises: workout.exercises
         };
 
-        // --- LOKAL MINNESHANTERING ---
+        // --- LOKAL MINNESHANTERING (Vad som visas på skärmen) ---
         if (isEdit) {
+            // Hitta var i listan det gamla passet låg och byt ut det på exakt samma plats
             const index = workoutHistory.findIndex(existing => existing.id === workoutId);
             if (index !== -1) {
                 workoutHistory[index] = fullWorkoutObject;
             }
         } else {
+            // Lägg till överst om det är helt nytt
             workoutHistory.unshift(fullWorkoutObject);
         }
         
@@ -295,7 +300,7 @@ async function saveWorkoutHistory(workout) {
 
         // --- DATABASHANTERING (UPDATE eller INSERT) ---
         if (isEdit) {
-            console.log("📝 Uppdaterar befintlig rad i Supabase för ID:", workoutId);
+            console.log("📝 Utför .update() i Supabase på raden med ID:", workoutId);
             const { error: updateError } = await supabaseClient
                 .from('workout_history')
                 .update({
@@ -306,9 +311,9 @@ async function saveWorkoutHistory(workout) {
                 .or(`workout_data->>id.eq.${workoutId},workout_data->workout_data->>id.eq.${workoutId}`);
                 
             if (updateError) throw updateError;
-            console.log("✅ Passet uppdaterades framgångsrikt i Supabase!");
+            console.log("✅ Databasen uppdaterad utan att skapa dubblett!");
         } else {
-            console.log("➕ Lägger till en helt ny rad i Supabase för ID:", workoutId);
+            console.log("➕ Utför .insert() i Supabase (Ny rad)");
             const { error: insertError } = await supabaseClient
                 .from('workout_history')
                 .insert([{
@@ -318,10 +323,10 @@ async function saveWorkoutHistory(workout) {
                 }]);
                 
             if (insertError) throw insertError;
-            console.log("✅ Nytt pass sparades framgångsrikt i Supabase!");
+            console.log("✅ Nytt pass registrerat i databasen!");
         }
 
-        // Rendera skärmen utan dolda laddningar
+        // Rita om kalendern direkt med de nya ändringarna
         if (typeof renderCalendar === 'function') renderCalendar();
         if (typeof renderHome === 'function') renderHome();
 
