@@ -856,14 +856,14 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
                 const borderColor = `rgba(${c.r}, ${c.g}, ${c.b}, ${currentOpacity})`;
                 const btnBg = `rgba(${c.r}, ${c.g}, ${c.b}, 0.04)`;
  
-                // TILLÄGG: Lade till onclick som en säkerhetsventil om touch-eventet blir blockerat av isLongPress-flaggan
+                // Alla anrop korrigerade till den skarpa asynkrona funktionen setOverride
                 html += `
                 <button class="mode-btn plan-override-btn ${isSelected ? 'active-choice' : ''}" 
                         id="btn-ovr-${p.id}" 
                         
-                        onclick="if(typeof isLongPress !== 'undefined' && !isLongPress) { setOverrideSilent('${dateStr}', '${p.id}'); if(typeof cancelPress === 'function') cancelPress(); }"
+                        onclick="if(typeof isLongPress !== 'undefined' && !isLongPress) { setOverride('${dateStr}', '${p.id}'); if(typeof cancelPress === 'function') cancelPress(); }"
                         onmousedown="startPress(${idx}, event)"
-                        onmouseup="if(!isLongPress && !hasScrolled) setOverrideSilent('${dateStr}', '${p.id}'); cancelPress();"
+                        onmouseup="if(!isLongPress && !hasScrolled) { setOverride('${dateStr}', '${p.id}'); cancelPress(); }"
                         onmouseleave="cancelPress();"
                         
                         ontouchstart="startPress(${idx}, event)"
@@ -883,10 +883,11 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
         const isRestSelected = !planned;
         const restBorderColor = isRestSelected ? "rgba(253, 224, 71, 1)" : "rgba(253, 224, 71, 0.2)";
 
+        // Korrigerat anrop för Viloknappen till setOverride
         html += `
             <button class="mode-btn plan-override-btn override-rest-btn ${isRestSelected ? 'active-choice' : ''}" 
                     id="btn-ovr-none"
-                    onclick="setOverrideSilent('${dateStr}', 'none')"
+                    onclick="setOverride('${dateStr}', 'none')"
                     style="margin: 0; padding: 12px; font-size: 13px; border-radius: 12px; font-weight: bold; grid-column: span 2; 
                            border-top: 2px solid ${restBorderColor} !important; 
                            color: #fde047; background: rgba(253, 224, 71, 0.05);">
