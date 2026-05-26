@@ -388,18 +388,33 @@ async function saveWorkoutHistory(workoutInput) {
 
 async function saveCalendarOverrides() {
     if (!currentUser) return;
-    localStorage.setItem("calendarOverrides", JSON.stringify(calendarOverrides));
 
-    const { data : existing } = await supabaseClient
-        .from('calendar_overrides')
-        .select('id')
-        .eq('user_id', currentUser.id)
-        .maybeSingle();
+    try {
+        const { existingRows, error: checkErr } = await supabaseClient
+            .from('calendar_overrides')
+            .select('id')
+            .eq('user_id', currentUser.id)
+            .limit(1)
+            .maybeSingle();
+            
+        if (checkErr && checkErr.code !== 'PGRST116') throw checkErr;
 
-    if (existing) {
-        await supabaseClient.from('calendar_overrides').update({ data : calendarOverrides }).eq('user_id', currentUser.id);
-    } else {
-        await supabaseClient.from('calendar_overrides').insert([{ user_id: currentUser.id, data : calendarOverrides }]);
+        if (existingRows && existingRows.id) {
+            const { error: updateError } = await supabaseClient
+                .from('calendar_overrides')
+                .update({ calendarOverrides })
+                .eq('user_id', currentUser.id);
+                
+            if (updateError) throw updateError;
+        } else {
+            const { error: insertError } = await supabaseClient
+                .from('calendar_overrides')
+                .insert([{ user_id: currentUser.id, calendarOverrides }]);
+                
+            if (insertError) throw insertError;
+        }
+    } catch (err) {
+        console.error("❌ Fel vid sparning av calendar_overrides:", err);
     }
 }
 
