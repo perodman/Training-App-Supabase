@@ -1229,26 +1229,39 @@ async function persistActiveWorkout() {
     
     if (typeof currentUser !== 'undefined' && currentUser) {
         try {
-            const { data: existing } = await supabaseClient
+            const { data: existing, error: selectError } = await supabaseClient
                 .from('active_draft')
                 .select('id')
                 .eq('user_id', currentUser.id)
                 .maybeSingle();
 
+            if (selectError) throw selectError;
+
             const draftDataToSend = activeDraft || {};
 
             if (existing) {
-                await supabaseClient
+                // Vi använder { data: draftDataToSend } 
+                // Om detta ger 400 Bad Request, dubbelkolla i Supabase 
+                // att kolumnen 'data' har typen 'jsonb'
+                const { error: updateError } = await supabaseClient
                     .from('active_draft')
-                    .update({ data: draftDataToSend }) // Sparar till 'data'-kolumnen i tabellen active_draft
+                    .update({ data: draftDataToSend })
                     .eq('user_id', currentUser.id);
+                
+                if (updateError) {
+                    console.error("❌ Supabase Update Error:", updateError);
+                }
             } else {
-                await supabaseClient
+                const { error: insertError } = await supabaseClient
                     .from('active_draft')
                     .insert([{ user_id: currentUser.id, data: draftDataToSend }]);
+                
+                if (insertError) {
+                    console.error("❌ Supabase Insert Error:", insertError);
+                }
             }
         } catch (err) {
-            console.error("Supabase: Fel vid synkronisering av pågående utkast (active_draft):", err);
+            console.error("Supabase: Fel vid synkronisering av active_draft:", err);
         }
     }
 }
