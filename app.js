@@ -2299,10 +2299,17 @@ async function deleteLoggedWorkout(date, idx) {
 
 // 1. ÖPPNA EDITERINGSLÄGET FÖR ETT HISTORISKT PASS (ÅTERSTÄLLD TILL STANDARD)
 async function editLoggedWorkout(date, idx) {
-    // Skapa en djup kopia av workoutHistory så att vi inte manipulerar originalet förrän användaren godkänner
+    // 1. Hitta rätt pass baserat på datum och dess lokala index för dagen
     const filtered = workoutHistory.filter(w => w.date === date);
     const item = filtered[idx];
-    if (!item) return;
+    if (!item) {
+        console.error("Hittade inte det loggade passet för editering.");
+        return;
+    }
+    
+    // Hitta det exakta globala indexet i workoutHistory via dess unika ID (eller referens)
+    // Detta är KRITISKT för att appens sparfunktion ska kunna skriva över rätt rad i databasen sen!
+    const globalIdx = workoutHistory.findIndex(w => w === item || (w.id && w.id === item.id));
     
     let savedSeconds = 0;
     if(item.totalTime) {
@@ -2310,7 +2317,7 @@ async function editLoggedWorkout(date, idx) {
         savedSeconds = (+parts[0]) * 3600 + (+parts[1]) * 60 + (+parts[2]);
     }
 
-    // Behåll passets ursprungliga ID (viktigt så att vi inte skapar ett nytt pass när vi sparar ediseringen!)
+    // Behåll passets ursprungliga ID och dess globala position i historiken
     const workoutObj = { 
         id: item.id, 
         name: item.programName, 
@@ -2328,46 +2335,47 @@ async function editLoggedWorkout(date, idx) {
         };
     });
 
-    // CORRECTION (Punkt 1 & 2): Vi tar INTE bort passet från historiken här omedvetet. 
-    // Det raderas först när användaren bekräftar i "Radera passet" eller sparar det nya editerade passet.
-    // Detta förhindrar att kalendern/DayManager kraschar eller tappar bort kryssets referens.
-
-    // Rensa eventuella gamla utkast i bakgrunden
+    // Rensa eventuella gamla utkast i bakgrunden utan att frysa appen
     localStorage.removeItem("activeWorkoutDraft");
-    if (typeof deleteActiveDraft === 'function') await deleteActiveDraft();
     
-    if (currentUser) {
-        try {
-            await supabaseClient.from('active_draft').delete().eq('user_id', currentUser.id);
-        } catch(e) { console.error(e); }
+    // Kör rensningen asynkront mot Supabase i bakgrunden så att gränssnittet laddar direkt
+    if (typeof deleteActiveDraft === 'function') deleteActiveDraft();
+    
+    if (currentUser && typeof supabaseClient !== 'undefined') {
+        supabaseClient.from('active_draft').delete().eq('user_id', currentUser.id)
+            .catch(e => console.error("Fel vid borttagning av gammalt utkast i Supabase:", e));
     }
     
-    // Etablera det nya redigeringsbara utkastet med rätt fältmappningar (och behåll ID:t!)
+    // Etablera det nya redigeringsbara utkastet
     secondsElapsed = savedSeconds;
     activeDraft = {
         id: item.id, 
+        db_id: item.id, // Dubbelsäkrar ID-mappningen för din Supabase-funktion
+        historyIndex: globalIdx, // Skickar med det exakta indexet som ska uppdateras i databasen sen
         workout: workoutObj,
         data: formattedDataArray, 
-        date: date, // Håller koll på ursprungsdatumet vid editering
+        date: date, 
         secondsElapsed: savedSeconds,
         isStarted: true,
         wasTimerRunning: false,
         ui_state: { openExercises: [0] }
     };
     
-    // PUNKT 3: Spara direkt till localStorage så att "Fortsätt träningspass" har tillgång till det omedelbart
+    // Spara utkastet till localStorage
     localStorage.setItem("activeWorkoutDraft", JSON.stringify(activeDraft));
     
+    // Hantera sparning av utkastet till servern (asynkront)
     if (typeof persistActiveWorkout === 'function') {
         await persistActiveWorkout();
     } else if (typeof saveActiveDraft === 'function') {
         await saveActiveDraft();
     }
     
+    // Uppdatera gränssnittet omedelbart
     if (typeof renderActiveWorkout === 'function') renderActiveWorkout();
     if (typeof updateTimerDisplay === 'function') updateTimerDisplay();
     
-    // UX-OPTIMERING: Byt vy först så att träningspasset ligger redo på skärmen, stäng sedan modalen. Tar bort kalenderblicken helt!
+    // UX-OPTIMERING: Byt vy direkt till träningsvyn och stäng modalen
     if (typeof showView === 'function') showView("workout-view");
     closeModal();
 }
