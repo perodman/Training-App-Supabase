@@ -10,9 +10,9 @@ if (typeof window.supabaseDataLoadedOnce === 'undefined') {
 async function loadUserData() {
     if (!currentUser) return;
 
-    // Om vi redan har synkat data en gång denna session, BLOCKERA bakgrunds-spöken!
-    if (window.supabaseDataLoadedOnce) {
-        console.log("🛑 [SUPABASE-DATA] loadUserData blockerades. Data är redan synkad för denna session, behåller lokalt minne stabilt.");
+    // JÄRNRIDÅ: Om data redan har synkats en gång, totalvägra att köra om denna tunga funktion!
+    if (window.supabaseDataLoadedOnce === true) {
+        console.log("🛑 [SUPABASE-DATA] loadUserData avbröts aktivt. Sessionen är redan initierad. Skyddar lokalt minne.");
         return;
     }
 
@@ -125,7 +125,6 @@ async function loadUserData() {
                 }
             }
         } else {
-            // SÄKRING: Rensa bara utkastet om vi inte är mitt uppe i ett pass lokalt (undviker oavsiktliga rensningar)
             if (!activeDraft || !activeDraft.isStarted) {
                 activeDraft = null;
                 localStorage.removeItem("activeWorkoutDraft");
@@ -134,7 +133,7 @@ async function loadUserData() {
 
         console.log("All data synkad i loadUserData. Renderar vyer.");
         
-        // Aktivera spärren så att denna funktion ALDRIG körs om asynkront under sessionen
+        // Sätt flaggan till true här så att den blockerar framtida spökanrop under sessionen
         window.supabaseDataLoadedOnce = true;
 
         if (typeof renderCalendar === 'function') renderCalendar();
@@ -371,6 +370,9 @@ async function deleteWorkoutFromHistoryV2(dateStr, idx, passedId = null) {
         }
 
         console.log("✅ [SUPABASE-DATA] Raden raderades framgångsrikt från Supabase via JSON-matchning!");
+        
+        // HÄR LÅG FELET INNAN: Vi anropade inget gränssnittsskydd efter raderingen.
+        // Vi returnerar framgång direkt till modalen.
         return { success: true };
 
     } catch (err) {
