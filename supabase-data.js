@@ -237,31 +237,32 @@ let lastWorkoutSavedTime = 0;
 async function saveWorkoutHistory(workout) {
     if (!currentUser) return;
 
+    // --- KONTROLL 1: Se vad som faktiskt skickas in i funktionen ---
+    console.log("🔍 [DEBUG] saveWorkoutHistory mottog pass:", workout.programName, "med ID:", workout.id);
+
     const nowTimestamp = Date.now();
     let workoutId = workout.id;
     let isEdit = false;
-    let supabaseRowId = null; // Denna kommer hålla den faktiska radens unika ID i din databastabell
-
-    console.log("🔍 [SUPABASE-DATA] saveWorkoutHistory startade. Inkommande ID:", workoutId);
+    let supabaseRowId = null;
 
     // 1. KOLL: Är detta en edit?
     if (workoutId && workoutHistory.some(e => e.id === workoutId)) {
         isEdit = true;
     } 
     
-    // BACKUP-KOLL: Om ID saknas eller har ändrats av misstag, men datum och namn matchar ett befintligt pass
+    // BACKUP-KOLL
     if (!isEdit) {
         const matchandeLokaltPass = workoutHistory.find(e => e.date === workout.date && e.programName === workout.programName);
         if (matchandeLokaltPass) {
             isEdit = true;
-            workoutId = matchandeLokaltPass.id; // Tvinga tillbaka det ursprungliga ID:t
-            console.log("🕵️‍♂️ [DETEKTIV] Matchade datum och namn lokalt. Återanvänder ID:", workoutId);
+            workoutId = matchandeLokaltPass.id;
+            console.log("🕵️‍♂️ [DETEKTIV] Matchade lokalt pass. Återanvänder ID:", workoutId);
         }
     }
 
-    // 2. TIDSLÅS (Hindrar dubbelklick på slutför, men tillåter redigeringar direkt)
+    // 2. TIDSLÅS
     if (!isEdit && (nowTimestamp - lastWorkoutSavedTime < 5000)) {
-        console.warn("⚠️ DUBBLETT-SPÄRR (Tidslås): Funktionen anropades alldeles för snabbt! Avbryter.");
+        console.warn("⚠️ DUBBLETT-SPÄRR: Funktionen anropades för snabbt.");
         return; 
     }
     
@@ -269,7 +270,6 @@ async function saveWorkoutHistory(workout) {
         lastWorkoutSavedTime = nowTimestamp;
     }
 
-    // Om det är ett genuint nytt pass, generera ett unikt ID för JSON-objektet
     if (!workoutId) {
         workoutId = "workout_" + nowTimestamp + "_" + Math.floor(Math.random() * 1000);
     }
@@ -283,31 +283,36 @@ async function saveWorkoutHistory(workout) {
     };
 
     try {
-        // 3. DATABAS-DETEKTIV: Om det är en edit, hämta radens riktiga primärnyckel från Supabase
+        // 3. DATABAS-DETEKTIV
         if (isEdit) {
-            console.log("🔎 Letar efter befintlig rad i Supabase för datum:", workout.date);
+            console.log("🔎 [DEBUG] Letar i Supabase efter datum:", workout.date);
             const { data: rows, error: fetchErr } = await supabaseClient
                 .from('workout_history')
                 .select('id, workout_data')
                 .eq('user_id', currentUser.id)
                 .eq('workout_date', workout.date);
 
+            // --- KONTROLL 2: Vad hittade Supabase? ---
+            console.log("📊 [DEBUG] Databasen returnerade antal rader:", rows ? rows.length : 0);
+
             if (!fetchErr && rows && rows.length > 0) {
-                // Hitta den rad där ID:t inuti JSON matchar vårat workoutId
                 const rättRad = rows.find(r => {
                     if (!r.workout_data) return false;
+                    // Sök på båda möjliga strukturer
                     const innerId = r.workout_data.id || (r.workout_data.workout_data && r.workout_data.workout_data.id);
                     return innerId === workoutId;
                 });
 
                 if (rättRad) {
-                    supabaseRowId = rättRad.id; // Vi hittade radens faktiska ID (t.ex. rad 42)
-                    console.log("🎯 Hittade rätt rad i databasen! Supabase Tabell-ID:", supabaseRowId);
+                    supabaseRowId = rättRad.id;
+                    console.log("🎯 [DEBUG] MATCHNING HITTAD! Databasens unika Rad-ID:", supabaseRowId);
+                } else {
+                    console.warn("⚠️ [DEBUG] Ingen rad i databasen matchade ID:", workoutId);
                 }
             }
         }
 
-        // --- LOKAL MINNESHANTERING (Det som visas i kalendern/historiken direkt) ---
+        // --- LOKAL MINNESHANTERING ---
         if (isEdit) {
             const index = workoutHistory.findIndex(existing => existing.id === workoutId);
             if (index !== -1) {
@@ -319,21 +324,21 @@ async function saveWorkoutHistory(workout) {
         
         localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
 
-        // --- DATABASHANTERING (UPDATE ELLER INSERT) ---
+        // --- DATABASHANTERING ---
         if (isEdit && supabaseRowId) {
-            console.log("📝 Utför stenhård .update() i Supabase på rad-ID:", supabaseRowId);
+            console.log("📝 [DEBUG] Uppdaterar Supabase-rad:", supabaseRowId);
             const { error: updateError } = await supabaseClient
                 .from('workout_history')
                 .update({
                     workout_date: workout.date,
                     workout_data: fullWorkoutObject
                 })
-                .eq('id', supabaseRowId); // Vi går på radens ID, ingen krånglig JSON-sökning!
+                .eq('id', supabaseRowId);
                 
             if (updateError) throw updateError;
-            console.log("✅ Databasen uppdaterad och sparad över det gamla passet!");
+            console.log("✅ [DEBUG] Databasen uppdaterad!");
         } else {
-            console.log("➕ Utför .insert() i Supabase (Skapar en helt ny rad)");
+            console.log("➕ [DEBUG] Skapar ny rad i Supabase...");
             const { error: insertError } = await supabaseClient
                 .from('workout_history')
                 .insert([{
@@ -343,10 +348,9 @@ async function saveWorkoutHistory(workout) {
                 }]);
                 
             if (insertError) throw insertError;
-            console.log("✅ Nytt pass registrerat i databasen!");
+            console.log("✅ [DEBUG] Nytt pass sparat!");
         }
 
-        // Rita om skärmarna så ändringen syns
         if (typeof renderCalendar === 'function') renderCalendar();
         if (typeof renderHome === 'function') renderHome();
 
