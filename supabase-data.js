@@ -460,5 +460,6 @@ async function clearActiveDraft() {
     if (!currentUser) return;
     activeDraft = null;
     localStorage.removeItem("activeWorkoutDraft");
-    await supabaseClient.from('active_draft').update({ draft_data : null }).eq('user_id', currentUser.id);
+    // Ändra till 'data'
+    await supabaseClient.from('active_draft').update({ data : null }).eq('user_id', currentUser.id);
 }
