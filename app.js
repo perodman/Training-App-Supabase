@@ -1461,7 +1461,7 @@ function renderActiveWorkout() {
     list.innerHTML = "";
 
     // Om passet inte är flaggat som startat, visa startknappen
-    if(!activeDraft.isStarted) {
+    if (!activeDraft.isStarted) {
         if (footer) footer.classList.add("hidden");
         list.innerHTML = `
             <div style="text-align:center; padding:20px 0;">
@@ -1595,7 +1595,6 @@ function renderActiveWorkout() {
             list.appendChild(div);
         });
     } else {
-        // Om det är ett helt tomt Fritt Pass, lägg till en informativ textrad
         const emptyNotice = document.createElement("p");
         emptyNotice.style.cssText = "color: var(--text-light); text-align: center; padding: 30px 10px; font-size: 14px;";
         emptyNotice.innerHTML = "Det här passet är tomt.<br>Klicka på knappen nedan för att lägga till dina övningar! 👇";
