@@ -307,12 +307,20 @@ async function saveWorkoutHistory(workoutInput) {
     }
 
     const fullWorkoutObject = {
-        id: workoutId,
-        date: workout.date,
-        programName: workout.programName,
-        totalTime: workout.totalTime,
-        exercises: workout.exercises
-    };
+    id: workoutId,
+    date: workout.date,
+    programName: workout.programName,
+    totalTime: workout.totalTime,
+    exercises: workout.exercises.map(ex => ({
+        name: ex.name,
+        target: ex.target,
+        sets: ex.sets.map(s => ({
+            weight: s.weight || 0,
+            reps: s.reps || 0,
+            userConfirmed: s.userConfirmed || false,
+        })),
+    })),
+};
 
     try {
         // 3. DATABAS-DETEKTIV: Hitta rätt rad i Supabase om det är en edit
