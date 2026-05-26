@@ -709,18 +709,8 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
         </div>
     `;
     
-    const hasCompleted = completed && completed.length > 0;
-
-    // SECTION 1: Slutförda pass på detta datum
-    if (hasCompleted) {
-        // ÖNSKEMÅL 2: Ändrat till centrerad rubrik med linjer på både vänster och höger sida
-        html += `
-        <div style="display: flex; align-items: center; gap: 10px; margin-top: 10px; width: 100%;">
-            <div style="flex-grow: 1; height: 1px; background: rgba(255,255,255,0.08);"></div>
-            <span style="font-size: 11px; text-transform: uppercase; color: var(--text-light); font-weight: 700; letter-spacing: 1px; white-space: nowrap;">Historik</span>
-            <div style="flex-grow: 1; height: 1px; background: rgba(255,255,255,0.08);"></div>
-        </div>`;
-
+    // 1. Slutförda pass på detta datum (Hämtas från det synkroniserade workoutHistory-objektet)
+    if (completed && completed.length > 0) {
         completed.forEach((w, idx) => {
             const timeStr = w.totalTime ? `⏱️ ${w.totalTime}` : "";
             html += `
@@ -769,9 +759,8 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
             html += `</div></div>`;
         });
     } 
-
-    // SECTION 2: Pågående aktivt utkast (activeDraft) på detta datum
-    if (isOngoing && activeDraft) {
+    // 2. Pågående aktivt utkast (activeDraft)
+    else if (isOngoing) {
         html += `
         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px; width: 100%; margin-top: 16px;">
             <div style="flex-grow: 1; height: 1px; background: rgba(255,255,255,0.08);"></div>
@@ -790,89 +779,91 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
             </button>
         </div>`;
     }
-    
-    // ÖNSKEMÅL 1: SECTION 3 (Planering) visas nu ENBART om det inte är ett pågående pass OCH det inte finns något slutfört pass i historiken
-    if (!isOngoing && !hasCompleted) {
+    // 3. Planerad träning eller vila för dagen
+    else {
         html += `
         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px; width: 100%; margin-top: 16px;">
             <div style="flex-grow: 1; height: 1px; background: rgba(255,255,255,0.08);"></div>
-            <span class="status-box-title" style="font-size: 12px !important; text-transform: uppercase; color: var(--text-light); font-weight: 700; letter-spacing: 1px; margin: 0 !important; white-space: nowrap;">Planering</span>
+            <span class="status-box-title" style="font-size: 12px !important; text-transform: uppercase; color: var(--text-light); font-weight: 700; letter-spacing: 1px; margin: 0 !important; white-space: nowrap;">Status</span>
             <div style="flex-grow: 1; height: 1px; background: rgba(255,255,255,0.08);"></div>
         </div>
         
-        <div class="modern-status-card day-manager-status-box" style="padding: 20px 15px 20px 15px !important; align-items: stretch !important;">
+        <div class="modern-status-card day-manager-status-box" style="padding: 30px 15px 30px 15px !important; align-items: stretch !important; margin-top: -10px !important;">
             
-            <p id="current-planned-label" class="status-box-text" style="margin: 0 0 12px 0 !important; text-align: center !important; font-size: 16px; font-weight: 600; padding: 0 !important; line-height: 1.2 !important;">
-                ${planned ? `📋 Planerad: <span class="status-highlight-text" style="color:var(--primary);">${planned.name}</span>` : '🧘 Planerad Vila'}
+            <p id="current-planned-label" class="status-box-text" style="margin: 0 0 8px 0 !important; text-align: center !important; font-size: 16px; font-weight: 600; padding: 0 !important; line-height: 1.2 !important;">
+                ${planned ? `📋 <span class="status-highlight-text">${planned.name}</span>` : '🧘 Planerad Vila'}
             </p>
         
-            <div id="day-manager-action-btn-container" class="status-btn-container" style="width: 100% !important; display: flex; flex-direction: column; gap: 10px;">`;
+            <div id="day-manager-action-btn-container" class="status-btn-container" style="width: 100% !important; display: flex; flex-direction: column; gap: 10px; margin-top: 5px;">`;
             
             if(planned) {
                 html += `
-                <button class="mode-btn premium-action-btn premium-green-btn" onclick="prepareStart('${dateStr}', '${planned.id}')" style="width: 100% !important; margin: 0 !important; padding: 12px !important; font-weight: 700;">
-                    Starta Planerat Pass 🔥
+                <button class="mode-btn premium-action-btn premium-green-btn" onclick="prepareStart('${dateStr}', '${planned.id}')" style="width: 100% !important; margin: 0 !important; padding: 12px !important;">
+                    Starta Träning 🔥
                 </button>`;
             }
             
         html += `
-                <button class="mode-btn premium-action-btn premium-free-btn" 
-                    onclick="closeModal(); startFreeWorkoutOnDate('${dateStr}')" 
-                    style="width: 100% !important; margin: 0 !important; padding: 12px !important; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #ffffff; cursor: pointer; font-weight: 700;">
-                    ➕ Starta Fritt Pass
-                </button>
             </div>
+            
+           <button class="mode-btn premium-action-btn premium-free-btn" 
+                onclick="closeModal(); startFreeWorkoutOnDate('${dateStr}')" 
+                style="width: 100% !important; margin: 10px 0 0 0 !important; padding: 10px !important; touch-action: manipulation; -webkit-tap-highlight-color: transparent; cursor: pointer;">
+                ➕ Starta Fritt Pass
+           </button>
         </div>`;
 
         // ÄNDRA PLANERING - GRID MED ALLA PASS I RUTINEN
         html += `
-        <div style="margin-top: 5px; width: 100%;">
-            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+        <div style="margin-top: 1px; width: 100%;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
                 <div style="flex-grow: 1; height: 1px; background: rgba(255,255,255,0.08);"></div>
-                <p style="font-size: 12px; text-transform: uppercase; color: var(--text-light); font-weight: 700; letter-spacing: 1px; margin: 0 !important; white-space: nowrap;">Ändra schema</p>
+                <p style="font-size: 12px; text-transform: uppercase; color: var(--text-light); font-weight: 700; letter-spacing: 1px; margin: 0 !important; white-space: nowrap;">Ändra planering</p>
                 <div style="flex-grow: 1; height: 1px; background: rgba(255,255,255,0.08);"></div>
+            </div>
+            
+            <div style="text-align: center; margin-bottom: 12px;">
+                <span style="font-size: 11px; color: var(--text-light); opacity: 0.5; font-weight: 500; letter-spacing: 0.3px;">💡 Håll inne ett pass för att se övningar</span>
             </div>
             
             <div class="plan-override-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; width: 100%;">`;
             
-            if (programData && programData.routine) {
-                programData.routine.forEach((p, idx) => {
-                    const isSelected = planned && p.id === planned.id;
-                    
-                    const colors = [
-                        { r: 239, g: 68,  b: 68 },  // Röd
-                        { r: 59,  g: 130, b: 246 },  // Blå
-                        { r: 16,  g: 185, b: 129 },  // Grön
-                        { r: 168, g: 85,  b: 247 }   // Lila
-                    ];
-                    
-                    const colorIndex = idx % colors.length;
-                    const c = colors[colorIndex];
-                    const currentOpacity = isSelected ? "1" : "0.25";
-                    const borderColor = `rgba(${c.r}, ${c.g}, ${c.b}, ${currentOpacity})`;
-                    const btnBg = `rgba(${c.r}, ${c.g}, ${c.b}, 0.04)`;
-     
-                    html += `
-                    <button class="mode-btn plan-override-btn ${isSelected ? 'active-choice' : ''}" 
-                            id="btn-ovr-${p.id}" 
-                            
-                            onmousedown="startPress(${idx}, event)"
-                            onmouseup="if(!isLongPress && !hasScrolled) setOverrideSilent('${dateStr}', '${p.id}'); cancelPress();"
-                            onmouseleave="cancelPress();"
-                            
-                            ontouchstart="startPress(${idx}, event)"
-                            ontouchend="handleTouchEnd(${idx}, '${dateStr}', '${p.id}', event)"
-                            ontouchmove="handleTouchMove(event)"
-                            
-                            style="margin: 0; padding: 15px 12px; font-size: 13px; border-radius: 12px; font-weight: 600; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; width: 100%;
-                                   background: ${isSelected ? 'rgba(255,255,255,0.1)' : btnBg} !important;
-                                   border-top: 2px solid ${borderColor} !important;
-                                   color: ${isSelected ? '#ffffff' : 'var(--text-light)'} !important;
-                                   user-select: none !important; -webkit-user-select: none !important; -webkit-touch-callout: none !important;">
-                        ${p.name}
-                    </button>`;
-                });
-            }
+            programData.routine.forEach((p, idx) => {
+                const isSelected = planned && p.id === planned.id;
+                
+                const colors = [
+                    { r: 239, g: 68,  b: 68 },   // Röd
+                    { r: 59,  g: 130, b: 246 },  // Blå
+                    { r: 16,  g: 185, b: 129 },  // Grön
+                    { r: 168, g: 85,  b: 247 }   // Lila
+                ];
+                
+                const colorIndex = idx % colors.length;
+                const c = colors[colorIndex];
+                const currentOpacity = isSelected ? "1" : "0.25";
+                const borderColor = `rgba(${c.r}, ${c.g}, ${c.b}, ${currentOpacity})`;
+                const btnBg = `rgba(${c.r}, ${c.g}, ${c.b}, 0.04)`;
+ 
+                html += `
+                <button class="mode-btn plan-override-btn ${isSelected ? 'active-choice' : ''}" 
+                        id="btn-ovr-${p.id}" 
+                        
+                        onmousedown="startPress(${idx}, event)"
+                        onmouseup="if(!isLongPress && !hasScrolled) setOverrideSilent('${dateStr}', '${p.id}'); cancelPress();"
+                        onmouseleave="cancelPress();"
+                        
+                        ontouchstart="startPress(${idx}, event)"
+                        ontouchend="handleTouchEnd(${idx}, '${dateStr}', '${p.id}', event)"
+                        ontouchmove="handleTouchMove(event)"
+                        
+                        style="margin: 0; padding: 15px 12px; font-size: 13px; border-radius: 12px; font-weight: 600; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; width: 100%;
+                               background: ${isSelected ? 'rgba(255,255,255,0.1)' : btnBg} !important;
+                               border-top: 2px solid ${borderColor} !important;
+                               color: ${isSelected ? '#ffffff' : 'var(--text-light)'} !important;
+                               user-select: none !important; -webkit-user-select: none !important; -webkit-touch-callout: none !important;">
+                    ${p.name}
+                </button>`;
+            });
             
             const isRestSelected = !planned;
             const restBorderColor = isRestSelected ? "rgba(253, 224, 71, 1)" : "rgba(253, 224, 71, 0.2)";
