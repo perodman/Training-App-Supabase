@@ -900,10 +900,6 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
     body.innerHTML = html;
     openModal();
 }
-    
-    body.innerHTML = html;
-    openModal();
-}
 
 function startFreeWorkoutOnDate(date) {
     console.log("🚀 Initierar Fritt Pass för datum:", date);
