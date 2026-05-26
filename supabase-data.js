@@ -258,7 +258,7 @@ async function saveWorkoutHistory(workoutInput) {
         exercises: activeDraft.workout.exercises.map((ex, i) => ({
             name: ex.name,
             target: ex.target,
-            sets_activeDraft.data[i]?.sets_data || []
+            sets: activeDraft.data[i]?.sets_data || []
         })),
         date: workoutInput.date, 
         totalTime: workoutInput.totalTime 
