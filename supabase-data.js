@@ -241,12 +241,13 @@ async function saveWorkoutHistory(workoutInput) {
     let isEdit = false;
     let supabaseRowId = null;
 
-    // 1. KOLL: Är detta en edit?
+    // 1. KOLL: Är detta en edit? (Kontrollera om workoutId redan finns i historiken)
     if (workoutId && workoutHistory.some(e => e.id === workoutId)) {
         isEdit = true;
+        console.log("✏️ [DEBUG] Detta är en EDIT av befintligt pass med ID:", workoutId);
     } 
     
-    // BACKUP-KOLL
+    // BACKUP-KOLL: Matcha även via datum + programnamn om ID:t inte hittades
     if (!isEdit) {
         const matchandeLokaltPass = workoutHistory.find(e => e.date === workout.date && e.programName === workout.programName);
         if (matchandeLokaltPass) {
@@ -256,7 +257,7 @@ async function saveWorkoutHistory(workoutInput) {
         }
     }
 
-    // 2. TIDSLÅS
+    // 2. TIDSLÅS (endast för nya pass, inte editeringar)
     if (!isEdit && (nowTimestamp - lastWorkoutSavedTime < 5000)) {
         console.warn("⚠️ DUBBLETT-SPÄRR: Funktionen anropades för snabbt.");
         return; 
@@ -279,10 +280,10 @@ async function saveWorkoutHistory(workoutInput) {
     };
 
     try {
-        // 3. DATABAS-DETEKTIV
+        // 3. DATABAS-DETEKTIV: Hitta rätt rad i Supabase om det är en edit
         if (isEdit) {
             console.log("🔎 [DEBUG] Letar i Supabase efter datum:", workout.date);
-            const { data: rows, error: fetchErr } = await supabaseClient
+            const { rows, error: fetchErr } = await supabaseClient
                 .from('workout_history')
                 .select('id, workout_data')
                 .eq('user_id', currentUser.id)
@@ -293,7 +294,7 @@ async function saveWorkoutHistory(workoutInput) {
             if (!fetchErr && rows && rows.length > 0) {
                 const rättRad = rows.find(r => {
                     if (!r.workout_data) return false;
-                    const innerId = r.workout_data.id || (r.workout_data.workout_data && r.workout_data.workout_data.id);
+                    const innerId = r.workout_data.id;
                     return innerId === workoutId;
                 });
 
@@ -309,9 +310,11 @@ async function saveWorkoutHistory(workoutInput) {
             const index = workoutHistory.findIndex(existing => existing.id === workoutId);
             if (index !== -1) {
                 workoutHistory[index] = fullWorkoutObject;
+                console.log("✅ [DEBUG] Uppdaterade lokalt pass på index:", index);
             }
         } else {
             workoutHistory.unshift(fullWorkoutObject);
+            console.log("➕ [DEBUG] Lade till nytt pass lokalt");
         }
         
         localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
@@ -323,12 +326,24 @@ async function saveWorkoutHistory(workoutInput) {
                 .from('workout_history')
                 .update({
                     workout_date: workout.date,
-                    workout_data: fullWorkoutObject
+                    workout_fullWorkoutObject
                 })
                 .eq('id', supabaseRowId);
                 
             if (updateError) throw updateError;
             console.log("✅ [DEBUG] Databasen uppdaterad!");
+        } else if (isEdit && !supabaseRowId) {
+            console.warn("⚠️ [DEBUG] Kunde inte hitta Supabase-rad för uppdatering. Försöker skapa ny...");
+            const { error: insertError } = await supabaseClient
+                .from('workout_history')
+                .insert([{
+                    user_id: currentUser.id,
+                    workout_date: workout.date,
+                    workout_fullWorkoutObject
+                }]);
+                
+            if (insertError) throw insertError;
+            console.log("✅ [DEBUG] Nytt pass sparat (fallback)!");
         } else {
             console.log("➕ [DEBUG] Skapar ny rad i Supabase...");
             const { error: insertError } = await supabaseClient
@@ -336,7 +351,7 @@ async function saveWorkoutHistory(workoutInput) {
                 .insert([{
                     user_id: currentUser.id,
                     workout_date: workout.date,
-                    workout_data: fullWorkoutObject
+                    workout_fullWorkoutObject
                 }]);
                 
             if (insertError) throw insertError;
