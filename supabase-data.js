@@ -252,21 +252,21 @@ async function saveWorkoutHistory(workoutInput) {
     if (!currentUser) return;
 
     // Säkerställ att vi arbetar med den absolut senaste datan om det är det aktiva passet
-    const workout = (activeDraft && activeDraft.workout && activeDraft.workout.id === workoutInput.id) 
+        const workout = (activeDraft && activeDraft.workout && activeDraft.workout.id === workoutInput.id) 
     ? { 
         ...activeDraft.workout, 
         exercises: activeDraft.workout.exercises.map((ex, i) => ({
             name: ex.name,
             target: ex.target,
-                   sets: (activeDraft.data[i]?.sets_data || []).map(s => ({
-            weight: Number(s.weight) || 0,
-            reps: Number(s.reps) || 0,
-            userConfirmed: s.userConfirmed || false
-        }))
+            sets: (activeDraft.data[i]?.sets_data || []).map(s => ({
+                weight: s.weight || 0,
+                reps: s.reps || 0,
+                userConfirmed: s.userConfirmed || false
+            }))
         })),
         date: workoutInput.date, 
         totalTime: workoutInput.totalTime 
-      } 
+    } 
     : workoutInput;
 
     console.log("🔍 [DEBUG] saveWorkoutHistory mottog pass:", workout.programName, "med ID:", workout.id);
