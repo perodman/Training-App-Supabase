@@ -2534,6 +2534,7 @@ function openConfirmDeleteModal(dateStr, idx) {
         openDayManager(dateStr, plannedPass, filtered, false);
     };
 
+    // ÄNDRING: Gjorde klick-hanteraren till en async-funktion för stabil hantering av Supabase
     document.getElementById("confirm-delete-history-btn").onclick = async () => {
         console.log("👉 [MODAL] Klickade på BEKRÄFTA RADERA. Datum:", dateStr, "Index för dagen:", idx);
 
@@ -2551,31 +2552,37 @@ function openConfirmDeleteModal(dateStr, idx) {
         const targetId = itemToDelete.id;
         console.log("👉 [MODAL] Hittade passet som ska raderas. Unikt ID:", targetId);
 
-        // 2. Uppdatera den lokala arrayen OMEDELBART med hjälp av det unika ID:t (inte index!)
+        // 2. Skicka raderingen till Supabase FÖRST (eller synkront) så databasen hinner med
+        if (typeof deleteWorkoutFromHistoryV2 === 'function') {
+            console.log("🚀 [MODAL] Anropar deleteWorkoutFromHistoryV2 med ID:", targetId);
+            try {
+                // Vi väntar in Supabase här så att databasen tas bort i rätt ordning
+                await deleteWorkoutFromHistoryV2(dateStr, idx, targetId);
+            } catch (err) {
+                console.error("❌ [MODAL] Fel vid radering i Supabase:", err);
+            }
+        } else {
+            console.error("❌ [MODAL] Hittade inte funktionen deleteWorkoutFromHistoryV2!");
+        }
+
+        // 3. Uppdatera den lokala arrayen efteråt med hjälp av det unika ID:t
         const globalIdx = workoutHistory.findIndex(w => w.id === targetId);
         if (globalIdx !== -1) {
             workoutHistory.splice(globalIdx, 1);
             console.log("✅ [MODAL] Passet borttaget ur lokal workoutHistory-array.");
         }
         
-        // Spara till localStorage och rita om kalendern direkt för direkt respons i UI
+        // 4. Spara lokalt och stäng ner modalen säkert
         localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
         hideDefaultCloseButton(false);
         closeModal();
         
+        // 5. Rita om gränssnittet baserat på det nya stabila läget
         if (typeof renderCalendar === 'function') {
             renderCalendar(false); 
         }
-
-        // 3. Skicka raderingen till Supabase asynkront i bakgrunden via det unika ID:t
-        if (typeof deleteWorkoutFromHistoryV2 === 'function') {
-            console.log("🚀 [MODAL] Anropar deleteWorkoutFromHistoryV2 med ID:", targetId);
-            // Vi kör utan 'await' här så att UI aldrig kan frysa fast
-            deleteWorkoutFromHistoryV2(dateStr, idx, targetId).catch(err => {
-                console.error("❌ [MODAL] Fel i bakgrundsraderingen:", err);
-            });
-        } else {
-            console.error("❌ [MODAL] Hittade inte funktionen deleteWorkoutFromHistoryV2!");
+        if (typeof renderHome === 'function') {
+            renderHome();
         }
     };
 
