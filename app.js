@@ -710,9 +710,8 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
     
     const hasCompleted = completed && completed.length > 0;
 
-    // 1. Slutförda pass på detta datum (Hämtas från det synkroniserade workoutHistory-objektet)
+    // 1. Slutförda pass på detta datum (Historik)
     if (hasCompleted) {
-        // ÖNSKEMÅL 2: Centrerad historikrubrik med linjer på båda sidor
         html += `
         <div style="display: flex; align-items: center; gap: 10px; margin-top: 10px; width: 100%;">
             <div style="flex-grow: 1; height: 1px; background: rgba(255,255,255,0.08);"></div>
@@ -790,8 +789,8 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
         </div>`;
     }
     
-    // ÖNSKEMÅL 1: Planerad träning eller vila visas ENBART om det inte pågår ett pass OCH det inte finns ett slutfört pass
-    if (!isOngoing && !hasCompleted) {
+    // 3. Planerad träning eller vila status-box
+    if (!isOngoing) {
         html += `
         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px; width: 100%; margin-top: 16px;">
             <div style="flex-grow: 1; height: 1px; background: rgba(255,255,255,0.08);"></div>
@@ -823,79 +822,81 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
                 ➕ Starta Fritt Pass
            </button>
         </div>`;
-
-        // ÄNDRA PLANERING - GRID MED ALLA PASS I RUTINEN (Helt oförändrad funktion med bevarat långtryck)
-        html += `
-        <div style="margin-top: 1px; width: 100%;">
-            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
-                <div style="flex-grow: 1; height: 1px; background: rgba(255,255,255,0.08);"></div>
-                <p style="font-size: 12px; text-transform: uppercase; color: var(--text-light); font-weight: 700; letter-spacing: 1px; margin: 0 !important; white-space: nowrap;">Ändra planering</p>
-                <div style="flex-grow: 1; height: 1px; background: rgba(255,255,255,0.08);"></div>
-            </div>
-            
-            <div style="text-align: center; margin-bottom: 12px;">
-                <span style="font-size: 11px; color: var(--text-light); opacity: 0.5; font-weight: 500; letter-spacing: 0.3px;">💡 Håll inne ett pass för att se övningar</span>
-            </div>
-            
-            <div class="plan-override-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; width: 100%;">`;
-            
-            if (programData && programData.routine) {
-                programData.routine.forEach((p, idx) => {
-                    const isSelected = planned && p.id === planned.id;
-                    
-                    const colors = [
-                        { r: 239, g: 68,  b: 68 },   // Röd
-                        { r: 59,  g: 130, b: 246 },  // Blå
-                        { r: 16,  g: 185, b: 129 },  // Grön
-                        { r: 168, g: 85,  b: 247 }   // Lila
-                    ];
-                    
-                    const colorIndex = idx % colors.length;
-                    const c = colors[colorIndex];
-                    const currentOpacity = isSelected ? "1" : "0.25";
-                    const borderColor = `rgba(${c.r}, ${c.g}, ${c.b}, ${currentOpacity})`;
-                    const btnBg = `rgba(${c.r}, ${c.g}, ${c.b}, 0.04)`;
-     
-                    html += `
-                    <button class="mode-btn plan-override-btn ${isSelected ? 'active-choice' : ''}" 
-                            id="btn-ovr-${p.id}" 
-                            
-                            onmousedown="startPress(${idx}, event)"
-                            onmouseup="if(!isLongPress && !hasScrolled) setOverrideSilent('${dateStr}', '${p.id}'); cancelPress();"
-                            onmouseleave="cancelPress();"
-                            
-                            ontouchstart="startPress(${idx}, event)"
-                            ontouchend="handleTouchEnd(${idx}, '${dateStr}', '${p.id}', event)"
-                            ontouchmove="handleTouchMove(event)"
-                            
-                            style="margin: 0; padding: 15px 12px; font-size: 13px; border-radius: 12px; font-weight: 600; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; width: 100%;
-                                   background: ${isSelected ? 'rgba(255,255,255,0.1)' : btnBg} !important;
-                                   border-top: 2px solid ${borderColor} !important;
-                                   color: ${isSelected ? '#ffffff' : 'var(--text-light)'} !important;
-                                   user-select: none !important; -webkit-user-select: none !important; -webkit-touch-callout: none !important;">
-                        ${p.name}
-                    </button>`;
-                });
-            }
-            
-            const isRestSelected = !planned;
-            const restBorderColor = isRestSelected ? "rgba(253, 224, 71, 1)" : "rgba(253, 224, 71, 0.2)";
-
-            html += `
-                <button class="mode-btn plan-override-btn override-rest-btn ${isRestSelected ? 'active-choice' : ''}" 
-                        id="btn-ovr-none"
-                        onclick="setOverrideSilent('${dateStr}', 'none')"
-                        style="margin: 0; padding: 12px; font-size: 13px; border-radius: 12px; font-weight: bold; grid-column: span 2; 
-                               border-top: 2px solid ${restBorderColor} !important; 
-                               color: #fde047; background: rgba(253, 224, 71, 0.05);">
-                    🧘 Vila
-                </button>
-            `;
-            
-        html += `
-            </div>
-        </div>`;
     }
+
+    // 4. ÄNDRA PLANERING - GRID MED ALLA PASS I RUTINEN
+    html += `
+    <div style="margin-top: 1px; width: 100%;">
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+            <div style="flex-grow: 1; height: 1px; background: rgba(255,255,255,0.08);"></div>
+            <p style="font-size: 12px; text-transform: uppercase; color: var(--text-light); font-weight: 700; letter-spacing: 1px; margin: 0 !important; white-space: nowrap;">Ändra planering</p>
+            <div style="flex-grow: 1; height: 1px; background: rgba(255,255,255,0.08);"></div>
+        </div>
+        
+        <div style="text-align: center; margin-bottom: 12px;">
+            <span style="font-size: 11px; color: var(--text-light); opacity: 0.5; font-weight: 500; letter-spacing: 0.3px;">💡 Håll inne ett pass för att se övningar</span>
+        </div>
+        
+        <div class="plan-override-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; width: 100%;">`;
+        
+        if (programData && programData.routine) {
+            programData.routine.forEach((p, idx) => {
+                const isSelected = planned && p.id === planned.id;
+                
+                const colors = [
+                    { r: 239, g: 68,  b: 68 },
+                    { r: 59,  g: 130, b: 246 },
+                    { r: 16,  g: 185, b: 129 },
+                    { r: 168, g: 85,  b: 247 }
+                ];
+                
+                const colorIndex = idx % colors.length;
+                const c = colors[colorIndex];
+                const currentOpacity = isSelected ? "1" : "0.25";
+                const borderColor = `rgba(${c.r}, ${c.g}, ${c.b}, ${currentOpacity})`;
+                const btnBg = `rgba(${c.r}, ${c.g}, ${c.b}, 0.04)`;
+ 
+                // TILLÄGG: Lade till onclick som en säkerhetsventil om touch-eventet blir blockerat av isLongPress-flaggan
+                html += `
+                <button class="mode-btn plan-override-btn ${isSelected ? 'active-choice' : ''}" 
+                        id="btn-ovr-${p.id}" 
+                        
+                        onclick="if(typeof isLongPress !== 'undefined' && !isLongPress) { setOverrideSilent('${dateStr}', '${p.id}'); if(typeof cancelPress === 'function') cancelPress(); }"
+                        onmousedown="startPress(${idx}, event)"
+                        onmouseup="if(!isLongPress && !hasScrolled) setOverrideSilent('${dateStr}', '${p.id}'); cancelPress();"
+                        onmouseleave="cancelPress();"
+                        
+                        ontouchstart="startPress(${idx}, event)"
+                        ontouchend="handleTouchEnd(${idx}, '${dateStr}', '${p.id}', event)"
+                        ontouchmove="handleTouchMove(event)"
+                        
+                        style="margin: 0; padding: 15px 12px; font-size: 13px; border-radius: 12px; font-weight: 600; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; width: 100%;
+                               background: ${isSelected ? 'rgba(255,255,255,0.1)' : btnBg} !important;
+                               border-top: 2px solid ${borderColor} !important;
+                               color: ${isSelected ? '#ffffff' : 'var(--text-light)'} !important;
+                               user-select: none !important; -webkit-user-select: none !important; -webkit-touch-callout: none !important;">
+                    ${p.name}
+                </button>`;
+            });
+        }
+        
+        const isRestSelected = !planned;
+        const restBorderColor = isRestSelected ? "rgba(253, 224, 71, 1)" : "rgba(253, 224, 71, 0.2)";
+
+        html += `
+            <button class="mode-btn plan-override-btn override-rest-btn ${isRestSelected ? 'active-choice' : ''}" 
+                    id="btn-ovr-none"
+                    onclick="setOverrideSilent('${dateStr}', 'none')"
+                    style="margin: 0; padding: 12px; font-size: 13px; border-radius: 12px; font-weight: bold; grid-column: span 2; 
+                           border-top: 2px solid ${restBorderColor} !important; 
+                           color: #fde047; background: rgba(253, 224, 71, 0.05);">
+                🧘 Vila
+            </button>
+        `;
+        
+    html += `
+        </div>
+    </div>`;
     
     body.innerHTML = html;
     openModal();
