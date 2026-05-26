@@ -234,10 +234,14 @@ async function saveCustomProgram() {
 
 let lastWorkoutSavedTime = 0;
 
-async function saveWorkoutHistory(workout) {
+async function saveWorkoutHistory(workoutInput) {
     if (!currentUser) return;
 
-    // --- KONTROLL 1: Se vad som faktiskt skickas in i funktionen ---
+    // Säkerställ att vi arbetar med den absolut senaste datan om det är det aktiva passet
+    const workout = (activeDraft && activeDraft.workout && activeDraft.workout.id === workoutInput.id) 
+                    ? { ...activeDraft.workout, exercises: activeDraft.data, date: workoutInput.date, totalTime: workoutInput.totalTime } 
+                    : workoutInput;
+
     console.log("🔍 [DEBUG] saveWorkoutHistory mottog pass:", workout.programName, "med ID:", workout.id);
 
     const nowTimestamp = Date.now();
@@ -292,13 +296,11 @@ async function saveWorkoutHistory(workout) {
                 .eq('user_id', currentUser.id)
                 .eq('workout_date', workout.date);
 
-            // --- KONTROLL 2: Vad hittade Supabase? ---
             console.log("📊 [DEBUG] Databasen returnerade antal rader:", rows ? rows.length : 0);
 
             if (!fetchErr && rows && rows.length > 0) {
                 const rättRad = rows.find(r => {
                     if (!r.workout_data) return false;
-                    // Sök på båda möjliga strukturer
                     const innerId = r.workout_data.id || (r.workout_data.workout_data && r.workout_data.workout_data.id);
                     return innerId === workoutId;
                 });
@@ -306,8 +308,6 @@ async function saveWorkoutHistory(workout) {
                 if (rättRad) {
                     supabaseRowId = rättRad.id;
                     console.log("🎯 [DEBUG] MATCHNING HITTAD! Databasens unika Rad-ID:", supabaseRowId);
-                } else {
-                    console.warn("⚠️ [DEBUG] Ingen rad i databasen matchade ID:", workoutId);
                 }
             }
         }
