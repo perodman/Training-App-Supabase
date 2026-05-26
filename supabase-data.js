@@ -8,7 +8,7 @@ async function loadUserData() {
     try {
         console.log("Startar synkroniserad laddning av data från Supabase...");
 
-        // 1. SÄKRA UPPA GRUNDSTRUKTURER I WINDOW-OBJEKTET SOM BACKUP
+        // 1. SÄKRA UPP GRUNDSTRUKTURER I WINDOW-OBJEKTET SOM BACKUP
         if (!window.programData) {
             try { window.programData = JSON.parse(localStorage.getItem("myCustomProgram")); } catch(e) { window.programData = null; }
         }
@@ -41,7 +41,12 @@ async function loadUserData() {
                 localStorage.setItem("masterExercises", JSON.stringify(masterExercises));
             }
         } else {
-            await loadDefaultProgram();
+            // SÄKRING: Kör ENDAST default-programmet om vi inte redan har ett lokalt program i minnet!
+            if (!window.programData || !window.programData.routine || window.programData.routine.length === 0) {
+                await loadDefaultProgram();
+            } else {
+                console.log("Använder befintligt lokalt program istället för att ladda default-JSON.");
+            }
         }
 
         if (typeof programData !== 'undefined') programData = window.programData;
@@ -109,8 +114,11 @@ async function loadUserData() {
                 }
             }
         } else {
-            activeDraft = null;
-            localStorage.removeItem("activeWorkoutDraft");
+            // SÄKRING: Rensa bara utkastet om vi inte är mitt uppe i ett pass lokalt (undviker oavsiktliga rensningar)
+            if (!activeDraft || !activeDraft.isStarted) {
+                activeDraft = null;
+                localStorage.removeItem("activeWorkoutDraft");
+            }
         }
 
         console.log("All data synkad i loadUserData. Renderar vyer.");
@@ -307,7 +315,6 @@ async function saveActiveDraft() {
     }
 }
 
-// NYTT UNIKT FUNKTIONSNAMN FÖR ATT UNDVIKA CACHE-SPÖKEN OCH BIGINT-FEL
 async function deleteWorkoutFromHistoryV2(dateStr, idx, passedId = null) {
     console.log("📥 [SUPABASE-DATA] deleteWorkoutFromHistoryV2 startad. Datum:", dateStr, "Index:", idx, "Skickat ID:", passedId);
     
@@ -319,7 +326,6 @@ async function deleteWorkoutFromHistoryV2(dateStr, idx, passedId = null) {
     try {
         let workoutIdToDelete = passedId;
 
-        // Om inget ID skickades med, försök hitta det via localStorage som fallback
         if (!workoutIdToDelete) {
             const localHistory = JSON.parse(localStorage.getItem("workoutHistory") || "[]");
             const filtered = localHistory.filter(w => w.date === dateStr);
@@ -335,7 +341,6 @@ async function deleteWorkoutFromHistoryV2(dateStr, idx, passedId = null) {
 
         console.log("🔎 [SUPABASE-DATA] Letar efter raden i 'workout_history' som har JS-id:", workoutIdToDelete);
 
-        // 1. Hämta raden från Supabase för att få det RIKTIGA internt genererade bigint-id:t
         const { data, error: fetchError } = await supabaseClient
             .from('workout_history')
             .select('id, workout_data')
@@ -343,7 +348,6 @@ async function deleteWorkoutFromHistoryV2(dateStr, idx, passedId = null) {
 
         if (fetchError) throw fetchError;
 
-        // Hitta raden där datan matchar vårt unika tränings-id (oavsett om det är text eller siffra lokalt)
         const rowToDelete = data.find(item => {
             if (item.workout_data && item.workout_data.id === workoutIdToDelete) return true;
             if (item.workout_data && String(item.workout_data.id) === String(workoutIdToDelete)) return true;
@@ -357,7 +361,6 @@ async function deleteWorkoutFromHistoryV2(dateStr, idx, passedId = null) {
 
         console.log("🔥 [SUPABASE-DATA] Hittade rad i databasen! Intern-ID (bigint):", rowToDelete.id, ". Raderar nu...");
 
-        // 2. Radera raden med det RIKTIGA databas-id:t (bigint)
         const { error: deleteError } = await supabaseClient
             .from('workout_history')
             .delete()
@@ -375,7 +378,6 @@ async function deleteWorkoutFromHistoryV2(dateStr, idx, passedId = null) {
     }
 }
 
-// Behåll det gamla namnet som en länk till det nya utifall att det anropas från ställen vi inte ser
 async function deleteWorkoutFromHistory(date, idx) {
     return await deleteWorkoutFromHistoryV2(date, idx);
 }
