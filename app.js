@@ -1925,21 +1925,32 @@ async function confirmAddExerciseToActive(exId, replaceIndex = null) {
 }
 
 async function updateSetDataOnly(exIdx, setIdx) {
-    // Hämta input-elementen från DOM:en
+    // 1. Hämta värdena från input-fälten
     const wInput = document.getElementById(`w-${exIdx}-${setIdx}`);
     const rInput = document.getElementById(`r-${exIdx}-${setIdx}`);
     
-    if (wInput && rInput) {
-        // Uppdatera det lokala objektet
-        // Strukturen i din JSON är: activeDraft.data[exIdx].sets_data[setIdx]
-        activeDraft.data[exIdx].sets_data[setIdx].weight = wInput.value;
-        activeDraft.data[exIdx].sets_data[setIdx].reps = rInput.value;
-        
-        console.log(`📝 Uppdaterar övning ${exIdx}, set ${setIdx}:`, wInput.value, "kg /", rInput.value, "reps");
-        
-        // Synka till localStorage och Supabase
-        await persistActiveWorkout(); 
+    // Säkerställ att fälten faktiskt finns i DOM:en innan vi fortsätter
+    if (!wInput || !rInput) {
+        console.warn(`⚠️ Kunde inte hitta input-fält för övning ${exIdx}, set ${setIdx}`);
+        return;
     }
+
+    const weightVal = wInput.value;
+    const repsVal = rInput.value;
+
+    // 2. Uppdatera objektet i minnet (säkerhetskontroll inkluderad)
+    if (activeDraft && activeDraft.data && activeDraft.data[exIdx] && activeDraft.data[exIdx].sets_data) {
+        activeDraft.data[exIdx].sets_data[setIdx].weight = weightVal;
+        activeDraft.data[exIdx].sets_data[setIdx].reps = repsVal;
+        
+        console.log(`📝 Uppdaterar minne: Övning ${exIdx}, Set ${setIdx} -> ${weightVal}kg, ${repsVal} reps`);
+    } else {
+        console.error("❌ activeDraft-strukturen matchar inte förväntad data.");
+        return;
+    }
+
+    // 3. Synka till localStorage och Supabase
+    await persistActiveWorkout();
 }
 
 async function confirmSet(exIdx, setIdx) {
