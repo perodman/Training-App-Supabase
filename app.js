@@ -2135,7 +2135,7 @@ document.getElementById("save-workout-btn").onclick = async () => {
     const log = {
         id: workoutId,
         date: activeDraft.date,
-        programName: activeDraft.workout.name,
+        programName: activeDraft.programName || activeDraft.workout.name,
         totalTime: finalTime,
         exercises: activeDraft.workout.exercises.map((ex, i) => {
             return {
