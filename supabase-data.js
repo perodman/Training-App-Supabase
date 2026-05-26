@@ -318,6 +318,9 @@ async function saveActiveDraft() {
 // ==========================================================================
 // UPPDATERAD OCH SKOTTSÄKER RADERING BASERAT PÅ UNIKT UTKAST-ID
 // ==========================================================================
+// ==========================================================================
+// UPPDATERAD RADERING UTAN ASYNKRON GRÄNSSNITTS-KROCK
+// ==========================================================================
 async function deleteWorkoutFromHistoryV2(dateStr, idx, passedId = null) {
     console.log("📥 [SUPABASE-DATA] deleteWorkoutFromHistoryV2 startad. Datum:", dateStr, "Index:", idx, "Skickat ID:", passedId);
     
@@ -329,7 +332,6 @@ async function deleteWorkoutFromHistoryV2(dateStr, idx, passedId = null) {
     try {
         let workoutIdToDelete = passedId;
 
-        // Fallback: Om inget ID skickades med, försök hitta det via localStorage
         if (!workoutIdToDelete) {
             const localHistory = JSON.parse(localStorage.getItem("workoutHistory") || "[]");
             const filtered = localHistory.filter(w => w.date === dateStr);
@@ -345,8 +347,6 @@ async function deleteWorkoutFromHistoryV2(dateStr, idx, passedId = null) {
 
         console.log("🔎 [SUPABASE-DATA] Utför radering i Supabase för tränings-id:", workoutIdToDelete);
 
-        // DIREKT RADERING: Vi söker djupt i JSON-objektet 'workout_data' efter 'id' 
-        // Detta fungerar oavsett hur djupt eller i vilket format raden sparades!
         const { error: deleteError } = await supabaseClient
             .from('workout_history')
             .delete()
@@ -359,6 +359,11 @@ async function deleteWorkoutFromHistoryV2(dateStr, idx, passedId = null) {
         }
 
         console.log("✅ [SUPABASE-DATA] Raden raderades framgångsrikt från Supabase via JSON-matchning!");
+
+        // ❌ TA BORT ELLER KOMMENTERA BORT ANROP SOM LIKNAR DESSA HÄR INNE:
+        // await loadUserData(); <-- Denna eller liknande rad orsakade "Startar synkroniserad laddning..."
+        
+        // Returnera bara framgång, låt app.js sköta resten lokalt och stabilt!
         return { success: true };
 
     } catch (err) {
