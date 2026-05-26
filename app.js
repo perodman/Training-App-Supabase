@@ -708,7 +708,9 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
         </div>
     `;
     
-    const hasCompleted = completed && completed.length > 0;
+    // Säkra upp arrayen så att den aldrig kraschar loopar längre ner
+    const safeCompleted = Array.isArray(completed) ? completed : [];
+    const hasCompleted = safeCompleted.length > 0;
 
     // 1. Slutförda pass på detta datum (Historik)
     if (hasCompleted) {
@@ -719,7 +721,7 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
             <div style="flex-grow: 1; height: 1px; background: rgba(255,255,255,0.08);"></div>
         </div>`;
 
-        completed.forEach((w, idx) => {
+        safeCompleted.forEach((w, idx) => {
             const timeStr = w.totalTime ? `⏱️ ${w.totalTime}` : "";
             html += `
             <div class="card glass" style="border-left: 4px solid #22c55e; text-align: left; margin: 0; padding: 15px; border-radius: 16px;">
@@ -736,40 +738,42 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
                 
                 <div style="background: rgba(0,0,0,0.15); padding: 12px; border-radius: 12px; display: flex; flex-direction: column; gap: 10px;">`;
             
-            w.exercises.forEach(ex => {
-                html += `
-                <div style="font-size: 13px;">
-                    <span style="color: var(--text); font-weight: 600; display: block; margin-bottom: 8px;">${ex.name}</span>
-                    <div style="display: flex; flex-direction: column; gap: 6px;">`;
-                
-                if(ex.sets_data) {
-                    ex.sets_data.forEach((s, sIdx) => {
-                        const wVal = s.weight || 0;
-                        const rVal = s.reps || 0;
-                        html += `
-                        <div style="background: rgba(59, 130, 246, 0.08); border: 1px solid var(--primary); padding: 6px 12px; border-radius: 8px; width: fit-content; display: flex; align-items: center; gap: 8px;">
-                            <span style="color: var(--primary); font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">Set ${sIdx+1}</span> 
-                            <span style="color: #ffffff; font-size: 13px; font-weight: 600;">${wVal} <small style="color: var(--primary); font-weight:400;">kg</small></span> 
-                            <span style="color: var(--primary); opacity: 0.4;">×</span> 
-                            <span style="color: #ffffff; font-size: 13px; font-weight: 600;">${rVal} <small style="color: var(--primary); font-weight:400;">reps</small></span>
-                        </div>`;
-                    });
-                } else {
-                    const wVal = ex.weight || 0;
-                    const rVal = ex.reps || 0;
+            if (Array.isArray(w.exercises)) {
+                w.exercises.forEach(ex => {
                     html += `
-                    <div style="background: rgba(59, 130, 246, 0.08); border: 1px solid var(--primary); color: #ffffff; font-size: 12px; padding: 6px 12px; border-radius: 8px; font-weight: 600; width: fit-content;">
-                        ${ex.sets} set <span style="color: var(--primary);">×</span> ${wVal}kg <span style="color: var(--primary);">×</span> ${rVal}reps
-                    </div>`;
-                }
-                html += `</div></div>`;
-            });
+                    <div style="font-size: 13px;">
+                        <span style="color: var(--text); font-weight: 600; display: block; margin-bottom: 8px;">${ex.name}</span>
+                        <div style="display: flex; flex-direction: column; gap: 6px;">`;
+                    
+                    if(ex.sets_data) {
+                        ex.sets_data.forEach((s, sIdx) => {
+                            const wVal = s.weight || 0;
+                            const rVal = s.reps || 0;
+                            html += `
+                            <div style="background: rgba(59, 130, 246, 0.08); border: 1px solid var(--primary); padding: 6px 12px; border-radius: 8px; width: fit-content; display: flex; align-items: center; gap: 8px;">
+                                <span style="color: var(--primary); font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">Set ${sIdx+1}</span> 
+                                <span style="color: #ffffff; font-size: 13px; font-weight: 600;">${wVal} <small style="color: var(--primary); font-weight:400;">kg</small></span> 
+                                <span style="color: var(--primary); opacity: 0.4;">×</span> 
+                                <span style="color: #ffffff; font-size: 13px; font-weight: 600;">${rVal} <small style="color: var(--primary); font-weight:400;">reps</small></span>
+                            </div>`;
+                        });
+                    } else {
+                        const wVal = ex.weight || 0;
+                        const rVal = ex.reps || 0;
+                        html += `
+                        <div style="background: rgba(59, 130, 246, 0.08); border: 1px solid var(--primary); color: #ffffff; font-size: 12px; padding: 6px 12px; border-radius: 8px; font-weight: 600; width: fit-content;">
+                            ${ex.sets} set <span style="color: var(--primary);">×</span> ${wVal}kg <span style="color: var(--primary);">×</span> ${rVal}reps
+                        </div>`;
+                    }
+                    html += `</div></div>`;
+                });
+            }
             html += `</div></div>`;
         });
     } 
     
     // 2. Pågående aktivt utkast (activeDraft)
-    if (isOngoing && activeDraft) {
+    if (isOngoing && typeof activeDraft !== 'undefined' && activeDraft) {
         html += `
         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px; width: 100%; margin-top: 16px;">
             <div style="flex-grow: 1; height: 1px; background: rgba(255,255,255,0.08);"></div>
@@ -856,14 +860,14 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
                 const borderColor = `rgba(${c.r}, ${c.g}, ${c.b}, ${currentOpacity})`;
                 const btnBg = `rgba(${c.r}, ${c.g}, ${c.b}, 0.04)`;
  
-                // UPPDRATERAD: Skickar nu med completed och isOngoing till setOverrideSilent så att vyn kan ritas om exakt
+                // ISOLERAD FIX: Vi skickar INTE längre med komplex JSON i strängform till onclick/events
                 html += `
                 <button class="mode-btn plan-override-btn ${isSelected ? 'active-choice' : ''}" 
                         id="btn-ovr-${p.id}" 
                         
-                        onclick="if(typeof isLongPress !== 'undefined' && !isLongPress) { setOverrideSilent('${dateStr}', '${p.id}', ${JSON.stringify(completed)}, ${isOngoing}); if(typeof cancelPress === 'function') cancelPress(); }"
+                        onclick="if(typeof isLongPress !== 'undefined' && !isLongPress) { setOverrideSilent('${dateStr}', '${p.id}'); if(typeof cancelPress === 'function') cancelPress(); }"
                         onmousedown="startPress(${idx}, event)"
-                        onmouseup="if(!isLongPress && !hasScrolled) setOverrideSilent('${dateStr}', '${p.id}', ${JSON.stringify(completed)}, ${isOngoing}); cancelPress();"
+                        onmouseup="if(!isLongPress && !hasScrolled) setOverrideSilent('${dateStr}', '${p.id}'); cancelPress();"
                         onmouseleave="cancelPress();"
                         
                         ontouchstart="startPress(${idx}, event)"
@@ -883,11 +887,10 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
         const isRestSelected = !planned;
         const restBorderColor = isRestSelected ? "rgba(253, 224, 71, 1)" : "rgba(253, 224, 71, 0.2)";
 
-        // UPPDATERAD: Skickar med historikarrayen även till viloknappen för live-uppdatering
         html += `
             <button class="mode-btn plan-override-btn override-rest-btn ${isRestSelected ? 'active-choice' : ''}" 
                     id="btn-ovr-none"
-                    onclick="setOverrideSilent('${dateStr}', 'none', ${JSON.stringify(completed)}, ${isOngoing})"
+                    onclick="setOverrideSilent('${dateStr}', 'none')"
                     style="margin: 0; padding: 12px; font-size: 13px; border-radius: 12px; font-weight: bold; grid-column: span 2; 
                            border-top: 2px solid ${restBorderColor} !important; 
                            color: #fde047; background: rgba(253, 224, 71, 0.05);">
@@ -905,7 +908,7 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
 
 // --- SYNKRONISERADE OCH LIVE-UPPDATERANDE OVERRIDES ---
 
-async function setOverrideSilent(dateStr, programId, completedHistory = null, isOngoingWorkout = false) {
+async function setOverrideSilent(dateStr, programId) {
     // 1. Uppdatera det lokala tillståndet
     if (programId === "none" || programId === "") {
         calendarOverrides[dateStr] = "none";
@@ -916,10 +919,9 @@ async function setOverrideSilent(dateStr, programId, completedHistory = null, is
     localStorage.setItem("calendarOverrides", JSON.stringify(calendarOverrides));
     await saveAll();
     
-    // 2. Skottsäker integration mot Supabase (Fixat PGRST116-felet)
+    // 2. Skottsäker integration mot Supabase (PGRST116-säkrad)
     if (typeof currentUser !== 'undefined' && currentUser) {
         try {
-            // Vi hämtar som en array istället för maybeSingle för att undvika krasch vid dubbletter
             const { data: existingRows, error: checkErr } = await supabaseClient
                 .from('calendar_overrides')
                 .select('id')
@@ -928,13 +930,11 @@ async function setOverrideSilent(dateStr, programId, completedHistory = null, is
             if (checkErr) throw checkErr;
             
             if (existingRows && existingRows.length > 0) {
-                // Om det finns en eller flera rader, uppdatera den första
                 await supabaseClient
                     .from('calendar_overrides')
                     .update({ data: calendarOverrides })
                     .eq('user_id', currentUser.id);
             } else {
-                // Om tabellen är tom för denna användare, lägg till ny
                 await supabaseClient
                     .from('calendar_overrides')
                     .insert([{ user_id: currentUser.id, data: calendarOverrides }]);
@@ -949,22 +949,18 @@ async function setOverrideSilent(dateStr, programId, completedHistory = null, is
         renderCalendar();
     }
     
-    // 4. Rita om modalen live med det nya passet
+    // 4. LÖSNING: Hämta de korrekta och aktuella tillstånden live istället för sparad historiksträngar
     let nextPlannedProgram = null;
     if (programId !== "none" && programId !== "") {
         nextPlannedProgram = programData.routine.find(p => p.id === programId) || null;
     }
-    
-    openDayManager(dateStr, nextPlannedProgram, completedHistory, isOngoingWorkout);
-}
 
-function setOverride(date, val) {
-    calendarOverrides[date] = val; 
-    saveAll(); 
-    closeModal(); 
-    if (typeof renderCalendar === "function") {
-        renderCalendar();
-    }
+    // Hämta historik och pågående status direkt från dina globala arrayer live
+    const currentCompleted = typeof workoutHistory !== 'undefined' ? workoutHistory.filter(w => w.date === dateStr) : [];
+    const currentIsOngoing = typeof activeDraft !== 'undefined' && activeDraft && activeDraft.date === dateStr;
+    
+    // Ladda om vyn helt utan risk för trasig JSON-strängar
+    openDayManager(dateStr, nextPlannedProgram, currentCompleted, currentIsOngoing);
 }
 
 function startFreeWorkoutOnDate(date) {
@@ -2197,7 +2193,6 @@ async function setOverride(date, val) {
     localStorage.setItem("calendarOverrides", JSON.stringify(calendarOverrides));
     await saveAll(); 
     
-    // Skottsäker integration mot Supabase (Fixat PGRST116-felet)
     if (currentUser) {
         try {
             const { data: existingRows, error: checkErr } = await supabaseClient
