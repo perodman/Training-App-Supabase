@@ -906,6 +906,7 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
 // --- SYNKRONISERADE OCH LIVE-UPPDATERANDE OVERRIDES ---
 
 async function setOverrideSilent(dateStr, programId, completedHistory = null, isOngoingWorkout = false) {
+    // 1. Uppdatera det lokala tillståndet
     if (programId === "none" || programId === "") {
         calendarOverrides[dateStr] = "none";
     } else {
@@ -915,22 +916,25 @@ async function setOverrideSilent(dateStr, programId, completedHistory = null, is
     localStorage.setItem("calendarOverrides", JSON.stringify(calendarOverrides));
     await saveAll();
     
-    if (currentUser) {
+    // 2. Skottsäker integration mot Supabase (Fixat PGRST116-felet)
+    if (typeof currentUser !== 'undefined' && currentUser) {
         try {
-            const { data: existing, error: checkErr } = await supabaseClient
+            // Vi hämtar som en array istället för maybeSingle för att undvika krasch vid dubbletter
+            const { data: existingRows, error: checkErr } = await supabaseClient
                 .from('calendar_overrides')
                 .select('id')
-                .eq('user_id', currentUser.id)
-                .maybeSingle();
+                .eq('user_id', currentUser.id);
                 
             if (checkErr) throw checkErr;
             
-            if (existing) {
+            if (existingRows && existingRows.length > 0) {
+                // Om det finns en eller flera rader, uppdatera den första
                 await supabaseClient
                     .from('calendar_overrides')
                     .update({ data: calendarOverrides })
                     .eq('user_id', currentUser.id);
             } else {
+                // Om tabellen är tom för denna användare, lägg till ny
                 await supabaseClient
                     .from('calendar_overrides')
                     .insert([{ user_id: currentUser.id, data: calendarOverrides }]);
@@ -940,10 +944,12 @@ async function setOverrideSilent(dateStr, programId, completedHistory = null, is
         }
     }
     
+    // 3. Uppdatera bakomliggande kalendervy
     if (typeof renderCalendar === "function") {
         renderCalendar();
     }
     
+    // 4. Rita om modalen live med det nya passet
     let nextPlannedProgram = null;
     if (programId !== "none" && programId !== "") {
         nextPlannedProgram = programData.routine.find(p => p.id === programId) || null;
@@ -2191,17 +2197,17 @@ async function setOverride(date, val) {
     localStorage.setItem("calendarOverrides", JSON.stringify(calendarOverrides));
     await saveAll(); 
     
+    // Skottsäker integration mot Supabase (Fixat PGRST116-felet)
     if (currentUser) {
         try {
-            const { data: existing, error: checkErr } = await supabaseClient
+            const { data: existingRows, error: checkErr } = await supabaseClient
                 .from('calendar_overrides')
                 .select('id')
-                .eq('user_id', currentUser.id)
-                .maybeSingle();
+                .eq('user_id', currentUser.id);
                 
             if (checkErr) throw checkErr;
             
-            if (existing) {
+            if (existingRows && existingRows.length > 0) {
                 await supabaseClient
                     .from('calendar_overrides')
                     .update({ data: calendarOverrides })
@@ -2221,6 +2227,7 @@ async function setOverride(date, val) {
         renderCalendar(); 
     }
 }
+
 async function prepareStart(date, id) { 
     const p = programData.routine.find(x => x.id === id); 
     closeModal(); 
