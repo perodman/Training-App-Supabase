@@ -1966,13 +1966,19 @@ async function confirmAddExerciseToActive(exId, replaceIndex = null) {
 }
 
 async function updateSetDataOnly(exIdx, setIdx) {
+    // Hämta input-elementen från DOM:en
     const wInput = document.getElementById(`w-${exIdx}-${setIdx}`);
     const rInput = document.getElementById(`r-${exIdx}-${setIdx}`);
     
     if (wInput && rInput) {
+        // Uppdatera det lokala objektet
+        // Strukturen i din JSON är: activeDraft.data[exIdx].sets_data[setIdx]
         activeDraft.data[exIdx].sets_data[setIdx].weight = wInput.value;
         activeDraft.data[exIdx].sets_data[setIdx].reps = rInput.value;
-        // Synka till localStorage och Supabase (active_draft)
+        
+        console.log(`📝 Uppdaterar övning ${exIdx}, set ${setIdx}:`, wInput.value, "kg /", rInput.value, "reps");
+        
+        // Synka till localStorage och Supabase
         await persistActiveWorkout(); 
     }
 }
@@ -1989,44 +1995,43 @@ async function confirmSet(exIdx, setIdx) {
 
 // ÄNDRING: Uppdaterad med robust synkronisering mot tabellen public.active_draft i Supabase
 async function persistActiveWorkout() {
+    // 1. Spara lokalt först
     localStorage.setItem("activeWorkoutDraft", JSON.stringify(activeDraft));
     
-    // Kör även de specifika databas-sparfunktionerna om de är deklarerade globalt
-    if (typeof saveActiveDraft === 'function') {
-        await saveActiveDraft();
-    }
-    if (typeof saveAll === "function") {
-        await saveAll();
-    }
+    // 2. Kör gamla beroenden (om de finns)
+    if (typeof saveActiveDraft === 'function') await saveActiveDraft();
+    if (typeof saveAll === "function") await saveAll();
 
-    // Direkt integration om de globala funktionerna ovan inte täcker uppdateringen fullt ut
+    // 3. Supabase-synk
     if (currentUser) {
         try {
-            const draftData = activeDraft || {};
-            
-            // Kontrollera om det redan finns ett utkast i databasen för att välja INSERT eller UPDATE
-            const { data: existing, error: checkError } = await supabaseClient
+            // Vi försöker uppdatera först (mer effektivt än att alltid fråga databasen)
+            const { error: updateError } = await supabaseClient
                 .from('active_draft')
-                .select('id')
-                .eq('user_id', currentUser.id)
-                .maybeSingle();
+                .update({ data: activeDraft })
+                .eq('user_id', currentUser.id);
 
-            if (checkError) throw checkError;
+            // Om update misslyckades eller inte hittade raden, gör en insert
+            // Vi kollar inte bara på error, utan vi vill veta om raden ens existerade
+            // Men eftersom update i Supabase ofta inte kastar error om 0 rader uppdateras,
+            // är det säkraste att behålla din 'maybeSingle'-koll eller använda 'upsert'.
+            
+            // --- HÄR ÄR DEN BÄSTA LÖSNINGEN: UPSERT ---
+            // Genom att använda .upsert() slipper du både .select() och if/else
+            // Krav: 'user_id' måste vara definierad som en unik nyckel/primary key i Supabase
+            const { error: upsertError } = await supabaseClient
+                .from('active_draft')
+                .upsert({ 
+                    user_id: currentUser.id, 
+                    data: activeDraft 
+                });
 
-            if (existing) {
-                const { error: updateError } = await supabaseClient
-                    .from('active_draft')
-                    .update({ data: draftData }) // Matchar kolumnen 'data' i schemat
-                    .eq('user_id', currentUser.id);
-                if (updateError) throw updateError;
-            } else {
-                const { error: insertError } = await supabaseClient
-                    .from('active_draft')
-                    .insert([{ user_id: currentUser.id, data: draftData }]);
-                if (insertError) throw insertError;
-            }
+            if (upsertError) throw upsertError;
+            
+            console.log("✅ Synkade activeDraft till Supabase via Upsert!");
+            
         } catch (err) {
-            console.error("Fel vid bakgrundssynk av active_draft till Supabase:", err);
+            console.error("❌ Kritiskt fel i persistActiveWorkout:", err);
         }
     }
 }
