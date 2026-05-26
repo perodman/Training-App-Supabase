@@ -216,7 +216,7 @@ async function saveCustomProgram() {
     console.log("Skickar uppdaterat custom_program till Supabase:", dataToSave);
 
     try {
-        const { data : existing, error: fetchErr } = await supabaseClient
+        const { existing, error: fetchErr } = await supabaseClient
             .from('custom_program')
             .select('id')
             .eq('user_id', currentUser.id)
