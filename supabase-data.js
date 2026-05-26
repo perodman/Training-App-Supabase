@@ -2,8 +2,19 @@
 // SUPABASE DATABASOPERATIONER (DUBBLETT-SÄKRAD MED UNIKA WORKOUT-ID:N)
 // ==========================================================================
 
+// SÄKERHETSSPÄRR: Förhindrar att appen gör dolda total-omladdningar mitt under en session
+if (typeof window.supabaseDataLoadedOnce === 'undefined') {
+    window.supabaseDataLoadedOnce = false;
+}
+
 async function loadUserData() {
     if (!currentUser) return;
+
+    // Om vi redan har synkat data en gång denna session, BLOCKERA bakgrunds-spöken!
+    if (window.supabaseDataLoadedOnce) {
+        console.log("🛑 [SUPABASE-DATA] loadUserData blockerades. Data är redan synkad för denna session, behåller lokalt minne stabilt.");
+        return;
+    }
 
     try {
         console.log("Startar synkroniserad laddning av data från Supabase...");
@@ -122,6 +133,10 @@ async function loadUserData() {
         }
 
         console.log("All data synkad i loadUserData. Renderar vyer.");
+        
+        // Aktivera spärren så att denna funktion ALDRIG körs om asynkront under sessionen
+        window.supabaseDataLoadedOnce = true;
+
         if (typeof renderCalendar === 'function') renderCalendar();
         if (typeof renderHome === 'function') renderHome();
 
@@ -316,10 +331,7 @@ async function saveActiveDraft() {
 }
 
 // ==========================================================================
-// UPPDATERAD OCH SKOTTSÄKER RADERING BASERAT PÅ UNIKT UTKAST-ID
-// ==========================================================================
-// ==========================================================================
-// UPPDATERAD RADERING UTAN ASYNKRON GRÄNSSNITTS-KROCK
+// UPPDATERAD OCH SÄKRAD RADERING DIREKT VIA JSON-MATCHNING PÅ SERVERBOTTEN
 // ==========================================================================
 async function deleteWorkoutFromHistoryV2(dateStr, idx, passedId = null) {
     console.log("📥 [SUPABASE-DATA] deleteWorkoutFromHistoryV2 startad. Datum:", dateStr, "Index:", idx, "Skickat ID:", passedId);
@@ -359,11 +371,6 @@ async function deleteWorkoutFromHistoryV2(dateStr, idx, passedId = null) {
         }
 
         console.log("✅ [SUPABASE-DATA] Raden raderades framgångsrikt från Supabase via JSON-matchning!");
-
-        // ❌ TA BORT ELLER KOMMENTERA BORT ANROP SOM LIKNAR DESSA HÄR INNE:
-        // await loadUserData(); <-- Denna eller liknande rad orsakade "Startar synkroniserad laddning..."
-        
-        // Returnera bara framgång, låt app.js sköta resten lokalt och stabilt!
         return { success: true };
 
     } catch (err) {
