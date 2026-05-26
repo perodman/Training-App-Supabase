@@ -7,6 +7,8 @@ const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_
 let currentUser = null;
 
 async function initAuth() {
+    window.supabaseDataLoadedOnce = false;  // ← NOLLSTÄLLER FLAGGAN
+    
     const response = await supabaseClient.auth.getSession();
     const session = response.data.session;
     
@@ -25,6 +27,7 @@ async function initAuth() {
             showApp();
         } else if (event === 'SIGNED_OUT') {
             currentUser = null;
+            window.supabaseDataLoadedOnce = false;  // ← NOLLSTÄLLER FLAGGAN
             showAuth();
         }
     });
