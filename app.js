@@ -2715,7 +2715,10 @@ async function saveDraftAndGoHome() {
 
 // Central spara-allt-funktion för lokal lagring och bakgrundssynk
 function saveAll() {
-    localStorage.setItem("myCustomProgram", JSON.stringify(programData));
+    // FIX: Säkra upp att den lokala referensen matchar fönstrets master-objekt (från Supabase) innan sparning
+    if (window.programData) programData = window.programData;
+
+    localStorage.setItem("myCustomProgram", JSON.stringify(programData || { routine: [] }));
     localStorage.setItem("masterExercises", JSON.stringify(masterExercises));
     localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
     localStorage.setItem("calendarOverrides", JSON.stringify(calendarOverrides));
@@ -2735,6 +2738,12 @@ async function saveDraftState() {
 async function saveNewProgram() {
     const name = document.getElementById("new-pass-name").value.trim();
     if(!name) return alert("Ange ett namn!");
+    
+    // Säkra upp att vi utgår från senaste datan innan vi pushar
+    if (window.programData) programData = window.programData;
+    if (!programData) programData = { routine: [] };
+    if (!programData.routine) programData.routine = [];
+
     const newPass = { id: "pass-" + Date.now(), name, exercises: [] };
     programData.routine.push(newPass);
     
@@ -2746,6 +2755,7 @@ async function saveNewProgram() {
 
 // Sparar ändringar av ett befintligt programnamn till lokal lagring och databas
 async function saveProgramEdit(idx) {
+    if (window.programData) programData = window.programData;
     programData.routine[idx].name = document.getElementById("edit-pass-name").value;
     
     // Sparar det uppdaterade namnet till databasen och lokalt
@@ -2771,4 +2781,8 @@ async function saveCustomProgramToSupabase() {
     } else {
         console.warn("Kunde inte hitta saveCustomProgram i supabase-data.js");
     }
+
+    // FIX: Se till att den lokala referensen uppdateras och gränssnittet ritas om omedelbart
+    if (window.programData) programData = window.programData;
+    if (typeof renderHome === 'function') renderHome();
 }
