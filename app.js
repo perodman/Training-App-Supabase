@@ -1,4 +1,7 @@
-let programData;
+// Explicita globala variabler länkade till window-objektet för full Supabase-kompatibilitet
+window.programData = JSON.parse(localStorage.getItem("myCustomProgram") || "null");
+let programData = window.programData; // Skapar en lokal referens för smidig användning i app.js
+
 let masterExercises = JSON.parse(localStorage.getItem("masterExercises") || "[]");
 let workoutHistory = JSON.parse(localStorage.getItem("workoutHistory") || "[]");
 let activeDraft = JSON.parse(localStorage.getItem("activeWorkoutDraft") || "null");
@@ -6,20 +9,53 @@ let calendarOverrides = JSON.parse(localStorage.getItem("calendarOverrides") || 
 let currentViewDate = new Date();
 let currentExerciseCategory = "Ben";
 
-// Timer-variablerrf
+// Timer-variabler
 let timerInterval = null;
 let secondsElapsed = 0;
 let isTimerRunning = false;
 
 // --- INIT ---
-// ÄNDRING: Initieringslogiken använder nu Supabase som primär datakälla (om tillgänglig via supabase-data.js),
-// men faller sömlöst tillbaka på program.json och localStorage precis som förut för att säkra stabilitet.
-fetch("program.json")
-.then(r => r.json())
-.then(async json => {
-    const savedProgram = JSON.parse(localStorage.getItem("myCustomProgram"));
-    
-    if (masterExercises.length === 0) {
+async function initApp() {
+    // 1. Om vi redan har ett sparat program i localStorage, använd det direkt för snabb start
+    if (window.programData && window.programData.routine && window.programData.routine.length > 0) {
+        console.log("📦 Initierar appen med lokalt sparat custom-program.");
+        programData = window.programData;
+        setupMasterExercisesFallback([]); // Behövs ej genereras från grunden, men uppdaterar animationer
+    } else {
+        // 2. Annars (eller om det är första gången), hämta från program.json
+        try {
+            console.log("🌐 Inget lokalt program hittat. Hämtar från program.json...");
+            const r = await fetch("program.json");
+            const json = await r.json();
+            
+            if (!window.programData) {
+                window.programData = json;
+                programData = window.programData;
+                localStorage.setItem("myCustomProgram", JSON.stringify(window.programData));
+            }
+            setupMasterExercisesFallback(json);
+        } catch (e) {
+            console.error("Kunde inte ladda program.json:", e);
+        }
+    }
+
+    // 3. Återställ timer om ett aktivt utkast pågår lokalt
+    if (activeDraft && activeDraft.isStarted) {
+        secondsElapsed = activeDraft.secondsElapsed || 0;
+        if (activeDraft.wasTimerRunning) {
+            if (typeof startTimer === 'function') startTimer();
+        } else {
+            if (typeof updateTimerDisplay === 'function') updateTimerDisplay();
+        }
+    }
+
+    // 4. Slutgiltig rendering för startskärmen
+    if (typeof renderHome === 'function') renderHome();
+}
+
+// Hjälpfunktion för att hantera masterExercises och hålla init-koden ren
+function setupMasterExercisesFallback(json) {
+    if (masterExercises.length === 0 && json && json.routine) {
         json.routine.forEach(p => {
             p.exercises.forEach(ex => {
                 if (!masterExercises.find(m => m.name === ex.name)) {
@@ -42,31 +78,21 @@ fetch("program.json")
             if (ex.name === "Barbell Bench Press") ex.animation = "Skärmbild 2026-05-11 124104.mp4";
         });
     }
-    
-    programData = savedProgram || json;
+}
 
-    // Om användaren är inloggad i Supabase kommer dessa lokala variabler att 
-    // skrivas över med färsk molndata direkt efter autentiseringen (via loadUserData).
-    if(activeDraft && activeDraft.isStarted) {
-        secondsElapsed = activeDraft.secondsElapsed || 0;
-        if(activeDraft.wasTimerRunning) {
-            startTimer();
-        } else {
-            updateTimerDisplay();
-        }
-    }
-
-    renderHome();
-});
+// Kör igång initieringen direkt
+initApp();
 
 function saveAll() {
-    localStorage.setItem("myCustomProgram", JSON.stringify(programData));
+    // KORRIGERING: Säkra upp att den lokala referensen matchar fönstrets master-objekt (från Supabase) innan sparning
+    if (window.programData) programData = window.programData;
+
+    localStorage.setItem("myCustomProgram", JSON.stringify(programData || { routine: [] }));
     localStorage.setItem("masterExercises", JSON.stringify(masterExercises));
     localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
     localStorage.setItem("calendarOverrides", JSON.stringify(calendarOverrides));
     
-    // Supabase-synk: Båda ligger kvar och sköter sitt i bakgrunden,
-    // men eftersom vi städat upp raderingen kommer de inte längre att krocka!
+    // Supabase-synk: Båda ligger kvar och sköter sitt i bakgrunden
     if (typeof saveCustomProgram === 'function') saveCustomProgram();
     if (typeof saveCalendarOverrides === 'function') saveCalendarOverrides();
 }
