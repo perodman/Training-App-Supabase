@@ -1965,21 +1965,20 @@ async function confirmSet(exIdx, setIdx) {
 
 // ÄNDRING: Uppdaterad med robust synkronisering mot tabellen public.active_draft i Supabase
 async function persistActiveWorkout() {
-    // 1. Spara lokalt
     localStorage.setItem("activeWorkoutDraft", JSON.stringify(activeDraft));
     
     if (!currentUser) return;
 
     try {
-        // 2. Radera först (din DELETE-policy är "Enable delete for users based on user_id")
-        // Vi kör denna utan några konstigheter
-        await supabaseClient
+        // 1. Radera och VÄNTA på att det är klart
+        const { error: deleteError } = await supabaseClient
             .from('active_draft')
             .delete()
             .eq('user_id', currentUser.id);
 
-        // 3. Insert (din INSERT-policy är "Enable insert for authenticated users only")
-        // Vi skickar absolut inga extra parametrar här
+        if (deleteError) throw deleteError;
+
+        // 2. NU när DELETE är helt klar, gör INSERT
         const { error: insertError } = await supabaseClient
             .from('active_draft')
             .insert([{ 
@@ -1989,7 +1988,7 @@ async function persistActiveWorkout() {
 
         if (insertError) throw insertError;
 
-        console.log("✅ Data sparad via ren DELETE + INSERT!");
+        console.log("✅ Data sparad framgångsrikt (DELETE + väntan + INSERT)!");
 
     } catch (err) {
         console.error("❌ Fel vid sparande till Supabase:", err);
