@@ -2120,23 +2120,32 @@ document.getElementById("save-workout-btn").onclick = async () => {
     pauseTimer();
     const finalTime = document.getElementById("workout-timer").textContent;
     
-    // Generera ett unikt ID för passet här så det garanterat hänger med överallt
-    const uniqueWorkoutId = "workout_" + Date.now() + "_" + Math.floor(Math.random() * 100);
+    // 🔑 KRITISK FIX: Använd befintligt ID om det är en edit, annars skapa nytt
+    let workoutId;
+    if (activeDraft.id && workoutHistory.some(w => w.id === activeDraft.id)) {
+        // Detta är en edit av ett befintligt pass
+        workoutId = activeDraft.id;
+        console.log("✏️ [SAVE] Uppdaterar befintligt pass med ID:", workoutId);
+    } else {
+        // Detta är ett nytt pass
+        workoutId = "workout_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
+        console.log("➕ [SAVE] Skapar nytt pass med ID:", workoutId);
+    }
 
     const log = {
-        id: uniqueWorkoutId, // Unikt ID skickas nu med i logg-objektet
+        id: workoutId,
         date: activeDraft.date,
         programName: activeDraft.workout.name,
         totalTime: finalTime,
         exercises: activeDraft.workout.exercises.map((ex, i) => {
             return {
                 name: ex.name,
-                sets_data: activeDraft.data[i].sets_data  
+                sets_activeDraft.data[i].sets_data  
             };
         })
     };
     
-    // CENTRAL SPARFUNKTION: Sköter insättning i Supabase, localStorage samt synk på ett säkert sätt
+    // CENTRAL SPARFUNKTION: Sköter insättning/uppdatering i Supabase, localStorage samt synk på ett säkert sätt
     if (typeof saveWorkoutHistory === 'function') {
         await saveWorkoutHistory(log);
     }
