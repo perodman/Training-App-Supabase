@@ -41,9 +41,12 @@ async function loadUserData() {
             .from('custom_program')
             .select('data')
             .eq('user_id', currentUser.id)
+            .limit(1)
             .maybeSingle();
 
-        if (programError) console.error('Fel vid laddning av program:', programError);
+        if (programError && programError.code !== 'PGRST116') {
+            console.error('Fel vid laddning av program:', programError);
+        }
 
         if (programDataResult && programDataResult.data && programDataResult.data.routine && programDataResult.data.routine.length > 0) {
             window.programData = programDataResult.data;
@@ -90,9 +93,12 @@ async function loadUserData() {
             .from('calendar_overrides')
             .select('data')
             .eq('user_id', currentUser.id)
+            .limit(1)
             .maybeSingle();
 
-        if (calendarError) console.error('Fel vid laddning av kalender:', calendarError);
+        if (calendarError && calendarError.code !== 'PGRST116') {
+            console.error('Fel vid laddning av kalender:', calendarError);
+        }
 
         if (calendarData && calendarData.data) {
             window.calendarOverrides = calendarData.data;
@@ -108,9 +114,10 @@ async function loadUserData() {
             .from('active_draft')
             .select('data')
             .eq('user_id', currentUser.id)
+            .limit(1)
             .maybeSingle();
 
-        if (draftError) {
+        if (draftError && draftError.code !== 'PGRST116') {
             console.error('Fel vid laddning av utkast:', draftError);
         }
 
