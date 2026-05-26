@@ -684,7 +684,7 @@ function closePreviewModal() {
     }
 }
 
-// HUVUDFUNKTIONEN FOR DAGSPLANERING OCH HISTORIKUTLÄSNING
+// HUVUDFUNKTIONEN FÖR DAGSPLANERING OCH HISTORIKUTLÄSNING
 function openDayManager(dateStr, planned, completed, isOngoing) {
     if (typeof hideDefaultCloseButton === 'function') {
         hideDefaultCloseButton(false);
@@ -709,10 +709,15 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
         </div>
     `;
     
+    const hasCompleted = completed && completed.length > 0;
+
     // SECTION 1: Slutförda pass på detta datum
-    if (completed && completed.length > 0) {
-        html += `<div style="display: flex; align-items: center; gap: 10px; margin-top: 10px; width: 100%;">
-            <span style="font-size: 11px; text-transform: uppercase; color: var(--text-light); font-weight: 700; letter-spacing: 1px;">Historik</span>
+    if (hasCompleted) {
+        // ÖNSKEMÅL 2: Ändrat till centrerad rubrik med linjer på både vänster och höger sida
+        html += `
+        <div style="display: flex; align-items: center; gap: 10px; margin-top: 10px; width: 100%;">
+            <div style="flex-grow: 1; height: 1px; background: rgba(255,255,255,0.08);"></div>
+            <span style="font-size: 11px; text-transform: uppercase; color: var(--text-light); font-weight: 700; letter-spacing: 1px; white-space: nowrap;">Historik</span>
             <div style="flex-grow: 1; height: 1px; background: rgba(255,255,255,0.08);"></div>
         </div>`;
 
@@ -786,8 +791,8 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
         </div>`;
     }
     
-    // SECTION 3: Planering / Starta nytt pass för dagen (Denna visas ALLTID nu om det inte är pågående)
-    if (!isOngoing) {
+    // ÖNSKEMÅL 1: SECTION 3 (Planering) visas nu ENBART om det inte är ett pågående pass OCH det inte finns något slutfört pass i historiken
+    if (!isOngoing && !hasCompleted) {
         html += `
         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px; width: 100%; margin-top: 16px;">
             <div style="flex-grow: 1; height: 1px; background: rgba(255,255,255,0.08);"></div>
@@ -890,45 +895,6 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
     
     body.innerHTML = html;
     openModal();
-}
-
-// ASYNKRON SYNCRONISERING AV KALENDERÄNDRINGAR (Optimistic Update-mönster)
-async function setOverrideSilent(date, val) {
-    // 1. Uppdatera minnet direkt för direkt respons i UI
-    calendarOverrides[date] = val;
-    
-    // 2. Spara till localStorage omedelbart som blixtsnabb backup
-    localStorage.setItem("calendarOverrides", JSON.stringify(calendarOverrides));
-    
-    // 3. Rendera om gränssnittet direkt utan att blockera tråden (Optimistic update)
-    const plannedPass = val === 'none' ? null : programData.routine.find(x => x.id === val);
-    openDayManager(date, plannedPass, [], false);
-    renderCalendar(false); 
-    
-    // 4. Skicka ändringen asynkront till Supabase i bakgrunden
-    if (typeof currentUser !== 'undefined' && currentUser) {
-        try {
-            // Kontrollera om posten redan finns för användaren
-            const { data: existing } = await supabaseClient
-                .from('calendar_overrides')
-                .select('id')
-                .eq('user_id', currentUser.id)
-                .maybeSingle();
-
-            if (existing) {
-                await supabaseClient
-                    .from('calendar_overrides')
-                    .update({ data: calendarOverrides })
-                    .eq('user_id', currentUser.id);
-            } else {
-                await supabaseClient
-                    .from('calendar_overrides')
-                    .insert([{ user_id: currentUser.id, data: calendarOverrides }]);
-            }
-        } catch (err) {
-            console.error("Supabase-synk misslyckades för kalenderändring, kör vidare på lokal backup:", err);
-        }
-    }
 }
 
 function startFreeWorkoutOnDate(date) {
