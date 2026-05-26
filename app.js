@@ -1,5 +1,4 @@
 //// Explicita globala variabler länkade till window-objektet för full Supabase-kompatibilitet
-console.log("--- VERSION 2026-05-26-13:58 ---");
 window.programData = JSON.parse(localStorage.getItem("myCustomProgram") || "null");
 let programData = window.programData; // Skapar en lokal referens för smidig användning i app.js
 
