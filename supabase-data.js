@@ -307,20 +307,21 @@ async function saveWorkoutHistory(workoutInput) {
     }
 
         const fullWorkoutObject = {
-        id: workoutId,
-        date: workout.date,
-        programName: workout.programName,
-        totalTime: workout.totalTime,
-        exercises: workout.exercises.map(ex => ({
-            name: ex.name,
-            target: ex.target,
-            sets: ex.sets.map(s => ({
-                weight: Number(s.weight) || 0,
-                reps: Number(s.reps) || 0,
-                userConfirmed: !!s.userConfirmed
-            }))
+    id: workoutId,
+    date: workout.date,
+    programName: workout.programName,
+    totalTime: workout.totalTime,
+    exercises: workout.exercises.map(ex => ({
+        name: ex.name,
+        target: ex.target,
+        // Vi lägger till || [] här för att undvika "Cannot read properties of undefined"
+        sets: (ex.sets || []).map(s => ({
+            weight: Number(s.weight) || 0,
+            reps: Number(s.reps) || 0,
+            userConfirmed: !!s.userConfirmed
         }))
-    };
+    }))
+};
 
     try {
         // 3. DATABAS-DETEKTIV: Hitta rätt rad i Supabase om det är en edit
