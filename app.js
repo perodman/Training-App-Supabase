@@ -1966,32 +1966,34 @@ async function confirmSet(exIdx, setIdx) {
 // ÄNDRING: Uppdaterad med robust synkronisering mot tabellen public.active_draft i Supabase
 async function persistActiveWorkout() {
     localStorage.setItem("activeWorkoutDraft", JSON.stringify(activeDraft));
-    
     if (!currentUser) return;
 
     try {
-        // 1. Radera och VÄNTA på att det är klart
-        const { error: deleteError } = await supabaseClient
+        // 1. Försök uppdatera raden som hör till user_id
+        const { data, error: updateError } = await supabaseClient
             .from('active_draft')
-            .delete()
-            .eq('user_id', currentUser.id);
+            .update({ data: activeDraft })
+            .eq('user_id', currentUser.id)
+            .select();
 
-        if (deleteError) throw deleteError;
-
-        // 2. NU när DELETE är helt klar, gör INSERT
-        const { error: insertError } = await supabaseClient
-            .from('active_draft')
-            .insert([{ 
-                user_id: currentUser.id, 
-                data: activeDraft 
-            }]);
-
-        if (insertError) throw insertError;
-
-        console.log("✅ Data sparad framgångsrikt (DELETE + väntan + INSERT)!");
+        // 2. Om update misslyckas eller inte returnerar något (ingen rad fanns), gör en insert
+        if (updateError || !data || data.length === 0) {
+            console.log("Ingen rad fanns att uppdatera, försöker insert...");
+            const { error: insertError } = await supabaseClient
+                .from('active_draft')
+                .insert([{ 
+                    user_id: currentUser.id, 
+                    data: activeDraft 
+                }]);
+            
+            if (insertError) throw insertError;
+            console.log("✅ Ny rad skapad!");
+        } else {
+            console.log("✅ Befintlig rad uppdaterad!");
+        }
 
     } catch (err) {
-        console.error("❌ Fel vid sparande till Supabase:", err);
+        console.error("❌ Kritiskt fel i persistActiveWorkout:", err);
     }
 }
 
