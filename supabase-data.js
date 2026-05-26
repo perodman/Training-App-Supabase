@@ -258,7 +258,11 @@ async function saveWorkoutHistory(workoutInput) {
         exercises: activeDraft.workout.exercises.map((ex, i) => ({
             name: ex.name,
             target: ex.target,
-            sets: activeDraft.data[i]?.sets_data || []
+            sets: (activeDraft.data[i]?.sets_data || []).map(s => ({
+                weight: s.weight || 0,
+                reps: s.reps || 0,
+                userConfirmed: s.userConfirmed || false
+            }))
         })),
         date: workoutInput.date, 
         totalTime: workoutInput.totalTime 
@@ -314,7 +318,7 @@ async function saveWorkoutHistory(workoutInput) {
         // 3. DATABAS-DETEKTIV: Hitta rätt rad i Supabase om det är en edit
         if (isEdit) {
             console.log("🔎 [DEBUG] Letar i Supabase efter datum:", workout.date);
-            const { data: rows, error: fetchErr } = await supabaseClient
+            const { rows, error: fetchErr } = await supabaseClient
                 .from('workout_history')
                 .select('id, workout_data')
                 .eq('user_id', currentUser.id)
@@ -357,7 +361,7 @@ async function saveWorkoutHistory(workoutInput) {
                 .from('workout_history')
                 .update({
                     workout_date: workout.date,
-                    workout_data: fullWorkoutObject
+                    workout_fullWorkoutObject
                 })
                 .eq('id', supabaseRowId);
                 
@@ -370,7 +374,7 @@ async function saveWorkoutHistory(workoutInput) {
                 .insert([{
                     user_id: currentUser.id,
                     workout_date: workout.date,
-                    workout_data: fullWorkoutObject
+                    workout_fullWorkoutObject
                 }]);
                 
             if (insertError) throw insertError;
@@ -382,7 +386,7 @@ async function saveWorkoutHistory(workoutInput) {
                 .insert([{
                     user_id: currentUser.id,
                     workout_date: workout.date,
-                    workout_data: fullWorkoutObject
+                    workout_fullWorkoutObject
                 }]);
                 
             if (insertError) throw insertError;
