@@ -361,7 +361,7 @@ async function saveWorkoutHistory(workoutInput) {
                 .from('workout_history')
                 .update({
                     workout_date: workout.date,
-                    fullWorkoutObject
+                    workout_data: fullWorkoutObject
                 })
                 .eq('id', supabaseRowId);
                 
@@ -374,7 +374,7 @@ async function saveWorkoutHistory(workoutInput) {
                 .insert([{
                     user_id: currentUser.id,
                     workout_date: workout.date,
-                    fullWorkoutObject
+                    workout_data: fullWorkoutObject
                 }]);
                 
             if (insertError) throw insertError;
@@ -386,7 +386,7 @@ async function saveWorkoutHistory(workoutInput) {
                 .insert([{
                     user_id: currentUser.id,
                     workout_date: workout.date,
-                    fullWorkoutObject
+                    workout_data: fullWorkoutObject
                 }]);
                 
             if (insertError) throw insertError;
