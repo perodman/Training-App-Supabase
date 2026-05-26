@@ -1,6 +1,6 @@
-// ===========================================================================
+// ==========================================================================
 // SUPABASE DATABASOPERATIONER (DUBBLETT-SÄKRAD MED UNIKA WORKOUT-ID:N)
-// ===========================================================================
+// ==========================================================================
 
 // SÄKERHETSSPÄRR: Förhindrar att appen gör dolda total-omladdningar mitt under en session
 if (typeof window.supabaseDataLoadedOnce === 'undefined') {
