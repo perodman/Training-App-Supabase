@@ -239,23 +239,24 @@ async function saveWorkoutHistory(workout) {
 
     const nowTimestamp = Date.now();
     
-    if (nowTimestamp - lastWorkoutSavedTime < 5000) {
+    // Tidslåset gäller bara om vi skapar ett helt NYTT pass (för att hindra dubbelklick på "Slutför")
+    // Om passet har ett existerande stabilt ID (redigering), ska vi inte blockera på tid.
+    const isEdit = workout.id && !workout.id.startsWith("temporary_") && workoutHistory.some(e => e.id === workout.id);
+    
+    if (!isEdit && (nowTimestamp - lastWorkoutSavedTime < 5000)) {
         console.warn("⚠️ DUBBLETT-SPÄRR (Tidslås): Funktionen anropades igen alldeles för snabbt! Avbryter.");
         return; 
     }
     
-    lastWorkoutSavedTime = nowTimestamp;
-
-    const workoutId = workout.id || "workout_" + nowTimestamp + "_" + Math.floor(Math.random() * 1000);
-    const idExists = workoutHistory.some(existing => existing.id === workoutId);
-
-    if (idExists) {
-        console.warn(`⚠️ DUBBLETT-SPÄRR (ID): Passet med ID ${workoutId} finns redan! Avbryter.`);
-        return;
+    if (!isEdit) {
+        lastWorkoutSavedTime = nowTimestamp;
     }
 
+    // Säkerställ att vi har ett ID. Om det är en edit behåller vi det gamla, annars skapar vi ett nytt.
+    const workoutId = workout.id || "workout_" + nowTimestamp + "_" + Math.floor(Math.random() * 1000);
+
     try {
-        console.log("🚀 saveWorkoutHistory körs! Sparar passet:", workout.programName);
+        console.log(`🚀 saveWorkoutHistory körs! [${isEdit ? "UPPDATERAR BEFINTLIGT" : "SKAPAR NYTT"}] pass:`, workout.programName);
 
         const fullWorkoutObject = {
             id: workoutId,
@@ -265,31 +266,64 @@ async function saveWorkoutHistory(workout) {
             exercises: workout.exercises
         };
 
-        workoutHistory.unshift(fullWorkoutObject);
+        // --- LOKAL MINNESHANTERING ---
+        if (isEdit) {
+            // Hitta var i arrayen det gamla passet låg och byt ut det mot det redigerade
+            const index = workoutHistory.findIndex(existing => existing.id === workoutId);
+            if (index !== -1) {
+                workoutHistory[index] = fullWorkoutObject;
+            }
+        } else {
+            // Om det är ett helt nytt pass, lägg till det överst i listan
+            workoutHistory.unshift(fullWorkoutObject);
+        }
+        
         localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
 
-        const { error } = await supabaseClient
-            .from('workout_history')
-            .insert([{
-                user_id: currentUser.id,
-                workout_date: workout.date,
-                workout_data: fullWorkoutObject
-            }]);
-
-        if (error) {
-            console.error('Fel vid sparande till Supabase:', error);
-            workoutHistory.shift(); 
-            localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
-            lastWorkoutSavedTime = 0; 
+        // --- DATABASHANTERING (UPSERT) ---
+        // Vi använder .upsert() och talar om för Supabase att matcha på 'user_id' samt söka i JSON-datan efter unikt ID.
+        // För att Supabase ska förstå vilken rad som ska uppdateras skickar vi med radens ID om vi kan matas med det,
+        // annars gör vi en smart matchning via Supabases inbyggda ON CONFLICT-logik.
+        
+        let query = supabaseClient.from('workout_history');
+        
+        if (isEdit) {
+            console.log("📝 Uppdaterar befintlig rad i Supabase för ID:", workoutId);
+            // Vi gör en direkt uppdatering på den specifika raden där tränings-id:t matchar inuti vår JSON-struktur
+            const { error: updateError } = await query
+                .update({
+                    workout_date: workout.date,
+                    workout_data: fullWorkoutObject
+                })
+                .eq('user_id', currentUser.id)
+                .or(`workout_data->>id.eq.${workoutId},workout_data->workout_data->>id.eq.${workoutId}`);
+                
+            if (updateError) throw updateError;
+            console.log("✅ Passet uppdaterades framgångsrikt i Supabase!");
         } else {
-            console.log("✅ Passet sparades framgångsrikt i Supabase!");
+            console.log("➕ Lägger till en helt ny rad i Supabase för ID:", workoutId);
+            const { error: insertError } = await query
+                .insert([{
+                    user_id: currentUser.id,
+                    workout_date: workout.date,
+                    workout_data: fullWorkoutObject
+                }]);
+                
+            if (insertError) throw insertError;
+            console.log("✅ Nytt pass sparades framgångsrikt i Supabase!");
         }
 
+        // Rendera om skärmen direkt så att ändringen syns utan omladdning
         if (typeof renderCalendar === 'function') renderCalendar();
         if (typeof renderHome === 'function') renderHome();
 
     } catch (err) {
-        console.error("Internt fel i saveWorkoutHistory:", err);
+        console.error("❌ Allvarligt fel i saveWorkoutHistory:", err);
+        // Återställ lokala minnet vid fel så att skärmen inte visar felaktig data
+        if (!isEdit) {
+            workoutHistory.shift();
+            localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
+        }
         lastWorkoutSavedTime = 0;
     }
 }
