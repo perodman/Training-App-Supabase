@@ -33,16 +33,14 @@ async function loadUserData() {
             try { calendarOverrides = JSON.parse(localStorage.getItem("calendarOverrides") || "{}"); } catch(e) { calendarOverrides = {}; }
         }
 
-        // 2. LADDAR CUSTOM_PROGRAM (Rutiner: Full Body A / Full Body B)
+        // 2. LADDAR CUSTOM_PROGRAM
         const { data : programDataResult, error: programError } = await supabaseClient
             .from('custom_program')
             .select('data')
             .eq('user_id', currentUser.id)
             .maybeSingle();
 
-        if (programError) {
-            console.error('Fel vid laddning av program:', programError);
-        }
+        if (programError) console.error('Fel vid laddning av program:', programError);
 
         if (programDataResult && programDataResult.data && programDataResult.data.routine && programDataResult.data.routine.length > 0) {
             window.programData = programDataResult.data;
@@ -52,17 +50,14 @@ async function loadUserData() {
                 localStorage.setItem("masterExercises", JSON.stringify(masterExercises));
             }
         } else {
-            // SÄKRING: Kör ENDAST default-programmet om vi inte redan har ett lokalt program i minnet!
             if (!window.programData || !window.programData.routine || window.programData.routine.length === 0) {
                 await loadDefaultProgram();
-            } else {
-                console.log("Använder befintligt lokalt program istället för att ladda default-JSON.");
             }
         }
 
         if (typeof programData !== 'undefined') programData = window.programData;
 
-        // 3. LADDAR WORKOUT_HISTORY (Genomförda pass)
+        // 3. LADDAR WORKOUT_HISTORY
         const { data : historyData, error: historyError } = await supabaseClient
             .from('workout_history')
             .select('*')
@@ -73,7 +68,7 @@ async function loadUserData() {
             console.error('Fel vid laddning av historik:', historyError);
         } else if (historyData) {
             workoutHistory = historyData.map(w => ({
-                id: w.workout_data ? w.workout_data.id : (w.id || Date.now() + Math.random()), // Rädda/skapa ID
+                id: w.workout_data ? w.workout_data.id : (w.id || Date.now() + Math.random()),
                 date: w.workout_date,
                 programName: w.workout_data ? w.workout_data.programName : "Okänt pass",
                 totalTime: w.workout_data ? w.workout_data.totalTime : 0,
@@ -82,16 +77,14 @@ async function loadUserData() {
             localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
         }
 
-        // 4. LADDAR CALENDAR_OVERRIDES (Användarens egna planerade pass)
+        // 4. LADDAR CALENDAR_OVERRIDES
         const { data : calendarData, error: calendarError } = await supabaseClient
             .from('calendar_overrides')
             .select('data')
             .eq('user_id', currentUser.id)
             .maybeSingle();
 
-        if (calendarError) {
-            console.error('Fel vid laddning av kalender:', calendarError);
-        }
+        if (calendarError) console.error('Fel vid laddning av kalender:', calendarError);
 
         if (calendarData && calendarData.data) {
             calendarOverrides = calendarData.data;
@@ -101,10 +94,10 @@ async function loadUserData() {
             localStorage.setItem("calendarOverrides", JSON.stringify(calendarOverrides));
         }
 
-        // 5. LADDAR ACTIVE_DRAFT
-        const { data : draftData, error: draftError } = await supabaseClient
+        // 5. LADDAR ACTIVE_DRAFT (UPPDATERAD TILL KOLUMNEN 'data')
+        const { data : draftRow, error: draftError } = await supabaseClient
             .from('active_draft')
-            .select('draft_data')
+            .select('data') // Hämtar från kolumnen 'data'
             .eq('user_id', currentUser.id)
             .maybeSingle();
 
@@ -112,8 +105,9 @@ async function loadUserData() {
             console.error('Fel vid laddning av utkast:', draftError);
         }
 
-        if (draftData && draftData.draft_data && Object.keys(draftData.draft_data).length > 0) {
-            activeDraft = draftData.draft_data;
+        // Kontrollerar att vi har en rad och att den har innehåll i kolumnen 'data'
+        if (draftRow && draftRow.data && Object.keys(draftRow.data).length > 0) {
+            activeDraft = draftRow.data;
             localStorage.setItem("activeWorkoutDraft", JSON.stringify(activeDraft));
             
             if (activeDraft && activeDraft.isStarted) {
@@ -132,8 +126,6 @@ async function loadUserData() {
         }
 
         console.log("All data synkad i loadUserData. Renderar vyer.");
-        
-        // Sätt flaggan till true här så att den blockerar framtida spökanrop under sessionen
         window.supabaseDataLoadedOnce = true;
 
         if (typeof renderCalendar === 'function') renderCalendar();
