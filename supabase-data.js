@@ -397,7 +397,7 @@ async function saveCalendarOverrides() {
     if (!currentUser) return;
 
     try {
-        const { existingRows, error: checkErr } = await supabaseClient
+        const { data: existingRows, error: checkErr } = await supabaseClient
             .from('calendar_overrides')
             .select('id')
             .eq('user_id', currentUser.id)
@@ -409,14 +409,14 @@ async function saveCalendarOverrides() {
         if (existingRows && existingRows.id) {
             const { error: updateError } = await supabaseClient
                 .from('calendar_overrides')
-                .update({ calendarOverrides })
+                .update({ data: calendarOverrides })
                 .eq('user_id', currentUser.id);
                 
             if (updateError) throw updateError;
         } else {
             const { error: insertError } = await supabaseClient
                 .from('calendar_overrides')
-                .insert([{ user_id: currentUser.id, calendarOverrides }]);
+                .insert([{ user_id: currentUser.id, data: calendarOverrides }]);
                 
             if (insertError) throw insertError;
         }
