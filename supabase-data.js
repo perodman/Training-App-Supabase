@@ -305,7 +305,7 @@ async function saveWorkoutHistory(workoutInput) {
         // 3. DATABAS-DETEKTIV: Hitta rätt rad i Supabase om det är en edit
         if (isEdit) {
             console.log("🔎 [DEBUG] Letar i Supabase efter datum:", workout.date);
-            const { rows, error: fetchErr } = await supabaseClient
+            const { data: rows, error: fetchErr } = await supabaseClient
                 .from('workout_history')
                 .select('id, workout_data')
                 .eq('user_id', currentUser.id)
@@ -348,7 +348,7 @@ async function saveWorkoutHistory(workoutInput) {
                 .from('workout_history')
                 .update({
                     workout_date: workout.date,
-                    workout_fullWorkoutObject
+                    workout_data: fullWorkoutObject
                 })
                 .eq('id', supabaseRowId);
                 
@@ -361,7 +361,7 @@ async function saveWorkoutHistory(workoutInput) {
                 .insert([{
                     user_id: currentUser.id,
                     workout_date: workout.date,
-                    workout_fullWorkoutObject
+                    workout_data: fullWorkoutObject
                 }]);
                 
             if (insertError) throw insertError;
@@ -373,7 +373,7 @@ async function saveWorkoutHistory(workoutInput) {
                 .insert([{
                     user_id: currentUser.id,
                     workout_date: workout.date,
-                    workout_fullWorkoutObject
+                    workout_data: fullWorkoutObject
                 }]);
                 
             if (insertError) throw insertError;
