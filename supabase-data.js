@@ -238,11 +238,24 @@ async function saveWorkoutHistory(workout) {
     if (!currentUser) return;
 
     const nowTimestamp = Date.now();
-    
-    // Tidslåset gäller bara om vi skapar ett helt NYTT pass (för att hindra dubbelklick på "Slutför")
-    // Om passet har ett existerande stabilt ID (redigering), ska vi inte blockera på tid.
-    const isEdit = workout.id && !workout.id.startsWith("temporary_") && workoutHistory.some(e => e.id === workout.id);
-    
+    let workoutId = workout.id;
+    let isEdit = false;
+
+    // 1. SÄKERSTÄLL OM DETTA ÄR EN EDIT (ÄVEN OM APP.JS RÅKAT GENERERA NYTT ID)
+    // Vi letar efter ett pass i historiken som har EXAKT samma ID...
+    if (workoutId && workoutHistory.some(e => e.id === workoutId)) {
+        isEdit = true;
+    } else {
+        // ...eller om det finns ett pass på exakt samma datum med samma programnamn (Backup-matchning för Edit)
+        const matchandeLokaltPass = workoutHistory.find(e => e.date === workout.date && e.programName === workout.programName);
+        if (matchandeLokaltPass) {
+            isEdit = true;
+            workoutId = matchandeLokaltPass.id; // Tvinga tillbaka det ursprungliga ID:t!
+            console.log("🔄 [SUPABASE-DATA] Backup-matchning aktiverad: Återanvänder ursprungligt ID:", workoutId);
+        }
+    }
+
+    // 2. TIDSLÅS (Gäller endast helt nya pass för att förhindra dubbelklick på "Slutför")
     if (!isEdit && (nowTimestamp - lastWorkoutSavedTime < 5000)) {
         console.warn("⚠️ DUBBLETT-SPÄRR (Tidslås): Funktionen anropades igen alldeles för snabbt! Avbryter.");
         return; 
@@ -252,11 +265,13 @@ async function saveWorkoutHistory(workout) {
         lastWorkoutSavedTime = nowTimestamp;
     }
 
-    // Säkerställ att vi har ett ID. Om det är en edit behåller vi det gamla, annars skapar vi ett nytt.
-    const workoutId = workout.id || "workout_" + nowTimestamp + "_" + Math.floor(Math.random() * 1000);
+    // Om det är ett genuint nytt pass och saknar ID, generera ett här
+    if (!workoutId) {
+        workoutId = "workout_" + nowTimestamp + "_" + Math.floor(Math.random() * 1000);
+    }
 
     try {
-        console.log(`🚀 saveWorkoutHistory körs! [${isEdit ? "UPPDATERAR BEFINTLIGT" : "SKAPAR NYTT"}] pass:`, workout.programName);
+        console.log(`🚀 saveWorkoutHistory körs! [${isEdit ? "UPPDATERAR BEFINTLIGT" : "SKAPAR NYTT"}] pass:`, workout.programName, "ID:", workoutId);
 
         const fullWorkoutObject = {
             id: workoutId,
@@ -268,29 +283,21 @@ async function saveWorkoutHistory(workout) {
 
         // --- LOKAL MINNESHANTERING ---
         if (isEdit) {
-            // Hitta var i arrayen det gamla passet låg och byt ut det mot det redigerade
             const index = workoutHistory.findIndex(existing => existing.id === workoutId);
             if (index !== -1) {
                 workoutHistory[index] = fullWorkoutObject;
             }
         } else {
-            // Om det är ett helt nytt pass, lägg till det överst i listan
             workoutHistory.unshift(fullWorkoutObject);
         }
         
         localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
 
-        // --- DATABASHANTERING (UPSERT) ---
-        // Vi använder .upsert() och talar om för Supabase att matcha på 'user_id' samt söka i JSON-datan efter unikt ID.
-        // För att Supabase ska förstå vilken rad som ska uppdateras skickar vi med radens ID om vi kan matas med det,
-        // annars gör vi en smart matchning via Supabases inbyggda ON CONFLICT-logik.
-        
-        let query = supabaseClient.from('workout_history');
-        
+        // --- DATABASHANTERING (UPDATE eller INSERT) ---
         if (isEdit) {
             console.log("📝 Uppdaterar befintlig rad i Supabase för ID:", workoutId);
-            // Vi gör en direkt uppdatering på den specifika raden där tränings-id:t matchar inuti vår JSON-struktur
-            const { error: updateError } = await query
+            const { error: updateError } = await supabaseClient
+                .from('workout_history')
                 .update({
                     workout_date: workout.date,
                     workout_data: fullWorkoutObject
@@ -302,7 +309,8 @@ async function saveWorkoutHistory(workout) {
             console.log("✅ Passet uppdaterades framgångsrikt i Supabase!");
         } else {
             console.log("➕ Lägger till en helt ny rad i Supabase för ID:", workoutId);
-            const { error: insertError } = await query
+            const { error: insertError } = await supabaseClient
+                .from('workout_history')
                 .insert([{
                     user_id: currentUser.id,
                     workout_date: workout.date,
@@ -313,13 +321,12 @@ async function saveWorkoutHistory(workout) {
             console.log("✅ Nytt pass sparades framgångsrikt i Supabase!");
         }
 
-        // Rendera om skärmen direkt så att ändringen syns utan omladdning
+        // Rendera skärmen utan dolda laddningar
         if (typeof renderCalendar === 'function') renderCalendar();
         if (typeof renderHome === 'function') renderHome();
 
     } catch (err) {
         console.error("❌ Allvarligt fel i saveWorkoutHistory:", err);
-        // Återställ lokala minnet vid fel så att skärmen inte visar felaktig data
         if (!isEdit) {
             workoutHistory.shift();
             localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
