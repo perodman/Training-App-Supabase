@@ -1223,47 +1223,6 @@ async function saveCustomProgramToSupabase() {
 }
 
 // Central hjälpfunktion för att spara det aktiva pågående träningspasset (activeDraft)
-async function persistActiveWorkout() {
-    localStorage.setItem("activeWorkoutDraft", JSON.stringify(activeDraft));
-    
-    if (typeof currentUser !== 'undefined' && currentUser) {
-        try {
-            const { data: existing, error: selectError } = await supabaseClient
-                .from('active_draft')
-                .select('id')
-                .eq('user_id', currentUser.id)
-                .maybeSingle();
-
-            if (selectError) throw selectError;
-
-            const draftDataToSend = activeDraft || {};
-
-            if (existing) {
-                // Vi använder { data: draftDataToSend } 
-                // Om detta ger 400 Bad Request, dubbelkolla i Supabase 
-                // att kolumnen 'data' har typen 'jsonb'
-                const { error: updateError } = await supabaseClient
-                    .from('active_draft')
-                    .update({ data: draftDataToSend })
-                    .eq('user_id', currentUser.id);
-                
-                if (updateError) {
-                    console.error("❌ Supabase Update Error:", updateError);
-                }
-            } else {
-                const { error: insertError } = await supabaseClient
-                    .from('active_draft')
-                    .insert([{ user_id: currentUser.id, data: draftDataToSend }]);
-                
-                if (insertError) {
-                    console.error("❌ Supabase Insert Error:", insertError);
-                }
-            }
-        } catch (err) {
-            console.error("Supabase: Fel vid synkronisering av active_draft:", err);
-        }
-    }
-}
 
 async function createNewExForPass(pIdx) {
     await openCreateExerciseModal(async (newEx) => {
@@ -1995,44 +1954,29 @@ async function confirmSet(exIdx, setIdx) {
 
 // ÄNDRING: Uppdaterad med robust synkronisering mot tabellen public.active_draft i Supabase
 async function persistActiveWorkout() {
-    // 1. Spara lokalt först
+    // 1. Spara lokalt omedelbart för UI-responsivitet
     localStorage.setItem("activeWorkoutDraft", JSON.stringify(activeDraft));
     
-    // 2. Kör gamla beroenden (om de finns)
+    // 2. BEHÅLL dessa anrop för att inte tappa funktionalitet i andra delar av appen
     if (typeof saveActiveDraft === 'function') await saveActiveDraft();
     if (typeof saveAll === "function") await saveAll();
 
-    // 3. Supabase-synk
-    if (currentUser) {
-        try {
-            // Vi försöker uppdatera först (mer effektivt än att alltid fråga databasen)
-            const { error: updateError } = await supabaseClient
-                .from('active_draft')
-                .update({ data: activeDraft })
-                .eq('user_id', currentUser.id);
+    if (!currentUser) return;
 
-            // Om update misslyckades eller inte hittade raden, gör en insert
-            // Vi kollar inte bara på error, utan vi vill veta om raden ens existerade
-            // Men eftersom update i Supabase ofta inte kastar error om 0 rader uppdateras,
-            // är det säkraste att behålla din 'maybeSingle'-koll eller använda 'upsert'.
-            
-            // --- HÄR ÄR DEN BÄSTA LÖSNINGEN: UPSERT ---
-            // Genom att använda .upsert() slipper du både .select() och if/else
-            // Krav: 'user_id' måste vara definierad som en unik nyckel/primary key i Supabase
-            const { error: upsertError } = await supabaseClient
-                .from('active_draft')
-                .upsert({ 
-                    user_id: currentUser.id, 
-                    data: activeDraft 
-                });
+    try {
+        // 3. Den effektiva Upsert-metoden
+        const { error } = await supabaseClient
+            .from('active_draft')
+            .upsert({ 
+                user_id: currentUser.id, 
+                data: activeDraft 
+            }, { onConflict: 'user_id' });
 
-            if (upsertError) throw upsertError;
-            
-            console.log("✅ Synkade activeDraft till Supabase via Upsert!");
-            
-        } catch (err) {
-            console.error("❌ Kritiskt fel i persistActiveWorkout:", err);
-        }
+        if (error) throw error;
+        
+        console.log("✅ Data sparad i databasen!");
+    } catch (err) {
+        console.error("❌ Fel vid sparande till Supabase:", err);
     }
 }
 
