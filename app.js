@@ -1,4 +1,4 @@
-// Explicita globala variabler länkade till window-objektet för full Supabase-kompatibilitet
+/// Explicita globala variabler länkade till window-objektet för full Supabase-kompatibilitet
 window.programData = JSON.parse(localStorage.getItem("myCustomProgram") || "null");
 let programData = window.programData; // Skapar en lokal referens för smidig användning i app.js
 
