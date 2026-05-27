@@ -2080,111 +2080,25 @@ function renderHome() {
         headerP.after(sep);
     }
 
-    // SÄKERHETSSPÄRR: Hämta det aktuella visningsläget för appen (om sparat på body/variabel)
-    // Om vi precis har sparat och är på väg till kalendern, tvingar vi utkastet att hållas dolt.
-    const currentAppView = document.body.getAttribute("data-current-view") || window.currentView || "";
-
-    if (activeDraft && currentAppView !== "calendar-view") {
+    // Vi rensar bort den strikta kalenderspärren här för att säkerställa 
+    // att startsidan ALLTID visar utkastet om det faktiskt existerar.
+    if (typeof activeDraft !== 'undefined' && activeDraft) {
+        // Visa "Fortsätt träningen"-containern och dölj "Starta nytt pass"
         document.getElementById("draft-alert").classList.remove("hidden");
         document.getElementById("start-new-btn").classList.add("hidden");
-        document.getElementById("resume-workout-btn").onclick = () => startWorkout(activeDraft.workout, activeDraft.data, activeDraft.date);
+        
+        // Koppla klicket till att öppna upp det sparade passet igen
+        document.getElementById("resume-workout-btn").onclick = () => {
+            if (typeof startWorkout === 'function') {
+                startWorkout(activeDraft.workout, activeDraft.data, activeDraft.date);
+            }
+        };
     } else {
+        // Inget aktivt utkast finns -> Visa vanliga startknappen
         document.getElementById("start-new-btn").classList.remove("hidden");
         document.getElementById("draft-alert").classList.add("hidden");
     }
 }
-
-// ÄNDRING: Hela flödet vid sparande av träningspass har städats och dubblett-säkrats via supabase-data.js
-document.getElementById("save-workout-btn").onclick = async () => {
-    if(!activeDraft.isStarted) {
-        const body = document.getElementById("modal-body");
-        body.innerHTML = `
-            <h3>Kasta träningspass</h3>
-            <p style="text-align:center; color:var(--text-light);">Du har inte startat passet än. Vill du radera utkastet?</p>
-            <button class="mode-btn danger" style="background:var(--danger);" onclick="(async () => { 
-                localStorage.removeItem('activeWorkoutDraft'); 
-                if (typeof deleteActiveDraft === 'function') await deleteActiveDraft();
-                if (currentUser) {
-                    try {
-                        await supabaseClient.from('active_draft').delete().eq('user_id', currentUser.id);
-                    } catch(e) { console.error(e); }
-                }
-                location.reload(); 
-            })()">Kasta passet</button>
-            <button class="mode-btn glass-border" onclick="closeModal()">Avbryt</button>
-        `;
-        openModal();
-        return;
-    }
-
-    pauseTimer();
-    const finalTime = document.getElementById("workout-timer").textContent;
-    
-    // 🔑 KRITISK FIX: Använd befintligt ID om det är en edit, annars skapa nytt
-    let workoutId;
-    if (activeDraft.id && workoutHistory.some(w => w.id === activeDraft.id)) {
-        // Detta är en edit av ett befintligt pass
-        workoutId = activeDraft.id;
-        console.log("✏️ [SAVE] Uppdaterar befintligt pass med ID:", workoutId);
-    } else {
-        // Detta är ett nytt pass
-        workoutId = "workout_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
-        console.log("➕ [SAVE] Skapar nytt pass med ID:", workoutId);
-    }
-
-    const log = {
-        id: workoutId,
-        date: activeDraft.date,
-        programName: activeDraft.programName || activeDraft.workout.name,
-        totalTime: finalTime,
-        exercises: activeDraft.workout.exercises.map((ex, i) => {
-            return {
-                name: ex.name,
-                sets_data: activeDraft.data[i].sets_data 
-            };
-        })
-    };
-    
-    // CENTRAL SPARFUNKTION: Sköter insättning/uppdatering i Supabase, localStorage samt synk på ett säkert sätt
-    if (typeof saveWorkoutHistory === 'function') {
-        await saveWorkoutHistory(log);
-    }
-
-    // Ta bort det aktiva utkastet lokalt och i molnet
-    localStorage.removeItem("activeWorkoutDraft");
-    if (typeof deleteActiveDraft === 'function') {
-        await deleteActiveDraft();
-    }
-    
-    if (currentUser) {
-        try {
-            const { error: draftDelErr } = await supabaseClient
-                .from('active_draft')
-                .delete()
-                .eq('user_id', currentUser.id);
-            if (draftDelErr) throw draftDelErr;
-        } catch (err) {
-            console.error("Fel vid radering av utkast i Supabase:", err);
-        }
-    }
-    
-    activeDraft = null; 
-    secondsElapsed = 0;
-    
-    // SÄKERHETSSPÄRR: Sätt appens aktuella vy-tillstånd till kalendern precis innan renderingen sker
-    if (typeof window.currentView !== 'undefined') window.currentView = "calendar-view";
-    document.body.setAttribute("data-current-view", "calendar-view");
-
-    // Uppdaterar kalendervyn för att omedelbart reflektera det nya passet
-    if (typeof renderCalendar === 'function') renderCalendar();
-    
-    // UX-OPTIMERING: Tvinga vyn till träningsdagboken direkt så att hemskärmen inte hinner blinka till i bakgrunden
-    if (typeof showView === 'function') showView("calendar-view");
-};
-
-document.getElementById("pause-workout-btn").onclick = () => { 
-    location.reload(); 
-};
 
 function renderStats() {
     const container = document.getElementById("chart-container");
