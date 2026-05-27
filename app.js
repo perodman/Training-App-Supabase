@@ -102,19 +102,8 @@ function showView(id) {
     if(!target) return;
     
     if (target.classList.contains("hidden")) {
-        // 🚀 SMARTÖVERGÅNG: Istället för att dölja ALLA vyer direkt och skapa ett tomrum,
-        // hittar vi den vy som är synlig just nu, visar den nya OVANPÅ, och döljer den gamla först efteråt.
-        const currentActiveView = document.querySelector(".view:not(.hidden)");
-        
-        // Visa den nya målvyn direkt
+        document.querySelectorAll(".view").forEach(v => v.classList.add("hidden"));
         target.classList.remove("hidden");
-        
-        // Dölj den gamla vyn NU när den nya redan täcker skärmen (förhindrar blinkning)
-        if (currentActiveView && currentActiveView !== target) {
-            currentActiveView.classList.add("hidden");
-        }
-        
-        // Återställ animationer rent
         target.style.animation = 'none';
         target.offsetHeight; 
         target.style.animation = null;
@@ -2268,7 +2257,7 @@ function renderHome() {
     }
 }
 
-// Hela flödet vid sparande av träningspass (Helt återställt och städat)
+// Hela flödet vid sparande av träningspass
 document.getElementById("save-workout-btn").onclick = async () => {
     if(!activeDraft.isStarted) {
         const body = document.getElementById("modal-body");
@@ -2316,18 +2305,23 @@ document.getElementById("save-workout-btn").onclick = async () => {
         })
     };
     
-    // Byt till kalendervyn (vår nya showView ser till att träningsvyn inte döljs förrän kalendern är redo!)
+    // Nollställ datan i minnet DIREKT innan vi byter vy.
+    // Detta gör att när appen kör sina interna uppdateringar, så fattar den 
+    // omedelbart att utkastet är borta, och startsidan kommer inte att blinka till med den gula knappen.
+    localStorage.removeItem("activeWorkoutDraft");
+    activeDraft = null; 
+    secondsElapsed = 0;
+
+    // Byt till kalendervyn blixtsnabbt med originalfunktionen
     if (typeof showView === 'function') showView("calendar-view");
     if (typeof window.currentView !== 'undefined') window.currentView = "calendar-view";
     document.body.setAttribute("data-current-view", "calendar-view");
 
-    // Spara i bakgrunden
+    // Spara till databasen i bakgrunden (nu när skärmen redan har bytt vy)
     if (typeof saveWorkoutHistory === 'function') {
         await saveWorkoutHistory(log);
     }
 
-    // Ta bort det aktiva utkastet lokalt och i molnet
-    localStorage.removeItem("activeWorkoutDraft");
     if (typeof deleteActiveDraft === 'function') {
         await deleteActiveDraft();
     }
@@ -2342,9 +2336,6 @@ document.getElementById("save-workout-btn").onclick = async () => {
             console.error("Fel vid radering av utkast i Supabase:", err);
         }
     }
-    
-    activeDraft = null; 
-    secondsElapsed = 0;
 
     // Uppdatera kalenderns innehåll
     if (typeof renderCalendar === 'function') renderCalendar();
