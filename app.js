@@ -1,14 +1,12 @@
 //// Explicita globala variabler länkade till window-objektet för full Supabase-kompatibilitet
 window.programData = JSON.parse(localStorage.getItem("myCustomProgram") || "null");
 let programData = window.programData; // Skapar en lokal referens för smidig användning i app.js
-
 let masterExercises = JSON.parse(localStorage.getItem("masterExercises") || "[]");
 let workoutHistory = JSON.parse(localStorage.getItem("workoutHistory") || "[]");
 let activeDraft = JSON.parse(localStorage.getItem("activeWorkoutDraft") || "null");
 let calendarOverrides = JSON.parse(localStorage.getItem("calendarOverrides") || "{}");
 let currentViewDate = new Date();
 let currentExerciseCategory = "Ben";
-
 // Timer-variabler
 let timerInterval = null;
 let secondsElapsed = 0;
@@ -18,16 +16,16 @@ let isTimerRunning = false;
 async function initApp() {
     // 1. Om vi redan har ett sparat program i localStorage, använd det direkt för snabb start
     if (window.programData && window.programData.routine && window.programData.routine.length > 0) {
-        console.log("📦 Initierar appen med lokalt sparat custom-program.");
+        console.log(" 📦  Initierar appen med lokalt sparat custom-program.");
         programData = window.programData;
         setupMasterExercisesFallback([]); // Behövs ej genereras från grunden, men uppdaterar animationer
     } else {
         // 2. Annars (eller om det är första gången), hämta från program.json
         try {
-            console.log("🌐 Inget lokalt program hittat. Hämtar från program.json...");
+            console.log(" 🌐  Inget lokalt program hittat. Hämtar från program.json...");
             const r = await fetch("program.json");
             const json = await r.json();
-            
+
             if (!window.programData) {
                 window.programData = json;
                 programData = window.programData;
@@ -62,11 +60,11 @@ function setupMasterExercisesFallback(json) {
                     let animFile = "";
                     if (ex.name === "Deadlift") animFile = "Gemini_Generated_Image_sqtn3ksqtn3ksqtn.mp4";
                     if (ex.name === "Barbell Bench Press") animFile = "Skärmbild 2026-05-11 124104.mp4";
-                    
-                    masterExercises.push({ 
-                        ...ex, 
+
+                    masterExercises.push({
+                        ...ex,
                         id: Date.now() + Math.random(),
-                        animation: animFile 
+                        animation: animFile
                     });
                 }
             });
@@ -86,12 +84,11 @@ initApp();
 function saveAll() {
     // KORRIGERING: Säkra upp att den lokala referensen matchar fönstrets master-objekt (från Supabase) innan sparning
     if (window.programData) programData = window.programData;
-
     localStorage.setItem("myCustomProgram", JSON.stringify(programData || { routine: [] }));
     localStorage.setItem("masterExercises", JSON.stringify(masterExercises));
     localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
     localStorage.setItem("calendarOverrides", JSON.stringify(calendarOverrides));
-    
+
     // Supabase-synk: Båda ligger kvar och sköter sitt i bakgrunden
     if (typeof saveCustomProgram === 'function') saveCustomProgram();
     if (typeof saveCalendarOverrides === 'function') saveCalendarOverrides();
@@ -100,18 +97,18 @@ function saveAll() {
 function showView(id) {
     const target = document.getElementById(id);
     if (!target) return;
-    
+
     // Dölj alla vyer FÖRST (viktigt för att undvika blinkning)
     document.querySelectorAll(".view").forEach(v => {
         if (v !== target) v.classList.add("hidden");
     });
-    
+
     // Visa målvyn
     target.classList.remove("hidden");
     target.style.animation = 'none';
-    target.offsetHeight; 
+    target.offsetHeight;
     target.style.animation = null;
-    
+
     window.scrollTo(0, 0);
 }
 
@@ -119,12 +116,11 @@ function closeModal() {
     document.getElementById("workout-modal").classList.add("hidden");
     const video = document.querySelector("#modal-body video");
     if(video) video.pause();
-    
+
     // SÄKERHETSÅTGÄRD: Se till att den fasta stäng-knappen ALLTID visas igen
     if (typeof hideDefaultCloseButton === 'function') {
         hideDefaultCloseButton(false);
     }
-
     // HÄR ÅTERSTÄLLER VI DIN DRAFT
     if (typeof restoreDraftState === 'function') {
         restoreDraftState();
@@ -134,7 +130,6 @@ function closeModal() {
 function openModal() {
     const modal = document.getElementById("workout-modal");
     if (modal) modal.classList.remove("hidden");
-
     // Samma logik här för att garantera toppen vid öppning
     setTimeout(() => {
         const modalContent = document.querySelector('.modal-content');
@@ -154,7 +149,7 @@ function startTimer() {
     if (isTimerRunning) return;
     isTimerRunning = true;
     if(activeDraft) activeDraft.wasTimerRunning = true;
-    document.getElementById("timer-toggle-btn").textContent = "Pausa ⏸️";
+    document.getElementById("timer-toggle-btn").textContent = "Pausa  ⏸️ ";
     timerInterval = setInterval(() => {
         secondsElapsed++;
         updateTimerDisplay();
@@ -169,7 +164,7 @@ function pauseTimer() {
     isTimerRunning = false;
     if(activeDraft) activeDraft.wasTimerRunning = false;
     clearInterval(timerInterval);
-    document.getElementById("timer-toggle-btn").textContent = "Fortsätt ▶️";
+    document.getElementById("timer-toggle-btn").textContent = "Fortsätt  ▶️ ";
     if(activeDraft && typeof persistActiveWorkout === 'function') persistActiveWorkout();
 }
 
@@ -181,46 +176,39 @@ document.getElementById("timer-toggle-btn").onclick = () => {
 // --- ÖVNINGAR & INSTÄLLNINGAR ---
 function openCreateExerciseModal(callback = null) {
     const body = document.getElementById("modal-body");
-    
-    let selectedCategory = currentExerciseCategory || "Ben"; 
 
+    let selectedCategory = currentExerciseCategory || "Ben";
     const categories = [
-        { id: "Ben", icon: "🦵" },
-        { id: "Bröst", icon: "🏋️" },
-        { id: "Rygg", icon: "🪵" },
-        { id: "Axlar", icon: "👐" },
-        { id: "Armar", icon: "💪" },
-        { id: "Bål", icon: "🧘" }
+        { id: "Ben", icon: " 🦵 " },
+        { id: "Bröst", icon: " 🏋️ " },
+        { id: "Rygg", icon: " 🪵 " },
+        { id: "Axlar", icon: " 👐 " },
+        { id: "Armar", icon: " 💪 " },
+        { id: "Bål", icon: " 🧘 " }
     ];
-
     body.innerHTML = `
         <h3 style="text-align:center; margin-bottom: 20px;">Skapa Ny Övning</h3>
-        
         <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
             <div style="width: 100%; max-width: 300px;">
                 <label style="font-size:11px; color:var(--text-light); text-transform: uppercase; letter-spacing: 1px; display:block; margin-bottom: 8px; text-align: center;">Namn på övning</label>
                 <input type="text" id="new-ex-name" class="log-input" placeholder="T.ex. Knäböj" style="text-align: center;">
             </div>
-
             <div style="width: 100%;">
                 <label style="font-size:11px; color:var(--text-light); text-transform: uppercase; letter-spacing: 1px; display:block; margin-bottom: 12px; text-align: center;">Välj Kategori</label>
-                
                 <div id="category-selector-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 0 10px;">
                     ${categories.map(cat => `
-                        <div class="cat-select-item ${cat.id === selectedCategory ? 'active' : ''}" 
-                             onclick="window.selectModalCategory('${cat.id}')"
-                             id="modal-cat-${cat.id}"
-                             style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 12px 5px; border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.2s ease;">
-                            <div style="font-size: 20px; margin-bottom: 4px;">${cat.icon}</div>
-                            <div style="font-size: 10px; font-weight: 700; color: var(--text-light);">${cat.id}</div>
-                        </div>
+                    <div class="cat-select-item ${cat.id === selectedCategory ? 'active' : ''}"
+                        onclick="window.selectModalCategory('${cat.id}')"
+                        id="modal-cat-${cat.id}"
+                        style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 12px 5px; border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.2s ease;">
+                        <div style="font-size: 20px; margin-bottom: 4px;">${cat.icon}</div>
+                        <div style="font-size: 10px; font-weight: 700; color: var(--text-light);">${cat.id}</div>
+                    </div>
                     `).join('')}
                 </div>
             </div>
-
             <button class="mode-btn blue" id="save-new-ex-btn" style="width: 100%; max-width: 300px; margin-top: 10px;">Spara Övning</button>
         </div>
-
         <style>
             .cat-select-item.active {
                 background: rgba(59, 130, 246, 0.2) !important;
@@ -242,45 +230,44 @@ function openCreateExerciseModal(callback = null) {
     document.getElementById("save-new-ex-btn").onclick = async () => {
         const name = document.getElementById("new-ex-name").value.trim();
         if(!name) return alert("Ange ett namn!");
-        
+
         // FIX: Om man väljer "Armar", sätter vi target till "Biceps" (eller behåller "Armar" om du ändrar ditt filter)
-        // Detta matchar ditt filter: (ex.target === "Biceps" || ex.target === "Triceps")
         let finalTarget = selectedCategory;
         if (selectedCategory === "Armar") {
-            finalTarget = "Biceps"; 
+            finalTarget = "Biceps";
         }
-        
-        const newEx = { 
-            id: Date.now(), 
-            name, 
-            target: finalTarget, 
-            defaultSets: 3, 
-            animation: "" 
+
+        const newEx = {
+            id: Date.now(),
+            name,
+            target: finalTarget,
+            defaultSets: 3,
+            animation: ""
         };
-        
+
         // Peta in i den globala arrayen
         masterExercises.push(newEx);
-        
+
         // Sparar lokalt i localStorage
         if (typeof saveAll === 'function') saveAll();
-        
+
         // Skicka till Supabase direkt
         if (typeof saveCustomProgram === 'function') {
             await saveCustomProgram();
         }
-        
+
         if(callback) {
             callback(newEx);
-        } else { 
-            closeModal(); 
-            
+        } else {
+            closeModal();
+
             // Tvinga gränssnittet att hoppa till rätt kategori och rita ut listan på nytt
             if (typeof filterExercises === 'function') {
-                filterExercises(selectedCategory); 
+                filterExercises(selectedCategory);
             }
         }
     };
-    
+
     openModal();
 }
 
@@ -295,15 +282,14 @@ function filterExercises(category) {
         const div = document.createElement("div");
         div.className = "card glass";
         div.style.cssText = "padding:15px; display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; cursor:pointer;";
-        
+
         div.onclick = (e) => {
             if(e.target.tagName !== 'BUTTON') {
                 showExerciseAnimation(ex.id);
             }
         };
-
         div.innerHTML = `<div><strong style="font-size:16px;">${ex.name}</strong><br><small style="color:var(--primary); font-weight:800; text-transform:uppercase; font-size:10px;">${ex.target}</small></div>
-        <button style="background:none; border:none; font-size:18px; cursor:pointer;" onclick="openEditExerciseModal(${ex.id})"> ⚙️ </button>`;
+        <button style="background:none; border:none; font-size:18px; cursor:pointer;" onclick="openEditExerciseModal(${ex.id})">  ⚙️  </button>`;
         results.appendChild(div);
     });
 }
@@ -311,24 +297,23 @@ function filterExercises(category) {
 function showExerciseAnimation(id) {
     const ex = masterExercises.find(e => e.id == id);
     if(!ex) return;
-    
+
     const body = document.getElementById("modal-body");
     let videoHtml = "";
-    
+
     if(ex.animation) {
         videoHtml = `
-            <div style="border-radius:16px; overflow:hidden; background:#000; margin-bottom:15px; border:1px solid var(--glass-border);">
-                <video src="${ex.animation}" autoplay loop muted playsinline style="width:100%; display:block;"></video>
-            </div>
+        <div style="border-radius:16px; overflow:hidden; background:#000; margin-bottom:15px; border:1px solid var(--glass-border);">
+            <video src="${ex.animation}" autoplay loop muted playsinline style="width:100%; display:block;"></video>
+        </div>
         `;
     } else {
         videoHtml = `
-            <div style="padding:40px 20px; text-align:center; background:rgba(255,255,255,0.05); border-radius:16px; margin-bottom:15px; color:var(--text-light); font-size:14px;">
-                Ingen videoanimation tillgänglig för denna övning. 🎥
-            </div>
+        <div style="padding:40px 20px; text-align:center; background:rgba(255,255,255,0.05); border-radius:16px; margin-bottom:15px; color:var(--text-light); font-size:14px;">
+            Ingen videoanimation tillgänglig för denna övning.  🎥
+        </div>
         `;
     }
-
     body.innerHTML = `
         <h3>${ex.name}</h3>
         ${videoHtml}
@@ -343,48 +328,40 @@ function openEditExerciseModal(id) {
     const ex = masterExercises.find(e => e.id == id);
     if(!ex) return;
     const body = document.getElementById("modal-body");
-    
-    let selectedCategory = ex.target; 
 
+    let selectedCategory = ex.target;
     const categories = [
-        { id: "Ben", icon: "🦵" },
-        { id: "Bröst", icon: "🏋️" },
-        { id: "Rygg", icon: "🪵" },
-        { id: "Axlar", icon: "👐" },
-        { id: "Armar", icon: "💪" },
-        { id: "Bål", icon: "🧘" }
+        { id: "Ben", icon: " 🦵 " },
+        { id: "Bröst", icon: " 🏋️ " },
+        { id: "Rygg", icon: " 🪵 " },
+        { id: "Axlar", icon: " 👐 " },
+        { id: "Armar", icon: " 💪 " },
+        { id: "Bål", icon: " 🧘 " }
     ];
-
     body.innerHTML = `
         <h3 style="text-align:center; margin-bottom: 20px;">Redigera Övning</h3>
-        
         <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
-            
             <div style="width: 100%; max-width: 300px; margin-bottom: 10px;">
                 <label style="font-size:11px; color:var(--text-light); text-transform: uppercase; letter-spacing: 1px; display:block; margin-bottom: 8px; text-align: center;">Namn på övning</label>
                 <input type="text" id="edit-ex-name" class="log-input" value="${ex.name}" style="text-align: center;">
             </div>
-
             <div style="width: 100%;">
                 <label style="font-size:11px; color:var(--text-light); text-transform: uppercase; letter-spacing: 1px; display:block; margin-bottom: 12px; text-align: center;">Välj Kategori</label>
-                
                 <div id="edit-category-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 0 10px;">
                     ${categories.map(cat => `
-                        <div class="cat-select-item ${cat.id === selectedCategory ? 'active' : ''}" 
-                             onclick="window.selectEditModalCategory('${cat.id}')"
-                             id="edit-modal-cat-${cat.id}"
-                             style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 12px 5px; border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.2s ease;">
-                            <div style="font-size: 20px; margin-bottom: 4px;">${cat.icon}</div>
-                            <div style="font-size: 10px; font-weight: 700; color: var(--text-light);">${cat.id}</div>
-                        </div>
+                    <div class="cat-select-item ${cat.id === selectedCategory ? 'active' : ''}"
+                        onclick="window.selectEditModalCategory('${cat.id}')"
+                        id="edit-modal-cat-${cat.id}"
+                        style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 12px 5px; border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.2s ease;">
+                        <div style="font-size: 20px; margin-bottom: 4px;">${cat.icon}</div>
+                        <div style="font-size: 10px; font-weight: 700; color: var(--text-light);">${cat.id}</div>
+                    </div>
                     `).join('')}
                 </div>
             </div>
-
             <button class="mode-btn blue" style="width: 100%; max-width: 300px; margin-top: 15px;" id="update-exercise-confirm-btn">Uppdatera</button>
             <button class="mode-btn" style="color:var(--danger); background:none; font-size:13px; margin-top: 15px; padding: 5px;" onclick="deleteMasterExercise(${id})">Radera övning permanent</button>
         </div>
-
         <style>
             .cat-select-item.active {
                 background: rgba(59, 130, 246, 0.2) !important;
@@ -406,7 +383,7 @@ function openEditExerciseModal(id) {
     document.getElementById("update-exercise-confirm-btn").onclick = async () => {
         const nameInput = document.getElementById("edit-ex-name").value.trim();
         if(!nameInput) return alert("Namnet får inte vara tomt!");
-        
+
         const exIndex = masterExercises.findIndex(e => e.id == id);
         if(exIndex !== -1) {
             // AUTOMATISERING: Spara det gamla namnet innan det skrivs över, och uppdatera historiken
@@ -414,22 +391,20 @@ function openEditExerciseModal(id) {
             if (typeof updateExerciseNameInHistory === 'function') {
                 updateExerciseNameInHistory(oldName, nameInput);
             }
-
             // Din befintliga sparlogik
             masterExercises[exIndex].name = nameInput;
-            masterExercises[exIndex].target = selectedCategory; 
+            masterExercises[exIndex].target = selectedCategory;
             saveAll();
-            
+
             // SKOTTSÄKRING: Synka den redigerade övningen till Supabase direkt!
             if (typeof saveCustomProgram === 'function') {
                 await saveCustomProgram();
             }
-            
+
             closeModal();
             filterExercises(currentExerciseCategory);
         }
     };
-
     openModal();
 }
 
@@ -442,45 +417,40 @@ function updateExercise(id) {
     saveAll(); closeModal(); filterExercises(currentExerciseCategory);
 }
 
-
 // --- KALENDER ---
 function renderCalendar(isFromStartBtn = false) {
     const grid = document.getElementById("calendar-grid");
     const label = document.getElementById("month-label");
     const infoBox = document.getElementById("calendar-info-box");
-    
+
     if(!grid || !label || !infoBox) return;
     grid.innerHTML = "";
-    infoBox.innerHTML = ""; 
-    
+    infoBox.innerHTML = "";
+
     if(isFromStartBtn === true) {
         infoBox.innerHTML = `<div style="background:rgba(34, 211, 238, 0.1); padding:12px; border-radius:12px; margin-bottom:15px; font-size:13px; text-align:center; color:var(--primary); border:1px solid var(--primary);">
-            Välj vilken dag du vill starta eller schemalägga ett pass i kalendern nedan 📅
+        Välj vilken dag du vill starta eller schemalägga ett pass i kalendern nedan  📅
         </div>`;
     }
-
     const year = currentViewDate.getFullYear();
     const month = currentViewDate.getMonth();
     const monthText = currentViewDate.toLocaleString('sv-SE', { month: 'long', year: 'numeric' });
     label.textContent = monthText.charAt(0).toUpperCase() + monthText.slice(1);
-    
+
     const firstDay = new Date(year, month, 1).getDay();
     const offset = firstDay === 0 ? 6 : firstDay - 1;
     const daysInMonth = new Date(year, month + 1, 0).getDate();
-
     const now = new Date();
     const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-
     for (let i = 0; i < offset; i++) grid.innerHTML += `<div></div>`;
     for (let d = 1; d <= daysInMonth; d++) {
         const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
         const cell = document.createElement("div");
         cell.className = "calendar-cell";
-        
+
         if (dateStr === todayStr) {
             cell.classList.add("today");
         }
-
         const hasWorkouts = workoutHistory.filter(w => w.date === dateStr);
         const isOngoing = activeDraft && activeDraft.date === dateStr && activeDraft.isStarted;
         const dayOfWeek = new Date(year, month, d).getDay();
@@ -489,20 +459,20 @@ function renderCalendar(isFromStartBtn = false) {
         let displayPass = null;
         if (override && override !== "none") displayPass = programData.routine.find(p => p.id === override);
         else if (isAutoDay && override !== "none" && programData && programData.routine.length > 0) displayPass = programData.routine[d % programData.routine.length];
-        
+
         let info = "";
         if (hasWorkouts.length > 0) { cell.classList.add("cell-completed"); info = "✓"; }
         else if (isOngoing && displayPass) { cell.classList.add("cell-ongoing"); info = displayPass.name.split(" ").pop(); }
         else if (displayPass) { cell.classList.add("cell-planned"); info = displayPass.name.split(" ").pop(); }
-        
+
         cell.innerHTML = `<span>${d}</span><div class="cell-info">${info}</div>`;
         cell.onclick = () => {
             if (typeof openDayManager === 'function') openDayManager(dateStr, displayPass, hasWorkouts, isOngoing);
         };
         grid.appendChild(cell);
     }
-    
-    // ✅ ÄNDRAT: Visa bara om den inte redan är dold
+
+    //  ✅   Ä NDRAT: Visa bara om den inte redan  ä r dold
     const calendarView = document.getElementById("calendar-view");
     if (calendarView && calendarView.style.display !== "none") {
         showView("calendar-view");
@@ -513,7 +483,7 @@ function renderCalendar(isFromStartBtn = false) {
 function openProgramPreviewModal(idx) {
     if(!programData || !programData.routine[idx]) return;
     const pass = programData.routine[idx];
-    
+
     // Skapa ett temporärt modalelement om det inte redan finns
     let previewModal = document.getElementById("preview-modal");
     if (!previewModal) {
@@ -532,30 +502,26 @@ function openProgramPreviewModal(idx) {
         previewModal.style.zIndex = "10000"; // Se till att den hamnar överst av allt
         document.body.appendChild(previewModal);
     }
-
     // Generera innehållet till popupen
     previewModal.innerHTML = `
         <div class="card glass" style="width: 90%; max-width: 400px; padding: 20px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); background: rgba(15, 23, 42, 0.95); animation: modalFadeIn 0.2s ease-out;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.08);">
                 <h3 style="margin: 0; font-size: 20px; color: #fff;">${pass.name}</h3>
-                <button onclick="document.getElementById('preview-modal').style.display='none'" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--text-light); cursor: pointer; font-size: 14px; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">✖</button>
+                <button onclick="document.getElementById('preview-modal').style.display='none'" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--text-light); cursor: pointer; font-size: 14px; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;"> ✖ </button>
             </div>
-            
             <div style="max-height: 300px; overflow-y: auto; display: flex; flex-direction: column; gap: 2px;">
                 ${pass.exercises.map(e => `
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 4px; border-bottom: 1px solid rgba(255,255,255,0.03);">
-                        <span style="font-weight: 600; color: #ffffff; font-size: 14px;">${e.name}</span>
-                        <small style="color: var(--primary); font-weight: 800; text-transform: uppercase; font-size: 10px; background: rgba(59, 130, 246, 0.1); padding: 4px 8px; border-radius: 6px;">${e.target || 'Övning'}</small>
-                    </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 4px; border-bottom: 1px solid rgba(255,255,255,0.03);">
+                    <span style="font-weight: 600; color: #ffffff; font-size: 14px;">${e.name}</span>
+                    <small style="color: var(--primary); font-weight: 800; text-transform: uppercase; font-size: 10px; background: rgba(59, 130, 246, 0.1); padding: 4px 8px; border-radius: 6px;">${e.target || 'Övning'}</small>
+                </div>
                 `).join("")}
             </div>
-            
             <button onclick="document.getElementById('preview-modal').style.display='none'" style="width: 100%; margin-top: 20px; padding: 12px; background: var(--primary); color: #0f172a; border: none; border-radius: 12px; font-weight: 700; cursor: pointer;">
                 Stäng översikt
             </button>
         </div>
     `;
-
     // Visa modalen
     previewModal.style.display = "flex";
 }
@@ -570,21 +536,18 @@ let hasScrolled = false;
 function startPress(idx, event) {
     // 1. SÄKERHETSKONTROLL: Endast för knappar med rätt klass
     if (!event.target.classList.contains('plan-override-btn')) return;
-
     isLongPress = false;
     hasScrolled = false;
-    
+
     // Spara startposition för att upptäcka scroll
     if (event.touches) {
         touchStartY = event.touches[0].clientY;
     }
-
     // 2. Starta båda timers (pressTimer för övningar, touchTimeout för preview)
     pressTimer = setTimeout(() => {
         isLongPress = true;
-        if (typeof showExercisesForWorkout === 'function') showExercisesForWorkout(idx); 
+        if (typeof showExercisesForWorkout === 'function') showExercisesForWorkout(idx);
     }, 500);
-
     touchTimeout = setTimeout(() => {
         isLongPress = true;
         openProgramPreviewModal(idx);
@@ -605,23 +568,22 @@ function cancelPress() {
 // ==========================================================================
 // DEL 2 AV 4: TOUCH-HANTERING, DAGSHANTERING (MODAL) OCH PROGRAMREDIGERING
 // ==========================================================================
-
 function handleTouchMove(event) {
     if (event && event.touches && event.touches[0] && touchStartY > 0) {
         const currentY = event.touches[0].clientY;
         const moveDistance = Math.abs(currentY - touchStartY);
-        
+
         // Om användaren flyttar fingret mer än 6 pixlar, markera som scrollat och avbryt långtryck/klick
-        if (moveDistance > 6) { 
+        if (moveDistance > 6) {
             hasScrolled = true;
             cancelPress();
         }
     }
 }
- 
+
 async function handleTouchEnd(idx, dateStr, programId, event) {
     cancelPress();
-    
+
     // Om användaren har scrollat eller om det var ett långtryck: avbryt klick-aktivering
     if (hasScrolled || isLongPress) {
         if (event) {
@@ -630,21 +592,21 @@ async function handleTouchEnd(idx, dateStr, programId, event) {
         }
         return false;
     }
-    
+
     // Stoppa eventuella virtuella klick för säkerhets skull på touch-enheter
     if (event && event.cancelable) {
         event.preventDefault();
     }
-    
+
     // Detta var ett rent, snabbt klick utan scroll eller långtryck – utför schemaändringen!
     await setOverrideSilent(dateStr, programId);
 }
- 
+
 // FUNKTION: Öppnar en renodlad popup-ruta med övningarna (Med mjuk animation vid långtryck)
 function openProgramPreviewModal(idx) {
     const pass = programData.routine[idx];
     if (!pass) return;
-    
+
     let previewModal = document.getElementById("preview-modal");
     if (!previewModal) {
         previewModal = document.createElement("div");
@@ -658,39 +620,37 @@ function openProgramPreviewModal(idx) {
         previewModal.style.backdropFilter = "blur(8px)";
         previewModal.style.display = "flex";
         previewModal.style.justifyContent = "center";
-        previewModal.style.alignItems = "flex-start"; 
-        previewModal.style.zIndex = "10000"; 
-        
+        previewModal.style.alignItems = "flex-start";
+        previewModal.style.zIndex = "10000";
+
         previewModal.style.transition = "opacity 0.2s ease-out";
         document.body.appendChild(previewModal);
     }
- 
+
     previewModal.style.opacity = "0";
     previewModal.style.display = "flex";
- 
+
     previewModal.innerHTML = `
-        <div id="preview-modal-card" class="card glass" style="width: 90%; max-width: 400px; padding: 20px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); background: rgba(15, 23, 42, 0.95); margin-top: 40px; 
-           transition: all 0.2s ease-out; transform: scale(0.95); opacity: 0;">
+        <div id="preview-modal-card" class="card glass" style="width: 90%; max-width: 400px; padding: 20px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); background: rgba(15, 23, 42, 0.95); margin-top: 40px;
+            transition: all 0.2s ease-out; transform: scale(0.95); opacity: 0;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.08);">
                 <h3 style="margin: 0; font-size: 20px; color: #fff;">${pass.name}</h3>
-                <button onclick="closePreviewModal()" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--text-light); cursor: pointer; font-size: 14px; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">✖</button>
+                <button onclick="closePreviewModal()" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--text-light); cursor: pointer; font-size: 14px; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;"> ✖ </button>
             </div>
-            
             <div style="max-height: 65vh; overflow-y: auto; display: flex; flex-direction: column; gap: 2px;">
                 ${pass.exercises.map(e => `
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 4px; border-bottom: 1px solid rgba(255,255,255,0.03);">
-                        <span style="font-weight: 600; color: #ffffff; font-size: 14px;">${e.name}</span>
-                        <small style="color: var(--primary); font-weight: 800; text-transform: uppercase; font-size: 10px; background: rgba(59, 130, 246, 0.1); padding: 4px 8px; border-radius: 6px;">${e.target || 'Övning'}</small>
-                    </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 4px; border-bottom: 1px solid rgba(255,255,255,0.03);">
+                    <span style="font-weight: 600; color: #ffffff; font-size: 14px;">${e.name}</span>
+                    <small style="color: var(--primary); font-weight: 800; text-transform: uppercase; font-size: 10px; background: rgba(59, 130, 246, 0.1); padding: 4px 8px; border-radius: 6px;">${e.target || 'Övning'}</small>
+                </div>
                 `).join("")}
             </div>
-            
             <button onclick="closePreviewModal()" style="width: 100%; margin-top: 20px; padding: 12px; background: var(--primary); color: #0f172a; border: none; border-radius: 12px; font-weight: 700; cursor: pointer;">
                 Stäng översikt
             </button>
         </div>
     `;
- 
+
     setTimeout(() => {
         previewModal.style.opacity = "1";
         const card = document.getElementById("preview-modal-card");
@@ -700,16 +660,16 @@ function openProgramPreviewModal(idx) {
         }
     }, 10);
 }
- 
+
 function closePreviewModal() {
     const previewModal = document.getElementById("preview-modal");
     const card = document.getElementById("preview-modal-card");
-    
+
     if (card && previewModal) {
         card.style.opacity = "0";
         card.style.transform = "scale(0.95)";
         previewModal.style.opacity = "0";
-        
+
         setTimeout(() => {
             previewModal.style.display = "none";
         }, 200);
@@ -720,17 +680,17 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
     if (typeof hideDefaultCloseButton === 'function') {
         hideDefaultCloseButton(false);
     }
- 
+
     const body = document.getElementById("modal-body");
-    
+
     if (body) {
         body.style.display = "flex";
         body.style.flexDirection = "column";
-        body.style.justifyContent = "flex-start"; 
+        body.style.justifyContent = "flex-start";
         body.style.alignItems = "stretch";
-        body.style.gap = "20px"; 
+        body.style.gap = "20px";
     }
-    
+
     let html = `
         <div style="text-align: center; margin: 0 !important; padding: 0 !important;">
             <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: var(--text-light); font-weight: 600; display: block; margin: 0 !important; padding: 0 !important;">Valt datum</span>
@@ -739,7 +699,7 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
             </h2>
         </div>
     `;
-    
+
     // Säkra upp arrayen så att den aldrig kraschar loopar längre ner
     const safeCompleted = Array.isArray(completed) ? completed : [];
     const hasCompleted = safeCompleted.length > 0;
@@ -754,38 +714,37 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
         </div>`;
 
         safeCompleted.forEach((w, idx) => {
-            const timeStr = w.totalTime ? `⏱️ ${w.totalTime}` : "";
+            const timeStr = w.totalTime ? ` ⏱️  ${w.totalTime}` : "";
             html += `
             <div class="card glass" style="border-left: 4px solid #22c55e; text-align: left; margin: 0; padding: 15px; border-radius: 16px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                     <div>
                         <strong style="font-size: 16px; color: var(--text); display: block;">${w.programName}</strong>
-                        <span style="font-size: 11px; color: var(--text-light); font-weight: 500;">${timeStr || 'Slutfört pass ✅'}</span>
+                        <span style="font-size: 11px; color: var(--text-light); font-weight: 500;">${timeStr || 'Slutfört pass  ✅ '}</span>
                     </div>
                     <div style="display: flex; gap: 5px;">
-                        <button onclick="editLoggedWorkout('${dateStr}', ${idx})" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--primary); cursor: pointer; font-size: 14px; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">✏️</button>
-                        <button onclick="openConfirmDeleteModal('${dateStr}', ${idx})" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: var(--danger); cursor: pointer; font-size: 12px; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">✖</button>
+                        <button onclick="editLoggedWorkout('${dateStr}', ${idx})" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--primary); cursor: pointer; font-size: 14px; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;"> ✏️ </button>
+                        <button onclick="openConfirmDeleteModal('${dateStr}', ${idx})" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: var(--danger); cursor: pointer; font-size: 12px; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;"> ✖ </button>
                     </div>
                 </div>
-                
                 <div style="background: rgba(0,0,0,0.15); padding: 12px; border-radius: 12px; display: flex; flex-direction: column; gap: 10px;">`;
-            
+
             if (Array.isArray(w.exercises)) {
                 w.exercises.forEach(ex => {
                     html += `
                     <div style="font-size: 13px;">
                         <span style="color: var(--text); font-weight: 600; display: block; margin-bottom: 8px;">${ex.name}</span>
                         <div style="display: flex; flex-direction: column; gap: 6px;">`;
-                    
+
                     if(ex.sets_data) {
                         ex.sets_data.forEach((s, sIdx) => {
                             const wVal = s.weight || 0;
                             const rVal = s.reps || 0;
                             html += `
                             <div style="background: rgba(59, 130, 246, 0.08); border: 1px solid var(--primary); padding: 6px 12px; border-radius: 8px; width: fit-content; display: flex; align-items: center; gap: 8px;">
-                                <span style="color: var(--primary); font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">Set ${sIdx+1}</span> 
-                                <span style="color: #ffffff; font-size: 13px; font-weight: 600;">${wVal} <small style="color: var(--primary); font-weight:400;">kg</small></span> 
-                                <span style="color: var(--primary); opacity: 0.4;">×</span> 
+                                <span style="color: var(--primary); font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">Set ${sIdx+1}</span>
+                                <span style="color: #ffffff; font-size: 13px; font-weight: 600;">${wVal} <small style="color: var(--primary); font-weight:400;">kg</small></span>
+                                <span style="color: var(--primary); opacity: 0.4;">×</span>
                                 <span style="color: #ffffff; font-size: 13px; font-weight: 600;">${rVal} <small style="color: var(--primary); font-weight:400;">reps</small></span>
                             </div>`;
                         });
@@ -802,8 +761,8 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
             }
             html += `</div></div>`;
         });
-    } 
-    
+    }
+
     // 2. Pågående aktivt utkast (activeDraft)
     if (isOngoing && typeof activeDraft !== 'undefined' && activeDraft) {
         html += `
@@ -812,19 +771,19 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
             <span class="status-box-title" style="font-size: 12px !important; text-transform: uppercase; color: var(--text-light); font-weight: 700; letter-spacing: 1px; margin: 0 !important; white-space: nowrap;">Status</span>
             <div style="flex-grow: 1; height: 1px; background: rgba(255,255,255,0.08);"></div>
         </div>
-        
+
         <div class="modern-status-card day-manager-status-box" style="padding: 15px 15px 30px 15px !important; align-items: stretch !important; margin-top: 0 !important;">
             <div class="status-aura" style="background: rgba(245, 158, 11, 0.35);"></div>
-            
+
             <div style="margin: 0 0 15px 0; width: 100%; text-align: center !important;">
-                <span class="status-highlight-text" style="color: #f59e0b !important; text-shadow: 0 0 25px rgba(245, 158, 11, 0.8) !important; font-size: 20px; font-weight: 800;">🔥 Pågående Pass</span>
+                <span class="status-highlight-text" style="color: #f59e0b !important; text-shadow: 0 0 25px rgba(245, 158, 11, 0.8) !important; font-size: 20px; font-weight: 800;"> 🔥  Pågående Pass</span>
             </div>
             <button class="premium-green-btn" onclick="showView('workout-view'); startWorkout(activeDraft.workout, activeDraft.data, activeDraft.date); setTimeout(() => closeModal(), 0)" style="border: 2px solid #f59e0b !important; background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%) !important; width: 100% !important;">
-                Fortsätt träningen ⏱️
+                Fortsätt träningen  ⏱️
             </button>
         </div>`;
     }
-    
+
     // 3. Planerad träning eller vila status-box (DÖLJS NU OM DET FINNS HISTORIK)
     if (!isOngoing && !hasCompleted) {
         html += `
@@ -833,30 +792,30 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
             <span class="status-box-title" style="font-size: 12px !important; text-transform: uppercase; color: var(--text-light); font-weight: 700; letter-spacing: 1px; margin: 0 !important; white-space: nowrap;">Status</span>
             <div style="flex-grow: 1; height: 1px; background: rgba(255,255,255,0.08);"></div>
         </div>
-        
+
         <div class="modern-status-card day-manager-status-box" style="padding: 30px 15px 30px 15px !important; align-items: stretch !important; margin-top: -10px !important;">
-            
+
             <p id="current-planned-label" class="status-box-text" style="margin: 0 0 8px 0 !important; text-align: center !important; font-size: 16px; font-weight: 600; padding: 0 !important; line-height: 1.2 !important;">
-                ${planned ? `📋 <span class="status-highlight-text">${planned.name}</span>` : '🧘 Planerad Vila'}
+                ${planned ? ` 📋  <span class="status-highlight-text">${planned.name}</span>` : ' 🧘  Planerad Vila'}
             </p>
-        
+
             <div id="day-manager-action-btn-container" class="status-btn-container" style="width: 100% !important; display: flex; flex-direction: column; gap: 10px; margin-top: 5px;">`;
-            
-            if(planned) {
-                html += `
+
+        if(planned) {
+            html += `
                 <button class="mode-btn premium-action-btn premium-green-btn" onclick="prepareStart('${dateStr}', '${planned.id}')" style="width: 100% !important; margin: 0 !important; padding: 12px !important;">
-                    Starta Träning 🔥
+                    Starta Träning  🔥
                 </button>`;
-            }
-            
+        }
+
         html += `
             </div>
-            
-           <button class="mode-btn premium-action-btn premium-free-btn" 
-                onclick="closeModal(); startFreeWorkoutOnDate('${dateStr}')" 
+
+            <button class="mode-btn premium-action-btn premium-free-btn"
+                onclick="closeModal(); startFreeWorkoutOnDate('${dateStr}')"
                 style="width: 100% !important; margin: 10px 0 0 0 !important; padding: 10px !important; touch-action: manipulation; -webkit-tap-highlight-color: transparent; cursor: pointer;">
-                ➕ Starta Fritt Pass
-           </button>
+                ➕  Starta Fritt Pass
+            </button>
         </div>`;
     }
 
@@ -869,78 +828,71 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
                 <p style="font-size: 12px; text-transform: uppercase; color: var(--text-light); font-weight: 700; letter-spacing: 1px; margin: 0 !important; white-space: nowrap;">Ändra planering</p>
                 <div style="flex-grow: 1; height: 1px; background: rgba(255,255,255,0.08);"></div>
             </div>
-            
+
             <div style="text-align: center; margin-bottom: 12px;">
-                <span style="font-size: 11px; color: var(--text-light); opacity: 0.5; font-weight: 500; letter-spacing: 0.3px;">💡 Håll inne ett pass för att se övningar</span>
+                <span style="font-size: 11px; color: var(--text-light); opacity: 0.5; font-weight: 500; letter-spacing: 0.3px;"> 💡  Håll inne ett pass för att se övningar</span>
             </div>
-            
+
             <div class="plan-override-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; width: 100%;">`;
-            
-            if (programData && programData.routine) {
-                programData.routine.forEach((p, idx) => {
-                    const isSelected = planned && p.id === planned.id;
-                    
-                    const colors = [
-                        { r: 239, g: 68,  b: 68 },
-                        { r: 59,  g: 130, b: 246 },
-                        { r: 16,  g: 185, b: 129 },
-                        { r: 168, g: 85,  b: 247 }
-                    ];
-                    
-                    const colorIndex = idx % colors.length;
-                    const c = colors[colorIndex];
-                    const currentOpacity = isSelected ? "1" : "0.25";
-                    const borderColor = `rgba(${c.r}, ${c.g}, ${c.b}, ${currentOpacity})`;
-                    const btnBg = `rgba(${c.r}, ${c.g}, ${c.b}, 0.04)`;
-     
-                    html += `
-                    <button class="mode-btn plan-override-btn ${isSelected ? 'active-choice' : ''}" 
-                            id="btn-ovr-${p.id}" 
-                            
-                            onclick="if(typeof isLongPress !== 'undefined' && !isLongPress) { setOverrideSilent('${dateStr}', '${p.id}'); if(typeof cancelPress === 'function') cancelPress(); }"
-                            onmousedown="startPress(${idx}, event)"
-                            onmouseup="if(!isLongPress && !hasScrolled) setOverrideSilent('${dateStr}', '${p.id}'); cancelPress();"
-                            onmouseleave="cancelPress();"
-                            
-                            ontouchstart="startPress(${idx}, event)"
-                            ontouchend="handleTouchEnd(${idx}, '${dateStr}', '${p.id}', event)"
-                            ontouchmove="handleTouchMove(event)"
-                            
-                            style="margin: 0; padding: 15px 12px; font-size: 13px; border-radius: 12px; font-weight: 600; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; width: 100%;
-                                   background: ${isSelected ? 'rgba(255,255,255,0.1)' : btnBg} !important;
-                                   border-top: 2px solid ${borderColor} !important;
-                                   color: ${isSelected ? '#ffffff' : 'var(--text-light)'} !important;
-                                   user-select: none !important; -webkit-user-select: none !important; -webkit-touch-callout: none !important;">
-                        ${p.name}
-                    </button>`;
-                });
-            }
-            
-            const isRestSelected = !planned;
-            const restBorderColor = isRestSelected ? "rgba(253, 224, 71, 1)" : "rgba(253, 224, 71, 0.2)";
-    
-            html += `
-                <button class="mode-btn plan-override-btn override-rest-btn ${isRestSelected ? 'active-choice' : ''}" 
-                        id="btn-ovr-none"
-                        onclick="setOverrideSilent('${dateStr}', 'none')"
-                        style="margin: 0; padding: 12px; font-size: 13px; border-radius: 12px; font-weight: bold; grid-column: span 2; 
-                               border-top: 2px solid ${restBorderColor} !important; 
-                               color: #fde047; background: rgba(253, 224, 71, 0.05);">
-                    🧘 Vila
-                </button>
-            `;
-            
+
+        if (programData && programData.routine) {
+            programData.routine.forEach((p, idx) => {
+                const isSelected = planned && p.id === planned.id;
+
+                const colors = [
+                    { r: 239, g: 68,  b: 68 },
+                    { r: 59,  g: 130, b: 246 },
+                    { r: 16,  g: 185, b: 129 },
+                    { r: 168, g: 85,  b: 247 }
+                ];
+
+                const colorIndex = idx % colors.length;
+                const c = colors[colorIndex];
+                const currentOpacity = isSelected ? "1" : "0.25";
+                const borderColor = `rgba(${c.r}, ${c.g}, ${c.b}, ${currentOpacity})`;
+                const btnBg = `rgba(${c.r}, ${c.g}, ${c.b}, 0.04)`;
+
+                html += `
+                <button class="mode-btn plan-override-btn ${isSelected ? 'active-choice' : ''}"
+                    id="btn-ovr-${p.id}"
+                    onclick="if(typeof isLongPress !== 'undefined' && !isLongPress) { setOverrideSilent('${dateStr}', '${p.id}'); if(typeof cancelPress === 'function') cancelPress(); }"
+                    onmousedown="startPress(${idx}, event)"
+                    onmouseup="if(!isLongPress && !hasScrolled) setOverrideSilent('${dateStr}', '${p.id}'); cancelPress();"
+                    onmouseleave="cancelPress();"
+                    ontouchstart="startPress(${idx}, event)"
+                    ontouchend="handleTouchEnd(${idx}, '${dateStr}', '${p.id}', event)"
+                    ontouchmove="handleTouchMove(event)"
+                    style="margin: 0; padding: 15px 12px; font-size: 13px; border-radius: 12px; font-weight: 600; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; width: 100%;
+                    background: ${isSelected ? 'rgba(255,255,255,0.1)' : btnBg} !important;
+                    border-top: 2px solid ${borderColor} !important;
+                    color: ${isSelected ? '#ffffff' : 'var(--text-light)'} !important;
+                    user-select: none !important; -webkit-user-select: none !important; -webkit-touch-callout: none !important;">
+                    ${p.name}
+                </button>`;
+            });
+        }
+
+        const isRestSelected = !planned;
+        const restBorderColor = isRestSelected ? "rgba(253, 224, 71, 1)" : "rgba(253, 224, 71, 0.2)";
+
         html += `
-            </div>
+            <button class="mode-btn plan-override-btn override-rest-btn ${isRestSelected ? 'active-choice' : ''}"
+                id="btn-ovr-none"
+                onclick="setOverrideSilent('${dateStr}', 'none')"
+                style="margin: 0; padding: 12px; font-size: 13px; border-radius: 12px; font-weight: bold; grid-column: span 2;
+                border-top: 2px solid ${restBorderColor} !important;
+                color: #fde047; background: rgba(253, 224, 71, 0.05);">
+                🧘  Vila
+            </button>
+        </div>
         </div>`;
     }
-    
+
     body.innerHTML = html;
     openModal();
 }
 
 // --- SYNKRONISERADE OCH LIVE-UPPDATERANDE OVERRIDES ---
-
 function setOverrideSilent(dateStr, programId) {
     // 1. Uppdatera det lokala tillståndet OMEDELBART
     if (programId === "none" || programId === "") {
@@ -948,24 +900,23 @@ function setOverrideSilent(dateStr, programId) {
     } else {
         calendarOverrides[dateStr] = programId;
     }
-    
+
     localStorage.setItem("calendarOverrides", JSON.stringify(calendarOverrides));
-    
+
     // 2. Uppdatera bakomliggande kalendervy direkt
     if (typeof renderCalendar === "function") {
         renderCalendar();
     }
-    
+
     // 3. Hämta de korrekta och aktuella tillstånden live istället för sparad historiksträngar
     let nextPlannedProgram = null;
     if (programId !== "none" && programId !== "") {
         nextPlannedProgram = programData.routine.find(p => p.id === programId) || null;
     }
-
     // Hämta historik och pågående status direkt från dina globala arrayer live
     const currentCompleted = typeof workoutHistory !== 'undefined' ? workoutHistory.filter(w => w.date === dateStr) : [];
     const currentIsOngoing = typeof activeDraft !== 'undefined' && activeDraft && activeDraft.date === dateStr;
-    
+
     // Ladda om vyn direkt utan fördröjning (Gränssnittet uppdateras här på under 1ms!)
     openDayManager(dateStr, nextPlannedProgram, currentCompleted, currentIsOngoing);
 
@@ -975,16 +926,16 @@ function setOverrideSilent(dateStr, programId) {
         try {
             // Sparar i bakgrunden
             await saveAll();
-            
+
             // Skottsäker integration mot Supabase (PGRST116-säkrad) i bakgrunden
             if (typeof currentUser !== 'undefined' && currentUser) {
                 const { data: existingRows, error: checkErr } = await supabaseClient
                     .from('calendar_overrides')
                     .select('id')
                     .eq('user_id', currentUser.id);
-                    
+
                 if (checkErr) throw checkErr;
-                
+
                 if (existingRows && existingRows.length > 0) {
                     await supabaseClient
                         .from('calendar_overrides')
@@ -1003,21 +954,21 @@ function setOverrideSilent(dateStr, programId) {
 }
 
 function startFreeWorkoutOnDate(date) {
-    console.log("🚀 Initierar Fritt Pass för datum:", date);
-    
-    // ✅ Byt vy FÖRST
+    console.log(" 🚀  Initierar Fritt Pass för datum:", date);
+
+    //  ✅  Byt vy F Ö RST
     showView('workout-view');
-    
-    const freePass = { 
-        id: "free-" + Date.now(), 
-        name: "Fritt Pass", 
-        exercises: [] 
+
+    const freePass = {
+        id: "free-" + Date.now(),
+        name: "Fritt Pass",
+        exercises: []
     };
-    
+
     // Nollställ eventuella gamla rester i data och tvinga igång tillståndet ordentligt
     if (typeof startWorkout === 'function') {
         startWorkout(freePass, [], date, true);
-        
+
         // Sätt flaggan direkt så att renderActiveWorkout inte fastnar på startskärmen
         if (activeDraft) {
             activeDraft.isStarted = true;
@@ -1025,16 +976,16 @@ function startFreeWorkoutOnDate(date) {
                 persistActiveWorkout();
             }
         }
-        
+
         // Kör renderingen direkt för att hoppa förbi klockstart-knappen om det behövs
         if (typeof renderActiveWorkout === 'function') {
             renderActiveWorkout();
         }
     } else {
-        console.error("❌ startWorkout-funktionen saknas i appen!");
+        console.error(" ❌  startWorkout-funktionen saknas i appen!");
     }
-    
-    // ✅ Stäng modal SIST (i bakgrunden)
+
+    //  ✅  St ä ng modal SIST (i bakgrunden)
     setTimeout(() => closeModal(), 0);
 }
 
@@ -1047,10 +998,10 @@ function openMonthPicker() {
     openModal();
 }
 
-function selectMonth(m) { 
-    currentViewDate.setMonth(m); 
-    closeModal(); 
-    renderCalendar(); 
+function selectMonth(m) {
+    currentViewDate.setMonth(m);
+    closeModal();
+    renderCalendar();
 }
 
 // --- PROGRAMVYER & RUTINREDIGERING ---
@@ -1058,15 +1009,15 @@ function renderProgramView(activeIdx = null) {
     const selector = document.getElementById("pass-selector-list");
     if (!selector) return;
     selector.innerHTML = "";
-    
+
     programData.routine.forEach((pass, i) => {
         const div = document.createElement("div");
         div.className = `prog-card ${activeIdx === i ? 'active' : ''}`;
-        div.innerHTML = `<div style="font-size:24px;">${['⚡','🔥','🏆','💎'][i % 4]}</div><h4>${pass.name}</h4><div style="font-size:10px; color:var(--primary); margin-top:5px; font-weight:800;">${pass.exercises.length} ÖVNINGAR</div>`;
-        div.onclick = () => { 
+        div.innerHTML = `<div style="font-size:24px;">${[' ⚡ ',' 🔥 ',' 🏆 ',' 💎 '][i % 4]}</div><h4>${pass.name}</h4><div style="font-size:10px; color:var(--primary); margin-top:5px; font-weight:800;">${pass.exercises.length} ÖVNINGAR</div>`;
+        div.onclick = () => {
             document.querySelectorAll(".prog-card").forEach(c => c.classList.remove("active"));
             div.classList.add("active");
-            showProgramDetails(i); 
+            showProgramDetails(i);
         };
         selector.appendChild(div);
     });
@@ -1078,19 +1029,19 @@ function showProgramDetails(idx) {
     const detailsArea = document.getElementById("program-details-area");
     const list = document.getElementById("program-exercise-list");
     if (!pass || !detailsArea || !list) return;
-    
+
     detailsArea.classList.remove("hidden");
-    
+
     list.innerHTML = `
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; padding-bottom:10px; border-bottom:1px solid var(--glass-border);">
             <h3 style="margin:0; text-align:left; font-size:18px;">${pass.name}</h3>
             <button class="order-btn" style="background:var(--primary); color:#0f172a; padding:8px 15px; border-radius:10px; font-weight:800; border:none; cursor:pointer; font-size:12px;" onclick="openEditProgramModal(${idx})">Redigera</button>
         </div>
         ${pass.exercises.map(e => `
-            <div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.03);">
-                <span style="font-weight:600;">${e.name}</span>
-                <small style="color:var(--primary); font-weight:800; text-transform:uppercase; font-size:9px;">${e.target}</small>
-            </div>
+        <div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.03);">
+            <span style="font-weight:600;">${e.name}</span>
+            <small style="color:var(--primary); font-weight:800; text-transform:uppercase; font-size:9px;">${e.target}</small>
+        </div>
         `).join("")}
     `;
 }
@@ -1098,42 +1049,38 @@ function showProgramDetails(idx) {
 function renderExercisePickerForEdit(idx, category = "Ben") {
     const container = document.getElementById("modal-exercise-picker-container");
     if (!container) return;
-
     const categories = [
-        { name: "Ben", icon: "🦵" },
-        { name: "Bröst", icon: "🏋️" },
-        { name: "Rygg", icon: "🪵" },
-        { name: "Axlar", icon: "👐" },
-        { name: "Armar", icon: "💪" },
-        { name: "Bål", icon: "🧘" }
+        { name: "Ben", icon: " 🦵 " },
+        { name: "Bröst", icon: " 🏋️ " },
+        { name: "Rygg", icon: " 🪵 " },
+        { name: "Axlar", icon: " 👐 " },
+        { name: "Armar", icon: " 💪 " },
+        { name: "Bål", icon: " 🧘 " }
     ];
-
     let html = `<div class="separator" style="margin: 25px 0;"></div>`;
     html += `<h3 style="margin: 0 0 15px 0; color: var(--primary); font-size: 1.2rem; text-align: center; text-transform: uppercase; letter-spacing: 1px;">LÄGG TILL ÖVNING</h3>`;
     html += `<p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin-bottom:10px;">Välj Kategori:</p>`;
-    
+
     html += `<div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; margin-bottom:15px;">`;
     categories.forEach(cat => {
         const isActive = cat.name === category;
         html += `
-            <button onclick="renderExercisePickerForEdit(${idx}, '${cat.name}')" 
-                style="padding:10px 5px; font-size:11px; border-radius:12px; border:1px solid ${isActive ? 'var(--primary)' : 'rgba(255,255,255,0.1)'}; 
-                background:${isActive ? 'rgba(34, 211, 238, 0.1)' : 'var(--card)'}; color:${isActive ? 'var(--primary)' : 'white'}; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:4px;">
-                <span style="font-size:16px;">${cat.icon}</span> ${cat.name}
-            </button>`;
+        <button onclick="renderExercisePickerForEdit(${idx}, '${cat.name}')"
+            style="padding:10px 5px; font-size:11px; border-radius:12px; border:1px solid ${isActive ? 'var(--primary)' : 'rgba(255,255,255,0.1)'};
+            background:${isActive ? 'rgba(34, 211, 238, 0.1)' : 'var(--card)'}; color:${isActive ? 'var(--primary)' : 'white'}; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:4px;">
+            <span style="font-size:16px;">${cat.icon}</span> ${cat.name}
+        </button>`;
     });
     html += `</div>`;
-
     html += `<p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin-bottom:10px;">Övningar (${category}):</p>`;
-    
+
     html += `<div id="exercise-picker-list" style="max-height:400px; overflow-y:auto; padding-right:5px; background:rgba(0,0,0,0.2); border-radius:15px; padding:10px;">`;
-    
+
     const filtered = masterExercises.filter(ex => category === "Armar" ? (ex.target === "Biceps" || ex.target === "Triceps") : ex.target === category);
-    
+
     if (filtered.length === 0) {
         html += `<p style="text-align:center; font-size:12px; color:var(--text-light); padding:10px;">Inga övningar hittades.</p>`;
     }
-
     filtered.forEach(ex => {
         html += `
         <div class="card glass" style="padding:12px; margin-bottom:8px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; border-radius:12px;" onclick="addExerciseToPassDirectly(${idx}, ${ex.id})">
@@ -1142,15 +1089,12 @@ function renderExercisePickerForEdit(idx, category = "Ben") {
         </div>`;
     });
     html += `</div>`;
-
     container.innerHTML = html;
-
     setTimeout(() => {
         const modalContent = document.querySelector('.modal-content');
         if (modalContent) {
             modalContent.scrollTop = 0;
         }
-
         const list = document.getElementById("exercise-picker-list");
         if (list) {
             list.scrollTop = 0;
@@ -1162,53 +1106,50 @@ function renderExercisePickerForEdit(idx, category = "Ben") {
 async function addExerciseToPassDirectly(pIdx, exId) {
     const ex = masterExercises.find(e => e.id == exId);
     if (!ex) return;
-    
+
     // Uppdaterar i minnet direkt
     programData.routine[pIdx].exercises.push({ name: ex.name, target: ex.target, defaultSets: 3 });
-    
+
     // Sparar asynkront till databasen i bakgrunden (Optimistic Update)
     if (typeof saveCustomProgramToSupabase === 'function') {
         saveCustomProgramToSupabase();
     } else {
         localStorage.setItem("myCustomProgram", JSON.stringify(programData));
     }
-    
-    await openEditProgramModal(pIdx); 
+
+    await openEditProgramModal(pIdx);
 }
 
 async function openEditProgramModal(idx) {
     const pass = programData.routine[idx];
     const body = document.getElementById("modal-body");
     if (!pass || !body) return;
-    
+
     body.innerHTML = `
         <h3>Redigera ${pass.name}</h3>
         <label style="font-size:12px; color:var(--text-light); text-align:left; display:block; margin-left:10px;">NAMN PÅ PASS</label>
         <input type="text" id="edit-pass-name" class="log-input" value="${pass.name}">
-        
+
         <p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin-bottom:10px;">Nuvarande övningar:</p>
         <div id="edit-pass-exercises">
-            ${pass.exercises.map((ex, i) => `
-                <div class="edit-item-row">
-                    <div style="display:flex; gap:8px;">
-                        <button class="reorder-btn" onclick="moveExercise(${idx}, ${i}, -1)">▲</button>
-                        <button class="reorder-btn" onclick="moveExercise(${idx}, ${i}, 1)">▼</button>
-                    </div>
-                    <span style="flex-grow:1; margin-left:15px; font-size:14px; font-weight:600;">${ex.name}</span>
-                    <button onclick="removeExFromPass(${idx}, ${i})" style="color:var(--danger); background:none; border:none; font-size:18px;"> ✖ </button>
-                </div>`).join("")}
+        ${pass.exercises.map((ex, i) => `
+            <div class="edit-item-row">
+                <div style="display:flex; gap:8px;">
+                    <button class="reorder-btn" onclick="moveExercise(${idx}, ${i}, -1)"> ▲ </button>
+                    <button class="reorder-btn" onclick="moveExercise(${idx}, ${i}, 1)"> ▼ </button>
+                </div>
+                <span style="flex-grow:1; margin-left:15px; font-size:14px; font-weight:600;">${ex.name}</span>
+                <button onclick="removeExFromPass(${idx}, ${i})" style="color:var(--danger); background:none; border:none; font-size:18px;">  ✖  </button>
+            </div>`).join("")}
         </div>
-
         <div id="modal-exercise-picker-container"></div>
-
         <div style="margin-top:15px;">
             <button class="mode-btn glass-border" style="font-size:13px; padding:10px;" onclick="createNewExForPass(${idx})">+ Skapa helt ny övning till banken</button>
         </div>
-
         <button class="mode-btn blue" style="margin-top:20px;" onclick="saveProgramEdit(${idx})">Spara alla ändringar</button>
         <button class="mode-btn" style="color:var(--danger); background:none; font-size:14px; margin-top:10px;" onclick="deleteEntireProgram(${idx})">Radera pass permanent</button>
     `;
-    
+
     renderExercisePickerForEdit(idx, "Ben");
     openModal();
 }
@@ -1216,31 +1157,31 @@ async function openEditProgramModal(idx) {
 // ==========================================================================
 // DEL 3 AV 4: PROGRAMREDIGERING, HISTORIKHANTERING OCH AKTIVT PASS (DRAFT)
 // ==========================================================================
-
 // Central hjälpfunktion för att asynkront spara hela programrutinen till localStorage och Supabase
 async function saveCustomProgramToSupabase() {
     console.log("saveCustomProgramToSupabase anropad med aktuell programData:", programData);
-    
+
     // 1. Säkra att fönstret har tillgång till exakt samma data
     window.programData = programData;
-    
+
     // 2. Spara till localStorage direkt för snabb UX
     localStorage.setItem("myCustomProgram", JSON.stringify(programData));
-    
+
     // 3. Använd den centrala, säkra sparfunktionen från supabase-data.js
     if (typeof saveCustomProgram === 'function') {
         await saveCustomProgram();
     } else {
         console.warn("Kunde inte hitta saveCustomProgram i supabase-data.js");
     }
+    // FIX: Se till att den lokala referensen uppdateras
+    if (window.programData) programData = window.programData;
 }
 
 // Central hjälpfunktion för att spara det aktiva pågående träningspasset (activeDraft)
-
 async function createNewExForPass(pIdx) {
     await openCreateExerciseModal(async (newEx) => {
         programData.routine[pIdx].exercises.push({ name: newEx.name, target: newEx.target, defaultSets: 3 });
-        
+
         // Sparar omedelbart till både localStorage och Supabase
         await saveCustomProgramToSupabase();
         await openEditProgramModal(pIdx);
@@ -1251,10 +1192,10 @@ async function moveExercise(pIdx, eIdx, dir) {
     const exercises = programData.routine[pIdx].exercises;
     const newIdx = eIdx + dir;
     if(newIdx < 0 || newIdx >= exercises.length) return;
-    
+
     // KORRIGERING: Rättat bugg från inskickad kod där man destruturerade [newIdx] till [newIdx] istället för [eIdx]
     [exercises[eIdx], exercises[newIdx]] = [exercises[newIdx], exercises[eIdx]];
-    
+
     // Sparar ändringen i ordningsföljd direkt
     await saveCustomProgramToSupabase();
     await openEditProgramModal(pIdx);
@@ -1262,7 +1203,7 @@ async function moveExercise(pIdx, eIdx, dir) {
 
 async function removeExFromPass(pIdx, eIdx) {
     programData.routine[pIdx].exercises.splice(eIdx, 1);
-    
+
     // Sparar efter borttagning av övning från passet
     await saveCustomProgramToSupabase();
     await openEditProgramModal(pIdx);
@@ -1270,7 +1211,7 @@ async function removeExFromPass(pIdx, eIdx) {
 
 async function saveProgramEdit(idx) {
     programData.routine[idx].name = document.getElementById("edit-pass-name").value;
-    
+
     // Sparar det uppdaterade namnet till databasen och lokalt
     await saveCustomProgramToSupabase();
     closeModal();
@@ -1294,7 +1235,7 @@ async function saveNewProgram() {
     if(!name) return alert("Ange ett namn!");
     const newPass = { id: "pass-" + Date.now(), name, exercises: [] };
     programData.routine.push(newPass);
-    
+
     // Sparar det nya passet till localStorage och Supabase
     await saveCustomProgramToSupabase();
     const newIdx = programData.routine.length - 1;
@@ -1303,18 +1244,14 @@ async function saveNewProgram() {
 
 async function updateExerciseNameInHistory(oldName, newName) {
     if (!oldName || !newName || oldName === newName) return;
-
     try {
         const { data: historyData, error: fetchError } = await supabaseClient
             .from('workout_history')
             .select('*')
             .eq('user_id', currentUser.id);
-
         if (fetchError) throw fetchError;
-
         let updatedCount = 0;
         const updatedWorkouts = [];
-
         historyData.forEach(workout => {
             let hasChanges = false;
             // Hämtar från din korrekta JSONB-kolumnstruktur 'workout_data'
@@ -1331,7 +1268,6 @@ async function updateExerciseNameInHistory(oldName, newName) {
                 updatedWorkouts.push(workout);
             }
         });
-
         // Kör uppdateringar mot databasen för påverkade pass
         for (const workout of updatedWorkouts) {
             const { error: updateError } = await supabaseClient
@@ -1339,10 +1275,8 @@ async function updateExerciseNameInHistory(oldName, newName) {
                 .update({ workout_data: workout.workout_data })
                 .eq('id', workout.id)
                 .eq('user_id', currentUser.id);
-
             if (updateError) throw updateError;
         }
-
         if (updatedCount > 0) {
             // Synkar den globala minnesvariabeln med den uppdaterade datan
             workoutHistory = historyData.map(w => ({
@@ -1382,7 +1316,7 @@ async function startWorkout(workout, data = null, date = null, isImmediateStart 
     } else {
         secondsElapsed = activeDraft.secondsElapsed;
     }
-    
+
     if(!data) {
         data = workout.exercises.map(ex => {
             const history = getExerciseHistory(ex.name);
@@ -1396,24 +1330,23 @@ async function startWorkout(workout, data = null, date = null, isImmediateStart 
                 // Fixad variabelreferens från din inskickade kod (sets_historyCopy -> sets_data)
                 return { sets_data: historyCopy, isCompleted: false };
             }
-           return { sets_data: [{ weight: "", reps: "" }, { weight: "", reps: "" }, { weight: "", reps: "" }], isCompleted: false };
+            return { sets_data: [{ weight: "", reps: "" }, { weight: "", reps: "" }, { weight: "", reps: "" }], isCompleted: false };
         });
     }
-
-    activeDraft = { 
-        workout: JSON.parse(JSON.stringify(workout)), 
-        data, 
+    activeDraft = {
+        workout: JSON.parse(JSON.stringify(workout)),
+        data,
         date: date || new Date().toISOString().split('T')[0],
         secondsElapsed: secondsElapsed,
-        isStarted: true, 
-        wasTimerRunning: true 
+        isStarted: true,
+        wasTimerRunning: true
     };
-    
+
     // Sparar det skapade passutkastet direkt till både localStorage och Supabase
     await persistActiveWorkout();
     renderActiveWorkout();
     if (typeof updateTimerDisplay === "function") updateTimerDisplay();
-    if (typeof startTimer === "function") startTimer(); 
+    if (typeof startTimer === "function") startTimer();
 }
 
 // Global array för att hålla koll på valda övningar i modalen innan de sparas
@@ -1421,15 +1354,14 @@ let temporarySelectedExercises = [];
 
 function renderActiveWorkout() {
     if (!activeDraft || !activeDraft.workout) {
-        console.warn("⚠️ Inget aktivt utkast tillgängligt.");
+        console.warn(" ⚠️  Inget aktivt utkast tillgängligt.");
         return;
     }
-
     if (activeDraft.data) {
         activeDraft.data.forEach((exerciseData, i) => {
             if (!exerciseData.isCompleted && exerciseData.sets_data) {
                 const isBrandNewAndGhostChecked = exerciseData.sets_data.every(s => s.userConfirmed === true) && !activeDraft.ui_state?.openExercises?.includes(i);
-                
+
                 if (isBrandNewAndGhostChecked && exerciseData.sets_data.length > 0) {
                     exerciseData.sets_data.forEach(set => {
                         set.userConfirmed = false;
@@ -1438,27 +1370,24 @@ function renderActiveWorkout() {
             }
         });
     }
-
     document.getElementById("active-title").textContent = activeDraft.workout.name;
     const list = document.getElementById("exercise-list");
     const footer = document.querySelector(".workout-footer");
     if (!list) return;
     list.innerHTML = "";
-
     if (!activeDraft.isStarted) {
         if (footer) footer.classList.add("hidden");
         list.innerHTML = `
-            <div style="text-align:center; padding:20px 0;">
-                <button class="mode-btn green" style="width:100%; padding:20px; font-size:18px; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);" onclick="actuallyStartWorkout()">STARTA TRÄNINGSPASSET 🔥</button>
-            </div>
-            <p style="color:var(--text-light); font-size:13px; text-align:center; margin-top:10px;">Klicka på knappen ovan för att starta klockan.</p>
+        <div style="text-align:center; padding:20px 0;">
+            <button class="mode-btn green" style="width:100%; padding:20px; font-size:18px; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);" onclick="actuallyStartWorkout()">STARTA TRÄNINGSPASSET  🔥 </button>
+        </div>
+        <p style="color:var(--text-light); font-size:13px; text-align:center; margin-top:10px;">Klicka på knappen ovan för att starta klockan.</p>
         `;
         const timerDisp = document.getElementById("workout-timer");
         if (timerDisp) timerDisp.textContent = "00:00:00";
         showView("workout-view");
         return;
     }
-
     if (typeof renderCalendar === 'function') {
         const calendarView = document.getElementById("calendar-view");
         if (calendarView) {
@@ -1468,50 +1397,45 @@ function renderActiveWorkout() {
             calendarView.style.display = originalDisplay;
         }
     }
-
     if (footer) footer.classList.remove("hidden");
-    
+
     const pauseBtn = document.getElementById("pause-workout-btn");
     if (pauseBtn) {
-        pauseBtn.innerHTML = `Spara utkast 💾`;
+        pauseBtn.innerHTML = `Spara utkast  💾 `;
         pauseBtn.className = "mode-btn save-draft-btn";
-        pauseBtn.onclick = saveDraftAndGoHome; 
+        pauseBtn.onclick = saveDraftAndGoHome;
     }
-
     if (!activeDraft.ui_state) {
         activeDraft.ui_state = {};
     }
-    
+
     if (!activeDraft.ui_state.openExercises) {
         activeDraft.ui_state.openExercises = [];
     }
-
     const isFrittPass = activeDraft.workout.name === "Fritt Pass";
     if (!isFrittPass) {
         if (!activeDraft.ui_state.hasOwnProperty('hasInitializedOpen')) {
             activeDraft.ui_state.openExercises = [0];
             activeDraft.ui_state.hasInitializedOpen = true;
-            if (typeof persistActiveWorkout === 'function') persistActiveWorkout(); 
+            if (typeof persistActiveWorkout === 'function') persistActiveWorkout();
         }
     }
-    
-    const openExercises = activeDraft.ui_state.openExercises;
 
+    const openExercises = activeDraft.ui_state.openExercises;
     if (activeDraft.workout.exercises && activeDraft.workout.exercises.length > 0) {
         activeDraft.workout.exercises.forEach((ex, i) => {
             const exerciseData = activeDraft.data[i];
             if (!exerciseData) return;
             const isDone = exerciseData.isCompleted;
             const isOpen = openExercises.includes(i);
-            
+
             const div = document.createElement("div");
             div.className = "card glass" + (isDone ? " exercise-done" : "");
-            div.style.padding = "0"; 
+            div.style.padding = "0";
             div.style.overflow = "hidden";
-            
+
             const completedSets = exerciseData.sets_data ? exerciseData.sets_data.filter(s => s.userConfirmed).length : 0;
             const totalSets = exerciseData.sets_data ? exerciseData.sets_data.length : 0;
-
             let setsHtml = `<div style="margin-top:10px;">
                 <div style="display:grid; grid-template-columns: 40px 1fr 1fr 30px; gap:8px; margin-bottom:5px; align-items:center;">
                     <small style="text-align:left; padding-left:5px; color:var(--text-light); font-size:9px; font-weight:700;">SET</small>
@@ -1519,7 +1443,6 @@ function renderActiveWorkout() {
                     <small style="text-align:center; color:var(--text-light); font-size:9px;">REPS</small>
                     <span></span>
                 </div>`;
-
             if (exerciseData.sets_data) {
                 exerciseData.sets_data.forEach((set, sIdx) => {
                     let isLocked = false;
@@ -1530,109 +1453,98 @@ function renderActiveWorkout() {
                     }
                     if (isDone) isLocked = true;
                     if (!set.userConfirmed && !isLocked && !isDone) isCurrent = true;
-
                     const showSuccess = set.userConfirmed || isDone;
                     let circleColor = showSuccess ? '#22c55e' : (isCurrent ? '#facc15' : '#f59e0b');
-                    const statusContent = showSuccess ? '✅' : `#${sIdx + 1}`;
-
+                    const statusContent = showSuccess ? ' ✅ ' : `#${sIdx + 1}`;
                     setsHtml += `
                     <div style="display:grid; grid-template-columns: 40px 1fr 1fr 30px; gap:8px; margin-bottom:8px; align-items:center;">
-                        <div onclick="${isLocked && !isDone ? '' : `confirmSet(${i}, ${sIdx})`}" 
-                             style="width:32px; height:32px; border-radius:50%; border:2px solid ${circleColor}; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:10px; font-weight:800; background: ${showSuccess ? 'rgba(34, 197, 94, 0.2)' : (isCurrent ? 'rgba(250, 204, 21, 0.15)' : 'rgba(245, 158, 11, 0.05)')}; color: ${circleColor}; opacity: 1;">
+                        <div onclick="${isLocked && !isDone ? '' : `confirmSet(${i}, ${sIdx})`}"
+                            style="width:32px; height:32px; border-radius:50%; border:2px solid ${circleColor}; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:10px; font-weight:800; background: ${showSuccess ? 'rgba(34, 197, 94, 0.2)' : (isCurrent ? 'rgba(250, 204, 21, 0.15)' : 'rgba(245, 158, 11, 0.05)')}; color: ${circleColor}; opacity: 1;">
                             ${statusContent}
                         </div>
-                        <input type="text" inputmode="decimal" id="w-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'};" value="${set.weight || ''}" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})">
-                        <input type="text" inputmode="decimal" id="r-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'};" value="${set.reps || ''}" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})">
+                        <input type="text" inputmode="decimal" id="w-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'};" value="${set.weight || ''}" ${isLocked ?
+                        'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})">
+                        <input type="text" inputmode="decimal" id="r-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'};" value="${set.reps || ''}" ${isLocked ?
+                        'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})">
                         <button onclick="removeSetFromExercise(${i}, ${sIdx})" style="background:none; border:none; color:var(--danger); font-size:16px; opacity: ${isLocked || showSuccess ? '0.1' : '0.8'};" ${isLocked ? 'disabled' : ''}>×</button>
                     </div>`;
-
                     if (isCurrent) {
                         setsHtml += `
                         <div style="grid-column: 2 / span 2; margin:-4px 0 8px 0; padding-left:2px; opacity:0.8; font-size:10px; color:var(--primary); font-weight:600; letter-spacing:0.3px;">
-                            💡 Klicka på ${statusContent} för att låsa & gå vidare
+                            💡  Klicka på ${statusContent} för att låsa & gå vidare
                         </div>`;
                     }
                 });
             }
-
             div.innerHTML = `
-            <div onclick="toggleExercise(${i})" style="padding: 12px 15px; display: flex; align-items: center; cursor: pointer; background: ${isOpen ? 'rgba(250, 204, 21, 0.05)' : 'transparent'}">
-                <div style="display: flex; gap: 4px; margin-right: 12px; flex-shrink: 0;">
-                    <button class="reorder-btn" onclick="event.stopPropagation(); moveActiveExercise(${i}, -1)" ${isDone ? 'disabled' : ''} style="padding: 4px 6px; font-size: 10px;">▲</button>
-                    <button class="reorder-btn" onclick="event.stopPropagation(); moveActiveExercise(${i}, 1)" ${isDone ? 'disabled' : ''} style="padding: 4px 6px; font-size: 10px;">▼</button>
+                <div onclick="toggleExercise(${i})" style="padding: 12px 15px; display: flex; align-items: center; cursor: pointer; background: ${isOpen ? 'rgba(250, 204, 21, 0.05)' : 'transparent'}">
+                    <div style="display: flex; gap: 4px; margin-right: 12px; flex-shrink: 0;">
+                        <button class="reorder-btn" onclick="event.stopPropagation(); moveActiveExercise(${i}, -1)" ${isDone ? 'disabled' : ''} style="padding: 4px 6px; font-size: 10px;"> ▲ </button>
+                        <button class="reorder-btn" onclick="event.stopPropagation(); moveActiveExercise(${i}, 1)" ${isDone ? 'disabled' : ''} style="padding: 4px 6px; font-size: 10px;"> ▼ </button>
+                    </div>
+                    <div style="display: flex; flex-direction: column; min-width:0; flex-grow:1;">
+                        <strong style="font-size: 14px; color: ${isDone ? 'var(--text-light)' : 'var(--text)'}; text-decoration: ${isDone ? 'line-through' : 'none'}; white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">
+                            ${ex.name}
+                        </strong>
+                        <small style="color: ${isDone ? '#22c55e' : 'var(--primary)'}; font-size: 10px;">
+                            ${isDone ? 'KLAR  ✅ ' : `${completedSets}/${totalSets} set`}
+                        </small>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0; margin-left: 10px;">
+                        <button onclick="event.stopPropagation(); openReplaceExerciseModal(${i})" style="background:none; border:none; font-size:14px; padding:5px; opacity: 0.7;" ${isDone ? 'disabled' : ''}> 🔄 </button>
+                        <button onclick="event.stopPropagation(); removeActiveExercise(${i})" style="background:none; border:none; font-size:14px; padding:5px; opacity: 0.7;" ${isDone ? 'disabled' : ''}> ✖ </button>
+                        <span style="font-size: 10px; color: var(--text-light); margin-left: 5px; transform: ${isOpen ? 'rotate(180deg)' : 'rotate(0)'}; transition: 0.3s;"> ▼ </span>
+                    </div>
                 </div>
+                <div style="padding: 0 15px 15px 15px; display: ${isOpen ? 'block' : 'none'}; border-top: 1px solid rgba(255,255,255,0.05);">
+                    ${setsHtml}
+                    <button class="mode-border glass-border" style="padding:8px; font-size:11px; margin-top:10px; border-style:dashed; width:100%;" onclick="addSetToExercise(${i})" ${isDone ? 'disabled' : ''}>+ Lägg till set</button>
+                    <button class="mode-btn ${isDone ? 'blue' : 'green'}" style="padding:12px; font-size:13px; margin-top:15px; width:100%; font-weight:bold;" onclick="toggleExerciseDone(${i})">
+                        ${isDone ? 'Ångra Klar  ↩️ ' : 'Markera övning som klar  ✅ '}
+                    </button>
+                </div>`;
 
-                <div style="display: flex; flex-direction: column; min-width:0; flex-grow:1;">
-                    <strong style="font-size: 14px; color: ${isDone ? 'var(--text-light)' : 'var(--text)'}; text-decoration: ${isDone ? 'line-through' : 'none'}; white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">
-                        ${ex.name}
-                    </strong>
-                    <small style="color: ${isDone ? '#22c55e' : 'var(--primary)'}; font-size: 10px;">
-                        ${isDone ? 'KLAR ✅' : `${completedSets}/${totalSets} set`}
-                    </small>
-                </div>
-
-                <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0; margin-left: 10px;">
-                    <button onclick="event.stopPropagation(); openReplaceExerciseModal(${i})" style="background:none; border:none; font-size:14px; padding:5px; opacity: 0.7;" ${isDone ? 'disabled' : ''}>🔄</button>
-                    <button onclick="event.stopPropagation(); removeActiveExercise(${i})" style="background:none; border:none; font-size:14px; padding:5px; opacity: 0.7;" ${isDone ? 'disabled' : ''}>✖</button>
-                    <span style="font-size: 10px; color: var(--text-light); margin-left: 5px; transform: ${isOpen ? 'rotate(180deg)' : 'rotate(0)'}; transition: 0.3s;">▼</span>
-                </div>
-            </div>
-
-            <div style="padding: 0 15px 15px 15px; display: ${isOpen ? 'block' : 'none'}; border-top: 1px solid rgba(255,255,255,0.05);">
-                ${setsHtml}
-                <button class="mode-border glass-border" style="padding:8px; font-size:11px; margin-top:10px; border-style:dashed; width:100%;" onclick="addSetToExercise(${i})" ${isDone ? 'disabled' : ''}>+ Lägg till set</button>
-                <button class="mode-btn ${isDone ? 'blue' : 'green'}" style="padding:12px; font-size:13px; margin-top:15px; width:100%; font-weight:bold;" onclick="toggleExerciseDone(${i})">
-                    ${isDone ? 'Ångra Klar ↩️' : 'Markera övning som klar ✅'}
-                </button>
-            </div>`;
-            
             list.appendChild(div);
         });
     } else {
         const emptyNotice = document.createElement("p");
         emptyNotice.style.cssText = "color: var(--text-light); text-align: center; padding: 30px 10px; font-size: 14px;";
-        emptyNotice.innerHTML = "Det här passet är tomt. Klicka på knappen nedan för att lägga till dina övningar! 👇";
+        emptyNotice.innerHTML = "Det här passet är tomt. Klicka på knappen nedan för att lägga till dina övningar!  👇 ";
         list.appendChild(emptyNotice);
     }
-
     const addBtn = document.createElement("button");
     addBtn.className = "mode-btn glass-border";
     addBtn.style.marginTop = "10px";
-    addBtn.innerHTML = "➕ Lägg till övning";
+    addBtn.innerHTML = " ➕  L ä gg till  ö vning";
     addBtn.onclick = openCustomAddExerciseModal;
     list.appendChild(addBtn);
-
     const discardBtn = document.createElement("button");
     discardBtn.className = "mode-btn";
     discardBtn.style.cssText = "background:none; color:var(--danger); font-size:14px; margin-top:20px; border:1px solid rgba(239, 68, 68, 0.2);";
-    discardBtn.innerHTML = "Radera pass 🗑️";
+    discardBtn.innerHTML = "Radera pass  🗑️ ";
     discardBtn.onclick = confirmDiscardActiveWorkout;
     list.appendChild(discardBtn);
-
     showView("workout-view");
 }
 
 function openCustomAddExerciseModal() {
-    temporarySelectedExercises = []; 
-    openAddExerciseToWorkoutModal(); 
+    temporarySelectedExercises = [];
+    openAddExerciseToWorkoutModal();
 }
 
 async function toggleExercise(index) {
     const scrollPos = window.scrollY;
-    
+
     if (!activeDraft.ui_state) activeDraft.ui_state = {};
     if (!activeDraft.ui_state.openExercises) {
         activeDraft.ui_state.openExercises = [];
     }
-
     const openIdx = activeDraft.ui_state.openExercises.indexOf(index);
-
     if (openIdx > -1) {
         activeDraft.ui_state.openExercises.splice(openIdx, 1);
     } else {
         activeDraft.ui_state.openExercises.push(index);
     }
-
     // Sparar UI-tillståndet (öppna/stängda övningar) asynkront
     await persistActiveWorkout();
     renderActiveWorkout();
@@ -1645,7 +1557,7 @@ async function addSetToExercise(exIdx) {
     const newWeight = lastSet ? lastSet.weight : "";
     const newReps = lastSet ? lastSet.reps : "";
     activeDraft.data[exIdx].sets_data.push({ weight: newWeight, reps: newReps });
-    
+
     renderActiveWorkout();
     window.scrollTo(0, scrollPos);
     // Synkar utökningen av set asynkront i bakgrunden
@@ -1655,7 +1567,7 @@ async function addSetToExercise(exIdx) {
 async function removeSetFromExercise(exIdx, setIdx) {
     const scrollPos = window.scrollY;
     activeDraft.data[exIdx].sets_data.splice(setIdx, 1);
-    
+
     renderActiveWorkout();
     window.scrollTo(0, scrollPos);
     // Synkar borttagningen av set asynkront i bakgrunden
@@ -1665,7 +1577,7 @@ async function removeSetFromExercise(exIdx, setIdx) {
 async function toggleExerciseDone(exIdx) {
     const scrollPos = window.scrollY;
     activeDraft.data[exIdx].isCompleted = !activeDraft.data[exIdx].isCompleted;
-    
+
     renderActiveWorkout();
     window.scrollTo(0, scrollPos);
     // Synkar tillståndet för slutförd övning asynkront i bakgrunden
@@ -1675,7 +1587,7 @@ async function toggleExerciseDone(exIdx) {
 async function actuallyStartWorkout() {
     activeDraft.isStarted = true;
     activeDraft.wasTimerRunning = true;
-    
+
     // Aktiverar passet och tidtagningen i bakgrunden mot Supabase
     await persistActiveWorkout();
     renderActiveWorkout();
@@ -1698,112 +1610,102 @@ function openReplaceExerciseModal(index) {
 
 // UPPDATERAD FUNKTION: Renderar nu den visuella listan över valda övningar (Varukorgen)
 /**
- * =========================================================================
- * APP.JS - DEL 4 AV 4 (MED KOMPLETT SUPABASE-SYNKRONISERING)
- * =========================================================================
- */
-
+* =========================================================================
+* APP.JS - DEL 4 AV 4 (MED KOMPLETT SUPABASE-SYNKRONISERING)
+* =========================================================================
+*/
 function renderExercisePicker(category, replaceIndex = null) {
     const body = document.getElementById("modal-body");
-    
+
     const categories = [
-        { name: "Ben", icon: "🦵" },
-        { name: "Bröst", icon: "🏋️" },
-        { name: "Rygg", icon: "🪵" },
-        { name: "Axlar", icon: "👐" },
-        { name: "Armar", icon: "💪" },
-        { name: "Bål", icon: "🧘" }
+        { name: "Ben", icon: " 🦵 " },
+        { name: "Bröst", icon: " 🏋️ " },
+        { name: "Rygg", icon: " 🪵 " },
+        { name: "Axlar", icon: " 👐 " },
+        { name: "Armar", icon: " 💪 " },
+        { name: "Bål", icon: " 🧘 " }
     ];
-    
+
     let html = `<h3>${replaceIndex !== null ? 'Byt ut övning' : 'Välj Övningar'}</h3>`;
     html += `<p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin-bottom:10px;">Välj Kategori:</p>`;
-    
+
     html += `<div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; margin-bottom:15px;">`;
     categories.forEach(cat => {
         const isActive = cat.name === category;
         html += `
-            <button onclick="renderExercisePicker('${cat.name}', ${replaceIndex})" 
-                style="padding:10px 5px; font-size:11px; border-radius:12px; border:1px solid ${isActive ? 'var(--primary)' : 'rgba(255,255,255,0.1)'}; 
-                background:${isActive ? 'rgba(34, 211, 238, 0.1)' : 'var(--card)'}; color:${isActive ? 'var(--primary)' : 'white'}; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:4px;">
-                <span style="font-size:16px;">${cat.icon}</span> ${cat.name}
-            </button>`;
+        <button onclick="renderExercisePicker('${cat.name}', ${replaceIndex})"
+            style="padding:10px 5px; font-size:11px; border-radius:12px; border:1px solid ${isActive ? 'var(--primary)' : 'rgba(255,255,255,0.1)'};
+            background:${isActive ? 'rgba(34, 211, 238, 0.1)' : 'var(--card)'}; color:${isActive ? 'var(--primary)' : 'white'}; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:4px;">
+            <span style="font-size:16px;">${cat.icon}</span> ${cat.name}
+        </button>`;
     });
     html += `</div>`;
-    
+
     html += `<p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin-bottom:10px;">Övningar (${category}):</p>`;
     html += `<div style="max-height:280px; overflow-y:auto; padding-right:5px; background:rgba(0,0,0,0.2); border-radius:15px; padding:10px; margin-bottom:15px; display:flex; flex-direction:column; gap:8px;">`;
-    
+
     const filtered = masterExercises.filter(ex => category === "Armar" ? (ex.target === "Biceps" || ex.target === "Triceps") : ex.target === category);
-    
+
     if (filtered.length === 0) {
         html += `<p style="text-align:center; font-size:12px; color:var(--text-light); padding:10px;">Inga övningar hittades.</p>`;
     }
-
     filtered.forEach(ex => {
         const isSelectedInBatch = replaceIndex === null && temporarySelectedExercises.includes(ex.id);
         const currentBg = isSelectedInBatch ? 'rgba(34, 197, 94, 0.15)' : 'transparent';
         const currentBorder = isSelectedInBatch ? '1px solid #22c55e' : '1px solid rgba(255,255,255,0.08)';
-        const currentIcon = replaceIndex !== null ? '🔄' : (isSelectedInBatch ? '✅' : '+');
-
-        const clickHandler = replaceIndex !== null 
-            ? `confirmAddExerciseToActive(${ex.id}, ${replaceIndex})` 
+        const currentIcon = replaceIndex !== null ? ' 🔄 ' : (isSelectedInBatch ? ' ✅ ' : '+');
+        const clickHandler = replaceIndex !== null
+            ? `confirmAddExerciseToActive(${ex.id}, ${replaceIndex})`
             : `toggleSelectExerciseInPicker(${ex.id}, '${category}')`;
-
         html += `
-        <div class="card glass" id="picker-ex-${ex.id}" style="padding:12px; margin:0; cursor:pointer; display:flex; justify-content:space-between; align-items:center; border-radius:12px; background: ${currentBg} !important; border: ${currentBorder} !important; transition: all 0.2s;" 
-             onclick="${clickHandler}">
+        <div class="card glass" id="picker-ex-${ex.id}" style="padding:12px; margin:0; cursor:pointer; display:flex; justify-content:space-between; align-items:center; border-radius:12px; background: ${currentBg} !important; border: ${currentBorder} !important; transition: all 0.2s;"
+            onclick="${clickHandler}">
             <span style="font-size:13px; font-weight:600;">${ex.name}</span>
             <span id="picker-icon-${ex.id}" style="color:${isSelectedInBatch ? '#22c55e' : 'var(--primary)'}; font-size:18px; font-weight:bold;">${currentIcon}</span>
         </div>`;
     });
     html += `</div>`;
-
     if (replaceIndex === null) {
         html += `<div id="selected-summary-container" style="margin-bottom:15px;">`;
         html += generateSelectedExercisesSummaryHtml();
         html += `</div>`;
     }
-
     // ÄNDRING: saveDraftState() gjord asynkron och anropas säkert innan modal öppnas
     html += `
-        <div class="separator" style="margin:15px 0;"></div>
-        <button class="mode-btn glass-border" 
-        style="font-size:13px;" 
+    <div class="separator" style="margin:15px 0;"></div>
+    <button class="mode-btn glass-border"
+        style="font-size:13px;"
         onclick="(async () => { await saveDraftState(); openCreateExerciseModal((newEx) => handleInstantExerciseCreated(newEx, ${replaceIndex})); })()">
-    + Skapa ny övning som inte finns
-</button>
+        + Skapa ny övning som inte finns
+    </button>
     `;
-    
+
     body.innerHTML = html;
 }
 
 function generateSelectedExercisesSummaryHtml() {
     const hasChoices = temporarySelectedExercises.length > 0;
     if (!hasChoices) return "";
-
     let summaryHtml = `
-        <p style="font-size:11px; text-transform:uppercase; color:var(--text-light); margin-bottom:8px; font-weight:600; letter-spacing:0.5px;">Valda övningar i detta svep:</p>
-        <div style="display:flex; flex-wrap:wrap; gap:6px; background:rgba(255,255,255,0.03); padding:10px; border-radius:12px; border:1px solid rgba(255,255,255,0.05); max-height:100px; overflow-y:auto; margin-bottom:12px;">
+    <p style="font-size:11px; text-transform:uppercase; color:var(--text-light); margin-bottom:8px; font-weight:600; letter-spacing:0.5px;">Valda övningar i detta svep:</p>
+    <div style="display:flex; flex-wrap:wrap; gap:6px; background:rgba(255,255,255,0.03); padding:10px; border-radius:12px; border:1px solid rgba(255,255,255,0.05); max-height:100px; overflow-y:auto; margin-bottom:12px;">
     `;
-
     temporarySelectedExercises.forEach(exId => {
         const ex = masterExercises.find(e => e.id == exId);
         if (ex) {
             summaryHtml += `
-                <span style="font-size:12px; background:rgba(34, 197, 94, 0.15); color:#22c55e; border:1px solid rgba(34, 197, 94, 0.3); padding:4px 10px; border-radius:20px; display:inline-flex; align-items:center; gap:4px; font-weight:500;">
-                    ${ex.name}
-                </span>
+            <span style="font-size:12px; background:rgba(34, 197, 94, 0.15); color:#22c55e; border:1px solid rgba(34, 197, 94, 0.3); padding:4px 10px; border-radius:20px; display:inline-flex; align-items:center; gap:4px; font-weight:500;">
+                ${ex.name}
+            </span>
             `;
         }
     });
-
     summaryHtml += `</div>`;
     summaryHtml += `
-        <button id="multi-save-exercises-btn" class="mode-btn green" style="width: 100%; padding: 15px; font-weight: bold; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4);" onclick="confirmAndAddAllSelectedExercises()">
-            Lägg till ${temporarySelectedExercises.length} valda övningar ➕
-        </button>
+    <button id="multi-save-exercises-btn" class="mode-btn green" style="width: 100%; padding: 15px; font-weight: bold; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4);" onclick="confirmAndAddAllSelectedExercises()">
+        Lägg till ${temporarySelectedExercises.length} valda övningar  ➕
+    </button>
     `;
-
     return summaryHtml;
 }
 
@@ -1817,7 +1719,7 @@ function restoreDraftState() {
     if (saved) {
         temporarySelectedExercises = JSON.parse(saved);
         localStorage.removeItem('temp_exercise_draft');
-        updateExerciseSelectionView(); 
+        updateExerciseSelectionView();
     }
 }
 
@@ -1825,7 +1727,7 @@ function toggleSelectExerciseInPicker(exId, category) {
     const index = temporarySelectedExercises.indexOf(exId);
     const card = document.getElementById(`picker-ex-${exId}`);
     const icon = document.getElementById(`picker-icon-${exId}`);
-    
+
     if (index > -1) {
         temporarySelectedExercises.splice(index, 1);
         if (card) {
@@ -1843,11 +1745,11 @@ function toggleSelectExerciseInPicker(exId, category) {
             card.style.setProperty('border', '1px solid #22c55e', 'important');
         }
         if (icon) {
-            icon.textContent = "✅";
+            icon.textContent = " ✅ ";
             icon.style.color = "#22c55e";
         }
     }
-    
+
     const container = document.getElementById("selected-summary-container");
     if (container) {
         container.innerHTML = generateSelectedExercisesSummaryHtml();
@@ -1857,14 +1759,13 @@ function toggleSelectExerciseInPicker(exId, category) {
 // ÄNDRING: Gjord async för att invänta synkning till Supabase via persistActiveWorkout()
 async function confirmAndAddAllSelectedExercises() {
     if (temporarySelectedExercises.length === 0) return;
-    
+
     const isFrittPass = activeDraft.workout.name === "Fritt Pass";
     const startIdx = activeDraft.workout.exercises.length;
-
     temporarySelectedExercises.forEach((exId, loopIdx) => {
         const ex = masterExercises.find(e => e.id == exId);
         if (!ex) return;
-        
+
         const newExObj = { name: ex.name, target: ex.target };
         let newDataEntry;
         const history = getExerciseHistory(ex.name);
@@ -1873,10 +1774,8 @@ async function confirmAndAddAllSelectedExercises() {
         } else {
             newDataEntry = { sets_data: [{ weight: "", reps: "" }, { weight: "", reps: "" }, { weight: "", reps: "" }], isCompleted: false };
         }
-
         activeDraft.workout.exercises.push(newExObj);
         activeDraft.data.push(newDataEntry);
-
         if (isFrittPass) {
             const currentInsertedIndex = startIdx + loopIdx;
             if (loopIdx === 0) {
@@ -1886,10 +1785,9 @@ async function confirmAndAddAllSelectedExercises() {
             }
         }
     });
-    
+
     // Rensa det temporära urvalet när de har lagts till i passet
     temporarySelectedExercises = [];
-
     await persistActiveWorkout(); // Synkar till både localStorage och Supabase (active_draft)
     closeModal();
     renderActiveWorkout();
@@ -1902,16 +1800,16 @@ function handleInstantExerciseCreated(newEx, replaceIndex = null) {
         if (!temporarySelectedExercises.includes(newEx.id)) {
             temporarySelectedExercises.push(newEx.id);
         }
-        
-        let categoryToOpen = "Ben"; 
+
+        let categoryToOpen = "Ben";
         if (newEx.target) {
             if (newEx.target === "Biceps" || newEx.target === "Triceps") {
                 categoryToOpen = "Armar";
             } else {
-                categoryToOpen = newEx.target; 
+                categoryToOpen = newEx.target;
             }
         }
-        
+
         renderExercisePicker(categoryToOpen, null);
     }
 }
@@ -1919,7 +1817,7 @@ function handleInstantExerciseCreated(newEx, replaceIndex = null) {
 async function confirmAddExerciseToActive(exId, replaceIndex = null) {
     const ex = masterExercises.find(e => e.id == exId);
     const newExObj = { name: ex.name, target: ex.target };
-    
+
     let newDataEntry;
     const history = getExerciseHistory(ex.name);
     if(history) {
@@ -1927,20 +1825,19 @@ async function confirmAddExerciseToActive(exId, replaceIndex = null) {
     } else {
         newDataEntry = { sets_data: [{ weight: "", reps: "" }, { weight: "", reps: "" }, { weight: "", reps: "" }], isCompleted: false };
     }
-
     if(replaceIndex !== null) {
         activeDraft.workout.exercises[replaceIndex] = newExObj;
         activeDraft.data[replaceIndex] = newDataEntry;
     } else {
         activeDraft.workout.exercises.push(newExObj);
         activeDraft.data.push(newDataEntry);
-        
+
         const newIdx = activeDraft.workout.exercises.length - 1;
         if (activeDraft.workout.name === "Fritt Pass" && !activeDraft.ui_state.openExercises.includes(newIdx)) {
             activeDraft.ui_state.openExercises.push(newIdx);
         }
     }
-    
+
     await persistActiveWorkout(); // Synkar till både localStorage och Supabase (active_draft)
     closeModal();
     renderActiveWorkout();
@@ -1950,27 +1847,24 @@ async function updateSetDataOnly(exIdx, setIdx) {
     // 1. Hämta värdena från input-fälten
     const wInput = document.getElementById(`w-${exIdx}-${setIdx}`);
     const rInput = document.getElementById(`r-${exIdx}-${setIdx}`);
-    
+
     // Säkerställ att fälten faktiskt finns i DOM:en innan vi fortsätter
     if (!wInput || !rInput) {
-        console.warn(`⚠️ Kunde inte hitta input-fält för övning ${exIdx}, set ${setIdx}`);
+        console.warn(` ⚠️  Kunde inte hitta input-fält för övning ${exIdx}, set ${setIdx}`);
         return;
     }
-
     const weightVal = wInput.value;
     const repsVal = rInput.value;
-
     // 2. Uppdatera objektet i minnet (säkerhetskontroll inkluderad)
     if (activeDraft && activeDraft.data && activeDraft.data[exIdx] && activeDraft.data[exIdx].sets_data) {
         activeDraft.data[exIdx].sets_data[setIdx].weight = weightVal;
         activeDraft.data[exIdx].sets_data[setIdx].reps = repsVal;
-        
-        console.log(`📝 Uppdaterar minne: Övning ${exIdx}, Set ${setIdx} -> ${weightVal}kg, ${repsVal} reps`);
+
+        console.log(` 📝  Uppdaterar minne: Övning ${exIdx}, Set ${setIdx} -> ${weightVal}kg, ${repsVal} reps`);
     } else {
-        console.error("❌ activeDraft-strukturen matchar inte förväntad data.");
+        console.error(" ❌  activeDraft-strukturen matchar inte f ö rv ä ntad data.");
         return;
     }
-
     // 3. Synka till localStorage och Supabase
     await persistActiveWorkout();
 }
@@ -1978,10 +1872,10 @@ async function updateSetDataOnly(exIdx, setIdx) {
 async function confirmSet(exIdx, setIdx) {
     const currentState = activeDraft.data[exIdx].sets_data[setIdx].userConfirmed;
     activeDraft.data[exIdx].sets_data[setIdx].userConfirmed = !currentState;
-    
+
     await persistActiveWorkout(); // Synkar vid klarmarkering av set
-    
-    // ✅ Uppdatera BARA det berörda övningskortet (inte hela listan)
+
+    //  ✅  Uppdatera BARA det ber ö rda  ö vningskortet (inte hela listan)
     updateSingleExerciseCard(exIdx);
 }
 
@@ -1991,15 +1885,14 @@ function updateSingleExerciseCard(exIdx) {
     const isDone = exerciseData.isCompleted;
     const openExercises = activeDraft.ui_state.openExercises || [];
     const isOpen = openExercises.includes(exIdx);
-    
+
     const list = document.getElementById("exercise-list");
     const cards = list.querySelectorAll(".card.glass");
     const targetCard = cards[exIdx];
     if (!targetCard) return;
-    
+
     const completedSets = exerciseData.sets_data ? exerciseData.sets_data.filter(s => s.userConfirmed).length : 0;
     const totalSets = exerciseData.sets_data ? exerciseData.sets_data.length : 0;
-
     let setsHtml = `<div style="margin-top:10px;">
         <div style="display:grid; grid-template-columns: 40px 1fr 1fr 30px; gap:8px; margin-bottom:5px; align-items:center;">
             <small style="text-align:left; padding-left:5px; color:var(--text-light); font-size:9px; font-weight:700;">SET</small>
@@ -2007,7 +1900,6 @@ function updateSingleExerciseCard(exIdx) {
             <small style="text-align:center; color:var(--text-light); font-size:9px;">REPS</small>
             <span></span>
         </div>`;
-
     if (exerciseData.sets_data) {
         exerciseData.sets_data.forEach((set, sIdx) => {
             let isLocked = false;
@@ -2018,68 +1910,62 @@ function updateSingleExerciseCard(exIdx) {
             }
             if (isDone) isLocked = true;
             if (!set.userConfirmed && !isLocked && !isDone) isCurrent = true;
-
             const showSuccess = set.userConfirmed || isDone;
             let circleColor = showSuccess ? '#22c55e' : (isCurrent ? '#facc15' : '#f59e0b');
-            const statusContent = showSuccess ? '✅' : `#${sIdx + 1}`;
-
+            const statusContent = showSuccess ? ' ✅ ' : `#${sIdx + 1}`;
             setsHtml += `
             <div style="display:grid; grid-template-columns: 40px 1fr 1fr 30px; gap:8px; margin-bottom:8px; align-items:center;">
-                <div onclick="${isLocked && !isDone ? '' : `confirmSet(${exIdx}, ${sIdx})`}" 
-                     style="width:32px; height:32px; border-radius:50%; border:2px solid ${circleColor}; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:10px; font-weight:800; background: ${showSuccess ? 'rgba(34, 197, 94, 0.2)' : (isCurrent ? 'rgba(250, 204, 21, 0.15)' : 'rgba(245, 158, 11, 0.05)')}; color: ${circleColor}; opacity: 1;">
+                <div onclick="${isLocked && !isDone ? '' : `confirmSet(${exIdx}, ${sIdx})`}"
+                    style="width:32px; height:32px; border-radius:50%; border:2px solid ${circleColor}; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:10px; font-weight:800; background: ${showSuccess ? 'rgba(34, 197, 94, 0.2)' : (isCurrent ? 'rgba(250, 204, 21, 0.15)' : 'rgba(245, 158, 11, 0.05)')}; color: ${circleColor}; opacity: 1;">
                     ${statusContent}
                 </div>
-                <input type="text" inputmode="decimal" id="w-${exIdx}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'};" value="${set.weight || ''}" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${exIdx}, ${sIdx})">
-                <input type="text" inputmode="decimal" id="r-${exIdx}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'};" value="${set.reps || ''}" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${exIdx}, ${sIdx})">
+                <input type="text" inputmode="decimal" id="w-${exIdx}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'};" value="${set.weight || ''}" ${isLocked ?
+                'readonly' : ''} oninput="updateSetDataOnly(${exIdx}, ${sIdx})">
+                <input type="text" inputmode="decimal" id="r-${exIdx}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'};" value="${set.reps || ''}" ${isLocked ?
+                'readonly' : ''} oninput="updateSetDataOnly(${exIdx}, ${sIdx})">
                 <button onclick="removeSetFromExercise(${exIdx}, ${sIdx})" style="background:none; border:none; color:var(--danger); font-size:16px; opacity: ${isLocked || showSuccess ? '0.1' : '0.8'};" ${isLocked ? 'disabled' : ''}>×</button>
             </div>`;
-
             if (isCurrent) {
                 setsHtml += `
                 <div style="grid-column: 2 / span 2; margin:-4px 0 8px 0; padding-left:2px; opacity:0.8; font-size:10px; color:var(--primary); font-weight:600; letter-spacing:0.3px;">
-                    💡 Klicka på ${statusContent} för att låsa & gå vidare
+                    💡  Klicka på ${statusContent} för att låsa & gå vidare
                 </div>`;
             }
         });
     }
-
     targetCard.innerHTML = `
-    <div onclick="toggleExercise(${exIdx})" style="padding: 12px 15px; display: flex; align-items: center; cursor: pointer; background: ${isOpen ? 'rgba(250, 204, 21, 0.05)' : 'transparent'}">
-        <div style="display: flex; gap: 4px; margin-right: 12px; flex-shrink: 0;">
-            <button class="reorder-btn" onclick="event.stopPropagation(); moveActiveExercise(${exIdx}, -1)" ${isDone ? 'disabled' : ''} style="padding: 4px 6px; font-size: 10px;">▲</button>
-            <button class="reorder-btn" onclick="event.stopPropagation(); moveActiveExercise(${exIdx}, 1)" ${isDone ? 'disabled' : ''} style="padding: 4px 6px; font-size: 10px;">▼</button>
+        <div onclick="toggleExercise(${exIdx})" style="padding: 12px 15px; display: flex; align-items: center; cursor: pointer; background: ${isOpen ? 'rgba(250, 204, 21, 0.05)' : 'transparent'}">
+            <div style="display: flex; gap: 4px; margin-right: 12px; flex-shrink: 0;">
+                <button class="reorder-btn" onclick="event.stopPropagation(); moveActiveExercise(${exIdx}, -1)" ${isDone ? 'disabled' : ''} style="padding: 4px 6px; font-size: 10px;"> ▲ </button>
+                <button class="reorder-btn" onclick="event.stopPropagation(); moveActiveExercise(${exIdx}, 1)" ${isDone ? 'disabled' : ''} style="padding: 4px 6px; font-size: 10px;"> ▼ </button>
+            </div>
+            <div style="display: flex; flex-direction: column; min-width:0; flex-grow:1;">
+                <strong style="font-size: 14px; color: ${isDone ? 'var(--text-light)' : 'var(--text)'}; text-decoration: ${isDone ? 'line-through' : 'none'}; white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">
+                    ${ex.name}
+                </strong>
+                <small style="color: ${isDone ? '#22c55e' : 'var(--primary)'}; font-size: 10px;">
+                    ${isDone ? 'KLAR  ✅ ' : `${completedSets}/${totalSets} set`}
+                </small>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0; margin-left: 10px;">
+                <button onclick="event.stopPropagation(); openReplaceExerciseModal(${exIdx})" style="background:none; border:none; font-size:14px; padding:5px; opacity: 0.7;" ${isDone ? 'disabled' : ''}> 🔄 </button>
+                <button onclick="event.stopPropagation(); removeActiveExercise(${exIdx})" style="background:none; border:none; font-size:14px; padding:5px; opacity: 0.7;" ${isDone ? 'disabled' : ''}> ✖ </button>
+                <span style="font-size: 10px; color: var(--text-light); margin-left: 5px; transform: ${isOpen ? 'rotate(180deg)' : 'rotate(0)'}; transition: 0.3s;"> ▼ </span>
+            </div>
         </div>
-
-        <div style="display: flex; flex-direction: column; min-width:0; flex-grow:1;">
-            <strong style="font-size: 14px; color: ${isDone ? 'var(--text-light)' : 'var(--text)'}; text-decoration: ${isDone ? 'line-through' : 'none'}; white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">
-                ${ex.name}
-            </strong>
-            <small style="color: ${isDone ? '#22c55e' : 'var(--primary)'}; font-size: 10px;">
-                ${isDone ? 'KLAR ✅' : `${completedSets}/${totalSets} set`}
-            </small>
-        </div>
-
-        <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0; margin-left: 10px;">
-            <button onclick="event.stopPropagation(); openReplaceExerciseModal(${exIdx})" style="background:none; border:none; font-size:14px; padding:5px; opacity: 0.7;" ${isDone ? 'disabled' : ''}>🔄</button>
-            <button onclick="event.stopPropagation(); removeActiveExercise(${exIdx})" style="background:none; border:none; font-size:14px; padding:5px; opacity: 0.7;" ${isDone ? 'disabled' : ''}>✖</button>
-            <span style="font-size: 10px; color: var(--text-light); margin-left: 5px; transform: ${isOpen ? 'rotate(180deg)' : 'rotate(0)'}; transition: 0.3s;">▼</span>
-        </div>
-    </div>
-
-    <div style="padding: 0 15px 15px 15px; display: ${isOpen ? 'block' : 'none'}; border-top: 1px solid rgba(255,255,255,0.05);">
-        ${setsHtml}
-        <button class="mode-border glass-border" style="padding:8px; font-size:11px; margin-top:10px; border-style:dashed; width:100%;" onclick="addSetToExercise(${exIdx})" ${isDone ? 'disabled' : ''}>+ Lägg till set</button>
-        <button class="mode-btn ${isDone ? 'blue' : 'green'}" style="padding:12px; font-size:13px; margin-top:15px; width:100%; font-weight:bold;" onclick="toggleExerciseDone(${exIdx})">
-            ${isDone ? 'Ångra Klar ↩️' : 'Markera övning som klar ✅'}
-        </button>
-    </div>`;
+        <div style="padding: 0 15px 15px 15px; display: ${isOpen ? 'block' : 'none'}; border-top: 1px solid rgba(255,255,255,0.05);">
+            ${setsHtml}
+            <button class="mode-border glass-border" style="padding:8px; font-size:11px; margin-top:10px; border-style:dashed; width:100%;" onclick="addSetToExercise(${exIdx})" ${isDone ? 'disabled' : ''}>+ Lägg till set</button>
+            <button class="mode-btn ${isDone ? 'blue' : 'green'}" style="padding:12px; font-size:13px; margin-top:15px; width:100%; font-weight:bold;" onclick="toggleExerciseDone(${exIdx})">
+                ${isDone ? 'Ångra Klar  ↩️ ' : 'Markera övning som klar  ✅ '}
+            </button>
+        </div>`;
 }
 
 // ÄNDRING: Uppdaterad med robust synkronisering mot tabellen public.active_draft i Supabase
 async function persistActiveWorkout() {
     localStorage.setItem("activeWorkoutDraft", JSON.stringify(activeDraft));
     if (!currentUser) return;
-
     try {
         // 1. Försök uppdatera raden som hör till user_id
         const { data, error: updateError } = await supabaseClient
@@ -2087,25 +1973,23 @@ async function persistActiveWorkout() {
             .update({ data: activeDraft })
             .eq('user_id', currentUser.id)
             .select();
-
         // 2. Om update misslyckas eller inte returnerar något (ingen rad fanns), gör en insert
         if (updateError || !data || data.length === 0) {
             console.log("Ingen rad fanns att uppdatera, försöker insert...");
             const { error: insertError } = await supabaseClient
                 .from('active_draft')
-                .insert([{ 
-                    user_id: currentUser.id, 
-                    data: activeDraft 
+                .insert([{
+                    user_id: currentUser.id,
+                    data: activeDraft
                 }]);
-            
-            if (insertError) throw insertError;
-            console.log("✅ Ny rad skapad!");
-        } else {
-            console.log("✅ Befintlig rad uppdaterad!");
-        }
 
+            if (insertError) throw insertError;
+            console.log(" ✅  Ny rad skapad!");
+        } else {
+            console.log(" ✅  Befintlig rad uppdaterad!");
+        }
     } catch (err) {
-        console.error("❌ Kritiskt fel i persistActiveWorkout:", err);
+        console.error(" ❌  Kritiskt fel i persistActiveWorkout:", err);
     }
 }
 
@@ -2113,15 +1997,15 @@ async function moveActiveExercise(i, dir) {
     const scrollPos = window.scrollY;
     const newIdx = i + dir;
     if (newIdx < 0 || newIdx >= activeDraft.workout.exercises.length) return;
-    
+
     [activeDraft.workout.exercises[i], activeDraft.workout.exercises[newIdx]] = [activeDraft.workout.exercises[newIdx], activeDraft.workout.exercises[i]];
     [activeDraft.data[i], activeDraft.data[newIdx]] = [activeDraft.data[newIdx], activeDraft.data[i]];
-    
+
     if (activeDraft.ui_state && activeDraft.ui_state.openExercises) {
         const openExercises = activeDraft.ui_state.openExercises;
         const iIsOpen = openExercises.includes(i);
         const newIdxIsOpen = openExercises.includes(newIdx);
-        
+
         if (iIsOpen && !newIdxIsOpen) {
             openExercises.splice(openExercises.indexOf(i), 1);
             openExercises.push(newIdx);
@@ -2130,7 +2014,7 @@ async function moveActiveExercise(i, dir) {
             openExercises.push(i);
         }
     }
-    
+
     await persistActiveWorkout(); // Synkar ändrad ordning till Supabase
     renderActiveWorkout();
     window.scrollTo(0, scrollPos);
@@ -2139,19 +2023,19 @@ async function moveActiveExercise(i, dir) {
 async function removeActiveExercise(exIdx) {
     if (typeof hideDefaultCloseButton === "function") hideDefaultCloseButton(true);
     const body = document.getElementById("modal-body");
-    
+
     body.innerHTML = `
         <div style="text-align:center; padding:10px;">
-            <div style="font-size:40px; margin-bottom:15px;">🗑️</div>
+            <div style="font-size:40px; margin-bottom:15px;"> 🗑️ </div>
             <h3 style="color:var(--danger);">Ta bort övningen?</h3>
             <p style="color:var(--text-light); margin-bottom:25px; font-size:14px;">Är du säker på att du vill ta bort den här övningen från ditt pågående pass?</p>
-            <button class="mode-btn" style="background:linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color:white; margin-bottom:12px; font-weight:700;" 
-                onclick="(async () => { 
-                    activeDraft.workout.exercises.splice(${exIdx}, 1); 
-                    activeDraft.data.splice(${exIdx}, 1); 
-                    await persistActiveWorkout(); 
-                    closeModal(); 
-                    renderActiveWorkout(); 
+            <button class="mode-btn" style="background:linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color:white; margin-bottom:12px; font-weight:700;"
+                onclick="(async () => {
+                    activeDraft.workout.exercises.splice(${exIdx}, 1);
+                    activeDraft.data.splice(${exIdx}, 1);
+                    await persistActiveWorkout();
+                    closeModal();
+                    renderActiveWorkout();
                 })()">
                 Ja, radera
             </button>
@@ -2162,16 +2046,15 @@ async function removeActiveExercise(exIdx) {
 }
 
 document.getElementById("global-home").addEventListener("click", () => {
-    // ✅ Blockera om användaren redan är på home-view
+    //  ✅  Blockera om anv ä ndaren redan  ä r p å  home-view
     const homeView = document.getElementById("home-view");
     if (homeView && !homeView.classList.contains("hidden")) {
         return; // Gör ingenting om vi redan är hemma
     }
-    
+
     renderHome();
     showView("home-view");
 });
-
 document.getElementById("start-new-btn").onclick = () => renderCalendar(true);
 document.getElementById("calendar-mode").onclick = () => renderCalendar(false);
 document.getElementById("view-exercises-btn").onclick = () => { showView("exercises-view"); filterExercises(currentExerciseCategory); };
@@ -2182,29 +2065,27 @@ document.getElementById("add-custom-pass-btn").onclick = openCreateProgramModal;
 // ==========================================================================
 // GRÄNSSNITT & KNAPPHANTERING (HOME & SAVE WORKOUT)
 // ==========================================================================
-
 function renderHome() {
-    // ✅ Blockera rendering om activeDraft fortfarande finns (pass pågår)
+    //  ✅  Blockera rendering om activeDraft fortfarande finns (pass p å g å r)
     if (activeDraft && activeDraft.isStarted) {
-        console.warn("⚠️ Blockerar renderHome() - träningspass pågår");
+        console.warn(" ⚠️  Blockerar renderHome() - träningspass pågår");
         return;
     }
-    
+
     showView("home-view");
-    
+
     const homeView = document.getElementById("home-view");
     const headerP = homeView.querySelector("header p");
-    
+
     homeView.querySelectorAll(".home-separator").forEach(s => s.remove());
-    
+
     if (headerP) {
         const sep = document.createElement("div");
         sep.className = "separator home-separator";
         sep.style.margin = "25px 0";
         headerP.after(sep);
     }
-
-    // 🔍 SKOTTSÄKER KONTROLL: 
+    //  🔍  SKOTTSÄKER KONTROLL:
     let currentDraft = null;
     if (typeof activeDraft !== 'undefined' && activeDraft) {
         currentDraft = activeDraft;
@@ -2213,22 +2094,20 @@ function renderHome() {
         if (localSaved) {
             try {
                 currentDraft = JSON.parse(localSaved);
-                activeDraft = currentDraft; 
+                activeDraft = currentDraft;
             } catch (e) {
                 console.error("Kunde inte tolka sparat utkast från localStorage", e);
             }
         }
     }
-
     const draftAlertEl = document.getElementById("draft-alert");
     const startNewBtnEl = document.getElementById("start-new-btn");
     const resumeBtnEl = document.getElementById("resume-workout-btn");
-
     // Om vi har ett pågående utkast (passet är INTE avslutat)
     if (currentDraft) {
         if (draftAlertEl) draftAlertEl.classList.remove("hidden");
         if (startNewBtnEl) startNewBtnEl.classList.add("hidden");
-        
+
         if (resumeBtnEl) {
             resumeBtnEl.onclick = () => {
                 if (typeof startWorkout === 'function') {
@@ -2249,8 +2128,8 @@ document.getElementById("save-workout-btn").onclick = async () => {
         body.innerHTML = `
             <h3>Kasta träningspass</h3>
             <p style="text-align:center; color:var(--text-light);">Du har inte startat passet än. Vill du radera utkastet?</p>
-            <button class="mode-btn danger" style="background:var(--danger);" onclick="(async () => { 
-                localStorage.removeItem('activeWorkoutDraft'); 
+            <button class="mode-btn danger" style="background:var(--danger);" onclick="(async () => {
+                localStorage.removeItem('activeWorkoutDraft');
                 if (typeof deleteActiveDraft === 'function') await deleteActiveDraft();
                 if (currentUser) {
                     try {
@@ -2267,14 +2146,12 @@ document.getElementById("save-workout-btn").onclick = async () => {
         openModal();
         return;
     }
-
     pauseTimer();
     const finalTime = document.getElementById("workout-timer").textContent;
-    
+
     let workoutId = activeDraft.id && workoutHistory.some(w => w.id === activeDraft.id)
         ? activeDraft.id
         : "workout_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
-
     const log = {
         id: workoutId,
         date: activeDraft.date,
@@ -2283,36 +2160,34 @@ document.getElementById("save-workout-btn").onclick = async () => {
         exercises: activeDraft.workout.exercises.map((ex, i) => {
             return {
                 name: ex.name,
-                sets_data: activeDraft.data[i].sets_data 
+                sets_data: activeDraft.data[i].sets_data
             };
         })
     };
-    
+
     activeDraft = null;
     secondsElapsed = 0;
     localStorage.removeItem("activeWorkoutDraft");
-
-    // ✅ Visa kalendern DIREKT
+    //  ✅  Visa kalendern DIREKT
     showView("calendar-view");
-
-    // ✅ Spara data i bakgrunden
+    //  ✅  Spara data i bakgrunden
     try {
         if (typeof saveWorkoutHistory === 'function') {
             await saveWorkoutHistory(log);
         }
-        
+
         if (typeof deleteActiveDraft === 'function') {
             await deleteActiveDraft();
         }
-        
+
         if (currentUser) {
             await supabaseClient
                 .from('active_draft')
                 .delete()
                 .eq('user_id', currentUser.id);
         }
-        
-        // ✅ Uppdatera kalendern när allt är sparat
+
+        //  ✅  Uppdatera kalendern n ä r allt  ä r sparat
         if (typeof renderCalendar === 'function') {
             renderCalendar();
         }
@@ -2321,7 +2196,7 @@ document.getElementById("save-workout-btn").onclick = async () => {
     }
 };
 
-document.getElementById("pause-workout-btn").onclick = () => { 
+document.getElementById("pause-workout-btn").onclick = () => {
     showView("home-view");
     if (typeof renderHome === 'function') renderHome();
 };
@@ -2330,10 +2205,10 @@ function renderStats() {
     const container = document.getElementById("chart-container");
     container.innerHTML = "";
     const months = {};
-    workoutHistory.forEach(w => { 
+    workoutHistory.forEach(w => {
         if(w.date) {
-            const m = w.date.substring(0, 7); 
-            months[m] = (months[m] || 0) + 1; 
+            const m = w.date.substring(0, 7);
+            months[m] = (months[m] || 0) + 1;
         }
     });
     Object.entries(months).sort().forEach(([m, val]) => {
@@ -2347,34 +2222,34 @@ function renderStats() {
 }
 
 // ÄNDRING: Säkerställd med asynkron sparning mot tabellen public.calendar_overrides
-async function changeMonth(off) { 
-    currentViewDate.setMonth(currentViewDate.getMonth() + off); 
-    renderCalendar(); 
+async function changeMonth(off) {
+    currentViewDate.setMonth(currentViewDate.getMonth() + off);
+    renderCalendar();
 }
 
-function setOverride(date, val) { 
-    calendarOverrides[date] = val; 
+function setOverride(date, val) {
+    calendarOverrides[date] = val;
     localStorage.setItem("calendarOverrides", JSON.stringify(calendarOverrides));
-    
+
     // Stäng rutan och uppdatera kalendern OMEDELBART (Ingen väntetid för användaren)
-    closeModal(); 
+    closeModal();
     if (typeof renderCalendar === "function") {
-        renderCalendar(); 
+        renderCalendar();
     }
-    
+
     // Spara till servern och Supabase i bakgrunden utan att blockera appen
     setTimeout(async () => {
         try {
-            await saveAll(); 
-            
+            await saveAll();
+
             if (currentUser) {
                 const { data: existingRows, error: checkErr } = await supabaseClient
                     .from('calendar_overrides')
                     .select('id')
                     .eq('user_id', currentUser.id);
-                    
+
                 if (checkErr) throw checkErr;
-                
+
                 if (existingRows && existingRows.length > 0) {
                     await supabaseClient
                         .from('calendar_overrides')
@@ -2392,16 +2267,16 @@ function setOverride(date, val) {
     }, 0);
 }
 
-async function prepareStart(date, id) { 
+async function prepareStart(date, id) {
     const p = programData.routine.find(x => x.id === id);
-    
-    // ✅ Byt vy FÖRST
+
+    //  ✅  Byt vy F Ö RST
     showView('workout-view');
-    
-    // ✅ Starta träning
+
+    //  ✅  Starta tr ä ning
     await startWorkout(p, null, date, true);
-    
-    // ✅ Stäng modal SIST (i bakgrunden)
+
+    //  ✅  St ä ng modal SIST (i bakgrunden)
     setTimeout(() => closeModal(), 0);
 }
 
@@ -2409,11 +2284,11 @@ async function prepareStart(date, id) {
 async function deleteLoggedWorkout(date, idx) {
     const filtered = workoutHistory.filter(w => w.date === date);
     const item = filtered[idx];
-    
+
     // Lokalt uppdatering (Optimistic)
     workoutHistory = workoutHistory.filter(w => w !== item);
     localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
-    
+
     try {
         if (currentUser && item) {
             // Hämtar rader som matchar datum och det specifika programmets namn inuti jsonb-strukturen
@@ -2422,45 +2297,39 @@ async function deleteLoggedWorkout(date, idx) {
                 .select('id, workout_data')
                 .eq('user_id', currentUser.id)
                 .eq('workout_date', date);
-
             if (fetchError) throw fetchError;
-
             // Hitta exakt rätt logg genom djupjämförelse av programnamn
             const targetRow = historyData.find(row => row.workout_data && row.workout_data.programName === item.programName);
-
             if (targetRow) {
                 const { error: deleteError } = await supabaseClient
                     .from('workout_history')
                     .delete()
                     .eq('id', targetRow.id)
                     .eq('user_id', currentUser.id);
-
                 if (deleteError) throw deleteError;
             }
         }
     } catch (error) {
         console.error('Error deleting workout from Supabase:', error);
     }
-
     localStorage.removeItem("activeWorkoutDraft");
     if (typeof deleteActiveDraft === 'function') await deleteActiveDraft();
-    
+
     if (currentUser) {
         try {
             await supabaseClient.from('active_draft').delete().eq('user_id', currentUser.id);
         } catch(e) { console.error(e); }
     }
-    
-    activeDraft = null; 
-    await saveAll(); 
-    closeModal(); 
+
+    activeDraft = null;
+    await saveAll();
+    closeModal();
     renderCalendar();
 }
 
 // ==========================================================================
 // CENTRAL HANTERING AV RADERING OCH EDITERING (ÅTERSTÄLLD TILL ORIGINALDESIGN)
 // ==========================================================================
-
 // 1. ÖPPNA EDITERINGSLÄGET FÖR ETT HISTORISKT PASS (ÅTERSTÄLLD TILL STANDARD)
 async function editLoggedWorkout(date, idx) {
     // 1. Hitta rätt pass baserat på datum och dess lokala index för dagen
@@ -2470,41 +2339,39 @@ async function editLoggedWorkout(date, idx) {
         console.error("Hittade inte det loggade passet för editering.");
         return;
     }
-    
+
     // Hitta det exakta globala indexet i workoutHistory via dess unika ID (eller referens)
     // Detta är KRITISKT för att appens sparfunktion ska kunna skriva över rätt rad i databasen sen!
     const globalIdx = workoutHistory.findIndex(w => w === item || (w.id && w.id === item.id));
-    
+
     let savedSeconds = 0;
     if(item.totalTime) {
         const parts = item.totalTime.split(':');
         savedSeconds = (+parts[0]) * 3600 + (+parts[1]) * 60 + (+parts[2]);
     }
-
     // Behåll passets ursprungliga ID och dess globala position i historiken
-        const workoutObj = { 
-            id: item.id, 
-            name: item.programName,
-            programName: item.programName,  // ← LÄGG TILL DENNA RAD
-            exercises: item.exercises.map(ex => ({ name: ex.name, target: ex.target || "" })) 
-        };
-    
+    const workoutObj = {
+        id: item.id,
+        name: item.programName,
+        programName: item.programName,  // ← LÄGG TILL DENNA RAD
+        exercises: item.exercises.map(ex => ({ name: ex.name, target: ex.target || "" }))
+    };
+
     // Strukturera om övningsdatan korrekt till en matris som matchar activeDraft-strukturen
     const formattedDataArray = item.exercises.map(ex => {
         if(ex.sets_data) {
             return { sets_data: JSON.parse(JSON.stringify(ex.sets_data)), isCompleted: true };
         }
-        return { 
-            sets_data: Array(parseInt(ex.sets || 1)).fill(null).map(() => ({ weight: ex.weight || "", reps: ex.reps || "" })), 
-            isCompleted: true 
+        return {
+            sets_data: Array(parseInt(ex.sets || 1)).fill(null).map(() => ({ weight: ex.weight || "", reps: ex.reps || "" })),
+            isCompleted: true
         };
     });
-
     // Rensa eventuella gamla utkast i bakgrunden utan att frysa appen
     localStorage.removeItem("activeWorkoutDraft");
-    
+
     if (typeof deleteActiveDraft === 'function') deleteActiveDraft();
-    
+
     // FIX: Kör borttagningen av utkastet i en isolerad bakgrundstråd med korrekt try/catch
     setTimeout(async () => {
         if (currentUser && typeof supabaseClient !== 'undefined') {
@@ -2515,36 +2382,36 @@ async function editLoggedWorkout(date, idx) {
             }
         }
     }, 0);
-    
+
     // Etablera det nya redigeringsbara utkastet
     secondsElapsed = savedSeconds;
     activeDraft = {
-        id: item.id, 
+        id: item.id,
         db_id: item.id, // Dubbelsäkrar ID-mappningen för din Supabase-funktion
         historyIndex: globalIdx, // Skickar med det exakta indexet som ska uppdateras i databasen sen
         workout: workoutObj,
-        data: formattedDataArray, 
-        date: date, 
+        data: formattedDataArray,
+        date: date,
         secondsElapsed: savedSeconds,
         isStarted: true,
         wasTimerRunning: false,
         ui_state: { openExercises: [0] }
     };
-    
+
     // Spara utkastet till localStorage
     localStorage.setItem("activeWorkoutDraft", JSON.stringify(activeDraft));
-    
+
     // Hantera sparning av utkastet till servern (asynkront)
     if (typeof persistActiveWorkout === 'function') {
         await persistActiveWorkout();
     } else if (typeof saveActiveDraft === 'function') {
         await saveActiveDraft();
     }
-    
+
     // Uppdatera gränssnittet omedelbart
     if (typeof renderActiveWorkout === 'function') renderActiveWorkout();
     if (typeof updateTimerDisplay === 'function') updateTimerDisplay();
-    
+
     // UX-OPTIMERING: Byt vy direkt till träningsvyn och stäng modalen
     if (typeof showView === 'function') showView("workout-view");
     closeModal();
@@ -2567,35 +2434,33 @@ async function deleteMasterExercise(id) {
     const body = document.getElementById("modal-body");
     body.innerHTML = `
         <div style="text-align:center; padding:10px;">
-            <div style="font-size:40px; margin-bottom:15px;">🗑️</div>
+            <div style="font-size:40px; margin-bottom:15px;"> 🗑️ </div>
             <h3 style="color:var(--danger);">Radera övning?</h3>
             <p style="color:var(--text-light); margin-bottom:25px; font-size:14px;">Vill du radera denna övning permanent?</p>
             <button class="mode-btn" id="confirm-delete-ex-btn" style="background:linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color:white; margin-bottom:12px; font-weight:700;">
                 Ja, radera
             </button>
-            
             <button class="mode-btn glass-border" onclick="hideDefaultCloseButton(false); openEditExerciseModal(${id});">
                 Avbryt
             </button>
         </div>
     `;
-    
-    document.getElementById("confirm-delete-ex-btn").onclick = async () => { 
-        masterExercises = masterExercises.filter(e => e.id != id); 
+
+    document.getElementById("confirm-delete-ex-btn").onclick = async () => {
+        masterExercises = masterExercises.filter(e => e.id != id);
         localStorage.setItem('masterExercises', JSON.stringify(masterExercises));
-        
+
         if (typeof saveCustomProgram === 'function') {
-            await saveCustomProgram(); 
+            await saveCustomProgram();
         }
-        
+
         hideDefaultCloseButton(false);
-        closeModal(); 
-        
+        closeModal();
+
         if (typeof filterExercises === 'function') {
             filterExercises(currentExerciseCategory);
         }
     };
-
     openModal();
 }
 
@@ -2605,15 +2470,15 @@ async function deleteEntireProgram(idx) {
     const body = document.getElementById("modal-body");
     body.innerHTML = `
         <div style="text-align:center; padding:10px;">
-            <div style="font-size:40px; margin-bottom:15px;">🗑️</div>
+            <div style="font-size:40px; margin-bottom:15px;"> 🗑️ </div>
             <h3 style="color:var(--danger);">Radera permanent?</h3>
             <p style="color:var(--text-light); margin-bottom:25px; font-size:14px;">Vill du radera hela detta pass permanent? Det här valet går inte att ångra.</p>
-            <button class="mode-btn" style="background:linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color:white; margin-bottom:12px; font-weight:700;" 
-                onclick="(async () => { 
-                    programData.routine.splice(${idx}, 1); 
+            <button class="mode-btn" style="background:linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color:white; margin-bottom:12px; font-weight:700;"
+                onclick="(async () => {
+                    programData.routine.splice(${idx}, 1);
                     localStorage.setItem('myCustomProgram', JSON.stringify(programData));
-                    await saveAll(); 
-                    
+                    await saveAll();
+
                     if (currentUser) {
                         try {
                             const { data: existing } = await supabaseClient
@@ -2631,9 +2496,9 @@ async function deleteEntireProgram(idx) {
                             console.error('Error updating custom_program in Supabase:', err);
                         }
                     }
-                    
-                    closeModal(); 
-                    document.getElementById('program-details-area').classList.add('hidden'); 
+
+                    closeModal();
+                    document.getElementById('program-details-area').classList.add('hidden');
                     renderProgramView();
                 })()">
                 Ja, radera passet
@@ -2648,10 +2513,9 @@ function openConfirmDeleteModal(dateStr, idx) {
     hideDefaultCloseButton(true);
     const body = document.getElementById("modal-body");
     if (!body) return;
-
     body.innerHTML = `
         <div style="text-align:center; padding:10px;">
-            <div style="font-size:40px; margin-bottom:15px;">🗑️</div>
+            <div style="font-size:40px; margin-bottom:15px;"> 🗑️ </div>
             <h3 style="color:var(--danger); margin: 0 0 10px 0; font-size:22px;">Radera pass ur historiken?</h3>
             <p style="color:var(--text-light); margin-bottom:25px; font-size:14px; line-height:1.4;">
                 This pass will be permanently removed from your calendar and disappear from the database.
@@ -2659,13 +2523,12 @@ function openConfirmDeleteModal(dateStr, idx) {
             <button class="mode-btn" id="confirm-delete-history-btn" style="background:linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color:white; margin-bottom:12px; font-weight:700; width:100%; padding:14px; border-radius:12px; border:none; cursor:pointer;">
                 Ja, radera passet
             </button>
-            
+
             <button class="mode-btn glass-border" id="cancel-delete-history-btn" style="width:100%; padding:12px; border-radius:12px; background:rgba(255,255,255,0.05); color:var(--text); cursor:pointer;">
                 Avbryt
             </button>
         </div>
     `;
-
     document.getElementById("cancel-delete-history-btn").onclick = () => {
         hideDefaultCloseButton(false);
         const filtered = workoutHistory.filter(w => w.date === dateStr);
@@ -2675,56 +2538,48 @@ function openConfirmDeleteModal(dateStr, idx) {
 
     // ÄNDRING: Gjorde klick-hanteraren till en async-funktion för stabil hantering av Supabase
     document.getElementById("confirm-delete-history-btn").onclick = async () => {
-        console.log("👉 [MODAL] Klickade på BEKRÄFTA RADERA. Datum:", dateStr, "Index för dagen:", idx);
-
+        console.log(" 👉  [MODAL] Klickade på BEKRÄFTA RADERA. Datum:", dateStr, "Index för dagen:", idx);
         // 1. Hitta passet i den filtrerade listan för dagen innan vi rör något
         const filtered = workoutHistory.filter(w => w.date === dateStr);
         const itemToDelete = filtered[idx];
-        
+
         if (!itemToDelete) {
-            console.error("❌ [MODAL] Kunde inte hitta något pass på index", idx, "för datum", dateStr);
+            console.error(" ❌  [MODAL] Kunde inte hitta n å got pass p å  index", idx, "f ö r datum", dateStr);
             hideDefaultCloseButton(false);
             closeModal();
             return;
         }
-
         const targetId = itemToDelete.id;
-        console.log("👉 [MODAL] Hittade passet som ska raderas. Unikt ID:", targetId);
-
+        console.log(" 👉  [MODAL] Hittade passet som ska raderas. Unikt ID:", targetId);
         // 2. Skicka raderingen till Supabase FÖRST (eller synkront) så databasen hinner med
         if (typeof deleteWorkoutFromHistoryV2 === 'function') {
-            console.log("🚀 [MODAL] Anropar deleteWorkoutFromHistoryV2 med ID:", targetId);
+            console.log(" 🚀  [MODAL] Anropar deleteWorkoutFromHistoryV2 med ID:", targetId);
             try {
                 // Vi väntar in Supabase här så att databasen tas bort i rätt ordning
                 await deleteWorkoutFromHistoryV2(dateStr, idx, targetId);
             } catch (err) {
-                console.error("❌ [MODAL] Fel vid radering i Supabase:", err);
+                console.error(" ❌  [MODAL] Fel vid radering i Supabase:", err);
             }
         } else {
-            console.error("❌ [MODAL] Hittade inte funktionen deleteWorkoutFromHistoryV2!");
+            console.error(" ❌  [MODAL] Hittade inte funktionen deleteWorkoutFromHistoryV2!");
         }
-
         // 3. Uppdatera den lokala arrayen efteråt med hjälp av det unika ID:t
         const globalIdx = workoutHistory.findIndex(w => w.id === targetId);
         if (globalIdx !== -1) {
             workoutHistory.splice(globalIdx, 1);
-            console.log("✅ [MODAL] Passet borttaget ur lokal workoutHistory-array.");
+            console.log(" ✅  [MODAL] Passet borttaget ur lokal workoutHistory-array.");
         }
-        
+
         // 4. Spara lokalt och stäng ner modalen säkert
         localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
         hideDefaultCloseButton(false);
         closeModal();
-        
+
         // 5. Rita om gränssnittet baserat på det nya stabila läget
         if (typeof renderCalendar === 'function') {
-            renderCalendar(false); 
-        }
-        if (typeof renderHome === 'function') {
-            renderHome();
+            renderCalendar(false);
         }
     };
-
     openModal();
 }
 
@@ -2733,17 +2588,14 @@ function confirmDiscardActiveWorkout() {
     hideDefaultCloseButton(true);
     const body = document.getElementById("modal-body");
     if (!body) return;
-
     const isEditingHistorical = (activeDraft && activeDraft.date);
-
     const titleText = isEditingHistorical ? "Radera passet?" : "Avbryta träningspasset?";
-    const bodyText = isEditingHistorical 
+    const bodyText = isEditingHistorical
         ? "Är du säker på att du vill radera detta sparade träningspass ur din historik? Detta går inte att ångra."
         : "Är du säker på att du vill radera och avsluta detta pågående pass? Inga set kommer att sparas i din historik.";
     const mainBtnText = isEditingHistorical ? "Ja, radera passet permanent" : "Ja, radera passet";
     const cancelBtnText = isEditingHistorical ? "Avbryt" : "Nej, fortsätt träna";
-    const icon = isEditingHistorical ? "🗑️" : "⚠️";
-
+    const icon = isEditingHistorical ? " 🗑️ " : " ⚠️ ";
     body.innerHTML = `
         <div style="text-align:center; padding:10px;">
             <div style="font-size:40px; margin-bottom:15px;">${icon}</div>
@@ -2754,26 +2606,24 @@ function confirmDiscardActiveWorkout() {
             <button class="mode-btn" id="confirm-discard-draft-btn" style="background:linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color:white; margin-bottom:12px; font-weight:700; width:100%; padding:14px; border-radius:12px; border:none; cursor:pointer;">
                 ${mainBtnText}
             </button>
-            
+
             <button class="mode-btn glass-border" id="cancel-discard-draft-btn" style="width:100%; padding:12px; border-radius:12px; background:rgba(255,255,255,0.05); color:var(--text); cursor:pointer;">
                 ${cancelBtnText}
             </button>
         </div>
     `;
-
     document.getElementById("cancel-discard-draft-btn").onclick = () => {
         hideDefaultCloseButton(false);
         closeModal();
     };
-
     document.getElementById("confirm-discard-draft-btn").onclick = async () => {
         if (isEditingHistorical) {
             const dateStr = activeDraft.date;
             const workoutId = activeDraft.id;
-            
+
             workoutHistory = workoutHistory.filter(w => w.id !== workoutId);
             localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
-            
+
             if (currentUser) {
                 try {
                     const { data: historyData } = await supabaseClient
@@ -2781,11 +2631,9 @@ function confirmDiscardActiveWorkout() {
                         .select('id, workout_data')
                         .eq('user_id', currentUser.id)
                         .eq('workout_date', dateStr);
-
-                    const targetRow = historyData?.find(row => 
+                    const targetRow = historyData?.find(row =>
                         row.workout_data && (row.workout_data.id === workoutId || row.id === workoutId)
                     );
-
                     if (targetRow) {
                         await supabaseClient
                             .from('workout_history')
@@ -2798,13 +2646,11 @@ function confirmDiscardActiveWorkout() {
                 }
             }
         }
-
         activeDraft = null;
         localStorage.removeItem("activeWorkoutDraft");
-        
+
         if (typeof stopTimer === 'function') stopTimer();
         secondsElapsed = 0;
-
         if (currentUser !== 'undefined' && currentUser) {
             try {
                 await supabaseClient
@@ -2815,15 +2661,13 @@ function confirmDiscardActiveWorkout() {
                 console.error("Supabase: Fel vid radering av pågående utkast:", err);
             }
         }
-
         // UX-OPTIMERING: Skifta gränssnittet till hemskärmen OMEDELBART innan vi stänger popupen/modalen. Detta förhindrar layout-flash.
         if (typeof showView === 'function') showView("home-view");
         if (typeof renderHome === 'function') renderHome();
-        
+
         hideDefaultCloseButton(false);
         closeModal();
     };
-
     openModal();
 }
 
@@ -2831,26 +2675,22 @@ function confirmDiscardActiveWorkout() {
 // Den sparar ner tillståndet exakt som hemknappen gör och lämnar utkastet redo på startsidan.
 async function saveDraftAndGoHome() {
     if (!activeDraft) return;
-
     // Spara klockans aktuella tid
     activeDraft.secondsElapsed = secondsElapsed;
-
     // Lagra tillståndet lokalt
     localStorage.setItem("activeWorkoutDraft", JSON.stringify(activeDraft));
-    
+
     // Synka med Supabase/molnet
     if (typeof persistActiveWorkout === 'function') {
         await persistActiveWorkout();
     } else if (typeof saveActiveDraft === 'function') {
         await saveActiveDraft();
     }
-
     // Stoppa klockan utan att nollställa
     if (typeof stopTimer === 'function') {
         stopTimer();
     }
-
-    // UX-OPTIMERING: Vi skiftar vyn till "home-view" FÖRST. På så sätt döljs själva omritningen av DOM-trädet (`renderHome()`) bakom rätt skärmläge.
+    // UX-OPTIMERING: Vi skiftar vyn till "home-view" FÖRST. På så sätt döljs själva omritningen av DOM-trädet (\`renderHome()\`) bakom rätt skärmläge.
     if (typeof showView === 'function') showView("home-view");
     if (typeof renderHome === 'function') renderHome();
 }
@@ -2858,41 +2698,33 @@ async function saveDraftAndGoHome() {
 // ==========================================================================
 // TILLAGDA SPAR- OCH PROGRAMFUNKTIONER (EXAKT BIBEHÅLLEN ORIGINALFUNKTIONALITET)
 // ==========================================================================
-
 // Central spara-allt-funktion för lokal lagring och bakgrundssynk
 function saveAll() {
     // FIX: Säkra upp att den lokala referensen matchar fönstrets master-objekt (från Supabase) innan sparning
     if (window.programData) programData = window.programData;
-
     localStorage.setItem("myCustomProgram", JSON.stringify(programData || { routine: [] }));
     localStorage.setItem("masterExercises", JSON.stringify(masterExercises));
     localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
     localStorage.setItem("calendarOverrides", JSON.stringify(calendarOverrides));
-    
+
     // Supabase-synk: Båda ligger kvar och sköter sitt i bakgrunden,
     // men eftersom vi städat upp raderingen kommer de inte längre att krocka!
     if (typeof saveCustomProgram === 'function') saveCustomProgram();
     if (typeof saveCalendarOverrides === 'function') saveCalendarOverrides();
 }
 
-// Sparar utkast för valda övningar i localStorage (lokalt tillfälligt UI-tillstånd)
-async function saveDraftState() {
-    localStorage.setItem('temp_exercise_draft', JSON.stringify(temporarySelectedExercises));
-}
-
 // Skapar och sparar ett helt nytt träningspass/program till lokal lagring och databas
 async function saveNewProgram() {
     const name = document.getElementById("new-pass-name").value.trim();
     if(!name) return alert("Ange ett namn!");
-    
+
     // Säkra upp att vi utgår från senaste datan innan vi pushar
     if (window.programData) programData = window.programData;
     if (!programData) programData = { routine: [] };
     if (!programData.routine) programData.routine = [];
-
     const newPass = { id: "pass-" + Date.now(), name, exercises: [] };
     programData.routine.push(newPass);
-    
+
     // Sparar det nya passet till localStorage och Supabase
     await saveCustomProgramToSupabase();
     const newIdx = programData.routine.length - 1;
@@ -2903,7 +2735,7 @@ async function saveNewProgram() {
 async function saveProgramEdit(idx) {
     if (window.programData) programData = window.programData;
     programData.routine[idx].name = document.getElementById("edit-pass-name").value;
-    
+
     // Sparar det uppdaterade namnet till databasen och lokalt
     await saveCustomProgramToSupabase();
     closeModal();
@@ -2914,21 +2746,19 @@ async function saveProgramEdit(idx) {
 // Central, säker synkronisering av hela programstrukturen (custom_program) till Supabase
 async function saveCustomProgramToSupabase() {
     console.log("saveCustomProgramToSupabase anropad med aktuell programData:", programData);
-    
+
     // 1. Säkra att fönstret har tillgång till exakt samma data
     window.programData = programData;
-    
+
     // 2. Spara till localStorage direkt för snabb UX
     localStorage.setItem("myCustomProgram", JSON.stringify(programData));
-    
+
     // 3. Använd den centrala, säkra sparfunktionen från supabase-data.js
     if (typeof saveCustomProgram === 'function') {
         await saveCustomProgram();
     } else {
         console.warn("Kunde inte hitta saveCustomProgram i supabase-data.js");
     }
-
-    // FIX: Se till att den lokala referensen uppdateras och gränssnittet ritas om omedelbart
+    // FIX: Se till att den lokala referensen uppdateras
     if (window.programData) programData = window.programData;
-    if (typeof renderHome === 'function') renderHome();
 }
