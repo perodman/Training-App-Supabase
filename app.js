@@ -2245,7 +2245,9 @@ function renderHome() {
 }
 
 // Hela flödet vid sparande av träningspass
-document.getElementById("save-workout-btn").onclick = async () => {
+document.getElementById("save-workout-btn").onclick = async (event) => {
+    event.stopPropagation(); // Stoppar event-propagation
+
     if (!activeDraft.isStarted) {
         const body = document.getElementById("modal-body");
         body.innerHTML = `
@@ -2292,6 +2294,40 @@ document.getElementById("save-workout-btn").onclick = async () => {
             };
         })
     };
+
+    // Rensa aktivt utkast och uppdatera lokalt
+    activeDraft = null;
+    secondsElapsed = 0;
+    localStorage.removeItem("activeWorkoutDraft");
+
+    // Direkt till kalendern utan att visa home-view
+    showView("calendar-view");
+
+    // Spara data i bakgrunden
+    try {
+        if (typeof saveWorkoutHistory === 'function') {
+            await saveWorkoutHistory(log);
+        }
+        
+        if (typeof deleteActiveDraft === 'function') {
+            await deleteActiveDraft();
+        }
+        
+        if (currentUser) {
+            await supabaseClient
+                .from('active_draft')
+                .delete()
+                .eq('user_id', currentUser.id);
+        }
+        
+        // Uppdatera kalendern när allt är sparat
+        if (typeof renderCalendar === 'function') {
+            renderCalendar();
+        }
+    } catch (err) {
+        console.error("Fel vid sparande:", err);
+    }
+};
 
     // Rensa aktivt utkast och uppdatera lokalt
     activeDraft = null;
