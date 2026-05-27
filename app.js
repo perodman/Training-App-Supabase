@@ -201,18 +201,18 @@ document.getElementById("save-workout-btn").onclick = async () => {
         workoutId = "workout_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
     }
 
-    const log = {
-        id: workoutId,
-        date: activeDraft.date,
-        programName: activeDraft.programName || activeDraft.workout.name,
-        totalTime: finalTime,
-        exercises: activeDraft.workout.exercises.map((ex, i) => {
-            return {
-                name: ex.name,
-                sets_activeDraft.data[i].sets_data 
-            };
-        })
-    };
+   const log = {
+    id: workoutId,
+    date: activeDraft.date,
+    programName: activeDraft.programName || activeDraft.workout.name,
+    totalTime: finalTime,
+    exercises: activeDraft.workout.exercises.map((ex, i) => {
+        return {
+            name: ex.name,
+            sets_data: activeDraft.data[i].sets_data 
+        };
+    })
+};
     
     // ✅ KRITISK FIX: Nollställ INNAN vybyte
     activeDraft = null;
