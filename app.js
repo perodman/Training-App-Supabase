@@ -2241,6 +2241,12 @@ document.getElementById("add-custom-pass-btn").onclick = openCreateProgramModal;
 // ==========================================================================
 
 function renderHome() {
+    // ✅ Blockera rendering om activeDraft fortfarande finns (pass pågår)
+    if (activeDraft && activeDraft.isStarted) {
+        console.warn("⚠️ Blockerar renderHome() - träningspass pågår");
+        return;
+    }
+    
     showView("home-view");
     
     const homeView = document.getElementById("home-view");
