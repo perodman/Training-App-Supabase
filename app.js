@@ -2243,9 +2243,8 @@ function renderHome() {
 }
 
 // Hela flödet vid sparande av träningspass
-// Hela flödet vid sparande av träningspass
 document.getElementById("save-workout-btn").onclick = async () => {
-    if(!activeDraft.isStarted) {
+    if (!activeDraft.isStarted) {
         const body = document.getElementById("modal-body");
         body.innerHTML = `
             <h3>Kasta träningspass</h3>
@@ -2272,12 +2271,9 @@ document.getElementById("save-workout-btn").onclick = async () => {
     pauseTimer();
     const finalTime = document.getElementById("workout-timer").textContent;
     
-    let workoutId;
-    if (activeDraft.id && workoutHistory.some(w => w.id === activeDraft.id)) {
-        workoutId = activeDraft.id;
-    } else {
-        workoutId = "workout_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
-    }
+    let workoutId = activeDraft.id && workoutHistory.some(w => w.id === activeDraft.id)
+        ? activeDraft.id
+        : "workout_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
 
     const log = {
         id: workoutId,
@@ -2287,12 +2283,10 @@ document.getElementById("save-workout-btn").onclick = async () => {
         exercises: activeDraft.workout.exercises.map((ex, i) => {
             return {
                 name: ex.name,
-                sets_data: activeDraft.data[i].sets_data
+                sets_activeDraft.data[i].sets_data
             };
         })
     };
-    
-    const savedDate = activeDraft.date;
     
     activeDraft = null;
     secondsElapsed = 0;
@@ -2325,38 +2319,6 @@ document.getElementById("save-workout-btn").onclick = async () => {
     } catch (err) {
         console.error("Fel vid sparande:", err);
     }
-};
-    
-    activeDraft = null;
-    secondsElapsed = 0;
-    localStorage.removeItem("activeWorkoutDraft");
-
-    showView("calendar-view");
-
-    setTimeout(async () => {
-        try {
-            if (typeof saveWorkoutHistory === 'function') {
-                await saveWorkoutHistory(log);
-            }
-            
-            if (typeof deleteActiveDraft === 'function') {
-                await deleteActiveDraft();
-            }
-            
-            if (currentUser) {
-                await supabaseClient
-                    .from('active_draft')
-                    .delete()
-                    .eq('user_id', currentUser.id);
-            }
-            
-            if (typeof renderCalendar === 'function') {
-                renderCalendar();
-            }
-        } catch (err) {
-            console.error("Fel vid sparande:", err);
-        }
-    }, 100);
 };
 
 document.getElementById("pause-workout-btn").onclick = () => { 
