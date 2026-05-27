@@ -2215,10 +2215,8 @@ document.getElementById("save-workout-btn").onclick = async () => {
     let workoutId;
     if (activeDraft.id && workoutHistory.some(w => w.id === activeDraft.id)) {
         workoutId = activeDraft.id;
-        console.log("✏️ [SAVE] Uppdaterar befintligt pass med ID:", workoutId);
     } else {
         workoutId = "workout_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
-        console.log("➕ [SAVE] Skapar nytt pass med ID:", workoutId);
     }
 
     const log = {
@@ -2229,44 +2227,42 @@ document.getElementById("save-workout-btn").onclick = async () => {
         exercises: activeDraft.workout.exercises.map((ex, i) => {
             return {
                 name: ex.name,
-                sets_data: activeDraft.data[i].sets_data 
+                sets_activeDraft.data[i].sets_data 
             };
         })
     };
     
-    // Nollställ datan i minnet DIREKT innan vi byter vy.
-    // Detta gör att när appen kör sina interna uppdateringar, så fattar den 
-    // omedelbart att utkastet är borta, och startsidan kommer inte att blinka till med den gula knappen.
-    localStorage.removeItem("activeWorkoutDraft");
-    activeDraft = null; 
+    // ✅ KRITISK FIX: Nollställ INNAN vybyte
+    activeDraft = null;
     secondsElapsed = 0;
+    localStorage.removeItem("activeWorkoutDraft");
 
-    // Byt till kalendervyn blixtsnabbt med originalfunktionen
-    if (typeof showView === 'function') showView("calendar-view");
+    // ✅ Byt vy (nu kan ingen funktion se det gamla utkastet)
+    showView("calendar-view");
     if (typeof window.currentView !== 'undefined') window.currentView = "calendar-view";
     document.body.setAttribute("data-current-view", "calendar-view");
 
-    // Spara till databasen i bakgrunden (nu när skärmen redan har bytt vy)
-    if (typeof saveWorkoutHistory === 'function') {
-        await saveWorkoutHistory(log);
-    }
-
-    if (typeof deleteActiveDraft === 'function') {
-        await deleteActiveDraft();
-    }
-    
-    if (currentUser) {
-        try {
+    // ✅ Spara i bakgrunden (asynkront, påverkar inte UI)
+    try {
+        if (typeof saveWorkoutHistory === 'function') {
+            await saveWorkoutHistory(log);
+        }
+        
+        if (typeof deleteActiveDraft === 'function') {
+            await deleteActiveDraft();
+        }
+        
+        if (currentUser) {
             await supabaseClient
                 .from('active_draft')
                 .delete()
                 .eq('user_id', currentUser.id);
-        } catch (err) {
-            console.error("Fel vid radering av utkast i Supabase:", err);
         }
+    } catch (err) {
+        console.error("Fel vid sparande:", err);
     }
 
-    // Uppdatera kalenderns innehåll
+    // ✅ Uppdatera kalendern SIST
     if (typeof renderCalendar === 'function') renderCalendar();
 };
 
