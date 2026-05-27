@@ -2219,6 +2219,12 @@ async function removeActiveExercise(exIdx) {
 }
 
 document.getElementById("global-home").addEventListener("click", () => {
+    // ✅ Blockera om användaren redan är på home-view
+    const homeView = document.getElementById("home-view");
+    if (homeView && !homeView.classList.contains("hidden")) {
+        return; // Gör ingenting om vi redan är hemma
+    }
+    
     renderHome();
     showView("home-view");
 });
