@@ -256,13 +256,13 @@ async function saveWorkoutHistory(workoutInput) {
     ? { 
         ...activeDraft.workout, 
         exercises: activeDraft.workout.exercises.map((ex, i) => ({
-            name: ex.name,
-            target: ex.target,
-            sets: (activeDraft.data[i]?.sets_data || []).map(s => ({
-                weight: s.weight || 0,
-                reps: s.reps || 0,
-                userConfirmed: s.userConfirmed || false
-            }))
+           name: ex.name,
+           target: ex.target,
+           sets_data: (activeDraft.data[i]?.sets_data || []).map(s => ({
+              weight: s.weight || 0,
+              reps: s.reps || 0,
+              userConfirmed: s.userConfirmed || false
+           }))
         })),
         date: workoutInput.date, 
         totalTime: workoutInput.totalTime 
@@ -318,14 +318,14 @@ async function saveWorkoutHistory(workoutInput) {
         // 3. DATABAS-DETEKTIV: Hitta rätt rad i Supabase om det är en edit
         if (isEdit) {
             console.log("🔎 [DEBUG] Letar i Supabase efter datum:", workout.date);
-            const { rows, error: fetchErr } = await supabaseClient
-                .from('workout_history')
-                .select('id, workout_data')
-                .eq('user_id', currentUser.id)
-                .eq('workout_date', workout.date);
-
+            const { data: rows, error: fetchErr } = await supabaseClient
+             .from('workout_history')
+             .select('id, workout_data')
+             .eq('user_id', currentUser.id)
+             .eq('workout_date', workout.date);
+            
             console.log("📊 [DEBUG] Databasen returnerade antal rader:", rows ? rows.length : 0);
-
+            
             if (!fetchErr && rows && rows.length > 0) {
                 const rättRad = rows.find(r => {
                     if (!r.workout_data) return false;
