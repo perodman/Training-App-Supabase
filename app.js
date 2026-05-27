@@ -2116,15 +2116,14 @@ function renderHome() {
     }
 }
 
-// Det sammanslagna, blinkfria och fungerande sparflödet
+// Sparflödet med extrem felsökning
 document.getElementById("save-workout-btn").onclick = async function(e) {
-    // 1. Stoppa omedelbart eventuella andra bubblande event eller standardbeteenden
     if (e) {
         e.preventDefault();
         e.stopPropagation();
     }
 
-    console.log("🔒 [SAVE-WORKOUT] Avslutar och sparar passet stenhårt till kalendervyn...");
+    console.log("🚀 [SPÅRNING] STEG 1: Spar-knappen klickades. Blockerar standardbeteenden.");
 
     try {
         if(!activeDraft || !activeDraft.isStarted) {
@@ -2148,26 +2147,18 @@ document.getElementById("save-workout-btn").onclick = async function(e) {
             return;
         }
 
-        // Stoppa timern först av allt
+        console.log("🚀 [SPÅRNING] STEG 2: Stoppar timers och bygger logg-objektet.");
         if (typeof stopTimer === 'function') stopTimer();
         if (typeof pauseTimer === 'function') pauseTimer(); 
-        
-        // Stoppa även din autosave-intervall om den heter saveInterval (justera namnet om du har en annan variabel)
-        if (typeof saveInterval !== 'undefined' && saveInterval) {
-            clearInterval(saveInterval);
-        }
+        if (typeof saveInterval !== 'undefined' && saveInterval) clearInterval(saveInterval);
 
         const finalTimeElement = document.getElementById("workout-timer");
         const finalTime = finalTimeElement ? finalTimeElement.textContent : "00:00";
         
-        let workoutId;
-        if (activeDraft.id && workoutHistory.some(w => w.id === activeDraft.id)) {
-            workoutId = activeDraft.id;
-        } else {
-            workoutId = "workout_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
-        }
+        let workoutId = (activeDraft.id && workoutHistory.some(w => w.id === activeDraft.id)) 
+            ? activeDraft.id 
+            : "workout_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
 
-        // Bygg ihop det kompletta data-objektet precis som appen förväntar sig
         const log = {
             id: workoutId,
             date: activeDraft.date || new Date().toISOString().split('T')[0],
@@ -2181,50 +2172,41 @@ document.getElementById("save-workout-btn").onclick = async function(e) {
             })
         };
 
-        // 2. Utför sparningen till träningshistoriken med rätt data
+        console.log("🚀 [SPÅRNING] STEG 3: Anropar saveWorkoutHistory(log). Här kliver vi in i okänt territorium.");
         if (typeof saveWorkoutHistory === 'function') {
             await saveWorkoutHistory(log); 
         }
 
-        // 3. Rensa det aktiva utkastet lokalt
+        console.log("🚀 [SPÅRNING] STEG 4: saveWorkoutHistory(log) är klar. Rensar utkast lokalt.");
         activeDraft = null;
         localStorage.removeItem("activeWorkoutDraft");
         secondsElapsed = 0;
 
-        // 4. Rensa i Supabase och vänta tills det är helt klart
+        console.log("🚀 [SPÅRNING] STEG 5: Rensar Supabase.");
         if (currentUser) {
-            try {
-                await supabaseClient
-                    .from('active_draft')
-                    .delete()
-                    .eq('user_id', currentUser.id);
-            } catch (error) {
-                console.error("Fel vid radering av utkast i Supabase:", error);
-            }
+            await supabaseClient.from('active_draft').delete().eq('user_id', currentUser.id);
         }
 
-        // 5. JÄRNRIDÅ: Modifiera fönstrets tillstånd
-        if (typeof closeModal === 'function') {
-            closeModal();
-        }
+        console.log("🚀 [SPÅRNING] STEG 6: Stänger modalen och renderar kalendern.");
+        if (typeof closeModal === 'function') closeModal();
+        if (typeof renderCalendar === 'function') renderCalendar(false);
 
-        // 6. TVINGA VYERNA I EXAKT RÄTT ORDNING
-        if (typeof renderCalendar === 'function') {
-            renderCalendar(false);
-        }
-
+        console.log("🚀 [SPÅRNING] STEG 7: Framtvingar kalendervyn.");
         showView("calendar-view");
         
-        // Dubbelsäkra status i systemet
         if (typeof window.currentView !== 'undefined') window.currentView = "calendar-view";
         document.body.setAttribute("data-current-view", "calendar-view");
         
-        console.log("✅ [SAVE-WORKOUT] Vyn har tvingats till kalendern och passet är sparat.");
+        console.log("✅ [SPÅRNING] KLAR. Inga fler kodrader körs från spar-knappen.");
 
     } catch (error) {
-        console.error("❌ Fel vid stängning och sparande av passet:", error);
+        console.error("❌ [SPÅRNING] ETT FEL INTRÄFFADE OCH AVBRÖT FLÖDET:", error);
         showView("calendar-view");
     }
+};
+
+document.getElementById("pause-workout-btn").onclick = () => { 
+    location.reload(); 
 };
 
 document.getElementById("pause-workout-btn").onclick = () => { 
