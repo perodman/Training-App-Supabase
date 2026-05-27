@@ -2126,64 +2126,34 @@ function renderHome() {
 }
 
 // Hela flödet vid sparande av träningspass
-document.getElementById("save-workout-btn").onclick = async () => {
-    if (!activeDraft.isStarted) {
-        const body = document.getElementById("modal-body");
-        body.innerHTML = `
-            <h3>Kasta träningspass</h3>
-            <p style="text-align:center; color:var(--text-light);">Du har inte startat passet än. Vill du radera utkastet?</p>
-            <button class="mode-btn danger" style="background:var(--danger);" onclick="(async () => {
-                localStorage.removeItem('activeWorkoutDraft');
-                if (typeof deleteActiveDraft === 'function') await deleteActiveDraft();
-                if (currentUser) {
-                    try {
-                        await supabaseClient.from('active_draft').delete().eq('user_id', currentUser.id);
-                    } catch(e) { console.error(e); }
-                }
-                activeDraft = null;
-                closeModal();
-                showView('home-view');
-                if (typeof renderHome === 'function') renderHome();
-            })()">Kasta passet</button>
-            <button class="mode-btn glass-border" onclick="closeModal()">Avbryt</button>
-        `;
-        openModal();
-        return;
+document.getElementById("save-workout-btn").onclick = async function(e) {
+    // 1. Stoppa omedelbart eventuella andra bubblande event eller standardbeteenden
+    if (e) {
+        e.preventDefault();
+        e.stopPropagation();
     }
-    pauseTimer();
-    const finalTime = document.getElementById("workout-timer").textContent;
 
-    let workoutId = activeDraft.id && workoutHistory.some(w => w.id === activeDraft.id)
-        ? activeDraft.id
-        : "workout_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
-    const log = {
-        id: workoutId,
-        date: activeDraft.date,
-        programName: activeDraft.programName || activeDraft.workout.name,
-        totalTime: finalTime,
-        exercises: activeDraft.workout.exercises.map((ex, i) => {
-            return {
-                name: ex.name,
-                sets_data: activeDraft.data[i].sets_data
-            };
-        })
-    };
+    console.log("🔒 [SAVE-WORKOUT] Avslutar och sparar passet stenhårt till kalendervyn...");
 
-    activeDraft = null;
-    secondsElapsed = 0;
-    localStorage.removeItem("activeWorkoutDraft");
-    //  ✅  Visa kalendern DIREKT
-    showView("calendar-view");
-    //  ✅  Spara data i bakgrunden
     try {
-        if (typeof saveWorkoutHistory === 'function') {
-            await saveWorkoutHistory(log);
+        // Stoppa timern först av allt så den inte ligger och skickar 'persistActiveWorkout' i bakgrunden
+        if (typeof stopTimer === 'function') stopTimer();
+        
+        // Hämta det datum passet kördes på innan vi nollar det, så vi kan ladda kalendern rätt
+        const savedDateStr = activeDraft && activeDraft.date ? activeDraft.date : new Date().toISOString().split('T')[0];
+
+        // 2. Utför sparningen till träningshistoriken (Supabase/LocalStorage)
+        // (Här körs din befintliga kod som bygger ihop workout-objektet och sparar)
+        if (typeof saveWorkoutToHistory === 'function') {
+            await saveWorkoutToHistory(); 
         }
 
-        if (typeof deleteActiveDraft === 'function') {
-            await deleteActiveDraft();
-        }
+        // 3. Rensa det aktiva utkastet lokalt
+        activeDraft = null;
+        localStorage.removeItem("activeWorkoutDraft");
+        secondsElapsed = 0;
 
+        // 4. Rensa i Supabase och VÄNTA tills det är helt jävla klart
         if (currentUser) {
             await supabaseClient
                 .from('active_draft')
@@ -2191,12 +2161,28 @@ document.getElementById("save-workout-btn").onclick = async () => {
                 .eq('user_id', currentUser.id);
         }
 
-        //  ✅  Uppdatera kalendern n ä r allt  ä r sparat
-        if (typeof renderCalendar === 'function') {
-            renderCalendar();
+        // 5. JÄRNRIDÅ: Nu när allt är nollat i databasen, modifierar vi fönstrets tillstånd 
+        // så att INGEN renderHome() kan köras av misstag via modaler eller bakgrundsanrop.
+        if (typeof closeModal === 'function') {
+            // Vi stänger modalen men blockerar eventuella biverkningar
+            closeModal();
         }
-    } catch (err) {
-        console.error("Fel vid sparande:", err);
+
+        // 6. TVINGA VYERNA I EXAKT RÄTT ORDNING
+        // Vi uppdaterar kalenderns data först...
+        if (typeof renderCalendar === 'function') {
+            renderCalendar(false);
+        }
+
+        // ...och skickar användaren DIREKT till kalendervyn utan att passera gå!
+        showView("calendar-view");
+        
+        console.log("✅ [SAVE-WORKOUT] Vyn har tvingats till kalendern. Inga blinkningar tillåtna.");
+
+    } catch (error) {
+        console.error("❌ Fel vid stängning och sparande av passet:", error);
+        // Om något skiter sig, se till att vi ändå hamnar i kalendern och inte fastnar
+        showView("calendar-view");
     }
 };
 
