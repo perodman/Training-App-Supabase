@@ -1964,8 +1964,15 @@ function updateSingleExerciseCard(exIdx) {
 
 // ÄNDRING: Uppdaterad med robust synkronisering mot tabellen public.active_draft i Supabase
 async function persistActiveWorkout() {
+    // SÄKERHETSSPÄRR: Om activeDraft inte finns eller inte är startat, avbryt omedelbart för att förhindra databaskrockar!
+    if (!activeDraft || !activeDraft.isStarted) {
+        localStorage.removeItem("activeWorkoutDraft");
+        return;
+    }
+
     localStorage.setItem("activeWorkoutDraft", JSON.stringify(activeDraft));
     if (!currentUser) return;
+    
     try {
         // 1. Försök uppdatera raden som hör till user_id
         const { data, error: updateError } = await supabaseClient
@@ -1973,23 +1980,20 @@ async function persistActiveWorkout() {
             .update({ data: activeDraft })
             .eq('user_id', currentUser.id)
             .select();
+            
         // 2. Om update misslyckas eller inte returnerar något (ingen rad fanns), gör en insert
         if (updateError || !data || data.length === 0) {
-            console.log("Ingen rad fanns att uppdatera, försöker insert...");
+            console.log(" 🔍 [DEBUG] Ingen rad fanns att uppdatera i active_draft, försöker insert...");
             const { error: insertError } = await supabaseClient
                 .from('active_draft')
-                .insert([{
-                    user_id: currentUser.id,
-                    data: activeDraft
-                }]);
-
+                .insert([{ user_id: currentUser.id, data: activeDraft }]);
             if (insertError) throw insertError;
-            console.log(" ✅  Ny rad skapad!");
+            console.log(" ✅ [DEBUG] Nytt utkast skapat i active_draft!");
         } else {
-            console.log(" ✅  Befintlig rad uppdaterad!");
+            console.log(" ✅ [DEBUG] Befintligt utkast uppdaterat i active_draft!");
         }
     } catch (err) {
-        console.error(" ❌  Kritiskt fel i persistActiveWorkout:", err);
+        console.error(" ❌ Kritiskt fel i persistActiveWorkout:", err);
     }
 }
 
