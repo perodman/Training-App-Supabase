@@ -2360,7 +2360,8 @@ document.getElementById("save-workout-btn").onclick = async () => {
 };
 
 document.getElementById("pause-workout-btn").onclick = () => { 
-    location.reload(); 
+    showView("home-view");
+    if (typeof renderHome === 'function') renderHome();
 };
 
 function renderStats() {
