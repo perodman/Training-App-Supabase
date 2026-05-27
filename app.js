@@ -94,10 +94,10 @@ function saveAll() {
     if (typeof saveCalendarOverrides === 'function') saveCalendarOverrides();
 }
 
+// 🌍 Global flagga som fungerar som en dörrvakt för vybyten under sparprocessen
 window.isSavingWorkout = false;
+
 function showView(id) {
-    // 🔒 Blixtlås/Spärr: Om vi håller på att spara ett pass, tillåt ABSOLUT INGEN annan vy än kalendern.
-    // Detta blockerar bakgrunds-lyssnare från att kasta användaren till startsidan mitt i processen.
     if (window.isSavingWorkout && id !== "calendar-view") {
         console.warn("🛡️ Dörrvakten stoppade en blinkning! Ett bakgrundsskript försökte visa:", id);
         return;
@@ -2084,7 +2084,6 @@ function renderHome() {
         headerP.after(sep);
     }
 
-    // 🔍 SKOTTSÄKER KONTROLL: 
     let currentDraft = null;
     if (typeof activeDraft !== 'undefined' && activeDraft) {
         currentDraft = activeDraft;
@@ -2121,7 +2120,7 @@ function renderHome() {
     }
 }
 
-// Hela flödet vid sparande av träningspass
+// Hela flödet vid sparande av träningspass - DIAGNOSTIKLÄGE
 document.getElementById("save-workout-btn").onclick = async () => {
     if(!activeDraft.isStarted) {
         const body = document.getElementById("modal-body");
@@ -2144,7 +2143,6 @@ document.getElementById("save-workout-btn").onclick = async () => {
         return;
     }
 
-    // 🚀 STAGE 1: Aktivera dörrvakten och lås skärmen visuellt till kalendern direkt
     window.isSavingWorkout = true;
 
     pauseTimer();
@@ -2153,10 +2151,8 @@ document.getElementById("save-workout-btn").onclick = async () => {
     let workoutId;
     if (activeDraft.id && workoutHistory.some(w => w.id === activeDraft.id)) {
         workoutId = activeDraft.id;
-        console.log("✏️ [SAVE] Uppdaterar befintligt pass med ID:", workoutId);
     } else {
         workoutId = "workout_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
-        console.log("➕ [SAVE] Skapar nytt pass med ID:", workoutId);
     }
 
     const log = {
@@ -2172,43 +2168,35 @@ document.getElementById("save-workout-btn").onclick = async () => {
         })
     };
     
-    // Skicka användaren till kalendervyn omedelbart
     if (typeof showView === 'function') showView("calendar-view");
     if (typeof window.currentView !== 'undefined') window.currentView = "calendar-view";
     document.body.setAttribute("data-current-view", "calendar-view");
 
-    // Töm lokalt minne direkt
     localStorage.removeItem("activeWorkoutDraft");
     activeDraft = null; 
     secondsElapsed = 0;
 
-    // STAGE 2: Gör allt tungt databasarbete i bakgrunden.
-    // Under dessa 'await' kommer dina andra skript försöka trigga igång startsidan, 
-    // men dörrvakten i showView kommer nu att kasta bort de anropen i tystnad.
+    // 🛑 DIAGNOSTIK: Jag har stängt av allt som kan störa appen utifrån.
+    // Vi sparar inte till databasen och vi uppdaterar inte kalendern visuellt just nu.
+    /*
     if (typeof saveWorkoutHistory === 'function') {
         await saveWorkoutHistory(log);
     }
-
     if (typeof deleteActiveDraft === 'function') {
         await deleteActiveDraft();
     }
-    
     if (currentUser) {
         try {
-            await supabaseClient
-                .from('active_draft')
-                .delete()
-                .eq('user_id', currentUser.id);
+            await supabaseClient.from('active_draft').delete().eq('user_id', currentUser.id);
         } catch (err) {
-            console.error("Fel vid radering av utkast i Supabase:", err);
+            console.error(err);
         }
     }
-
-    // Uppdatera kalenderns innehåll så det nya passet syns
     if (typeof renderCalendar === 'function') renderCalendar();
+    */
 
-    // 🔓 STAGE 3: Släpp spärren. Nu är sparandet helt klart och säkert!
     window.isSavingWorkout = false;
+    console.log("Diagnostik: Vy-bytet är klart. Inga externa funktioner kördes.");
 };
 
 document.getElementById("pause-workout-btn").onclick = () => { 
