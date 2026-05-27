@@ -1513,6 +1513,17 @@ function renderActiveWorkout() {
         return;
     }
 
+    // ✅ PRE-RENDERA kalendern i bakgrunden (dold) så den är redo när passet avslutas
+    if (typeof renderCalendar === 'function') {
+        const calendarView = document.getElementById("calendar-view");
+        if (calendarView) {
+            const originalDisplay = calendarView.style.display;
+            calendarView.style.display = "none";
+            renderCalendar();
+            calendarView.style.display = originalDisplay;
+        }
+    }
+
     if (footer) footer.classList.remove("hidden");
     
     const pauseBtn = document.getElementById("pause-workout-btn");
@@ -1635,7 +1646,8 @@ function renderActiveWorkout() {
     } else {
         const emptyNotice = document.createElement("p");
         emptyNotice.style.cssText = "color: var(--text-light); text-align: center; padding: 30px 10px; font-size: 14px;";
-        emptyNotice.innerHTML = "Det här passet är tomt.<br>Klicka på knappen nedan för att lägga till dina övningar! 👇";
+        emptyNotice.innerHTML = "Det här passet är tomt.
+Klicka på knappen nedan för att lägga till dina övningar! 👇";
         list.appendChild(emptyNotice);
     }
 
