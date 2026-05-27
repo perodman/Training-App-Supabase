@@ -2317,7 +2317,7 @@ document.getElementById("save-workout-btn").onclick = async () => {
         exercises: activeDraft.workout.exercises.map((ex, i) => {
             return {
                 name: ex.name,
-                sets_data: activeDraft.data[i].sets_data 
+                sets_activeDraft.data[i].sets_data 
             };
         })
     };
@@ -2326,11 +2326,6 @@ document.getElementById("save-workout-btn").onclick = async () => {
     activeDraft = null;
     secondsElapsed = 0;
     localStorage.removeItem("activeWorkoutDraft");
-
-    // ✅ Byt vy (nu kan ingen funktion se det gamla utkastet)
-    showView("calendar-view");
-    if (typeof window.currentView !== 'undefined') window.currentView = "calendar-view";
-    document.body.setAttribute("data-current-view", "calendar-view");
 
     // ✅ Spara i bakgrunden (asynkront, påverkar inte UI)
     try {
@@ -2351,6 +2346,14 @@ document.getElementById("save-workout-btn").onclick = async () => {
     } catch (err) {
         console.error("Fel vid sparande:", err);
     }
+
+    // ✅ Byt vy EFTER att allt är sparat (så kalendern får färsk data)
+    showView("calendar-view");
+    if (typeof window.currentView !== 'undefined') window.currentView = "calendar-view";
+    document.body.setAttribute("data-current-view", "calendar-view");
+    
+    // ✅ Rendera kalendern EN gång
+    if (typeof renderCalendar === 'function') renderCalendar();
 };
 
 document.getElementById("pause-workout-btn").onclick = () => { 
