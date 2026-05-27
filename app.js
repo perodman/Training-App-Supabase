@@ -102,14 +102,164 @@ function showView(id) {
     if(!target) return;
     
     if (target.classList.contains("hidden")) {
-        document.querySelectorAll(".view").forEach(v => v.classList.add("hidden"));
+        // 🚀 SMARTÖVERGÅNG: Istället för att dölja ALLA vyer direkt och skapa ett tomrum,
+        // hittar vi den vy som är synlig just nu, visar den nya OVANPÅ, och döljer den gamla först efteråt.
+        const currentActiveView = document.querySelector(".view:not(.hidden)");
+        
+        // Visa den nya målvyn direkt
         target.classList.remove("hidden");
+        
+        // Dölj den gamla vyn NU när den nya redan täcker skärmen (förhindrar blinkning)
+        if (currentActiveView && currentActiveView !== target) {
+            currentActiveView.classList.add("hidden");
+        }
+        
+        // Återställ animationer rent
         target.style.animation = 'none';
         target.offsetHeight; 
         target.style.animation = null;
     }
     window.scrollTo(0, 0);
 }
+
+function renderHome() {
+    showView("home-view");
+    
+    const homeView = document.getElementById("home-view");
+    const headerP = homeView.querySelector("header p");
+    
+    homeView.querySelectorAll(".home-separator").forEach(s => s.remove());
+    
+    if (headerP) {
+        const sep = document.createElement("div");
+        sep.className = "separator home-separator";
+        sep.style.margin = "25px 0";
+        headerP.after(sep);
+    }
+
+    // 🔍 SKOTTSÄKER KONTROLL: 
+    let currentDraft = null;
+    if (typeof activeDraft !== 'undefined' && activeDraft) {
+        currentDraft = activeDraft;
+    } else {
+        const localSaved = localStorage.getItem("activeWorkoutDraft");
+        if (localSaved) {
+            try {
+                currentDraft = JSON.parse(localSaved);
+                activeDraft = currentDraft; 
+            } catch (e) {
+                console.error("Kunde inte tolka sparat utkast från localStorage", e);
+            }
+        }
+    }
+
+    const draftAlertEl = document.getElementById("draft-alert");
+    const startNewBtnEl = document.getElementById("start-new-btn");
+    const resumeBtnEl = document.getElementById("resume-workout-btn");
+
+    // Om vi har ett pågående utkast (passet är INTE avslutat)
+    if (currentDraft) {
+        if (draftAlertEl) draftAlertEl.classList.remove("hidden");
+        if (startNewBtnEl) startNewBtnEl.classList.add("hidden");
+        
+        if (resumeBtnEl) {
+            resumeBtnEl.onclick = () => {
+                if (typeof startWorkout === 'function') {
+                    startWorkout(currentDraft.workout, currentDraft.data, currentDraft.date);
+                }
+            };
+        }
+    } else {
+        if (startNewBtnEl) startNewBtnEl.classList.remove("hidden");
+        if (draftAlertEl) draftAlertEl.classList.add("hidden");
+    }
+}
+
+// Hela flödet vid sparande av träningspass (Helt återställt och städat)
+document.getElementById("save-workout-btn").onclick = async () => {
+    if(!activeDraft.isStarted) {
+        const body = document.getElementById("modal-body");
+        body.innerHTML = `
+            <h3>Kasta träningspass</h3>
+            <p style="text-align:center; color:var(--text-light);">Du har inte startat passet än. Vill du radera utkastet?</p>
+            <button class="mode-btn danger" style="background:var(--danger);" onclick="(async () => { 
+                localStorage.removeItem('activeWorkoutDraft'); 
+                if (typeof deleteActiveDraft === 'function') await deleteActiveDraft();
+                if (currentUser) {
+                    try {
+                        await supabaseClient.from('active_draft').delete().eq('user_id', currentUser.id);
+                    } catch(e) { console.error(e); }
+                }
+                location.reload(); 
+            })()">Kasta passet</button>
+            <button class="mode-btn glass-border" onclick="closeModal()">Avbryt</button>
+        `;
+        openModal();
+        return;
+    }
+
+    pauseTimer();
+    const finalTime = document.getElementById("workout-timer").textContent;
+    
+    let workoutId;
+    if (activeDraft.id && workoutHistory.some(w => w.id === activeDraft.id)) {
+        workoutId = activeDraft.id;
+        console.log("✏️ [SAVE] Uppdaterar befintligt pass med ID:", workoutId);
+    } else {
+        workoutId = "workout_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
+        console.log("➕ [SAVE] Skapar nytt pass med ID:", workoutId);
+    }
+
+    const log = {
+        id: workoutId,
+        date: activeDraft.date,
+        programName: activeDraft.programName || activeDraft.workout.name,
+        totalTime: finalTime,
+        exercises: activeDraft.workout.exercises.map((ex, i) => {
+            return {
+                name: ex.name,
+                sets_data: activeDraft.data[i].sets_data 
+            };
+        })
+    };
+    
+    // Byt till kalendervyn (vår nya showView ser till att träningsvyn inte döljs förrän kalendern är redo!)
+    if (typeof showView === 'function') showView("calendar-view");
+    if (typeof window.currentView !== 'undefined') window.currentView = "calendar-view";
+    document.body.setAttribute("data-current-view", "calendar-view");
+
+    // Spara i bakgrunden
+    if (typeof saveWorkoutHistory === 'function') {
+        await saveWorkoutHistory(log);
+    }
+
+    // Ta bort det aktiva utkastet lokalt och i molnet
+    localStorage.removeItem("activeWorkoutDraft");
+    if (typeof deleteActiveDraft === 'function') {
+        await deleteActiveDraft();
+    }
+    
+    if (currentUser) {
+        try {
+            await supabaseClient
+                .from('active_draft')
+                .delete()
+                .eq('user_id', currentUser.id);
+        } catch (err) {
+            console.error("Fel vid radering av utkast i Supabase:", err);
+        }
+    }
+    
+    activeDraft = null; 
+    secondsElapsed = 0;
+
+    // Uppdatera kalenderns innehåll
+    if (typeof renderCalendar === 'function') renderCalendar();
+};
+
+document.getElementById("pause-workout-btn").onclick = () => { 
+    location.reload(); 
+};
 
 function closeModal() {
     document.getElementById("workout-modal").classList.add("hidden");
@@ -2102,27 +2252,23 @@ function renderHome() {
 
     // Om vi har ett pågående utkast (passet är INTE avslutat)
     if (currentDraft) {
-        console.log("🔥 Hittade ett aktivt utkast! Visar 'Fortsätt träningen' på startsidan.");
         if (draftAlertEl) draftAlertEl.classList.remove("hidden");
         if (startNewBtnEl) startNewBtnEl.classList.add("hidden");
         
         if (resumeBtnEl) {
             resumeBtnEl.onclick = () => {
-                // UX-OPTIMERING: Dölj hemskärmen OMEDELBART vid klick så det inte blinkar
-                if (homeView) homeView.classList.add("hidden");
                 if (typeof startWorkout === 'function') {
                     startWorkout(currentDraft.workout, currentDraft.data, currentDraft.date);
                 }
             };
         }
     } else {
-        console.log("🧘 Inget aktivt utkast hittat. Visar standardsidan.");
         if (startNewBtnEl) startNewBtnEl.classList.remove("hidden");
         if (draftAlertEl) draftAlertEl.classList.add("hidden");
     }
 }
 
-// ÄNDRING: Flödet vid sparande av träningspass
+// Hela flödet vid sparande av träningspass (Helt återställt och städat)
 document.getElementById("save-workout-btn").onclick = async () => {
     if(!activeDraft.isStarted) {
         const body = document.getElementById("modal-body");
@@ -2144,20 +2290,6 @@ document.getElementById("save-workout-btn").onclick = async () => {
         openModal();
         return;
     }
-
-    // 🚀 ULTRA UX-FIX STAGE 1: Tvinga bort allt som har med utkastet att göra från skärmen DIREKT
-    // På så sätt kan startsidan ALDRIG blinka till med den gula knappen, för vi raderar den från skärmen nu!
-    const draftAlertEl = document.getElementById("draft-alert");
-    if (draftAlertEl) {
-        draftAlertEl.classList.add("hidden");
-        draftAlertEl.innerHTML = ""; // Töm helt så det inte kan visas fysiskt
-    }
-    const startNewBtnEl = document.getElementById("start-new-btn");
-    if (startNewBtnEl) startNewBtnEl.classList.remove("hidden");
-
-    // Dölj även träningsvyn omedelbart så vi får en ren övergång
-    const workoutView = document.getElementById("workout-view");
-    if (workoutView) workoutView.classList.add("hidden");
 
     pauseTimer();
     const finalTime = document.getElementById("workout-timer").textContent;
@@ -2184,22 +2316,18 @@ document.getElementById("save-workout-btn").onclick = async () => {
         })
     };
     
-    // 🚀 ULTRA UX-FIX STAGE 2: Byt till kalendervyn visuellt nu
+    // Byt till kalendervyn (vår nya showView ser till att träningsvyn inte döljs förrän kalendern är redo!)
     if (typeof showView === 'function') showView("calendar-view");
     if (typeof window.currentView !== 'undefined') window.currentView = "calendar-view";
     document.body.setAttribute("data-current-view", "calendar-view");
 
-    // Rensa minnet direkt innan vi väntar på databasen (hindrar startsidan från att triggas av misstag)
-    localStorage.removeItem("activeWorkoutDraft");
-    const backupDraft = activeDraft; // Spara en referens om något skulle krascha
-    activeDraft = null; 
-    secondsElapsed = 0;
-
-    // Spara i bakgrunden (eftersom vi kör await kan det ta 100-500ms, men nu är vyn redan låst till kalendern)
+    // Spara i bakgrunden
     if (typeof saveWorkoutHistory === 'function') {
         await saveWorkoutHistory(log);
     }
 
+    // Ta bort det aktiva utkastet lokalt och i molnet
+    localStorage.removeItem("activeWorkoutDraft");
     if (typeof deleteActiveDraft === 'function') {
         await deleteActiveDraft();
     }
@@ -2214,8 +2342,11 @@ document.getElementById("save-workout-btn").onclick = async () => {
             console.error("Fel vid radering av utkast i Supabase:", err);
         }
     }
+    
+    activeDraft = null; 
+    secondsElapsed = 0;
 
-    // Uppdatera kalenderns innehåll visuellt sist av allt
+    // Uppdatera kalenderns innehåll
     if (typeof renderCalendar === 'function') renderCalendar();
 };
 
