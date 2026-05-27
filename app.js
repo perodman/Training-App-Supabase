@@ -2022,13 +2022,103 @@ async function updateSetDataOnly(exIdx, setIdx) {
 }
 
 async function confirmSet(exIdx, setIdx) {
-    const scrollPos = window.scrollY;
     const currentState = activeDraft.data[exIdx].sets_data[setIdx].userConfirmed;
     activeDraft.data[exIdx].sets_data[setIdx].userConfirmed = !currentState;
     
     await persistActiveWorkout(); // Synkar vid klarmarkering av set
-    renderActiveWorkout();
-    window.scrollTo(0, scrollPos);
+    
+    // ✅ Uppdatera BARA det berörda övningskortet (inte hela listan)
+    updateSingleExerciseCard(exIdx);
+}
+
+function updateSingleExerciseCard(exIdx) {
+    const exerciseData = activeDraft.data[exIdx];
+    const ex = activeDraft.workout.exercises[exIdx];
+    const isDone = exerciseData.isCompleted;
+    const openExercises = activeDraft.ui_state.openExercises || [];
+    const isOpen = openExercises.includes(exIdx);
+    
+    const list = document.getElementById("exercise-list");
+    const cards = list.querySelectorAll(".card.glass");
+    const targetCard = cards[exIdx];
+    if (!targetCard) return;
+    
+    const completedSets = exerciseData.sets_data ? exerciseData.sets_data.filter(s => s.userConfirmed).length : 0;
+    const totalSets = exerciseData.sets_data ? exerciseData.sets_data.length : 0;
+
+    let setsHtml = `<div style="margin-top:10px;">
+        <div style="display:grid; grid-template-columns: 40px 1fr 1fr 30px; gap:8px; margin-bottom:5px; align-items:center;">
+            <small style="text-align:left; padding-left:5px; color:var(--text-light); font-size:9px; font-weight:700;">SET</small>
+            <small style="text-align:center; color:var(--text-light); font-size:9px;">KG</small>
+            <small style="text-align:center; color:var(--text-light); font-size:9px;">REPS</small>
+            <span></span>
+        </div>`;
+
+    if (exerciseData.sets_data) {
+        exerciseData.sets_data.forEach((set, sIdx) => {
+            let isLocked = false;
+            let isCurrent = false;
+            if (sIdx > 0 && !isDone) {
+                const prevSet = exerciseData.sets_data[sIdx - 1];
+                if (!prevSet.userConfirmed) isLocked = true;
+            }
+            if (isDone) isLocked = true;
+            if (!set.userConfirmed && !isLocked && !isDone) isCurrent = true;
+
+            const showSuccess = set.userConfirmed || isDone;
+            let circleColor = showSuccess ? '#22c55e' : (isCurrent ? '#facc15' : '#f59e0b');
+            const statusContent = showSuccess ? '✅' : `#${sIdx + 1}`;
+
+            setsHtml += `
+            <div style="display:grid; grid-template-columns: 40px 1fr 1fr 30px; gap:8px; margin-bottom:8px; align-items:center;">
+                <div onclick="${isLocked && !isDone ? '' : `confirmSet(${exIdx}, ${sIdx})`}" 
+                     style="width:32px; height:32px; border-radius:50%; border:2px solid ${circleColor}; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:10px; font-weight:800; background: ${showSuccess ? 'rgba(34, 197, 94, 0.2)' : (isCurrent ? 'rgba(250, 204, 21, 0.15)' : 'rgba(245, 158, 11, 0.05)')}; color: ${circleColor}; opacity: 1;">
+                    ${statusContent}
+                </div>
+                <input type="text" inputmode="decimal" id="w-${exIdx}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'};" value="${set.weight || ''}" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${exIdx}, ${sIdx})">
+                <input type="text" inputmode="decimal" id="r-${exIdx}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'};" value="${set.reps || ''}" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${exIdx}, ${sIdx})">
+                <button onclick="removeSetFromExercise(${exIdx}, ${sIdx})" style="background:none; border:none; color:var(--danger); font-size:16px; opacity: ${isLocked || showSuccess ? '0.1' : '0.8'};" ${isLocked ? 'disabled' : ''}>×</button>
+            </div>`;
+
+            if (isCurrent) {
+                setsHtml += `
+                <div style="grid-column: 2 / span 2; margin:-4px 0 8px 0; padding-left:2px; opacity:0.8; font-size:10px; color:var(--primary); font-weight:600; letter-spacing:0.3px;">
+                    💡 Klicka på ${statusContent} för att låsa & gå vidare
+                </div>`;
+            }
+        });
+    }
+
+    targetCard.innerHTML = `
+    <div onclick="toggleExercise(${exIdx})" style="padding: 12px 15px; display: flex; align-items: center; cursor: pointer; background: ${isOpen ? 'rgba(250, 204, 21, 0.05)' : 'transparent'}">
+        <div style="display: flex; gap: 4px; margin-right: 12px; flex-shrink: 0;">
+            <button class="reorder-btn" onclick="event.stopPropagation(); moveActiveExercise(${exIdx}, -1)" ${isDone ? 'disabled' : ''} style="padding: 4px 6px; font-size: 10px;">▲</button>
+            <button class="reorder-btn" onclick="event.stopPropagation(); moveActiveExercise(${exIdx}, 1)" ${isDone ? 'disabled' : ''} style="padding: 4px 6px; font-size: 10px;">▼</button>
+        </div>
+
+        <div style="display: flex; flex-direction: column; min-width:0; flex-grow:1;">
+            <strong style="font-size: 14px; color: ${isDone ? 'var(--text-light)' : 'var(--text)'}; text-decoration: ${isDone ? 'line-through' : 'none'}; white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">
+                ${ex.name}
+            </strong>
+            <small style="color: ${isDone ? '#22c55e' : 'var(--primary)'}; font-size: 10px;">
+                ${isDone ? 'KLAR ✅' : `${completedSets}/${totalSets} set`}
+            </small>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0; margin-left: 10px;">
+            <button onclick="event.stopPropagation(); openReplaceExerciseModal(${exIdx})" style="background:none; border:none; font-size:14px; padding:5px; opacity: 0.7;" ${isDone ? 'disabled' : ''}>🔄</button>
+            <button onclick="event.stopPropagation(); removeActiveExercise(${exIdx})" style="background:none; border:none; font-size:14px; padding:5px; opacity: 0.7;" ${isDone ? 'disabled' : ''}>✖</button>
+            <span style="font-size: 10px; color: var(--text-light); margin-left: 5px; transform: ${isOpen ? 'rotate(180deg)' : 'rotate(0)'}; transition: 0.3s;">▼</span>
+        </div>
+    </div>
+
+    <div style="padding: 0 15px 15px 15px; display: ${isOpen ? 'block' : 'none'}; border-top: 1px solid rgba(255,255,255,0.05);">
+        ${setsHtml}
+        <button class="mode-border glass-border" style="padding:8px; font-size:11px; margin-top:10px; border-style:dashed; width:100%;" onclick="addSetToExercise(${exIdx})" ${isDone ? 'disabled' : ''}>+ Lägg till set</button>
+        <button class="mode-btn ${isDone ? 'blue' : 'green'}" style="padding:12px; font-size:13px; margin-top:15px; width:100%; font-weight:bold;" onclick="toggleExerciseDone(${exIdx})">
+            ${isDone ? 'Ångra Klar ↩️' : 'Markera övning som klar ✅'}
+        </button>
+    </div>`;
 }
 
 // ÄNDRING: Uppdaterad med robust synkronisering mot tabellen public.active_draft i Supabase
@@ -2261,9 +2351,6 @@ document.getElementById("save-workout-btn").onclick = async () => {
     } catch (err) {
         console.error("Fel vid sparande:", err);
     }
-
-    // ✅ Uppdatera kalendern SIST
-    if (typeof renderCalendar === 'function') renderCalendar();
 };
 
 document.getElementById("pause-workout-btn").onclick = () => { 
