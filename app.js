@@ -2081,7 +2081,6 @@ function renderHome() {
     }
 
     // 🔍 SKOTTSÄKER KONTROLL: 
-    // Om activeDraft är tom i minnet, titta om det finns sparat i telefonens/webbläsarens minne
     let currentDraft = null;
     if (typeof activeDraft !== 'undefined' && activeDraft) {
         currentDraft = activeDraft;
@@ -2090,7 +2089,6 @@ function renderHome() {
         if (localSaved) {
             try {
                 currentDraft = JSON.parse(localSaved);
-                // Synka tillbaka till den globala variabeln så resten av appen vet om det
                 activeDraft = currentDraft; 
             } catch (e) {
                 console.error("Kunde inte tolka sparat utkast från localStorage", e);
@@ -2105,15 +2103,13 @@ function renderHome() {
     // Om vi har ett pågående utkast (passet är INTE avslutat)
     if (currentDraft) {
         console.log("🔥 Hittade ett aktivt utkast! Visar 'Fortsätt träningen' på startsidan.");
-        
-        // Visa den gula/orangea rutan
         if (draftAlertEl) draftAlertEl.classList.remove("hidden");
-        // Dölj knappen för att starta ett helt nytt pass
         if (startNewBtnEl) startNewBtnEl.classList.add("hidden");
         
-        // Aktivera klickfunktionen på Fortsätt-knappen
         if (resumeBtnEl) {
             resumeBtnEl.onclick = () => {
+                // UX-OPTIMERING: Dölj hemskärmen OMEDELBART vid klick så det inte blinkar
+                if (homeView) homeView.classList.add("hidden");
                 if (typeof startWorkout === 'function') {
                     startWorkout(currentDraft.workout, currentDraft.data, currentDraft.date);
                 }
@@ -2121,13 +2117,12 @@ function renderHome() {
         }
     } else {
         console.log("🧘 Inget aktivt utkast hittat. Visar standardsidan.");
-        // Inget utkast finns -> Visa vanliga startknappen och dölj utkast-rutan
         if (startNewBtnEl) startNewBtnEl.classList.remove("hidden");
         if (draftAlertEl) draftAlertEl.classList.add("hidden");
     }
 }
 
-// ÄNDRING: Hela flödet vid sparande av träningspass har städats och dubblett-säkrats via supabase-data.js
+// ÄNDRING: Flödet vid sparande av träningspass
 document.getElementById("save-workout-btn").onclick = async () => {
     if(!activeDraft.isStarted) {
         const body = document.getElementById("modal-body");
@@ -2149,6 +2144,20 @@ document.getElementById("save-workout-btn").onclick = async () => {
         openModal();
         return;
     }
+
+    // 🚀 ULTRA UX-FIX STAGE 1: Tvinga bort allt som har med utkastet att göra från skärmen DIREKT
+    // På så sätt kan startsidan ALDRIG blinka till med den gula knappen, för vi raderar den från skärmen nu!
+    const draftAlertEl = document.getElementById("draft-alert");
+    if (draftAlertEl) {
+        draftAlertEl.classList.add("hidden");
+        draftAlertEl.innerHTML = ""; // Töm helt så det inte kan visas fysiskt
+    }
+    const startNewBtnEl = document.getElementById("start-new-btn");
+    if (startNewBtnEl) startNewBtnEl.classList.remove("hidden");
+
+    // Dölj även träningsvyn omedelbart så vi får en ren övergång
+    const workoutView = document.getElementById("workout-view");
+    if (workoutView) workoutView.classList.add("hidden");
 
     pauseTimer();
     const finalTime = document.getElementById("workout-timer").textContent;
@@ -2175,18 +2184,22 @@ document.getElementById("save-workout-btn").onclick = async () => {
         })
     };
     
-    // 🚀 UX-FIX: Byt till kalendervyn DIREKT här så skärmen inte hinner blinka till startsidan!
+    // 🚀 ULTRA UX-FIX STAGE 2: Byt till kalendervyn visuellt nu
     if (typeof showView === 'function') showView("calendar-view");
     if (typeof window.currentView !== 'undefined') window.currentView = "calendar-view";
     document.body.setAttribute("data-current-view", "calendar-view");
 
-    // Spara i bakgrunden nu när användaren redan ser kalendern
+    // Rensa minnet direkt innan vi väntar på databasen (hindrar startsidan från att triggas av misstag)
+    localStorage.removeItem("activeWorkoutDraft");
+    const backupDraft = activeDraft; // Spara en referens om något skulle krascha
+    activeDraft = null; 
+    secondsElapsed = 0;
+
+    // Spara i bakgrunden (eftersom vi kör await kan det ta 100-500ms, men nu är vyn redan låst till kalendern)
     if (typeof saveWorkoutHistory === 'function') {
         await saveWorkoutHistory(log);
     }
 
-    // Ta bort det aktiva utkastet lokalt och i molnet
-    localStorage.removeItem("activeWorkoutDraft");
     if (typeof deleteActiveDraft === 'function') {
         await deleteActiveDraft();
     }
@@ -2201,11 +2214,8 @@ document.getElementById("save-workout-btn").onclick = async () => {
             console.error("Fel vid radering av utkast i Supabase:", err);
         }
     }
-    
-    activeDraft = null; 
-    secondsElapsed = 0;
 
-    // Uppdatera kalenderns innehåll
+    // Uppdatera kalenderns innehåll visuellt sist av allt
     if (typeof renderCalendar === 'function') renderCalendar();
 };
 
