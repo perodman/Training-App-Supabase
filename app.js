@@ -95,6 +95,13 @@ function saveAll() {
 }
 
 function showView(id) {
+    // 🛡️ Om järnridån är aktiv tillåter vi ABSOLUT INGET annat än kalendern.
+    // Detta stoppar bakgrundsfunktioner från att tjuvvisa startsidan.
+    if (window.blockAllSync && id !== "calendar-view") {
+        console.warn("🛡️ Järnridån blockerade ett rogue-skript som försökte visa:", id);
+        return;
+    }
+
     const target = document.getElementById(id);
     if(!target) return;
     
@@ -2066,6 +2073,9 @@ document.getElementById("add-custom-pass-btn").onclick = openCreateProgramModal;
 // GRÄNSSNITT & KNAPPHANTERING (HOME & SAVE WORKOUT)
 // ==========================================================================
 function renderHome() {
+    // 🛡️ Om vi håller på att spara, totalvägra att köra eller rita upp startsidan!
+    if (window.blockAllSync) return;
+
     showView("home-view");
     
     const homeView = document.getElementById("home-view");
@@ -2116,17 +2126,21 @@ function renderHome() {
     }
 }
 
-// Sparflödet med extrem felsökning
+// Det fullständiga, synkroniserade och skyddade sparflödet
 document.getElementById("save-workout-btn").onclick = async function(e) {
     if (e) {
         e.preventDefault();
         e.stopPropagation();
     }
 
+    // 🔒 AKTIVERA JÄRNRIDÅN DIREKT: Nu fryser vi appens UI-förändringar från omvärlden
+    window.blockAllSync = true;
+
     console.log("🚀 [SPÅRNING] STEG 1: Spar-knappen klickades. Blockerar standardbeteenden.");
 
     try {
         if(!activeDraft || !activeDraft.isStarted) {
+            window.blockAllSync = false; // Släpp spärren om vi visar en modal
             const body = document.getElementById("modal-body");
             if (body) {
                 body.innerHTML = `
@@ -2172,41 +2186,40 @@ document.getElementById("save-workout-btn").onclick = async function(e) {
             })
         };
 
-        console.log("🚀 [SPÅRNING] STEG 3: Anropar saveWorkoutHistory(log). Här kliver vi in i okänt territorium.");
+        console.log("🚀 [SPÅRNING] STEG 3: Sparar passet till historiken.");
         if (typeof saveWorkoutHistory === 'function') {
             await saveWorkoutHistory(log); 
         }
 
-        console.log("🚀 [SPÅRNING] STEG 4: saveWorkoutHistory(log) är klar. Rensar utkast lokalt.");
+        console.log("🚀 [SPÅRNING] STEG 4: Sparning klar. Rensar utkast lokalt.");
         activeDraft = null;
         localStorage.removeItem("activeWorkoutDraft");
         secondsElapsed = 0;
 
-        console.log("🚀 [SPÅRNING] STEG 5: Rensar Supabase.");
+        console.log("🚀 [SPÅRNING] STEG 5: Rensar databasens active_draft (här kommer rogue-skriptet försöka trigga).");
         if (currentUser) {
             await supabaseClient.from('active_draft').delete().eq('user_id', currentUser.id);
         }
 
-        console.log("🚀 [SPÅRNING] STEG 6: Stänger modalen och renderar kalendern.");
+        console.log("🚀 [SPÅRNING] STEG 6: Stänger modaler och förbereder kalendervyn.");
         if (typeof closeModal === 'function') closeModal();
         if (typeof renderCalendar === 'function') renderCalendar(false);
 
-        console.log("🚀 [SPÅRNING] STEG 7: Framtvingar kalendervyn.");
+        console.log("🚀 [SPÅRNING] STEG 7: Tvingar fram kalendervyn.");
         showView("calendar-view");
         
         if (typeof window.currentView !== 'undefined') window.currentView = "calendar-view";
         document.body.setAttribute("data-current-view", "calendar-view");
         
-        console.log("✅ [SPÅRNING] KLAR. Inga fler kodrader körs från spar-knappen.");
+        console.log("✅ [SPÅRNING] KLAR. Sparat och klart.");
 
     } catch (error) {
-        console.error("❌ [SPÅRNING] ETT FEL INTRÄFFADE OCH AVBRÖT FLÖDET:", error);
+        console.error("❌ [SPÅRNING] ETT FEL INTRÄFFADE:", error);
         showView("calendar-view");
+    } finally {
+        // 🔓 Släpp järnridån först efter att ALLT är helt klart och vi står säkert i kalendervyn
+        window.blockAllSync = false;
     }
-};
-
-document.getElementById("pause-workout-btn").onclick = () => { 
-    location.reload(); 
 };
 
 document.getElementById("pause-workout-btn").onclick = () => { 
