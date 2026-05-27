@@ -2373,7 +2373,7 @@ async function editLoggedWorkout(date, idx) {
     secondsElapsed = savedSeconds;
     activeDraft = {
         id: item.id, 
-        db_id: item.db_id, // Dubbelsäkrar ID-mappningen för din Supabase-funktion
+        db_id: item.id, // Dubbelsäkrar ID-mappningen för din Supabase-funktion
         historyIndex: globalIdx, // Skickar med det exakta indexet som ska uppdateras i databasen sen
         workout: workoutObj,
         data: formattedDataArray, 
