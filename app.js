@@ -115,63 +115,6 @@ function showView(id) {
     window.scrollTo(0, 0);
 }
 
-function renderHome() {
-    showView("home-view");
-    
-    const homeView = document.getElementById("home-view");
-    const headerP = homeView.querySelector("header p");
-    
-    homeView.querySelectorAll(".home-separator").forEach(s => s.remove());
-    
-    if (headerP) {
-        const sep = document.createElement("div");
-        sep.className = "separator home-separator";
-        sep.style.margin = "25px 0";
-        headerP.after(sep);
-    }
-
-    // 🔍 SKOTTSÄKER KONTROLL: 
-    let currentDraft = null;
-    if (typeof activeDraft !== 'undefined' && activeDraft) {
-        currentDraft = activeDraft;
-    } else {
-        const localSaved = localStorage.getItem("activeWorkoutDraft");
-        if (localSaved) {
-            try {
-                currentDraft = JSON.parse(localSaved);
-                activeDraft = currentDraft; 
-            } catch (e) {
-                console.error("Kunde inte tolka sparat utkast från localStorage", e);
-            }
-        }
-    }
-
-    const draftAlertEl = document.getElementById("draft-alert");
-    const startNewBtnEl = document.getElementById("start-new-btn");
-    const resumeBtnEl = document.getElementById("resume-workout-btn");
-
-    // Om vi har ett pågående utkast (passet är INTE avslutat)
-    if (currentDraft) {
-        if (draftAlertEl) draftAlertEl.classList.remove("hidden");
-        if (startNewBtnEl) startNewBtnEl.classList.add("hidden");
-        
-        if (resumeBtnEl) {
-            resumeBtnEl.onclick = () => {
-                if (typeof startWorkout === 'function') {
-                    startWorkout(currentDraft.workout, currentDraft.data, currentDraft.date);
-                }
-            };
-        }
-    } else {
-        if (startNewBtnEl) startNewBtnEl.classList.remove("hidden");
-        if (draftAlertEl) draftAlertEl.classList.add("hidden");
-    }
-}
-
-document.getElementById("pause-workout-btn").onclick = () => { 
-    location.reload(); 
-};
-
 function closeModal() {
     document.getElementById("workout-modal").classList.add("hidden");
     const video = document.querySelector("#modal-body video");
