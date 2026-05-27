@@ -2080,17 +2080,50 @@ function renderHome() {
         headerP.after(sep);
     }
 
-    // SÄKERHETSSPÄRR: Hämta det aktuella visningsläget för appen (om sparat på body/variabel)
-    const currentAppView = document.body.getAttribute("data-current-view") || window.currentView || "";
-
-    // FIX: Vi tillåter att rutan visas om man är på hem-vyn (home-view) eller om vyn är tom/inte satt till kalendern
-    if (activeDraft && currentAppView !== "calendar-view") {
-        document.getElementById("draft-alert").classList.remove("hidden");
-        document.getElementById("start-new-btn").classList.add("hidden");
-        document.getElementById("resume-workout-btn").onclick = () => startWorkout(activeDraft.workout, activeDraft.data, activeDraft.date);
+    // 🔍 SKOTTSÄKER KONTROLL: 
+    // Om activeDraft är tom i minnet, titta om det finns sparat i telefonens/webbläsarens minne
+    let currentDraft = null;
+    if (typeof activeDraft !== 'undefined' && activeDraft) {
+        currentDraft = activeDraft;
     } else {
-        document.getElementById("start-new-btn").classList.remove("hidden");
-        document.getElementById("draft-alert").classList.add("hidden");
+        const localSaved = localStorage.getItem("activeWorkoutDraft");
+        if (localSaved) {
+            try {
+                currentDraft = JSON.parse(localSaved);
+                // Synka tillbaka till den globala variabeln så resten av appen vet om det
+                activeDraft = currentDraft; 
+            } catch (e) {
+                console.error("Kunde inte tolka sparat utkast från localStorage", e);
+            }
+        }
+    }
+
+    const draftAlertEl = document.getElementById("draft-alert");
+    const startNewBtnEl = document.getElementById("start-new-btn");
+    const resumeBtnEl = document.getElementById("resume-workout-btn");
+
+    // Om vi har ett pågående utkast (passet är INTE avslutat)
+    if (currentDraft) {
+        console.log("🔥 Hittade ett aktivt utkast! Visar 'Fortsätt träningen' på startsidan.");
+        
+        // Visa den gula/orangea rutan
+        if (draftAlertEl) draftAlertEl.classList.remove("hidden");
+        // Dölj knappen för att starta ett helt nytt pass
+        if (startNewBtnEl) startNewBtnEl.classList.add("hidden");
+        
+        // Aktivera klickfunktionen på Fortsätt-knappen
+        if (resumeBtnEl) {
+            resumeBtnEl.onclick = () => {
+                if (typeof startWorkout === 'function') {
+                    startWorkout(currentDraft.workout, currentDraft.data, currentDraft.date);
+                }
+            };
+        }
+    } else {
+        console.log("🧘 Inget aktivt utkast hittat. Visar standardsidan.");
+        // Inget utkast finns -> Visa vanliga startknappen och dölj utkast-rutan
+        if (startNewBtnEl) startNewBtnEl.classList.remove("hidden");
+        if (draftAlertEl) draftAlertEl.classList.add("hidden");
     }
 }
 
@@ -2120,14 +2153,11 @@ document.getElementById("save-workout-btn").onclick = async () => {
     pauseTimer();
     const finalTime = document.getElementById("workout-timer").textContent;
     
-    // 🔑 KRITISK FIX: Använd befintligt ID om det är en edit, annars skapa nytt
     let workoutId;
     if (activeDraft.id && workoutHistory.some(w => w.id === activeDraft.id)) {
-        // Detta är en edit av ett befintligt pass
         workoutId = activeDraft.id;
         console.log("✏️ [SAVE] Uppdaterar befintligt pass med ID:", workoutId);
     } else {
-        // Detta är ett nytt pass
         workoutId = "workout_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
         console.log("➕ [SAVE] Skapar nytt pass med ID:", workoutId);
     }
@@ -2145,12 +2175,11 @@ document.getElementById("save-workout-btn").onclick = async () => {
         })
     };
     
-    // CENTRAL SPARFUNKTION: Sköter insättning/uppdatering i Supabase, localStorage samt synk på ett säkert sätt
     if (typeof saveWorkoutHistory === 'function') {
         await saveWorkoutHistory(log);
     }
 
-    // Ta bort det aktiva utkastet lokalt och i molnet
+    // Passet ÄR avslutat och sparat -> Nu rensar vi bort det helt så knappen försvinner från startsidan
     localStorage.removeItem("activeWorkoutDraft");
     if (typeof deleteActiveDraft === 'function') {
         await deleteActiveDraft();
@@ -2171,20 +2200,21 @@ document.getElementById("save-workout-btn").onclick = async () => {
     activeDraft = null; 
     secondsElapsed = 0;
     
-    // SÄKERHETSSPÄRR: Sätt appens aktuella vy-tillstånd till kalendern precis innan renderingen sker
     if (typeof window.currentView !== 'undefined') window.currentView = "calendar-view";
     document.body.setAttribute("data-current-view", "calendar-view");
 
-    // Uppdaterar kalendervyn för att omedelbart reflektera det nya passet
     if (typeof renderCalendar === 'function') renderCalendar();
-    
-    // UX-OPTIMERING: Tvinga vyn till träningsdagboken direkt så att hemskärmen inte hinner blinka till i bakgrunden
     if (typeof showView === 'function') showView("calendar-view");
 };
 
+// När man väljer "Spara utkast" (pausa passet)
 document.getElementById("pause-workout-btn").onclick = () => { 
+    // Om du sparar ner utkastet till localStorage i en funktion som heter saveDraftAndGoHome, 
+    // se till att det ligger där innan sidan laddas om. 
+    // location.reload() kommer starta om appen och köra renderHome() som nu kollar localStorage direkt!
     location.reload(); 
 };
+
 function renderStats() {
     const container = document.getElementById("chart-container");
     container.innerHTML = "";
