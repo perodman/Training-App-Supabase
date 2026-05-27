@@ -94,25 +94,21 @@ function saveAll() {
     if (typeof saveCalendarOverrides === 'function') saveCalendarOverrides();
 }
 
-// 🌍 Global flagga som fungerar som en dörrvakt för vybyten under sparprocessen
-window.isSavingWorkout = false;
-
 function showView(id) {
-    if (window.isSavingWorkout && id !== "calendar-view") {
-        console.warn("🛡️ Dörrvakten stoppade en blinkning! Ett bakgrundsskript försökte visa:", id);
-        return;
-    }
-
     const target = document.getElementById(id);
-    if(!target) return;
-    
-    if (target.classList.contains("hidden")) {
-        document.querySelectorAll(".view").forEach(v => v.classList.add("hidden"));
-        target.classList.remove("hidden");
-        target.style.animation = 'none';
-        target.offsetHeight; 
-        target.style.animation = null;
-    }
+    if (!target) return;
+
+    // Dölj alla vyer FÖRST (viktigt för att undvika blinkning)
+    document.querySelectorAll(".view").forEach(v => {
+        if (v !== target) v.classList.add("hidden");
+    });
+
+    // Visa målvyn
+    target.classList.remove("hidden");
+    target.style.animation = 'none';
+    target.offsetHeight;
+    target.style.animation = null;
+
     window.scrollTo(0, 0);
 }
 
@@ -2070,20 +2066,26 @@ document.getElementById("add-custom-pass-btn").onclick = openCreateProgramModal;
 // GRÄNSSNITT & KNAPPHANTERING (HOME & SAVE WORKOUT)
 // ==========================================================================
 function renderHome() {
+    //  ✅  Blockera rendering om activeDraft fortfarande finns (pass p å g å r)
+    if (activeDraft && activeDraft.isStarted) {
+        console.warn(" ⚠️  Blockerar renderHome() - träningspass pågår");
+        return;
+    }
+
     showView("home-view");
-    
+
     const homeView = document.getElementById("home-view");
     const headerP = homeView.querySelector("header p");
-    
+
     homeView.querySelectorAll(".home-separator").forEach(s => s.remove());
-    
+
     if (headerP) {
         const sep = document.createElement("div");
         sep.className = "separator home-separator";
         sep.style.margin = "25px 0";
         headerP.after(sep);
     }
-
+    //  🔍  SKOTTSÄKER KONTROLL:
     let currentDraft = null;
     if (typeof activeDraft !== 'undefined' && activeDraft) {
         currentDraft = activeDraft;
@@ -2092,21 +2094,20 @@ function renderHome() {
         if (localSaved) {
             try {
                 currentDraft = JSON.parse(localSaved);
-                activeDraft = currentDraft; 
+                activeDraft = currentDraft;
             } catch (e) {
                 console.error("Kunde inte tolka sparat utkast från localStorage", e);
             }
         }
     }
-
     const draftAlertEl = document.getElementById("draft-alert");
     const startNewBtnEl = document.getElementById("start-new-btn");
     const resumeBtnEl = document.getElementById("resume-workout-btn");
-
+    // Om vi har ett pågående utkast (passet är INTE avslutat)
     if (currentDraft) {
         if (draftAlertEl) draftAlertEl.classList.remove("hidden");
         if (startNewBtnEl) startNewBtnEl.classList.add("hidden");
-        
+
         if (resumeBtnEl) {
             resumeBtnEl.onclick = () => {
                 if (typeof startWorkout === 'function') {
@@ -2120,41 +2121,37 @@ function renderHome() {
     }
 }
 
-// Hela flödet vid sparande av träningspass - DIAGNOSTIKLÄGE
+// Hela flödet vid sparande av träningspass
 document.getElementById("save-workout-btn").onclick = async () => {
-    if(!activeDraft.isStarted) {
+    if (!activeDraft.isStarted) {
         const body = document.getElementById("modal-body");
         body.innerHTML = `
             <h3>Kasta träningspass</h3>
             <p style="text-align:center; color:var(--text-light);">Du har inte startat passet än. Vill du radera utkastet?</p>
-            <button class="mode-btn danger" style="background:var(--danger);" onclick="(async () => { 
-                localStorage.removeItem('activeWorkoutDraft'); 
+            <button class="mode-btn danger" style="background:var(--danger);" onclick="(async () => {
+                localStorage.removeItem('activeWorkoutDraft');
                 if (typeof deleteActiveDraft === 'function') await deleteActiveDraft();
                 if (currentUser) {
                     try {
                         await supabaseClient.from('active_draft').delete().eq('user_id', currentUser.id);
                     } catch(e) { console.error(e); }
                 }
-                location.reload(); 
+                activeDraft = null;
+                closeModal();
+                showView('home-view');
+                if (typeof renderHome === 'function') renderHome();
             })()">Kasta passet</button>
             <button class="mode-btn glass-border" onclick="closeModal()">Avbryt</button>
         `;
         openModal();
         return;
     }
-
-    window.isSavingWorkout = true;
-
     pauseTimer();
     const finalTime = document.getElementById("workout-timer").textContent;
-    
-    let workoutId;
-    if (activeDraft.id && workoutHistory.some(w => w.id === activeDraft.id)) {
-        workoutId = activeDraft.id;
-    } else {
-        workoutId = "workout_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
-    }
 
+    let workoutId = activeDraft.id && workoutHistory.some(w => w.id === activeDraft.id)
+        ? activeDraft.id
+        : "workout_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
     const log = {
         id: workoutId,
         date: activeDraft.date,
@@ -2163,44 +2160,45 @@ document.getElementById("save-workout-btn").onclick = async () => {
         exercises: activeDraft.workout.exercises.map((ex, i) => {
             return {
                 name: ex.name,
-                sets_data: activeDraft.data[i].sets_data 
+                sets_data: activeDraft.data[i].sets_data
             };
         })
     };
-    
-    if (typeof showView === 'function') showView("calendar-view");
-    if (typeof window.currentView !== 'undefined') window.currentView = "calendar-view";
-    document.body.setAttribute("data-current-view", "calendar-view");
 
-    localStorage.removeItem("activeWorkoutDraft");
-    activeDraft = null; 
+    activeDraft = null;
     secondsElapsed = 0;
-
-    // 🛑 DIAGNOSTIK: Jag har stängt av allt som kan störa appen utifrån.
-    // Vi sparar inte till databasen och vi uppdaterar inte kalendern visuellt just nu.
-    /*
-    if (typeof saveWorkoutHistory === 'function') {
-        await saveWorkoutHistory(log);
-    }
-    if (typeof deleteActiveDraft === 'function') {
-        await deleteActiveDraft();
-    }
-    if (currentUser) {
-        try {
-            await supabaseClient.from('active_draft').delete().eq('user_id', currentUser.id);
-        } catch (err) {
-            console.error(err);
+    localStorage.removeItem("activeWorkoutDraft");
+    //  ✅  Visa kalendern DIREKT
+    showView("calendar-view");
+    //  ✅  Spara data i bakgrunden
+    try {
+        if (typeof saveWorkoutHistory === 'function') {
+            await saveWorkoutHistory(log);
         }
-    }
-    if (typeof renderCalendar === 'function') renderCalendar();
-    */
 
-    window.isSavingWorkout = false;
-    console.log("Diagnostik: Vy-bytet är klart. Inga externa funktioner kördes.");
+        if (typeof deleteActiveDraft === 'function') {
+            await deleteActiveDraft();
+        }
+
+        if (currentUser) {
+            await supabaseClient
+                .from('active_draft')
+                .delete()
+                .eq('user_id', currentUser.id);
+        }
+
+        //  ✅  Uppdatera kalendern n ä r allt  ä r sparat
+        if (typeof renderCalendar === 'function') {
+            renderCalendar();
+        }
+    } catch (err) {
+        console.error("Fel vid sparande:", err);
+    }
 };
 
-document.getElementById("pause-workout-btn").onclick = () => { 
-    location.reload(); 
+document.getElementById("pause-workout-btn").onclick = () => {
+    showView("home-view");
+    if (typeof renderHome === 'function') renderHome();
 };
 
 function renderStats() {
