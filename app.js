@@ -2300,6 +2300,7 @@ function renderHome() {
 }
 
 // Hela flödet vid sparande av träningspass
+// Hela flödet vid sparande av träningspass
 document.getElementById("save-workout-btn").onclick = async () => {
     if(!activeDraft.isStarted) {
         const body = document.getElementById("modal-body");
@@ -2314,7 +2315,10 @@ document.getElementById("save-workout-btn").onclick = async () => {
                         await supabaseClient.from('active_draft').delete().eq('user_id', currentUser.id);
                     } catch(e) { console.error(e); }
                 }
-                location.reload(); 
+                activeDraft = null;
+                closeModal();
+                showView('home-view');
+                if (typeof renderHome === 'function') renderHome();
             })()">Kasta passet</button>
             <button class="mode-btn glass-border" onclick="closeModal()">Avbryt</button>
         `;
@@ -2340,10 +2344,45 @@ document.getElementById("save-workout-btn").onclick = async () => {
         exercises: activeDraft.workout.exercises.map((ex, i) => {
             return {
                 name: ex.name,
-                sets_data: activeDraft.data[i].sets_data 
+                sets_activeDraft.data[i].sets_data 
             };
         })
     };
+    
+    const savedDate = activeDraft.date;
+    
+    activeDraft = null;
+    secondsElapsed = 0;
+    localStorage.removeItem("activeWorkoutDraft");
+
+    // ✅ Visa kalendern DIREKT
+    showView("calendar-view");
+
+    // ✅ Spara data i bakgrunden
+    try {
+        if (typeof saveWorkoutHistory === 'function') {
+            await saveWorkoutHistory(log);
+        }
+        
+        if (typeof deleteActiveDraft === 'function') {
+            await deleteActiveDraft();
+        }
+        
+        if (currentUser) {
+            await supabaseClient
+                .from('active_draft')
+                .delete()
+                .eq('user_id', currentUser.id);
+        }
+        
+        // ✅ Uppdatera kalendern när allt är sparat
+        if (typeof renderCalendar === 'function') {
+            renderCalendar();
+        }
+    } catch (err) {
+        console.error("Fel vid sparande:", err);
+    }
+};
     
     activeDraft = null;
     secondsElapsed = 0;
