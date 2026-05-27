@@ -2175,11 +2175,17 @@ document.getElementById("save-workout-btn").onclick = async () => {
         })
     };
     
+    // 🚀 UX-FIX: Byt till kalendervyn DIREKT här så skärmen inte hinner blinka till startsidan!
+    if (typeof showView === 'function') showView("calendar-view");
+    if (typeof window.currentView !== 'undefined') window.currentView = "calendar-view";
+    document.body.setAttribute("data-current-view", "calendar-view");
+
+    // Spara i bakgrunden nu när användaren redan ser kalendern
     if (typeof saveWorkoutHistory === 'function') {
         await saveWorkoutHistory(log);
     }
 
-    // Passet ÄR avslutat och sparat -> Nu rensar vi bort det helt så knappen försvinner från startsidan
+    // Ta bort det aktiva utkastet lokalt och i molnet
     localStorage.removeItem("activeWorkoutDraft");
     if (typeof deleteActiveDraft === 'function') {
         await deleteActiveDraft();
@@ -2187,11 +2193,10 @@ document.getElementById("save-workout-btn").onclick = async () => {
     
     if (currentUser) {
         try {
-            const { error: draftDelErr } = await supabaseClient
+            await supabaseClient
                 .from('active_draft')
                 .delete()
                 .eq('user_id', currentUser.id);
-            if (draftDelErr) throw draftDelErr;
         } catch (err) {
             console.error("Fel vid radering av utkast i Supabase:", err);
         }
@@ -2199,19 +2204,12 @@ document.getElementById("save-workout-btn").onclick = async () => {
     
     activeDraft = null; 
     secondsElapsed = 0;
-    
-    if (typeof window.currentView !== 'undefined') window.currentView = "calendar-view";
-    document.body.setAttribute("data-current-view", "calendar-view");
 
+    // Uppdatera kalenderns innehåll
     if (typeof renderCalendar === 'function') renderCalendar();
-    if (typeof showView === 'function') showView("calendar-view");
 };
 
-// När man väljer "Spara utkast" (pausa passet)
 document.getElementById("pause-workout-btn").onclick = () => { 
-    // Om du sparar ner utkastet till localStorage i en funktion som heter saveDraftAndGoHome, 
-    // se till att det ligger där innan sidan laddas om. 
-    // location.reload() kommer starta om appen och köra renderHome() som nu kollar localStorage direkt!
     location.reload(); 
 };
 
