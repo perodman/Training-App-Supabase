@@ -2290,7 +2290,7 @@ document.getElementById("save-workout-btn").onclick = async (event) => {
         exercises: activeDraft.workout.exercises.map((ex, i) => {
             return {
                 name: ex.name,
-                sets_activeDraft.data[i].sets_data
+                sets_data: activeDraft.data[i].sets_data 
             };
         })
     };
