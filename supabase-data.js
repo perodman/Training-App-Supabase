@@ -2,7 +2,7 @@
 // SUPABASE DATABASOPERATIONER (DUBBLETT-SÄKRAD MED UNIKA WORKOUT-ID:N)
 // ==========================================================================
 
-// SÄKERHETSSPÄRR: Förhindrar att appen gör dolda total-omladdningar mitt under en session eller parallella anrop vid start
+// SÄKERHETSSPÄRRAR: Förhindrar dubbla eller dolda omladdningar mitt under sessioner
 if (typeof window.supabaseDataLoadedOnce === 'undefined') {
   window.supabaseDataLoadedOnce = false;
 }
@@ -12,18 +12,19 @@ if (typeof window.supabaseDataLoading === 'undefined') {
 
 async function loadUserData() {
   if (!currentUser) return;
-  
-  // JÄRNRIDÅ: Om data redan har synkats eller om laddning pågår, totalvägra att köra parallellt!
+
+  // JÄRNRIDÅ: Om data redan laddas, eller redan har laddats en gång, totalvägra att fortsätta!
   if (window.supabaseDataLoadedOnce === true || window.supabaseDataLoading === true) {
-    console.log(" 🛑  [SUPABASE-DATA] loadUserData avbröts aktivt. Sessionen är redan initierad eller laddning pågår. Skyddar lokalt minne.");
+    console.log(" 🛑  [SUPABASE-DATA] loadUserData avbröts aktivt. Laddning pågår redan eller sessionen är redan initierad. Skyddar lokalt minne.");
     return;
   }
-  
-  // Sätt laddningsflaggan omedelbart vid inträdet för att stoppa asynkrona parallella anrop (t.ex. från onAuthStateChange)
+
+  // Sätt laddningslåset SYNKRONST omedelbart innan asynkrona await-anrop påbörjas!
   window.supabaseDataLoading = true;
 
   try {
     console.log("Startar synkroniserad laddning av data från Supabase...");
+    
     // 1. SÄKRA UPP GRUNDSTRUKTURER I WINDOW-OBJEKTET SOM BACKUP
     if (!window.programData) {
       try { window.programData = JSON.parse(localStorage.getItem("myCustomProgram")); } catch(e) { window.programData = null; }
@@ -40,7 +41,7 @@ async function loadUserData() {
     if (typeof window.activeDraft === 'undefined') {
       try { window.activeDraft = JSON.parse(localStorage.getItem("activeWorkoutDraft") || "null"); } catch(e) { window.activeDraft = null; }
     }
-    
+
     // 2. LADDAR CUSTOM_PROGRAM
     const { data : programDataResult, error: programError } = await supabaseClient
       .from('custom_program')
@@ -52,6 +53,7 @@ async function loadUserData() {
     if (programError && programError.code !== 'PGRST116') {
       console.error('Fel vid laddning av program:', programError);
     }
+    
     if (programDataResult && programDataResult.data && programDataResult.data.routine && programDataResult.data.routine.length > 0) {
       window.programData = programDataResult.data;
       localStorage.setItem("myCustomProgram", JSON.stringify(window.programData));
@@ -64,13 +66,13 @@ async function loadUserData() {
         await loadDefaultProgram();
       }
     }
-    
+
     // Synka globala variabler i app.js
     if (typeof programData !== 'undefined') programData = window.programData;
     if (typeof masterExercises !== 'undefined') masterExercises = window.masterExercises;
     if (typeof workoutHistory !== 'undefined') workoutHistory = window.workoutHistory;
     if (typeof calendarOverrides !== 'undefined') calendarOverrides = window.calendarOverrides;
-    
+
     // 3. LADDAR WORKOUT_HISTORY
     const { data : historyData, error: historyError } = await supabaseClient
       .from('workout_history')
@@ -91,7 +93,7 @@ async function loadUserData() {
       localStorage.setItem("workoutHistory", JSON.stringify(window.workoutHistory));
       if (typeof workoutHistory !== 'undefined') workoutHistory = window.workoutHistory;
     }
-    
+
     // 4. LADDAR CALENDAR_OVERRIDES
     const { data : calendarData, error: calendarError } = await supabaseClient
       .from('calendar_overrides')
@@ -103,6 +105,7 @@ async function loadUserData() {
     if (calendarError && calendarError.code !== 'PGRST116') {
       console.error('Fel vid laddning av kalender:', calendarError);
     }
+    
     if (calendarData && calendarData.data) {
       window.calendarOverrides = calendarData.data;
       localStorage.setItem("calendarOverrides", JSON.stringify(window.calendarOverrides));
@@ -111,7 +114,7 @@ async function loadUserData() {
       localStorage.setItem("calendarOverrides", JSON.stringify(window.calendarOverrides));
     }
     if (typeof calendarOverrides !== 'undefined') calendarOverrides = window.calendarOverrides;
-    
+
     // 5. LADDAR ACTIVE_DRAFT (UPPDATERAD TILL KOLUMNEN 'data')
     const { data : draftRow, error: draftError } = await supabaseClient
       .from('active_draft')
@@ -124,12 +127,10 @@ async function loadUserData() {
       console.error('Fel vid laddning av utkast:', draftError);
     }
     
-    // Kontrollerar att vi har en rad och att den har innehåll i kolumnen 'data'
     if (draftRow && draftRow.data && Object.keys(draftRow.data).length > 0) {
       window.activeDraft = draftRow.data;
       localStorage.setItem("activeWorkoutDraft", JSON.stringify(window.activeDraft));
 
-      // Synka till app.js om variabeln finns
       if (typeof activeDraft !== 'undefined') activeDraft = window.activeDraft;
 
       if (window.activeDraft && window.activeDraft.isStarted) {
@@ -152,13 +153,14 @@ async function loadUserData() {
 
     console.log(" ✅  All data synkad i loadUserData. Renderar vyer.");
     window.supabaseDataLoadedOnce = true;
+    
     if (typeof renderCalendar === 'function') renderCalendar();
     if (typeof renderHome === 'function') renderHome();
 
   } catch (err) {
     console.error(' ❌  Kritiskt fel i loadUserData:', err);
   } finally {
-    // Frigör laddningslåset när funktionen har kört klart (oavsett om det gick bra eller fel)
+    // Släpp laddningslåset oavsett om det gick bra eller kraschade
     window.supabaseDataLoading = false;
   }
 }
@@ -239,7 +241,7 @@ async function saveCustomProgram() {
 
       if (insertErr) throw insertErr;
     }
-    console.log(" ✅  Custom program sparades framg å ngsrikt i Supabase!");
+    console.log(" ✅  Custom program sparades framgångsrikt i Supabase!");
   } catch (err) {
     console.error("Fel vid sparande av custom_program i Supabase:", err);
   }
@@ -248,6 +250,7 @@ async function saveCustomProgram() {
 let lastWorkoutSavedTime = 0;
 async function saveWorkoutHistory(workoutInput) {
   if (!currentUser) return;
+  
   const workout = (activeDraft && activeDraft.workout && activeDraft.workout.id === workoutInput.id)
     ? {
         ...activeDraft.workout,
@@ -264,11 +267,13 @@ async function saveWorkoutHistory(workoutInput) {
         totalTime: workoutInput.totalTime
       }
     : workoutInput;
+    
   console.log(" 🔍  [DEBUG] saveWorkoutHistory mottog pass:", workout.programName, "med ID:", workout.id);
   const nowTimestamp = Date.now();
   let workoutId = workout.id;
   let isEdit = false;
   let supabaseRowId = null;
+  
   if (workoutId && workoutHistory.some(e => e.id === workoutId)) {
     isEdit = true;
     console.log(" ✏️  [DEBUG] Detta är en EDIT av befintligt pass med ID:", workoutId);
@@ -279,9 +284,10 @@ async function saveWorkoutHistory(workoutInput) {
     if (matchandeLokaltPass) {
       isEdit = true;
       workoutId = matchandeLokaltPass.id;
-      console.log(" 🕵️ ‍ ♂️  [DETEKTIV] Matchade lokalt pass. Återanvänder ID:", workoutId);
+      console.log(" 🕵️‍♂️ [DETEKTIV] Matchade lokalt pass. Återanvänder ID:", workoutId);
     }
   }
+  
   if (!isEdit && (nowTimestamp - lastWorkoutSavedTime < 5000)) {
     console.warn(" ⚠️  DUBBLETT-SPÄRR: Funktionen anropades för snabbt.");
     return;
@@ -300,6 +306,7 @@ async function saveWorkoutHistory(workoutInput) {
     totalTime: workout.totalTime,
     exercises: workout.exercises
   };
+  
   try {
     if (isEdit) {
       console.log(" 🔎  [DEBUG] Letar i Supabase efter datum:", workout.date);
@@ -323,11 +330,12 @@ async function saveWorkoutHistory(workoutInput) {
         }
       }
     }
+    
     if (isEdit) {
       const index = workoutHistory.findIndex(existing => existing.id === workoutId);
       if (index !== -1) {
         workoutHistory[index] = fullWorkoutObject;
-        console.log(" ✅  [DEBUG] Uppdaterade lokalt pass p å  index:", index);
+        console.log(" ✅  [DEBUG] Uppdaterade lokalt pass på index:", index);
       }
     } else {
       workoutHistory.unshift(fullWorkoutObject);
@@ -335,6 +343,7 @@ async function saveWorkoutHistory(workoutInput) {
     }
 
     localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
+    
     if (isEdit && supabaseRowId) {
       console.log(" 📝  [DEBUG] Uppdaterar Supabase-rad:", supabaseRowId);
       const { error: updateError } = await supabaseClient
@@ -430,6 +439,9 @@ async function saveActiveDraft() {
   }
 }
 
+// ==========================================================================
+// UPPDATERAD OCH SÄKRAD RADERING DIREKT VIA JSON-MATCHNING PÅ SERVERBOTTEN
+// ==========================================================================
 async function deleteWorkoutFromHistoryV2(dateStr, idx, passedId = null) {
   console.log(" 📥  [SUPABASE-DATA] deleteWorkoutFromHistoryV2 startad. Datum:", dateStr, "Index:", idx, "Skickat ID:", passedId);
 
@@ -447,7 +459,7 @@ async function deleteWorkoutFromHistoryV2(dateStr, idx, passedId = null) {
       }
     }
     if (!workoutIdToDelete) {
-      console.error(" ❌  [SUPABASE-DATA] Kunde inte fastst ä lla vilket tr ä nings-ID som ska raderas.");
+      console.error(" ❌  [SUPABASE-DATA] Kunde inte fastställa vilket tränings-ID som ska raderas.");
       return { success: false, error: "No ID found" };
     }
     console.log(" 🔎  [SUPABASE-DATA] Utför radering i Supabase för tränings-id:", workoutIdToDelete);
@@ -456,11 +468,13 @@ async function deleteWorkoutFromHistoryV2(dateStr, idx, passedId = null) {
       .delete()
       .eq('user_id', currentUser.id)
       .or(`workout_data->>id.eq.${workoutIdToDelete},workout_data->workout_data->>id.eq.${workoutIdToDelete}`);
+      
     if (deleteError) {
       console.error(" ❌  [SUPABASE-DATA] Supabase returnerade ett fel vid radering:", deleteError);
       throw deleteError;
     }
-    console.log(" ✅  [SUPABASE-DATA] Raden raderades framg å ngsrikt fr å n Supabase via JSON-matchning!");
+    console.log(" ✅  [SUPABASE-DATA] Raden raderades framgångsrikt från Supabase via JSON-matchning!");
+
     return { success: true };
   } catch (err) {
     console.error(" ❌  [SUPABASE-DATA] Allvarligt fel i deleteWorkoutFromHistoryV2:", err);
