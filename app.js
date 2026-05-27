@@ -561,7 +561,6 @@ function renderCalendar(isFromStartBtn = false) {
         };
         grid.appendChild(cell);
     }
-    showView("calendar-view");
 }
 
 // NY FUNKTION: Öppnar en renodlad popup-ruta med övningarna (Likt showProgramDetails fast som modal)
@@ -2347,12 +2346,12 @@ document.getElementById("save-workout-btn").onclick = async () => {
         console.error("Fel vid sparande:", err);
     }
 
-    // ✅ Byt vy EFTER att allt är sparat (så kalendern får färsk data)
+   // ✅ Byt vy FÖRST
     showView("calendar-view");
     if (typeof window.currentView !== 'undefined') window.currentView = "calendar-view";
     document.body.setAttribute("data-current-view", "calendar-view");
     
-    // ✅ Rendera kalendern EN gång
+    // ✅ Rendera kalendern UTAN att byta vy igen
     if (typeof renderCalendar === 'function') renderCalendar();
 };
 
