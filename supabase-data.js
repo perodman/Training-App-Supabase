@@ -1,24 +1,26 @@
 // ==========================================================================
 // SUPABASE DATABASOPERATIONER (DUBBLETT-SÄKRAD MED UNIKA WORKOUT-ID:N)
 // ==========================================================================
-// SÄKERHETSSPÄRR: Förhindrar att appen gör dolda total-omladdningar mitt under en session
+
+// SÄKERHETSSPÄRR: Förhindrar att appen gör dolda total-omladdningar mitt under en session eller parallella anrop vid start
 if (typeof window.supabaseDataLoadedOnce === 'undefined') {
   window.supabaseDataLoadedOnce = false;
+}
+if (typeof window.supabaseDataLoading === 'undefined') {
+  window.supabaseDataLoading = false;
 }
 
 async function loadUserData() {
   if (!currentUser) return;
   
-  // JÄRNRIDÅ: Om data redan har synkats en gång, totalvägra att köra om denna tunga funktion!
-  if (window.supabaseDataLoadedOnce === true) {
-    console.log(" 🛑  [SUPABASE-DATA] loadUserData avbröts aktivt. Sessionen är redan initierad. Skyddar lokalt minne.");
+  // JÄRNRIDÅ: Om data redan har synkats eller om laddning pågår, totalvägra att köra parallellt!
+  if (window.supabaseDataLoadedOnce === true || window.supabaseDataLoading === true) {
+    console.log(" 🛑  [SUPABASE-DATA] loadUserData avbröts aktivt. Sessionen är redan initierad eller laddning pågår. Skyddar lokalt minne.");
     return;
   }
   
-  // 🔥 FIXEN FÖR TRIPPEL-BLINKNINGEN: 
-  // Vi sätter flaggan till true OMEDELBART innan första await.
-  // Detta gör att efterföljande parallella triggers stoppas i dörren direkt!
-  window.supabaseDataLoadedOnce = true;
+  // Sätt laddningsflaggan omedelbart vid inträdet för att stoppa asynkrona parallella anrop (t.ex. från onAuthStateChange)
+  window.supabaseDataLoading = true;
 
   try {
     console.log("Startar synkroniserad laddning av data från Supabase...");
@@ -147,14 +149,17 @@ async function loadUserData() {
         if (typeof activeDraft !== 'undefined') activeDraft = null;
       }
     }
-    
+
     console.log(" ✅  All data synkad i loadUserData. Renderar vyer.");
+    window.supabaseDataLoadedOnce = true;
     if (typeof renderCalendar === 'function') renderCalendar();
     if (typeof renderHome === 'function') renderHome();
+
   } catch (err) {
     console.error(' ❌  Kritiskt fel i loadUserData:', err);
-    // Skulle ett fel uppstå återställer vi flaggan så appen kan göra ett nytt försök
-    window.supabaseDataLoadedOnce = false;
+  } finally {
+    // Frigör laddningslåset när funktionen har kört klart (oavsett om det gick bra eller fel)
+    window.supabaseDataLoading = false;
   }
 }
 
@@ -234,7 +239,7 @@ async function saveCustomProgram() {
 
       if (insertErr) throw insertErr;
     }
-    console.log(" ✅  Custom program sparades framgångsrikt i Supabase!");
+    console.log(" ✅  Custom program sparades framg å ngsrikt i Supabase!");
   } catch (err) {
     console.error("Fel vid sparande av custom_program i Supabase:", err);
   }
@@ -274,7 +279,7 @@ async function saveWorkoutHistory(workoutInput) {
     if (matchandeLokaltPass) {
       isEdit = true;
       workoutId = matchandeLokaltPass.id;
-      console.log(" 🕵️‍♂️ [DETEKTIV] Matchade lokalt pass. Återanvänder ID:", workoutId);
+      console.log(" 🕵️ ‍ ♂️  [DETEKTIV] Matchade lokalt pass. Återanvänder ID:", workoutId);
     }
   }
   if (!isEdit && (nowTimestamp - lastWorkoutSavedTime < 5000)) {
@@ -322,7 +327,7 @@ async function saveWorkoutHistory(workoutInput) {
       const index = workoutHistory.findIndex(existing => existing.id === workoutId);
       if (index !== -1) {
         workoutHistory[index] = fullWorkoutObject;
-        console.log(" ✅  [DEBUG] Uppdaterade lokalt pass på index:", index);
+        console.log(" ✅  [DEBUG] Uppdaterade lokalt pass p å  index:", index);
       }
     } else {
       workoutHistory.unshift(fullWorkoutObject);
@@ -442,7 +447,7 @@ async function deleteWorkoutFromHistoryV2(dateStr, idx, passedId = null) {
       }
     }
     if (!workoutIdToDelete) {
-      console.error(" ❌  [SUPABASE-DATA] Kunde inte fastställa vilket tränings-ID som ska raderas.");
+      console.error(" ❌  [SUPABASE-DATA] Kunde inte fastst ä lla vilket tr ä nings-ID som ska raderas.");
       return { success: false, error: "No ID found" };
     }
     console.log(" 🔎  [SUPABASE-DATA] Utför radering i Supabase för tränings-id:", workoutIdToDelete);
@@ -455,7 +460,7 @@ async function deleteWorkoutFromHistoryV2(dateStr, idx, passedId = null) {
       console.error(" ❌  [SUPABASE-DATA] Supabase returnerade ett fel vid radering:", deleteError);
       throw deleteError;
     }
-    console.log(" ✅  [SUPABASE-DATA] Raden raderades framgångsrikt från Supabase via JSON-matchning!");
+    console.log(" ✅  [SUPABASE-DATA] Raden raderades framg å ngsrikt fr å n Supabase via JSON-matchning!");
     return { success: true };
   } catch (err) {
     console.error(" ❌  [SUPABASE-DATA] Allvarligt fel i deleteWorkoutFromHistoryV2:", err);
