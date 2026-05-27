@@ -525,7 +525,6 @@ function renderCalendar(isFromStartBtn = false) {
     const offset = firstDay === 0 ? 6 : firstDay - 1;
     const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-    // Hämta dagens faktiska datum för att matcha mot loopen
     const now = new Date();
     const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
@@ -535,7 +534,6 @@ function renderCalendar(isFromStartBtn = false) {
         const cell = document.createElement("div");
         cell.className = "calendar-cell";
         
-        // NYTT: Kontrollera om denna ruta är dagens datum – lägg i så fall till klassen "today"
         if (dateStr === todayStr) {
             cell.classList.add("today");
         }
@@ -554,13 +552,14 @@ function renderCalendar(isFromStartBtn = false) {
         else if (isOngoing && displayPass) { cell.classList.add("cell-ongoing"); info = displayPass.name.split(" ").pop(); }
         else if (displayPass) { cell.classList.add("cell-planned"); info = displayPass.name.split(" ").pop(); }
         
-        // Punkt 3: Ändrad struktur för info-ikon för bättre centrering
         cell.innerHTML = `<span>${d}</span><div class="cell-info">${info}</div>`;
         cell.onclick = () => {
             if (typeof openDayManager === 'function') openDayManager(dateStr, displayPass, hasWorkouts, isOngoing);
         };
         grid.appendChild(cell);
     }
+    
+    showView("calendar-view");
 }
 
 // NY FUNKTION: Öppnar en renodlad popup-ruta med övningarna (Likt showProgramDetails fast som modal)
@@ -2316,17 +2315,15 @@ document.getElementById("save-workout-btn").onclick = async () => {
         exercises: activeDraft.workout.exercises.map((ex, i) => {
             return {
                 name: ex.name,
-                sets_data: activeDraft.data[i].sets_data 
+                sets_activeDraft.data[i].sets_data 
             };
         })
     };
     
-    // ✅ KRITISK FIX: Nollställ INNAN vybyte
     activeDraft = null;
     secondsElapsed = 0;
     localStorage.removeItem("activeWorkoutDraft");
 
-    // ✅ Spara i bakgrunden (asynkront, påverkar inte UI)
     try {
         if (typeof saveWorkoutHistory === 'function') {
             await saveWorkoutHistory(log);
@@ -2346,13 +2343,11 @@ document.getElementById("save-workout-btn").onclick = async () => {
         console.error("Fel vid sparande:", err);
     }
 
-   // ✅ Byt vy FÖRST
-    showView("calendar-view");
-    if (typeof window.currentView !== 'undefined') window.currentView = "calendar-view";
-    document.body.setAttribute("data-current-view", "calendar-view");
-    
-    // ✅ Rendera kalendern UTAN att byta vy igen
-    if (typeof renderCalendar === 'function') renderCalendar();
+    if (typeof renderCalendar === 'function') {
+        renderCalendar();
+    } else {
+        showView("calendar-view");
+    }
 };
 
 document.getElementById("pause-workout-btn").onclick = () => { 
