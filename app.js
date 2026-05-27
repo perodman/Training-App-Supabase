@@ -2328,7 +2328,7 @@ document.getElementById("save-workout-btn").onclick = async () => {
         exercises: activeDraft.workout.exercises.map((ex, i) => {
             return {
                 name: ex.name,
-                sets_data: activeDraft.data[i].sets_data 
+                sets_activeDraft.data[i].sets_data 
             };
         })
     };
@@ -2337,30 +2337,32 @@ document.getElementById("save-workout-btn").onclick = async () => {
     secondsElapsed = 0;
     localStorage.removeItem("activeWorkoutDraft");
 
-    try {
-        if (typeof saveWorkoutHistory === 'function') {
-            await saveWorkoutHistory(log);
-        }
-        
-        if (typeof deleteActiveDraft === 'function') {
-            await deleteActiveDraft();
-        }
-        
-        if (currentUser) {
-            await supabaseClient
-                .from('active_draft')
-                .delete()
-                .eq('user_id', currentUser.id);
-        }
-    } catch (err) {
-        console.error("Fel vid sparande:", err);
-    }
+    showView("calendar-view");
 
-    if (typeof renderCalendar === 'function') {
-        renderCalendar();
-    } else {
-        showView("calendar-view");
-    }
+    setTimeout(async () => {
+        try {
+            if (typeof saveWorkoutHistory === 'function') {
+                await saveWorkoutHistory(log);
+            }
+            
+            if (typeof deleteActiveDraft === 'function') {
+                await deleteActiveDraft();
+            }
+            
+            if (currentUser) {
+                await supabaseClient
+                    .from('active_draft')
+                    .delete()
+                    .eq('user_id', currentUser.id);
+            }
+            
+            if (typeof renderCalendar === 'function') {
+                renderCalendar();
+            }
+        } catch (err) {
+            console.error("Fel vid sparande:", err);
+        }
+    }, 100);
 };
 
 document.getElementById("pause-workout-btn").onclick = () => { 
