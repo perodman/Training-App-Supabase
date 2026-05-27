@@ -313,88 +313,62 @@ async function saveWorkoutHistory(workoutInput) {
     totalTime: workout.totalTime,
     exercises: workout.exercises
 };
-    
-async function saveWorkoutHistory(workoutInput) {
-    if (!currentUser) return;
-
-    // 1. Säkerställ senaste datan (om det är ett pågående pass eller ett editerat)
-    const workout = (activeDraft && activeDraft.workout && activeDraft.workout.id === workoutInput.id) 
-        ? { 
-            ...activeDraft.workout, 
-            exercises: activeDraft.workout.exercises.map((ex, i) => ({
-                name: ex.name,
-                target: ex.target,
-                // Behåll den nya djupa strukturen
-                sets: (activeDraft.data[i]?.sets_data || []).map(s => ({
-                    weight: s.weight || 0,
-                    reps: s.reps || 0,
-                    userConfirmed: s.userConfirmed || false
-                }))
-            })),
-            date: workoutInput.date, 
-            totalTime: workoutInput.totalTime 
-        } 
-        : workoutInput;
-
-    const nowTimestamp = Date.now();
-    let workoutId = workout.id;
-    let isEdit = false;
-
-    // 2. Identifiera om det är en edit
-    if (workoutId && workoutHistory.some(e => e.id === workoutId)) {
-        isEdit = true;
-    } else {
-        const matchandeLokaltPass = workoutHistory.find(e => e.date === workout.date && e.programName === workout.programName);
-        if (matchandeLokaltPass) {
-            isEdit = true;
-            workoutId = matchandeLokaltPass.id;
-        }
-    }
-
-    if (!workoutId) {
-        workoutId = "workout_" + nowTimestamp + "_" + Math.floor(Math.random() * 1000);
-    }
-
-    // 3. Skapa objektet med både ny struktur (för DB) och legacy-kompatibilitet (för UI)
-    const fullWorkoutObject = {
-        id: workoutId,
-        date: workout.date,
-        programName: workout.programName,
-        totalTime: workout.totalTime,
-        exercises: workout.exercises.map(ex => ({
-            ...ex,
-            // Legacy-stöd: Gör det möjligt för UI att läsa enkla värden utan [object Object]
-            weight: (ex.sets && ex.sets.length > 0) ? ex.sets[0].weight : 0,
-            reps: (ex.sets && ex.sets.length > 0) ? ex.sets[0].reps : 0
-        }))
-    };
 
     try {
-        // 4. Uppdatera lokalt minne
+        // 3. DATABAS-DETEKTIV: Hitta rätt rad i Supabase om det är en edit
+        if (isEdit) {
+            console.log("🔎 [DEBUG] Letar i Supabase efter datum:", workout.date);
+            const { rows, error: fetchErr } = await supabaseClient
+                .from('workout_history')
+                .select('id, workout_data')
+                .eq('user_id', currentUser.id)
+                .eq('workout_date', workout.date);
+
+            console.log("📊 [DEBUG] Databasen returnerade antal rader:", rows ? rows.length : 0);
+
+            if (!fetchErr && rows && rows.length > 0) {
+                const rättRad = rows.find(r => {
+                    if (!r.workout_data) return false;
+                    const innerId = r.workout_data.id;
+                    return innerId === workoutId;
+                });
+
+                if (rättRad) {
+                    supabaseRowId = rättRad.id;
+                    console.log("🎯 [DEBUG] MATCHNING HITTAD! Databasens unika Rad-ID:", supabaseRowId);
+                }
+            }
+        }
+
+        // --- LOKAL MINNESHANTERING ---
         if (isEdit) {
             const index = workoutHistory.findIndex(existing => existing.id === workoutId);
-            if (index !== -1) workoutHistory[index] = fullWorkoutObject;
+            if (index !== -1) {
+                workoutHistory[index] = fullWorkoutObject;
+                console.log("✅ [DEBUG] Uppdaterade lokalt pass på index:", index);
+            }
         } else {
             workoutHistory.unshift(fullWorkoutObject);
+            console.log("➕ [DEBUG] Lade till nytt pass lokalt");
         }
+        
         localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
 
-        // 5. Synka med Supabase
-        if (isEdit) {
-            // Uppdatera baserat på ID-matchning i JSONB-kolumnen
+        // --- DATABASHANTERING ---
+        if (isEdit && supabaseRowId) {
+            console.log("📝 [DEBUG] Uppdaterar Supabase-rad:", supabaseRowId);
             const { error: updateError } = await supabaseClient
                 .from('workout_history')
                 .update({
                     workout_date: workout.date,
                     workout_data: fullWorkoutObject
                 })
-                .eq('user_id', currentUser.id)
-                .or(`workout_data->>id.eq.${workoutId},workout_data->id.eq.${workoutId}`);
-
+                .eq('id', supabaseRowId);
+                
             if (updateError) throw updateError;
-            console.log("✅ [DB] Edit sparad och synkad.");
-        } else {
-            // Skapa ny rad
+            console.log("✅ [DEBUG] Databasen uppdaterad!");
+        } else if (isEdit && !supabaseRowId) {
+            console.warn("⚠️ [DEBUG] Kunde inte hitta Supabase-rad för uppdatering. Försöker skapa ny...");
             const { error: insertError } = await supabaseClient
                 .from('workout_history')
                 .insert([{
@@ -402,18 +376,33 @@ async function saveWorkoutHistory(workoutInput) {
                     workout_date: workout.date,
                     workout_data: fullWorkoutObject
                 }]);
-            
+                
             if (insertError) throw insertError;
-            console.log("✅ [DB] Nytt pass sparat.");
+            console.log("✅ [DEBUG] Nytt pass sparat (fallback)!");
+        } else {
+            console.log("➕ [DEBUG] Skapar ny rad i Supabase...");
+            const { error: insertError } = await supabaseClient
+                .from('workout_history')
+                .insert([{
+                    user_id: currentUser.id,
+                    workout_date: workout.date,
+                    workout_data: fullWorkoutObject
+                }]);
+                
+            if (insertError) throw insertError;
+            console.log("✅ [DEBUG] Nytt pass sparat!");
         }
 
-        // 6. Rita om
         if (typeof renderCalendar === 'function') renderCalendar();
         if (typeof renderHome === 'function') renderHome();
 
     } catch (err) {
-        console.error("❌ Fel vid sparning:", err);
-        // Återställ om edit misslyckades för att undvika desync
+        console.error("❌ Allvarligt fel i saveWorkoutHistory:", err);
+        if (!isEdit) {
+            workoutHistory.shift();
+            localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
+        }
+        lastWorkoutSavedTime = 0;
     }
 }
 
