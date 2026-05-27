@@ -99,15 +99,19 @@ function saveAll() {
 
 function showView(id) {
     const target = document.getElementById(id);
-    if(!target) return;
+    if (!target) return;
     
-    if (target.classList.contains("hidden")) {
-        document.querySelectorAll(".view").forEach(v => v.classList.add("hidden"));
-        target.classList.remove("hidden");
-        target.style.animation = 'none';
-        target.offsetHeight; 
-        target.style.animation = null;
-    }
+    // Dölj alla vyer FÖRST (viktigt för att undvika blinkning)
+    document.querySelectorAll(".view").forEach(v => {
+        if (v !== target) v.classList.add("hidden");
+    });
+    
+    // Visa målvyn
+    target.classList.remove("hidden");
+    target.style.animation = 'none';
+    target.offsetHeight; 
+    target.style.animation = null;
+    
     window.scrollTo(0, 0);
 }
 
@@ -166,7 +170,7 @@ function renderHome() {
 
 // Hela flödet vid sparande av träningspass (Helt återställt och städat)
 document.getElementById("save-workout-btn").onclick = async () => {
-    if(!activeDraft.isStarted) {
+    if (!activeDraft.isStarted) {
         const body = document.getElementById("modal-body");
         body.innerHTML = `
             <h3>Kasta träningspass</h3>
@@ -193,10 +197,8 @@ document.getElementById("save-workout-btn").onclick = async () => {
     let workoutId;
     if (activeDraft.id && workoutHistory.some(w => w.id === activeDraft.id)) {
         workoutId = activeDraft.id;
-        console.log("✏️ [SAVE] Uppdaterar befintligt pass med ID:", workoutId);
     } else {
         workoutId = "workout_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
-        console.log("➕ [SAVE] Skapar nytt pass med ID:", workoutId);
     }
 
     const log = {
@@ -207,42 +209,42 @@ document.getElementById("save-workout-btn").onclick = async () => {
         exercises: activeDraft.workout.exercises.map((ex, i) => {
             return {
                 name: ex.name,
-                sets_data: activeDraft.data[i].sets_data 
+                sets_activeDraft.data[i].sets_data 
             };
         })
     };
     
-    // Byt till kalendervyn (vår nya showView ser till att träningsvyn inte döljs förrän kalendern är redo!)
-    if (typeof showView === 'function') showView("calendar-view");
+    // ✅ KRITISK FIX: Nollställ INNAN vybyte
+    activeDraft = null;
+    secondsElapsed = 0;
+    localStorage.removeItem("activeWorkoutDraft");
+
+    // ✅ Byt vy (nu kan ingen funktion se det gamla utkastet)
+    showView("calendar-view");
     if (typeof window.currentView !== 'undefined') window.currentView = "calendar-view";
     document.body.setAttribute("data-current-view", "calendar-view");
 
-    // Spara i bakgrunden
-    if (typeof saveWorkoutHistory === 'function') {
-        await saveWorkoutHistory(log);
-    }
-
-    // Ta bort det aktiva utkastet lokalt och i molnet
-    localStorage.removeItem("activeWorkoutDraft");
-    if (typeof deleteActiveDraft === 'function') {
-        await deleteActiveDraft();
-    }
-    
-    if (currentUser) {
-        try {
+    // ✅ Spara i bakgrunden (asynkront, påverkar inte UI)
+    try {
+        if (typeof saveWorkoutHistory === 'function') {
+            await saveWorkoutHistory(log);
+        }
+        
+        if (typeof deleteActiveDraft === 'function') {
+            await deleteActiveDraft();
+        }
+        
+        if (currentUser) {
             await supabaseClient
                 .from('active_draft')
                 .delete()
                 .eq('user_id', currentUser.id);
-        } catch (err) {
-            console.error("Fel vid radering av utkast i Supabase:", err);
         }
+    } catch (err) {
+        console.error("Fel vid sparande:", err);
     }
-    
-    activeDraft = null; 
-    secondsElapsed = 0;
 
-    // Uppdatera kalenderns innehåll
+    // ✅ Uppdatera kalendern SIST
     if (typeof renderCalendar === 'function') renderCalendar();
 };
 
@@ -952,7 +954,7 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
             <div style="margin: 0 0 15px 0; width: 100%; text-align: center !important;">
                 <span class="status-highlight-text" style="color: #f59e0b !important; text-shadow: 0 0 25px rgba(245, 158, 11, 0.8) !important; font-size: 20px; font-weight: 800;">🔥 Pågående Pass</span>
             </div>
-            <button class="premium-green-btn" onclick="closeModal(); startWorkout(activeDraft.workout, activeDraft.data, activeDraft.date)" style="border: 2px solid #f59e0b !important; background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%) !important; width: 100% !important;">
+            <button class="premium-green-btn" onclick="showView('workout-view'); startWorkout(activeDraft.workout, activeDraft.data, activeDraft.date); setTimeout(() => closeModal(), 0)" style="border: 2px solid #f59e0b !important; background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%) !important; width: 100% !important;">
                 Fortsätt träningen ⏱️
             </button>
         </div>`;
@@ -1137,6 +1139,10 @@ function setOverrideSilent(dateStr, programId) {
 
 function startFreeWorkoutOnDate(date) {
     console.log("🚀 Initierar Fritt Pass för datum:", date);
+    
+    // ✅ Byt vy FÖRST
+    showView('workout-view');
+    
     const freePass = { 
         id: "free-" + Date.now(), 
         name: "Fritt Pass", 
@@ -1162,6 +1168,9 @@ function startFreeWorkoutOnDate(date) {
     } else {
         console.error("❌ startWorkout-funktionen saknas i appen!");
     }
+    
+    // ✅ Stäng modal SIST (i bakgrunden)
+    setTimeout(() => closeModal(), 0);
 }
 
 function openMonthPicker() {
@@ -2412,9 +2421,16 @@ function setOverride(date, val) {
 }
 
 async function prepareStart(date, id) { 
-    const p = programData.routine.find(x => x.id === id); 
-    closeModal(); 
-    await startWorkout(p, null, date, true); 
+    const p = programData.routine.find(x => x.id === id);
+    
+    // ✅ Byt vy FÖRST
+    showView('workout-view');
+    
+    // ✅ Starta träning
+    await startWorkout(p, null, date, true);
+    
+    // ✅ Stäng modal SIST (i bakgrunden)
+    setTimeout(() => closeModal(), 0);
 }
 
 // ÄNDRING: Korrigerat kolumnnamn (workout_date och workout_data) för att matcha schemat exakt vid radering
