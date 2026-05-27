@@ -559,7 +559,11 @@ function renderCalendar(isFromStartBtn = false) {
         grid.appendChild(cell);
     }
     
-    showView("calendar-view");
+    // ✅ ÄNDRAT: Visa bara om den inte redan är dold
+    const calendarView = document.getElementById("calendar-view");
+    if (calendarView && calendarView.style.display !== "none") {
+        showView("calendar-view");
+    }
 }
 
 // NY FUNKTION: Öppnar en renodlad popup-ruta med övningarna (Likt showProgramDetails fast som modal)
