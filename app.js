@@ -94,22 +94,29 @@ function saveAll() {
     if (typeof saveCalendarOverrides === 'function') saveCalendarOverrides();
 }
 
+// 🌍 En global järnridå som förlamar alla bakgrundsskript under sparprocessen
+window.blockAllSync = false;
 function showView(id) {
     // 🛡️ Om järnridån är aktiv tillåter vi ABSOLUT INGET annat än kalendern.
-    // Detta stoppar bakgrundsfunktioner från att tjuvvisa startsidan.
     if (window.blockAllSync && id !== "calendar-view") {
-        console.warn("🛡️ Järnridån blockerade ett rogue-skript som försökte visa:", id);
+        console.warn("🛡️ Järnridån blockerade ett eftersläpande skript som försökte visa:", id);
         return;
     }
 
     const target = document.getElementById(id);
     if(!target) return;
     
+    // 🔍 OPTIMERING: Om vyn redan är synlig, gör absolut ingenting. 
+    // Detta förhindrar att CSS-animationer nollställs och blinkar till i onödan.
+    if (!target.classList.contains("hidden")) {
+        return;
+    }
+    
     if (target.classList.contains("hidden")) {
         document.querySelectorAll(".view").forEach(v => v.classList.add("hidden"));
         target.classList.remove("hidden");
         target.style.animation = 'none';
-        target.offsetHeight; 
+        target.offsetHeight; // Tvingar fram reflow för ren CSS-animation
         target.style.animation = null;
     }
     window.scrollTo(0, 0);
@@ -2073,7 +2080,7 @@ document.getElementById("add-custom-pass-btn").onclick = openCreateProgramModal;
 // GRÄNSSNITT & KNAPPHANTERING (HOME & SAVE WORKOUT)
 // ==========================================================================
 function renderHome() {
-    // 🛡️ Om vi håller på att spara, totalvägra att köra eller rita upp startsidan!
+    // 🛡️ Om järnridån är aktiv, totalvägra att köra startsidans logik överhuvudtaget!
     if (window.blockAllSync) return;
 
     showView("home-view");
@@ -2133,14 +2140,14 @@ document.getElementById("save-workout-btn").onclick = async function(e) {
         e.stopPropagation();
     }
 
-    // 🔒 AKTIVERA JÄRNRIDÅN DIREKT: Nu fryser vi appens UI-förändringar från omvärlden
+    // 🔒 AKTIVERA JÄRNRIDÅN: Frys gränssnittet från omvärldens skript direkt
     window.blockAllSync = true;
 
     console.log("🚀 [SPÅRNING] STEG 1: Spar-knappen klickades. Blockerar standardbeteenden.");
 
     try {
         if(!activeDraft || !activeDraft.isStarted) {
-            window.blockAllSync = false; // Släpp spärren om vi visar en modal
+            window.blockAllSync = false; 
             const body = document.getElementById("modal-body");
             if (body) {
                 body.innerHTML = `
@@ -2196,7 +2203,7 @@ document.getElementById("save-workout-btn").onclick = async function(e) {
         localStorage.removeItem("activeWorkoutDraft");
         secondsElapsed = 0;
 
-        console.log("🚀 [SPÅRNING] STEG 5: Rensar databasens active_draft (här kommer rogue-skriptet försöka trigga).");
+        console.log("🚀 [SPÅRNING] STEG 5: Rensar databasens active_draft.");
         if (currentUser) {
             await supabaseClient.from('active_draft').delete().eq('user_id', currentUser.id);
         }
@@ -2217,8 +2224,12 @@ document.getElementById("save-workout-btn").onclick = async function(e) {
         console.error("❌ [SPÅRNING] ETT FEL INTRÄFFADE:", error);
         showView("calendar-view");
     } finally {
-        // 🔓 Släpp järnridån först efter att ALLT är helt klart och vi står säkert i kalendervyn
-        window.blockAllSync = false;
+        // 🛡️ EFTERSKALVSSKYDD: Vi väntar 250ms med att öppna dörren. 
+        // Detta gör att sena mikro-tasks (som loadUserData) hinner köra i bakgrunden utan att kunna störa vårt UI.
+        setTimeout(() => {
+            window.blockAllSync = false;
+            console.log("🔓 [SPÅRNING] Järnridån helt borttagen. Appen är i normalläge.");
+        }, 250);
     }
 };
 
