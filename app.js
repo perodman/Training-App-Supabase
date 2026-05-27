@@ -2261,8 +2261,8 @@ document.getElementById("save-workout-btn").onclick = async () => {
                 }
                 activeDraft = null;
                 closeModal();
-                showView('home-view');
-                if (typeof renderHome === 'function') renderHome();
+                // Direkt till kalendern utan att visa home-view
+                showView('calendar-view');
             })()">Kasta passet</button>
             <button class="mode-btn glass-border" onclick="closeModal()">Avbryt</button>
         `;
@@ -2298,7 +2298,7 @@ document.getElementById("save-workout-btn").onclick = async () => {
     secondsElapsed = 0;
     localStorage.removeItem("activeWorkoutDraft");
 
-    // Visa kalendern DIREKT
+    // Direkt till kalendern utan att visa home-view
     showView("calendar-view");
 
     // Spara data i bakgrunden
