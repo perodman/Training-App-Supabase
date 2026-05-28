@@ -47,15 +47,13 @@ function showAuth() {
 }
 
 function showApp() {
+    console.log("Försöker visa app-vyn...");
     document.getElementById('auth-view').classList.add('hidden');
     document.getElementById('app-container').classList.remove('hidden');
     document.getElementById('global-header').classList.remove('hidden');
     
-    // Scrolla BARA upp om vi just loggat in
-    if (justLoggedIn) {
-        window.scrollTo(0, 0);
-        justLoggedIn = false; // Återställ flaggan så vi inte stör i framtiden
-    }
+    // Om vi just loggat in, scrolla upp
+    window.scrollTo({ top: 0, behavior: 'instant' });
 }
 
 // Kopplingar till UI-element för inloggning och registrering
@@ -121,6 +119,11 @@ document.addEventListener("DOMContentLoaded", () => {
             
             if (error) {
                 alert('Inloggning misslyckades: ' + error.message);
+            } else {
+                // HÄR VAR FELET! Vi måste anropa showApp() när inloggningen lyckas.
+                currentUser = data.user;
+                await loadUserData(); // Se till att denna finns kvar
+                showApp();
             }
         };
     }
