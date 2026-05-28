@@ -1,3 +1,6 @@
+// 🌍 Global järnridå som förlamar alla bakgrundsskript under sparprocessen
+window.blockAllSync = false;
+
 //// Explicita globala variabler länkade till window-objektet för full Supabase-kompatibilitet
 window.programData = JSON.parse(localStorage.getItem("myCustomProgram") || "null");
 let programData = window.programData; // Skapar en lokal referens för smidig användning i app.js
@@ -11,6 +14,59 @@ let currentExerciseCategory = "Ben";
 let timerInterval = null;
 let secondsElapsed = 0;
 let isTimerRunning = false;
+
+
+// =========================================================================
+// ✨ AUTOMATISKA BAKGRUNDS-FUNKTIONER (Körs direkt när sidan laddas)
+// =========================================================================
+
+// 1. Skydd mot blinkningar: Låser appen direkt om du klickar på en avsluta-knapp.
+document.addEventListener('click', function(e) {
+    const target = e.target;
+    if (target && (target.id === 'save-workout-btn' || target.innerText?.includes('Avsluta pass'))) {
+        console.log("🔒 [JÄRNRIDÅ] Avslutningsklick upptäckt! Låser gränssnittet omedelbart.");
+        window.blockAllSync = true;
+    }
+}, true);
+
+// 2. Set 1-Kopieraren: Om du fyller i första setet och resten är tomma, kopieras texten neråt.
+document.addEventListener('input', function(e) {
+    const target = e.target;
+    
+    // Kollar om fältet vi skriver i är för vikt eller reps
+    const isWeight = target.classList.contains('weight-input') || target.getAttribute('data-type') === 'weight' || target.placeholder?.toLowerCase().includes('kg');
+    const isReps = target.classList.contains('reps-input') || target.getAttribute('data-type') === 'reps' || target.placeholder?.toLowerCase().includes('rep');
+    
+    if (!isWeight && !isReps) return;
+
+    // Hittar raden och övningsboxen
+    const currentRow = target.closest('.set-row, tr, .set-item');
+    const parentExercise = target.closest('.exercise-card, .exercise-container, .exercise-block');
+    if (!currentRow || !parentExercise) return;
+
+    // Kontrollerar om detta är det FÖRSTA setet i övningen
+    const allRows = Array.from(parentExercise.querySelectorAll('.set-row, tr, .set-item'));
+    if (allRows.indexOf(currentRow) !== 0) return; 
+
+    const value = target.value;
+
+    // Gå igenom de efterföljande raderna och fyll i om de är tomma
+    allRows.forEach((row, index) => {
+        if (index === 0) return; // Hoppa över set 1 själv
+        
+        const input = isWeight 
+            ? row.querySelector('.weight-input, input[data-type="weight"], input[placeholder*="kg"]')
+            : row.querySelector('.reps-input, input[data-type="reps"], input[placeholder*="rep"]');
+        
+        if (input && (input.value === "" || input.value == input.defaultValue)) {
+            input.value = value;
+            
+            // Meddela systemet att fältet har uppdaterats
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+    });
+});
+
 
 // --- INIT ---
 async function initApp() {
@@ -94,8 +150,61 @@ function saveAll() {
     if (typeof saveCalendarOverrides === 'function') saveCalendarOverrides();
 }
 
-// 🌍 En global järnridå som förlamar alla bakgrundsskript under sparprocessen
-window.blockAllSync = false;
+
+// =========================================================================
+// ✨ HISTORIK-FUNKTIONER (Letar upp vad du lyfte förra passet)
+// =========================================================================
+
+// Söker baklänges efter senaste gången du körde en specifik övning
+function getPreviousExerciseData(exerciseName) {
+    if (!workoutHistory || !Array.isArray(workoutHistory)) return null;
+    
+    for (let i = workoutHistory.length - 1; i >= 0; i--) {
+        const pastWorkout = workoutHistory[i];
+        if (!pastWorkout.exercises) continue;
+        
+        const pastExercise = pastWorkout.exercises.find(e => e.name.toLowerCase() === exerciseName.toLowerCase());
+        
+        if (pastExercise && pastExercise.sets_data && pastExercise.sets_data.length > 0) {
+            return pastExercise.sets_data;
+        }
+    }
+    return null;
+}
+
+// Bygger upp träningspasset och fyller i vikterna automatiskt om historik finns
+function initializeWorkoutData(workout) {
+    if (!workout || !workout.exercises) return [];
+    
+    return workout.exercises.map(ex => {
+        const previousSets = getPreviousExerciseData(ex.name);
+        
+        if (previousSets) {
+            return {
+                name: ex.name,
+                sets_data: previousSets.map(set => ({
+                    weight: set.weight,
+                    reps: set.reps,
+                    completed: false // Sparas som o-checkat så du kan bocka av på nytt
+                }))
+            };
+        }
+        
+        // Om övningen är helt ny och saknar historik, skapa tomma rader
+        const defaultSets = [];
+        const setCount = ex.sets || 3; 
+        for (let i = 0; i < setCount; i++) {
+            defaultSets.push({ weight: "", reps: "", completed: false });
+        }
+        return { name: ex.name, sets_data: defaultSets };
+    });
+}
+
+
+// =========================================================================
+// VANLIGA VYN- OCH MODAL-FUNKTIONER
+// =========================================================================
+
 function showView(id) {
     // 🛡️ Om järnridån är aktiv tillåter vi ABSOLUT INGET annat än kalendern.
     if (window.blockAllSync && id !== "calendar-view") {
@@ -107,7 +216,6 @@ function showView(id) {
     if(!target) return;
     
     // 🔍 OPTIMERING: Om vyn redan är synlig, gör absolut ingenting. 
-    // Detta förhindrar att CSS-animationer nollställs och blinkar till i onödan.
     if (!target.classList.contains("hidden")) {
         return;
     }
@@ -241,7 +349,6 @@ function openCreateExerciseModal(callback = null) {
         const name = document.getElementById("new-ex-name").value.trim();
         if(!name) return alert("Ange ett namn!");
 
-        // FIX: Om man väljer "Armar", sätter vi target till "Biceps" (eller behåller "Armar" om du ändrar ditt filter)
         let finalTarget = selectedCategory;
         if (selectedCategory === "Armar") {
             finalTarget = "Biceps";
@@ -255,13 +362,10 @@ function openCreateExerciseModal(callback = null) {
             animation: ""
         };
 
-        // Peta in i den globala arrayen
         masterExercises.push(newEx);
 
-        // Sparar lokalt i localStorage
         if (typeof saveAll === 'function') saveAll();
 
-        // Skicka till Supabase direkt
         if (typeof saveCustomProgram === 'function') {
             await saveCustomProgram();
         }
@@ -271,7 +375,6 @@ function openCreateExerciseModal(callback = null) {
         } else {
             closeModal();
 
-            // Tvinga gränssnittet att hoppa till rätt kategori och rita ut listan på nytt
             if (typeof filterExercises === 'function') {
                 filterExercises(selectedCategory);
             }
