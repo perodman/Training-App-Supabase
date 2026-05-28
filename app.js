@@ -906,14 +906,17 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
 
 // --- SYNKRONISERADE OCH LIVE-UPPDATERANDE OVERRIDES ---
 function setOverrideSilent(dateStr, programId) {
-    // 1. SCROLL-LOCK: Hitta app-containern och spara exakt var användaren befinner sig på skärmen
-    const appContainer = document.getElementById("app-container");
-    const modalContent = document.querySelector(".modal-content");
-    
+    // 1. SCROLL-LOCK: Spara exakta positioner
     const savedWindowScroll = window.scrollY || document.documentElement.scrollTop;
+    const modalContent = document.querySelector(".modal-content");
     const savedModalScroll = modalContent ? modalContent.scrollTop : 0;
 
-    // 2. Uppdatera det lokala tillståndet OMEDELBART
+    // 2. Tvinga webbläsaren att frysa bakgrunden helt genom CSS
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${savedWindowScroll}px`;
+    document.body.style.width = '100%';
+
+    // 3. Uppdatera det lokala tillståndet OMEDELBART
     if (programId === "none" || programId === "") {
         calendarOverrides[dateStr] = "none";
     } else {
@@ -922,12 +925,12 @@ function setOverrideSilent(dateStr, programId) {
 
     localStorage.setItem("calendarOverrides", JSON.stringify(calendarOverrides));
 
-    // 3. Uppdatera bakomliggande kalendervy direkt
+    // 4. Uppdatera bakomliggande kalendervy direkt
     if (typeof renderCalendar === "function") {
         renderCalendar();
     }
 
-    // 4. Hämta de korrekta och aktuella tillstånden live
+    // 5. Hämta de korrekta och aktuella tillstånden live
     let nextPlannedProgram = null;
     if (programId !== "none" && programId !== "") {
         nextPlannedProgram = programData.routine.find(p => p.id === programId) || null;
@@ -935,22 +938,29 @@ function setOverrideSilent(dateStr, programId) {
     const currentCompleted = typeof workoutHistory !== 'undefined' ? workoutHistory.filter(w => w.date === dateStr) : [];
     const currentIsOngoing = typeof activeDraft !== 'undefined' && activeDraft && activeDraft.date === dateStr;
 
-    // Ladda om vyn direkt
+    // Ladda om vyn inuti modalen
     openDayManager(dateStr, nextPlannedProgram, currentCompleted, currentIsOngoing);
 
-    // 5. ÅTERSTÄLL SCROLLEN DIREKT: Tvinga tillbaka pixlarna omedelbart efter DOM-uppdateringen
+    // 6. LÅS UPP OCH ÅTERSTÄLL: Släpp frysnings-CSS och tvinga tillbaka scroll-pixlarna
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.width = '';
+    
+    // Scrolla fönstret och modalen till exakt där de var
+    window.scrollTo(0, savedWindowScroll);
     if (modalContent) {
         modalContent.scrollTop = savedModalScroll;
     }
-    window.scrollTo(0, savedWindowScroll);
 
-    // Sekundär säkring via requestAnimationFrame om webbläsaren skulle lagga
+    // En extra säkerhet för mobila webbläsare (iOS/Safari) som ibland behöver en mikrosekund på sig
     requestAnimationFrame(() => {
         window.scrollTo(0, savedWindowScroll);
-        if (modalContent) modalContent.scrollTop = savedModalScroll;
+        if (modalContent) {
+            modalContent.scrollTop = savedModalScroll;
+        }
     });
 
-    // 6. KÖR DE TUNGA SPAR- OCH SUPABASE-ANROPEN I BAKGRUNDEN
+    // 7. KÖR DE TUNGA SPAR- OCH SUPABASE-ANROPEN I BAKGRUNDEN
     setTimeout(async () => {
         try {
             await saveAll();
