@@ -1890,30 +1890,39 @@ async function updateSetDataOnly(exIdx, setIdx) {
   }
  
   if (!activeDraft || !activeDraft.data || !activeDraft.data[exIdx]) return;
-  // Se till att sets_data-arrayen finns och att varje set är ett separat objekt
   activeDraft.data[exIdx].sets_data = activeDraft.data[exIdx].sets_data || [];
   const setsArray = activeDraft.data[exIdx].sets_data;
+  
+  // 1. Sparar undan vad som stod i fältet INNAN du tryckte på tangenten
+  const oldWeight = setsArray[setIdx] ? setsArray[setIdx].weight : "";
+  const oldReps = setsArray[setIdx] ? setsArray[setIdx].reps : "";
+
   setsArray[setIdx] = Object.assign({}, setsArray[setIdx] || {});
  
   const setObj = setsArray[setIdx];
  
-  // Uppdatera setet från inputs (kontrollerat, direkt)
+  // 2. Uppdaterar setet med det nya tecknet du just skrev
   setObj.weight = wInp.value;
   setObj.reps = rInp.value;
   if (typeof setObj.userConfirmed === "undefined") setObj.userConfirmed = false;
  
-  // Kontrollera historik och eventuell autofyll av efterföljande tomma set
   const exerciseName = activeDraft.workout?.exercises?.[exIdx]?.name;
   const history = exerciseName ? getExerciseHistory(exerciseName) : null;
   const isNoHistory = history === null;
  
   if (isNoHistory && setIdx === 0) {
-    // säkerställ att efterföljande set finns som egna objekt innan skrivning
     for (let i = 1; i < (setsArray.length || 3); i++) {
       setsArray[i] = Object.assign({}, setsArray[i] || {});
     }
-    const othersAreBlank = setsArray.slice(1).every(s => (!s.weight && !s.reps));
-    if (othersAreBlank) {
+    
+    // 3. Kollar om efterföljande fält är tomma ELLER matchar det gamla värdet
+    const othersAreBlankOrMatchOld = setsArray.slice(1).every(s => {
+      const isWValid = !s.weight || s.weight === oldWeight;
+      const isRValid = !s.reps || s.reps === oldReps;
+      return isWValid && isRValid;
+    });
+
+    if (othersAreBlankOrMatchOld) {
       for (let i = 1; i < setsArray.length; i++) {
         setsArray[i].weight = setObj.weight;
         setsArray[i].reps = setObj.reps;
@@ -1926,11 +1935,7 @@ async function updateSetDataOnly(exIdx, setIdx) {
     }
   }
  
-  // Persist debouncat (ingen omedelbar render)
   debouncedPersistActiveWorkout();
- 
-  // OBS: Vi undviker att anropa renderActiveWorkout() här eftersom det vanligtvis byter ut DOM och tappar fokus.
-  // Om du måste tvinga en render vid speciella tillfällen (t.ex. på blur eller submit) kan du kalla renderActiveWorkout() då.
 }
 
 async function confirmSet(exIdx, setIdx) {
