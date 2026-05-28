@@ -12,19 +12,20 @@ const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_
 let currentUser = null;
 
 
+// Vi skapar en variabel som håller koll på om vi är "nyinloggade"
+let justLoggedIn = false;
+
 async function initAuth() {
-    window.supabaseDataLoadedOnce = false;  // ← NOLLSTÄLLER FLAGGAN
-    
     const response = await supabaseClient.auth.getSession();
-    const session = response.data.session;
-    
-    if (session) {
-        currentUser = session.user;
+    if (response.data.session) {
+        currentUser = response.data.session.user;
         await loadUserData();
+        justLoggedIn = true; // Markera att vi loggat in
         showApp();
     } else {
         showAuth();
     }
+}
     
     supabaseClient.auth.onAuthStateChange(async (event, session) => {
         if (event === 'SIGNED_IN' && session) {
@@ -50,11 +51,11 @@ function showApp() {
     document.getElementById('app-container').classList.remove('hidden');
     document.getElementById('global-header').classList.remove('hidden');
     
-    // Vi väntar 50 millisekunder, sen tvingar vi toppen. 
-    // Det brukar räcka för att webbläsaren ska "släppa" sin gamla scroll-position.
-    setTimeout(() => {
+    // Scrolla BARA upp om vi just loggat in
+    if (justLoggedIn) {
         window.scrollTo(0, 0);
-    }, 50);
+        justLoggedIn = false; // Återställ flaggan så vi inte stör i framtiden
+    }
 }
 
 // Kopplingar till UI-element för inloggning och registrering
