@@ -1893,17 +1893,20 @@ async function updateSetDataOnly(exIdx, setIdx) {
   activeDraft.data[exIdx].sets_data = activeDraft.data[exIdx].sets_data || [];
   const setsArray = activeDraft.data[exIdx].sets_data;
   
-  // 1. Säkra att objektet finns i arrayen först
   setsArray[setIdx] = Object.assign({}, setsArray[setIdx] || {});
   const setObj = setsArray[setIdx];
 
-  // 2. Spara undan det gamla värdet (innan vi skriver över det med det nya)
-  const oldWeight = setObj.weight || "";
-  const oldReps = setObj.reps || "";
+  // Här sparar vi vad som står i inputfälten JUST NU (inklusive det nya tecknet)
+  const newWeight = wInp.value;
+  const newReps = rInp.value;
+
+  // Räkna ut vad det GAMLA tecknet var genom att ta bort det sista tecknet från det nya värdet
+  const oldWeight = newWeight.length > 0 ? newWeight.slice(0, -1) : "";
+  const oldReps = newReps.length > 0 ? newReps.slice(0, -1) : "";
  
-  // 3. Uppdatera objektet med det nya du just skrev i fälten
-  setObj.weight = wInp.value;
-  setObj.reps = rInp.value;
+  // Uppdatera objektet i appens minne
+  setObj.weight = newWeight;
+  setObj.reps = newReps;
   if (typeof setObj.userConfirmed === "undefined") setObj.userConfirmed = false;
  
   const exerciseName = activeDraft.workout?.exercises?.[exIdx]?.name;
@@ -1915,10 +1918,13 @@ async function updateSetDataOnly(exIdx, setIdx) {
       setsArray[i] = Object.assign({}, setsArray[i] || {});
     }
     
-    // 4. Kolla om efterföljande set är tomma ELLER matchar det gamla tecknet exakt
+    // Nu kollar vi om set 2 och 3 antingen är tomma, eller innehåller det gamla tecknet
     const othersAreBlankOrMatchOld = setsArray.slice(1).every(s => {
-      const isWValid = !s.weight || s.weight === oldWeight;
-      const isRValid = !s.reps || s.reps === oldReps;
+      const currentWeightInSet = s.weight || "";
+      const currentRepsInSet = s.reps || "";
+
+      const isWValid = currentWeightInSet === "" || currentWeightInSet === oldWeight;
+      const isRValid = currentRepsInSet === "" || currentRepsInSet === oldReps;
       return isWValid && isRValid;
     });
 
