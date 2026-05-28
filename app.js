@@ -1597,31 +1597,24 @@ async function toggleExerciseDone(exIdx) {
 // Körs när användaren klickar på "STARTA TRÄNINGSPASSET"
 async function actuallyStartWorkout() {
     if (!activeDraft) return;
-    
-    // 1. Sätt passet till startat och aktivera timer-flaggorna
+
     activeDraft.isStarted = true;
     activeDraft.wasTimerRunning = true;
-    
-    // 2. Kör historikfunktionen för att hämta gamla vikter/reps
+
+    // 1. Hämta historiken till de tomma fälten innan vi sparar och renderar
     if (typeof prefillActiveWorkoutWithHistory === 'function') {
         prefillActiveWorkoutWithHistory();
     }
-    
-    // 3. Starta timern om funktionen finns (så att den tickar igång i gränssnittet)
-    if (typeof startTimer === 'function') startTimer();
-    
-    // 4. Spara ner tillståndet till localStorage direkt för omedelbar UX
-    localStorage.setItem("activeWorkoutDraft", JSON.stringify(activeDraft));
-    
-    // 5. Rita upp vyn direkt (nu visas de förifyllda historiska värdena blixtsnabbt!)
-    if (typeof renderActiveWorkout === 'function') {
-        renderActiveWorkout();
-    }
-    
-    // 6. Aktiverar passet och tidtagningen asynkront mot Supabase i bakgrunden
+
+    // 2. Aktiverar passet och tidtagningen i bakgrunden mot Supabase
     if (typeof persistActiveWorkout === 'function') {
         await persistActiveWorkout();
     }
+    
+    // 3. Rita upp vyn (nu med de förifyllda historiska värdena)
+    renderActiveWorkout();
+    
+    if (typeof startTimer === "function") startTimer();
 }
 
 function openAddExerciseToWorkoutModal() {
