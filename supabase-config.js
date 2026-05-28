@@ -44,7 +44,7 @@ function showApp() {
     document.getElementById('app-container').classList.remove('hidden');
     document.getElementById('global-header').classList.remove('hidden');
     
-    // Den här raden tvingar skärmen att hoppa upp till toppen direkt vid inloggning!
+    // Tvingar appen att starta i helt uppscrollat läge när startmenyn visas
     window.scrollTo({ top: 0, behavior: 'instant' });
 }
 
@@ -53,7 +53,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const loginCard = document.querySelector('#auth-view > .card');
     const registerCard = document.getElementById('register-card');
 
-    // Den här koden öppnar registreringsfönstret när man klickar på "Skapa konto"
+    // Justerad från goto-register-btn till show-register-btn för att matcha ditt HTML-id
     if (document.getElementById('show-register-btn')) {
         document.getElementById('show-register-btn').onclick = () => {
             if (loginCard) loginCard.classList.add('hidden');
@@ -139,7 +139,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 currentUser = null;
                 showAuth();
                 
-                // Scrollar upp till toppen innan sidan laddas om för en ren nystart
+                // Scrollar upp till toppen innan sidan laddas om
                 window.scrollTo(0, 0);
                 location.reload();
             }
