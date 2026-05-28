@@ -713,10 +713,11 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
         </div>
     `;
 
+    // Säkra upp arrayen så att den aldrig kraschar loopar längre ner
     const safeCompleted = Array.isArray(completed) ? completed : [];
     const hasCompleted = safeCompleted.length > 0;
 
-    // 1. Slutförda pass (Historik)
+    // 1. Slutförda pass på detta datum (Historik)
     if (hasCompleted) {
         html += `
         <div style="display: flex; align-items: center; gap: 10px; margin-top: 10px; width: 100%;">
@@ -728,7 +729,7 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
         safeCompleted.forEach((w, idx) => {
             const timeStr = w.totalTime ? ` ⏱️  ${w.totalTime}` : "";
             html += `
-            <div class="card glass" style="border-left: 4px solid #22c55e; text-align: left; margin: 0; padding: 15px; border-radius: 16px;">
+            <div class="card glass" style="border-left: 4px solid #22c55e; text-align: left; margin: 0; padding: 15px; border-radius: 166px; border-radius: 16px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                     <div>
                         <strong style="font-size: 16px; color: var(--text); display: block;">${w.programName}</strong>
@@ -796,7 +797,7 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
         </div>`;
     }
 
-    // 3. Planerad träning eller vila status-box
+    // 3. Planerad träning eller vila status-box (DÖLJS NU ÄVEN OM PASSET ÄR IGÅNG)
     if (!isOngoing && !hasCompleted) {
         html += `
         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px; width: 100%; margin-top: 16px;">
@@ -831,7 +832,7 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
         </div>`;
     }
 
-    // 4. ÄNDRA PLANERING - GRID MED ALLA PASS I RUTINEN
+    // 4. ÄNDRA PLANERING - GRID MED ALLA PASS I RUTINEN (DÖLJS NU OM PASSET ÄR IGÅNG ELLER HAR HISTORIK)
     if (!isOngoing && !hasCompleted) {
         html += `
         <div style="margin-top: 1px; width: 100%;">
@@ -864,14 +865,16 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
                 const borderColor = `rgba(${c.r}, ${c.g}, ${c.b}, ${currentOpacity})`;
                 const btnBg = `rgba(${c.r}, ${c.g}, ${c.b}, 0.04)`;
 
-                // HÄR HAR VI SÄKRAT UPPT TOUCH-ANROPEN OCH LAGT TILL EVENT-OBJEKTET (event)
                 html += `
                 <button class="mode-btn plan-override-btn ${isSelected ? 'active-choice' : ''}"
                     id="btn-ovr-${p.id}"
-                    onclick="event.preventDefault(); event.stopPropagation(); if(typeof isLongPress !== 'undefined' && !isLongPress) { setOverrideSilent('${dateStr}', '${p.id}'); }"
-                    ontouchstart="handleTouchStart(event); if(typeof startPress === 'function') startPress(${idx}, event);"
-                    ontouchend="handleTouchEndOverride('${dateStr}', '${p.id}', event);"
-                    ontouchmove="handleTouchMove(event);"
+                    onclick="if(typeof isLongPress !== 'undefined' && !isLongPress) { setOverrideSilent('${dateStr}', '${p.id}'); if(typeof cancelPress === 'function') cancelPress(); }"
+                    onmousedown="startPress(${idx}, event)"
+                    onmouseup="if(!isLongPress && !hasScrolled) setOverrideSilent('${dateStr}', '${p.id}'); cancelPress();"
+                    onmouseleave="cancelPress();"
+                    ontouchstart="startPress(${idx}, event)"
+                    ontouchend="handleTouchEnd(${idx}, '${dateStr}', '${p.id}', event)"
+                    ontouchmove="handleTouchMove(event)"
                     style="margin: 0; padding: 15px 12px; font-size: 13px; border-radius: 12px; font-weight: 600; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; width: 100%;
                     background: ${isSelected ? 'rgba(255,255,255,0.1)' : btnBg} !important;
                     border-top: 2px solid ${borderColor} !important;
@@ -888,8 +891,7 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
         html += `
             <button class="mode-btn plan-override-btn override-rest-btn ${isRestSelected ? 'active-choice' : ''}"
                 id="btn-ovr-none"
-                onclick="event.preventDefault(); event.stopPropagation(); setOverrideSilent('${dateStr}', 'none');"
-                ontouchend="event.preventDefault(); event.stopPropagation(); setOverrideSilent('${dateStr}', 'none');"
+                onclick="setOverrideSilent('${dateStr}', 'none')"
                 style="margin: 0; padding: 12px; font-size: 13px; border-radius: 12px; font-weight: bold; grid-column: span 2;
                 border-top: 2px solid ${restBorderColor} !important;
                 color: #fde047; background: rgba(253, 224, 71, 0.05);">
@@ -905,12 +907,7 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
 
 // --- SYNKRONISERADE OCH LIVE-UPPDATERANDE OVERRIDES ---
 function setOverrideSilent(dateStr, programId) {
-    // 1. SPARA SCROLLEN BOMBSÄKERT: Spara nuvarande pixlar i webbläsarens minne
-    const currentScrollY = window.scrollY || document.documentElement.scrollTop;
-    localStorage.setItem("forcedScrollPosition", currentScrollY);
-    window.isChangingOverride = true; // Sätt en global flagga att ändring pågår
-
-    // 2. Uppdatera det lokala tillståndet OMEDELBART
+    // 1. Uppdatera det lokala tillståndet OMEDELBART
     if (programId === "none" || programId === "") {
         calendarOverrides[dateStr] = "none";
     } else {
@@ -919,25 +916,31 @@ function setOverrideSilent(dateStr, programId) {
 
     localStorage.setItem("calendarOverrides", JSON.stringify(calendarOverrides));
 
-    // 3. Hämta tillstånd för att rita om modal-innehållet
+    // 2. Uppdatera bakomliggande kalendervy direkt
+    if (typeof renderCalendar === "function") {
+        renderCalendar();
+    }
+
+    // 3. Hämta de korrekta och aktuella tillstånden live istället för sparad historiksträngar
     let nextPlannedProgram = null;
     if (programId !== "none" && programId !== "") {
         nextPlannedProgram = programData.routine.find(p => p.id === programId) || null;
     }
+    // Hämta historik och pågående status direkt från dina globala arrayer live
     const currentCompleted = typeof workoutHistory !== 'undefined' ? workoutHistory.filter(w => w.date === dateStr) : [];
     const currentIsOngoing = typeof activeDraft !== 'undefined' && activeDraft && activeDraft.date === dateStr;
 
-    // Ladda om vyn inuti modalen
+    // Ladda om vyn direkt utan fördröjning (Gränssnittet uppdateras här på under 1ms!)
     openDayManager(dateStr, nextPlannedProgram, currentCompleted, currentIsOngoing);
 
-    // Tvinga tillbaka scrollen direkt efter omritningen
-    window.scrollTo(0, currentScrollY);
-
     // 4. KÖR DE TUNGA SPAR- OCH SUPABASE-ANROPEN I BAKGRUNDEN
+    // Genom att lägga detta i en setTimeout frigörs huvudtråden så att appen inte laggar eller låser sig
     setTimeout(async () => {
         try {
-            if (typeof saveAll === 'function') await saveAll();
+            // Sparar i bakgrunden
+            await saveAll();
 
+            // Skottsäker integration mot Supabase (PGRST116-säkrad) i bakgrunden
             if (typeof currentUser !== 'undefined' && currentUser) {
                 const { data: existingRows, error: checkErr } = await supabaseClient
                     .from('calendar_overrides')
@@ -958,13 +961,7 @@ function setOverrideSilent(dateStr, programId) {
                 }
             }
         } catch (err) {
-            console.error("Fel vid bakgrundssynk till Supabase:", err);
-        } finally {
-            // Släpp spärren efter att allt i bakgrunden garanterat har kört klart
-            setTimeout(() => {
-                window.isChangingOverride = false;
-                localStorage.removeItem("forcedScrollPosition");
-            }, 100);
+            console.error("Fel vid bakgrundssynk av kalenderändringar till Supabase:", err);
         }
     }, 0);
 }
@@ -1384,7 +1381,7 @@ let temporarySelectedExercises = [];
 
 function renderActiveWorkout() {
     if (!activeDraft || !activeDraft.workout) {
-        console.warn(" ⚠️  Inget aktivt utkast tillgängligt.");
+        console.warn(" ⚠️  Inget aktivt utkast tillgängligt.");
         return;
     }
     if (activeDraft.data) {
@@ -1409,7 +1406,7 @@ function renderActiveWorkout() {
         if (footer) footer.classList.add("hidden");
         list.innerHTML = `
         <div style="text-align:center; padding:20px 0;">
-            <button class="mode-btn green" style="width:100%; padding:20px; font-size:18px; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);" onclick="actuallyStartWorkout()">STARTA TRÄNINGSPASSET  🔥 </button>
+            <button class="mode-btn green" style="width:100%; padding:20px; font-size:18px; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);" onclick="actuallyStartWorkout()">STARTA TRÄNINGSPASSET  🔥 </button>
         </div>
         <p style="color:var(--text-light); font-size:13px; text-align:center; margin-top:10px;">Klicka på knappen ovan för att starta klockan.</p>
         `;
@@ -1431,7 +1428,7 @@ function renderActiveWorkout() {
 
     const pauseBtn = document.getElementById("pause-workout-btn");
     if (pauseBtn) {
-        pauseBtn.innerHTML = `Spara utkast  💾 `;
+        pauseBtn.innerHTML = `Spara utkast  💾 `;
         pauseBtn.className = "mode-btn save-draft-btn";
         pauseBtn.onclick = saveDraftAndGoHome;
     }
@@ -1504,7 +1501,7 @@ function renderActiveWorkout() {
                     if (isCurrent) {
                         setsHtml += `
                         <div style="grid-column: 2 / span 3; margin:-4px 0 8px 0; padding-left:2px; opacity:0.8; font-size:10px; color:var(--primary); font-weight:600; letter-spacing:0.3px;">
-                            💡  Klicka på ${statusContent} för att låsa & gå vidare
+                            💡  Klicka på ${statusContent} för att låsa & gå vidare
                         </div>`;
                     }
                 });
@@ -1520,7 +1517,7 @@ function renderActiveWorkout() {
                             ${ex.name}
                         </strong>
                         <small style="color: ${isDone ? '#22c55e' : 'var(--primary)'}; font-size: 10px;">
-                            ${isDone ? 'KLAR  ✅ ' : `${completedSets}/${totalSets} set`}
+                            ${isDone ? 'KLAR  ✅ ' : `${completedSets}/${totalSets} set`}
                         </small>
                     </div>
                     <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0; margin-left: 10px;">
@@ -1533,7 +1530,7 @@ function renderActiveWorkout() {
                     ${setsHtml}
                     <button class="mode-border glass-border" style="padding:8px; font-size:11px; margin-top:10px; border-style:dashed; width:100%;" onclick="addSetToExercise(${i})" ${isDone ? 'disabled' : ''}>+ Lägg till set</button>
                     <button class="mode-btn ${isDone ? 'blue' : 'green'}" style="padding:12px; font-size:13px; margin-top:15px; width:100%; font-weight:bold;" onclick="toggleExerciseDone(${i})">
-                        ${isDone ? 'Ångra Klar  ↩️ ' : 'Markera övning som klar  ✅ '}
+                        ${isDone ? 'Ångra Klar  ↩️ ' : 'Markera övning som klar  ✅ '}
                     </button>
                 </div>`;
 
@@ -1542,19 +1539,19 @@ function renderActiveWorkout() {
     } else {
         const emptyNotice = document.createElement("p");
         emptyNotice.style.cssText = "color: var(--text-light); text-align: center; padding: 30px 10px; font-size: 14px;";
-        emptyNotice.innerHTML = "Det här passet är tomt. Klicka på knappen nedan för att lägga till dina övningar!  👇 ";
+        emptyNotice.innerHTML = "Det här passet är tomt. Klicka på knappen nedan för att lägga till dina övningar!  👇 ";
         list.appendChild(emptyNotice);
     }
     const addBtn = document.createElement("button");
     addBtn.className = "mode-btn glass-border";
     addBtn.style.marginTop = "10px";
-    addBtn.innerHTML = " ➕ Lägg till övning";
+    addBtn.innerHTML = " ➕ Lägg till övning";
     addBtn.onclick = openCustomAddExerciseModal;
     list.appendChild(addBtn);
     const discardBtn = document.createElement("button");
     discardBtn.className = "mode-btn";
     discardBtn.style.cssText = "background:none; color:var(--danger); font-size:14px; margin-top:20px; border:1px solid rgba(239, 68, 68, 0.2);";
-    discardBtn.innerHTML = "Radera pass  🗑️ ";
+    discardBtn.innerHTML = "Radera pass  🗑️ ";
     discardBtn.onclick = confirmDiscardActiveWorkout;
     list.appendChild(discardBtn);
     showView("workout-view");
@@ -2031,7 +2028,7 @@ function updateSingleExerciseCard(exIdx) {
             if (isCurrent) {
                 setsHtml += `
                 <div style="grid-column: 2 / span 3; margin:-4px 0 8px 0; padding-left:2px; opacity:0.8; font-size:10px; color:var(--primary); font-weight:600; letter-spacing:0.3px;">
-                    💡  Klicka på ${statusContent} för att låsa & gå vidare
+                    💡  Klicka på ${statusContent} för att låsa & gå vidare
                 </div>`;
             }
         });
@@ -2047,7 +2044,7 @@ function updateSingleExerciseCard(exIdx) {
                     ${ex.name}
                 </strong>
                 <small style="color: ${isDone ? '#22c55e' : 'var(--primary)'}; font-size: 10px;">
-                    ${isDone ? 'KLAR  ✅ ' : `${completedSets}/${totalSets} set`}
+                    ${isDone ? 'KLAR  ✅ ' : `${completedSets}/${totalSets} set`}
                 </small>
             </div>
             <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0; margin-left: 10px;">
@@ -2060,7 +2057,7 @@ function updateSingleExerciseCard(exIdx) {
             ${setsHtml}
             <button class="mode-border glass-border" style="padding:8px; font-size:11px; margin-top:10px; border-style:dashed; width:100%;" onclick="addSetToExercise(${exIdx})" ${isDone ? 'disabled' : ''}>+ Lägg till set</button>
             <button class="mode-btn ${isDone ? 'blue' : 'green'}" style="padding:12px; font-size:13px; margin-top:15px; width:100%; font-weight:bold;" onclick="toggleExerciseDone(${exIdx})">
-                ${isDone ? 'Ångra Klar  ↩️ ' : 'Markera övning som klar  ✅ '}
+                ${isDone ? 'Ångra Klar  ↩️ ' : 'Markera övning som klar  ✅ '}
             </button>
         </div>`;
 }
@@ -2906,70 +2903,4 @@ async function saveCustomProgramToSupabase() {
     }
     // FIX: Se till att den lokala referensen uppdateras
     if (window.programData) programData = window.programData;
-}
-
-// GLOBAL SCROLL-VAKT SOM TOTALVÄGRAR ATT LÅTA SIDAN HOPPA
-window.isChangingOverride = false;
-
-window.addEventListener('scroll', function() {
-    if (window.isChangingOverride) {
-        const savedScroll = localStorage.getItem("forcedScrollPosition");
-        if (savedScroll !== null) {
-            const targetScroll = parseInt(savedScroll, 10);
-            if (window.scrollY !== targetScroll) {
-                window.scrollTo(0, targetScroll);
-            }
-        }
-    }
-}, { passive: true });
-
-// Säkra upp att flaggan rensas om användaren stänger modalen helt
-const originalCloseModal = window.closeModal;
-window.closeModal = function() {
-    window.isChangingOverride = false;
-    localStorage.removeItem("forcedScrollPosition");
-    if (typeof originalCloseModal === 'function') {
-        originalCloseModal();
-    }
-};
-
-// Globala variabler för touch-hantering (se till att dessa bara deklareras en gång)
-if (typeof window.touchStartX === 'undefined') window.touchStartX = 0;
-if (typeof window.touchStartY === 'undefined') window.touchStartY = 0;
-if (typeof window.hasScrolled === 'undefined') window.hasScrolled = false;
-
-function handleTouchStart(e) {
-    window.hasScrolled = false;
-    if (e.touches && e.touches[0]) {
-        window.touchStartX = e.touches[0].clientX;
-        window.touchStartY = e.touches[0].clientY;
-    }
-}
-
-function handleTouchMove(e) {
-    if (!e.touches || !e.touches[0]) return;
-    const moveX = Math.abs(e.touches[0].clientX - window.touchStartX);
-    const moveY = Math.abs(e.touches[0].clientY - window.touchStartY);
-    // Om användaren har rört fingret mer än 10 pixlar, räkna det som en scroll, inte ett klick
-    if (moveX > 10 || moveY > 10) {
-        window.hasScrolled = true;
-    }
-}
-
-function handleTouchEndOverride(dateStr, programId, e) {
-    // 1. STOPPA STANDARD-BETEENDET (Detta förhindrar att sidan laddar om!)
-    if (e) {
-        if (typeof e.preventDefault === 'function') e.preventDefault();
-        if (typeof e.stopPropagation === 'function') e.stopPropagation();
-    }
-
-    // 2. Om användaren bara scrollade i listan, aktivera inte passet
-    if (window.hasScrolled) {
-        if (typeof cancelPress === 'function') cancelPress();
-        return;
-    }
-
-    // 3. Kör själva ändringen
-    if (typeof cancelPress === 'function') cancelPress();
-    setOverrideSilent(dateStr, programId);
 }
