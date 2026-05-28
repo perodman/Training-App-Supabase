@@ -125,7 +125,7 @@ document.addEventListener("DOMContentLoaded", () => {
         };
     }
     
-    if (document.getElementById('global-logout')) {
+  if (document.getElementById('global-logout')) {
         document.getElementById('global-logout').onclick = async () => {
             const { error } = await supabaseClient.auth.signOut();
             if (error) {
@@ -147,11 +147,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 calendarOverrides = {};
                 
                 currentUser = null;
+                
+                // Byt vy till inloggning
                 showAuth();
                 
-                // Scrollar upp till toppen innan sidan laddas om för en ren nystart
-                window.scrollTo(0, 0);
-                location.reload();
+                // Tvinga upp scrollen till toppen för en ren startvy, 
+                // men ladda INTE om sidan (location.reload är borttagen)
+                window.scrollTo({ top: 0, behavior: 'instant' });
             }
         };
     }
