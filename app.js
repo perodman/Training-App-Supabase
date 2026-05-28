@@ -1949,12 +1949,19 @@ async function updateSetDataOnly(exIdx, setIdx) {
 }
 
 async function confirmSet(exIdx, setIdx) {
+    // 1. Hämta vilofältet från skärmen
+    const vInp = document.getElementById(`v-${exIdx}-${setIdx}`);
+    
+    // 2. Om fältet finns, spara värdet i activeDraft innan vi låser
+    if (vInp) activeDraft.data[exIdx].sets_data[setIdx].rest = vInp.value;
+
+    // --- Här är din befintliga kod ---
     const currentState = activeDraft.data[exIdx].sets_data[setIdx].userConfirmed;
     activeDraft.data[exIdx].sets_data[setIdx].userConfirmed = !currentState;
 
     await persistActiveWorkout(); // Synkar vid klarmarkering av set
 
-    //  ✅  Uppdatera BARA det ber ö rda  ö vningskortet (inte hela listan)
+    //  ✅  Uppdatera BARA det berörda övningskortet (inte hela listan)
     updateSingleExerciseCard(exIdx);
 }
 
