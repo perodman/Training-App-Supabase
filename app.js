@@ -921,7 +921,12 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
 
 // --- SYNKRONISERADE OCH LIVE-UPPDATERANDE OVERRIDES ---
 function setOverrideSilent(dateStr, programId) {
-    // 1. Uppdatera det lokala tillståndet OMEDELBART
+    // 1. SPARA SCROLLEN BOMBSÄKERT: Spara nuvarande pixlar i webbläsarens minne
+    const currentScrollY = window.scrollY || document.documentElement.scrollTop;
+    localStorage.setItem("forcedScrollPosition", currentScrollY);
+    window.isChangingOverride = true; // Sätt en global flagga att ändring pågår
+
+    // 2. Uppdatera det lokala tillståndet OMEDELBART
     if (programId === "none" || programId === "") {
         calendarOverrides[dateStr] = "none";
     } else {
@@ -930,12 +935,7 @@ function setOverrideSilent(dateStr, programId) {
 
     localStorage.setItem("calendarOverrides", JSON.stringify(calendarOverrides));
 
-    // 2. Uppdatera bakomliggande kalendervy direkt
-    if (typeof renderCalendar === "function") {
-        renderCalendar();
-    }
-
-    // 3. Hämta de korrekta och aktuella tillstånden live
+    // 3. Hämta tillstånd för att rita om modal-innehållet
     let nextPlannedProgram = null;
     if (programId !== "none" && programId !== "") {
         nextPlannedProgram = programData.routine.find(p => p.id === programId) || null;
@@ -943,13 +943,16 @@ function setOverrideSilent(dateStr, programId) {
     const currentCompleted = typeof workoutHistory !== 'undefined' ? workoutHistory.filter(w => w.date === dateStr) : [];
     const currentIsOngoing = typeof activeDraft !== 'undefined' && activeDraft && activeDraft.date === dateStr;
 
-    // Ladda om vyn
+    // Ladda om vyn inuti modalen
     openDayManager(dateStr, nextPlannedProgram, currentCompleted, currentIsOngoing);
+
+    // Tvinga tillbaka scrollen direkt efter omritningen
+    window.scrollTo(0, currentScrollY);
 
     // 4. KÖR DE TUNGA SPAR- OCH SUPABASE-ANROPEN I BAKGRUNDEN
     setTimeout(async () => {
         try {
-            await saveAll();
+            if (typeof saveAll === 'function') await saveAll();
 
             if (typeof currentUser !== 'undefined' && currentUser) {
                 const { data: existingRows, error: checkErr } = await supabaseClient
@@ -971,7 +974,13 @@ function setOverrideSilent(dateStr, programId) {
                 }
             }
         } catch (err) {
-            console.error("Fel vid bakgrundssynk av kalenderändringar till Supabase:", err);
+            console.error("Fel vid bakgrundssynk till Supabase:", err);
+        } finally {
+            // Släpp spärren efter att allt i bakgrunden garanterat har kört klart
+            setTimeout(() => {
+                window.isChangingOverride = false;
+                localStorage.removeItem("forcedScrollPosition");
+            }, 100);
         }
     }, 0);
 }
