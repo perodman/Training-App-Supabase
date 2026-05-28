@@ -1,14 +1,16 @@
 // ==========================================================================
 // SUPABASE KONFIGURATION & AUTENTISERING (KOMPLETT)
 // ==========================================================================
+
+if ('scrollRestoration' in history) {
+    history.scrollRestoration = 'manual';
+}
+
 const SUPABASE_URL = 'https://oixavkihfvbagzlyoocm.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_v6MqFHOeimJvtx-dZWFn1g_s0YOTUE8';
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let currentUser = null;
 
-if ('scrollRestoration' in history) {
-    history.scrollRestoration = 'manual';
-}
 
 async function initAuth() {
     window.supabaseDataLoadedOnce = false;  // ← NOLLSTÄLLER FLAGGAN
