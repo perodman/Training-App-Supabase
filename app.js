@@ -1594,14 +1594,34 @@ async function toggleExerciseDone(exIdx) {
     await persistActiveWorkout();
 }
 
+// Körs när användaren klickar på "STARTA TRÄNINGSPASSET"
 async function actuallyStartWorkout() {
+    if (!activeDraft) return;
+    
+    // 1. Sätt passet till startat och aktivera timer-flaggorna
     activeDraft.isStarted = true;
     activeDraft.wasTimerRunning = true;
-
-    // Aktiverar passet och tidtagningen i bakgrunden mot Supabase
-    await persistActiveWorkout();
-    renderActiveWorkout();
-    if (typeof startTimer === "function") startTimer();
+    
+    // 2. Kör historikfunktionen för att hämta gamla vikter/reps
+    if (typeof prefillActiveWorkoutWithHistory === 'function') {
+        prefillActiveWorkoutWithHistory();
+    }
+    
+    // 3. Starta timern om funktionen finns (så att den tickar igång i gränssnittet)
+    if (typeof startTimer === 'function') startTimer();
+    
+    // 4. Spara ner tillståndet till localStorage direkt för omedelbar UX
+    localStorage.setItem("activeWorkoutDraft", JSON.stringify(activeDraft));
+    
+    // 5. Rita upp vyn direkt (nu visas de förifyllda historiska värdena blixtsnabbt!)
+    if (typeof renderActiveWorkout === 'function') {
+        renderActiveWorkout();
+    }
+    
+    // 6. Aktiverar passet och tidtagningen asynkront mot Supabase i bakgrunden
+    if (typeof persistActiveWorkout === 'function') {
+        await persistActiveWorkout();
+    }
 }
 
 function openAddExerciseToWorkoutModal() {
@@ -1853,30 +1873,91 @@ async function confirmAddExerciseToActive(exId, replaceIndex = null) {
     renderActiveWorkout();
 }
 
-async function updateSetDataOnly(exIdx, setIdx) {
-    // 1. Hämta värdena från input-fälten
-    const wInput = document.getElementById(`w-${exIdx}-${setIdx}`);
-    const rInput = document.getElementById(`r-${exIdx}-${setIdx}`);
-
-    // Säkerställ att fälten faktiskt finns i DOM:en innan vi fortsätter
-    if (!wInput || !rInput) {
-        console.warn(` ⚠️  Kunde inte hitta input-fält för övning ${exIdx}, set ${setIdx}`);
-        return;
+// Uppdaterar sparad data live när användaren skriver, och kopierar automatiskt nedåt från Set 1
+function updateSetDataOnly(i, sIdx) {
+    if (!activeDraft || !activeDraft.data || !activeDraft.data[i]) return;
+    
+    const exerciseData = activeDraft.data[i];
+    if (!exerciseData.sets_data || !exerciseData.sets_data[sIdx]) return;
+    
+    // 1. Hämta de aktuella input-fälten från DOM baserat på dina ID:n
+    const weightInput = document.getElementById(`w-${i}-${sIdx}`);
+    const repsInput = document.getElementById(`r-${i}-${sIdx}`);
+    
+    // 2. Spara det inskrivna värdet till utkastet
+    if (weightInput) exerciseData.sets_data[sIdx].weight = weightInput.value;
+    if (repsInput) exerciseData.sets_data[sIdx].reps = repsInput.value;
+    
+    // 3. AUTOMATISK KOPIERING: Om användaren skriver i Set 1 (sIdx === 0)
+    if (sIdx === 0) {
+        const currentWeight = weightInput ? weightInput.value : "";
+        const currentReps = repsInput ? repsInput.value : "";
+        
+        exerciseData.sets_data.forEach((set, nextSIdx) => {
+            // Gå igenom alla efterföljande set (Set 2, Set 3 osv)
+            if (nextSIdx > 0) {
+                // Kopiera till nästa set ENDAST om det fältet är helt tomt
+                if (!set.weight || set.weight.trim() === "") {
+                    set.weight = currentWeight;
+                    const nextWeightInput = document.getElementById(`w-${i}-${nextSIdx}`);
+                    if (nextWeightInput) nextWeightInput.value = currentWeight;
+                }
+                if (!set.reps || set.reps.trim() === "") {
+                    set.reps = currentReps;
+                    const nextRepsInput = document.getElementById(`r-${i}-${nextSIdx}`);
+                    if (nextRepsInput) nextRepsInput.value = currentReps;
+                }
+            }
+        });
     }
-    const weightVal = wInput.value;
-    const repsVal = rInput.value;
-    // 2. Uppdatera objektet i minnet (säkerhetskontroll inkluderad)
-    if (activeDraft && activeDraft.data && activeDraft.data[exIdx] && activeDraft.data[exIdx].sets_data) {
-        activeDraft.data[exIdx].sets_data[setIdx].weight = weightVal;
-        activeDraft.data[exIdx].sets_data[setIdx].reps = repsVal;
-
-        console.log(` 📝  Uppdaterar minne: Övning ${exIdx}, Set ${setIdx} -> ${weightVal}kg, ${repsVal} reps`);
-    } else {
-        console.error(" ❌  activeDraft-strukturen matchar inte f ö rv ä ntad data.");
-        return;
+    
+    // 4. Spara ändringarna i bakgrunden utan att rita om hela skärmen
+    localStorage.setItem("activeWorkoutDraft", JSON.stringify(activeDraft));
+    if (typeof persistActiveWorkout === 'function') {
+        persistActiveWorkout();
     }
-    // 3. Synka till localStorage och Supabase
-    await persistActiveWorkout();
+}
+
+// Söker baklänges i historiken och fyller i vikter/reps från senaste tillfället övningen kördes
+function prefillActiveWorkoutWithHistory() {
+    if (!activeDraft || !activeDraft.data || !activeDraft.workout || !activeDraft.workout.exercises) return;
+    if (!workoutHistory || workoutHistory.length === 0) return;
+
+    // Loopa igenom varje övning i det nyss öppnade passet
+    activeDraft.workout.exercises.forEach((ex, i) => {
+        const exerciseData = activeDraft.data[i];
+        if (!exerciseData || !exerciseData.sets_data) return;
+
+        // Kontrollera om övningen är helt tom (inga vikter eller reps ifyllda än)
+        const isBrandNew = exerciseData.sets_data.every(s => !s.weight && !s.reps);
+
+        if (isBrandNew) {
+            // Sök baklänges i träningshistoriken (från senaste till äldsta passet)
+            for (let h = workoutHistory.length - 1; h >= 0; h--) {
+                const pastWorkout = workoutHistory[h];
+                if (!pastWorkout.data) continue;
+
+                // Hitta om samma övning kördes i det historiska passet
+                const foundPastEx = pastWorkout.data.find(pEx => pEx.name === ex.name);
+                
+                if (foundPastEx && foundPastEx.sets_data && foundPastEx.sets_data.length > 0) {
+                    // Vi hittade senaste tillfället! Kopiera över historiska vikter och reps
+                    exerciseData.sets_data.forEach((set, sIdx) => {
+                        const pastSet = foundPastEx.sets_data[sIdx];
+                        if (pastSet) {
+                            set.weight = pastSet.weight || "";
+                            set.reps = pastSet.reps || "";
+                            set.userConfirmed = false; // Det nya passets set ska inte vara klarmarkerande än
+                        }
+                    });
+                    break; // Avbryt sökningen för denna övning eftersom vi hittade den senaste
+                }
+            }
+        }
+    });
+
+    // Spara det uppdaterade utkastet med historiken inkluderad
+    localStorage.setItem("activeWorkoutDraft", JSON.stringify(activeDraft));
 }
 
 async function confirmSet(exIdx, setIdx) {
