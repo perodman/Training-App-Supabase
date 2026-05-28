@@ -2948,3 +2948,44 @@ window.closeModal = function() {
         originalCloseModal();
     }
 };
+
+// Globala variabler för touch-hantering (se till att dessa bara deklareras en gång)
+if (typeof window.touchStartX === 'undefined') window.touchStartX = 0;
+if (typeof window.touchStartY === 'undefined') window.touchStartY = 0;
+if (typeof window.hasScrolled === 'undefined') window.hasScrolled = false;
+
+function handleTouchStart(e) {
+    window.hasScrolled = false;
+    if (e.touches && e.touches[0]) {
+        window.touchStartX = e.touches[0].clientX;
+        window.touchStartY = e.touches[0].clientY;
+    }
+}
+
+function handleTouchMove(e) {
+    if (!e.touches || !e.touches[0]) return;
+    const moveX = Math.abs(e.touches[0].clientX - window.touchStartX);
+    const moveY = Math.abs(e.touches[0].clientY - window.touchStartY);
+    // Om användaren har rört fingret mer än 10 pixlar, räkna det som en scroll, inte ett klick
+    if (moveX > 10 || moveY > 10) {
+        window.hasScrolled = true;
+    }
+}
+
+function handleTouchEndOverride(dateStr, programId, e) {
+    // 1. STOPPA STANDARD-BETEENDET (Detta förhindrar att sidan laddar om!)
+    if (e) {
+        if (typeof e.preventDefault === 'function') e.preventDefault();
+        if (typeof e.stopPropagation === 'function') e.stopPropagation();
+    }
+
+    // 2. Om användaren bara scrollade i listan, aktivera inte passet
+    if (window.hasScrolled) {
+        if (typeof cancelPress === 'function') cancelPress();
+        return;
+    }
+
+    // 3. Kör själva ändringen
+    if (typeof cancelPress === 'function') cancelPress();
+    setOverrideSilent(dateStr, programId);
+}
