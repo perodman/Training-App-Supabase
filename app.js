@@ -1542,7 +1542,7 @@ function renderActiveWorkout() {
     const addBtn = document.createElement("button");
     addBtn.className = "mode-btn glass-border";
     addBtn.style.marginTop = "10px";
-    addBtn.innerHTML = " ➕  L ä gg till  ö vning";
+    addBtn.innerHTML = " ➕ Lägg till övning";
     addBtn.onclick = openCustomAddExerciseModal;
     list.appendChild(addBtn);
     const discardBtn = document.createElement("button");
