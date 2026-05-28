@@ -9,7 +9,8 @@ if (typeof window.supabaseDataLoadedOnce === 'undefined') {
 // Global kontrollvariabel för att förhindra parallell rendering och autosave under sparning
 window.isSavingWorkout = false;
 
-async function loadUserData() {
+// LÄGG TILL PARAMETERN isSilent = false HÄR FÖR ATT KUNNA KÖRA I BAKGRUNDEN UTAN HOPP
+async function loadUserData(isSilent = false) {
     if (!currentUser) return;
     // JÄRNRIDÅ: Om data redan har synkats en gång, totalvägra att köra om denna tunga funktion!
     if (window.supabaseDataLoadedOnce === true) {
@@ -133,10 +134,16 @@ async function loadUserData() {
                 if (typeof activeDraft !== 'undefined') activeDraft = null;
             }
         }
-        console.log(" ✅  All data synkad i loadUserData. Renderar vyer.");
+        console.log(" ✅  All data synkad i loadUserData. Kontrollerar rendering...");
         window.supabaseDataLoadedOnce = true;
-        if (typeof renderCalendar === 'function') renderCalendar();
-        if (typeof renderHome === 'function') renderHome();
+
+        // KONTROLL: Om anropet är tyst (isSilent), rör INTE gränssnittet mitt under en aktiv session!
+        if (!isSilent) {
+            if (typeof renderCalendar === 'function') renderCalendar();
+            if (typeof renderHome === 'function') renderHome();
+        } else {
+            console.log(" 🤫 [SILENT] Ignorerade rendering av kalendern för att skydda skärmens scrollposition.");
+        }
     } catch (err) {
         console.error(' ❌  Kritiskt fel i loadUserData:', err);
     }
@@ -408,7 +415,7 @@ async function saveWorkoutHistory(workoutInput) {
         }
         lastWorkoutSavedTime = 0;
     } finally {
-        // Släpp låset först efter en kort fördröjning för att garantera att alla renderingar körts klart i lugn och ro
+        // Släpp låset först efter en kort fördröjning för att garantera att alla renderingar körts klart i low-key-mode
         setTimeout(() => {
             window.isSavingWorkout = false;
         }, 400);
