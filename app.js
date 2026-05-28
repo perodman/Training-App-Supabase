@@ -1867,48 +1867,70 @@ async function confirmAddExerciseToActive(exId, replaceIndex = null) {
     renderActiveWorkout();
 }
 
+// Debounce-helper (lägg en gång i filen, ovanför eller bredvid funktionen)
+function debounce(fn, wait = 700) {
+  let timer = null;
+  return (...args) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn(...args), wait);
+  };
+}
+const debouncedPersistActiveWorkout = debounce(() => {
+  if (typeof persistActiveWorkout === 'function') {
+    try { persistActiveWorkout(); } catch (e) { console.error(e); }
+  }
+}, 700);
+
 async function updateSetDataOnly(exIdx, setIdx) {
-    // Hämta inputelementen säkert
-    const wInp = document.getElementById(`w-${exIdx}-${setIdx}`);
-    const rInp = document.getElementById(`r-${exIdx}-${setIdx}`);
-    if (!wInp || !rInp) {
-        console.warn(`⚠️ Saknar input för ${exIdx}, ${setIdx}`);
-        return;
+  const wInp = document.getElementById(`w-${exIdx}-${setIdx}`);
+  const rInp = document.getElementById(`r-${exIdx}-${setIdx}`);
+  if (!wInp || !rInp) {
+    console.warn(`⚠️ Saknar input för ${exIdx}, ${setIdx}`);
+    return;
+  }
+ 
+  if (!activeDraft || !activeDraft.data || !activeDraft.data[exIdx]) return;
+  // Se till att sets_data-arrayen finns och att varje set är ett separat objekt
+  activeDraft.data[exIdx].sets_data = activeDraft.data[exIdx].sets_data || [];
+  const setsArray = activeDraft.data[exIdx].sets_data;
+  setsArray[setIdx] = Object.assign({}, setsArray[setIdx] || {});
+ 
+  const setObj = setsArray[setIdx];
+ 
+  // Uppdatera setet från inputs (kontrollerat, direkt)
+  setObj.weight = wInp.value;
+  setObj.reps = rInp.value;
+  if (typeof setObj.userConfirmed === "undefined") setObj.userConfirmed = false;
+ 
+  // Kontrollera historik och eventuell autofyll av efterföljande tomma set
+  const exerciseName = activeDraft.workout?.exercises?.[exIdx]?.name;
+  const history = exerciseName ? getExerciseHistory(exerciseName) : null;
+  const isNoHistory = history === null;
+ 
+  if (isNoHistory && setIdx === 0) {
+    // säkerställ att efterföljande set finns som egna objekt innan skrivning
+    for (let i = 1; i < (setsArray.length || 3); i++) {
+      setsArray[i] = Object.assign({}, setsArray[i] || {});
     }
-
-    if (!activeDraft || !activeDraft.data || !activeDraft.data[exIdx] || !activeDraft.data[exIdx].sets_data) return;
-    const setsArray = activeDraft.data[exIdx].sets_data;
-    const setObj = setsArray[setIdx];
-
-    // Uppdatera setet
-    setObj.weight = wInp.value;
-    setObj.reps = rInp.value;
-    if (typeof setObj.userConfirmed === "undefined") setObj.userConfirmed = false;
-
-    // Kontrollera om det finns historik för övningen
-    const exerciseName = activeDraft.workout?.exercises?.[exIdx]?.name;
-    const history = exerciseName ? getExerciseHistory(exerciseName) : null;
-    const isNoHistory = history === null;
-
-    // Om ingen historik OCH detta är första setet, kopiera till efterföljande set om de är tomma
-    if (isNoHistory && setIdx === 0) {
-        const othersAreBlank = setsArray.slice(1).every(s => (!s.weight && !s.reps));
-        if (othersAreBlank) {
-            for (let i = 1; i < setsArray.length; i++) {
-                setsArray[i].weight = setObj.weight;
-                setsArray[i].reps = setObj.reps;
-                setsArray[i].userConfirmed = false;
-                const wEl = document.getElementById(`w-${exIdx}-${i}`);
-                const rEl = document.getElementById(`r-${exIdx}-${i}`);
-                if (wEl) wEl.value = setsArray[i].weight || "";
-                if (rEl) rEl.value = setsArray[i].reps || "";
-            }
-        }
+    const othersAreBlank = setsArray.slice(1).every(s => (!s.weight && !s.reps));
+    if (othersAreBlank) {
+      for (let i = 1; i < setsArray.length; i++) {
+        setsArray[i].weight = setObj.weight;
+        setsArray[i].reps = setObj.reps;
+        setsArray[i].userConfirmed = false;
+        const wEl = document.getElementById(`w-${exIdx}-${i}`);
+        const rEl = document.getElementById(`r-${exIdx}-${i}`);
+        if (wEl) wEl.value = setsArray[i].weight || "";
+        if (rEl) rEl.value = setsArray[i].reps || "";
+      }
     }
-
-    // Persist och uppdatera UI
-    if (typeof persistActiveWorkout === "function") await persistActiveWorkout();
-    if (typeof renderActiveWorkout === "function") renderActiveWorkout();
+  }
+ 
+  // Persist debouncat (ingen omedelbar render)
+  debouncedPersistActiveWorkout();
+ 
+  // OBS: Vi undviker att anropa renderActiveWorkout() här eftersom det vanligtvis byter ut DOM och tappar fokus.
+  // Om du måste tvinga en render vid speciella tillfällen (t.ex. på blur eller submit) kan du kalla renderActiveWorkout() då.
 }
 
 async function confirmSet(exIdx, setIdx) {
