@@ -727,13 +727,13 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
         </div>`;
 
         safeCompleted.forEach((w, idx) => {
-            const timeStr = w.totalTime ? ` ⏱️  ${w.totalTime}` : "";
+            const timeStr = w.totalTime ? ` ⏱️  ${w.totalTime}` : "";
             html += `
-            <div class="card glass" style="border-left: 4px solid #22c55e; text-align: left; margin: 0; padding: 15px; border-radius: 16px;">
+            <div class="card glass" style="border-left: 4px solid #22c55e; text-align: left; margin: 0; padding: 15px; border-radius: 166px; border-radius: 16px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                     <div>
                         <strong style="font-size: 16px; color: var(--text); display: block;">${w.programName}</strong>
-                        <span style="font-size: 11px; color: var(--text-light); font-weight: 500;">${timeStr || 'Slutfört pass  ✅ '}</span>
+                        <span style="font-size: 11px; color: var(--text-light); font-weight: 500;">${timeStr || 'Slutfört pass  ✅ '}</span>
                     </div>
                     <div style="display: flex; gap: 5px;">
                         <button onclick="editLoggedWorkout('${dateStr}', ${idx})" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--primary); cursor: pointer; font-size: 14px; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;"> ✏️ </button>
@@ -789,15 +789,15 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
             <div class="status-aura" style="background: rgba(245, 158, 11, 0.35);"></div>
 
             <div style="margin: 0 0 15px 0; width: 100%; text-align: center !important;">
-                <span class="status-highlight-text" style="color: #f59e0b !important; text-shadow: 0 0 25px rgba(245, 158, 11, 0.8) !important; font-size: 20px; font-weight: 800;"> 🔥  Pågående Pass</span>
+                <span class="status-highlight-text" style="color: #f59e0b !important; text-shadow: 0 0 25px rgba(245, 158, 11, 0.8) !important; font-size: 20px; font-weight: 800;"> 🔥  Pågående Pass</span>
             </div>
             <button class="premium-green-btn" onclick="showView('workout-view'); startWorkout(activeDraft.workout, activeDraft.data, activeDraft.date); setTimeout(() => closeModal(), 0)" style="border: 2px solid #f59e0b !important; background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%) !important; width: 100% !important;">
-                Fortsätt träningen  ⏱️
+                Fortsätt träningen  ⏱️
             </button>
         </div>`;
     }
 
-    // 3. Planerad träning eller vila status-box (DÖLJS NU OM DET FINNS HISTORIK)
+    // 3. Planerad träning eller vila status-box (DÖLJS NU ÄVEN OM PASSET ÄR IGÅNG)
     if (!isOngoing && !hasCompleted) {
         html += `
         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px; width: 100%; margin-top: 16px;">
@@ -809,7 +809,7 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
         <div class="modern-status-card day-manager-status-box" style="padding: 30px 15px 30px 15px !important; align-items: stretch !important; margin-top: -10px !important;">
 
             <p id="current-planned-label" class="status-box-text" style="margin: 0 0 8px 0 !important; text-align: center !important; font-size: 16px; font-weight: 600; padding: 0 !important; line-height: 1.2 !important;">
-                ${planned ? ` 📋  <span class="status-highlight-text">${planned.name}</span>` : ' 🧘  Planerad Vila'}
+                ${planned ? ` 📋  <span class="status-highlight-text">${planned.name}</span>` : ' 🧘  Planerad Vila'}
             </p>
 
             <div id="day-manager-action-btn-container" class="status-btn-container" style="width: 100% !important; display: flex; flex-direction: column; gap: 10px; margin-top: 5px;">`;
@@ -817,7 +817,7 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
         if(planned) {
             html += `
                 <button class="mode-btn premium-action-btn premium-green-btn" onclick="prepareStart('${dateStr}', '${planned.id}')" style="width: 100% !important; margin: 0 !important; padding: 12px !important;">
-                    Starta Träning  🔥
+                    Starta Träning  🔥
                 </button>`;
         }
 
@@ -827,13 +827,13 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
             <button class="mode-btn premium-action-btn premium-free-btn"
                 onclick="closeModal(); startFreeWorkoutOnDate('${dateStr}')"
                 style="width: 100% !important; margin: 10px 0 0 0 !important; padding: 10px !important; touch-action: manipulation; -webkit-tap-highlight-color: transparent; cursor: pointer;">
-                ➕  Starta Fritt Pass
+                ➕  Starta Fritt Pass
             </button>
         </div>`;
     }
 
-    // 4. ÄNDRA PLANERING - GRID MED ALLA PASS I RUTINEN (DÖLJS NU OM DET FINNS HISTORIK)
-    if (!hasCompleted) {
+    // 4. ÄNDRA PLANERING - GRID MED ALLA PASS I RUTINEN (DÖLJS NU OM PASSET ÄR IGÅNG ELLER HAR HISTORIK)
+    if (!isOngoing && !hasCompleted) {
         html += `
         <div style="margin-top: 1px; width: 100%;">
             <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
@@ -843,7 +843,7 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
             </div>
 
             <div style="text-align: center; margin-bottom: 12px;">
-                <span style="font-size: 11px; color: var(--text-light); opacity: 0.5; font-weight: 500; letter-spacing: 0.3px;"> 💡  Håll inne ett pass för att se övningar</span>
+                <span style="font-size: 11px; color: var(--text-light); opacity: 0.5; font-weight: 500; letter-spacing: 0.3px;"> 💡  Håll inne ett pass för att se övningar</span>
             </div>
 
             <div class="plan-override-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; width: 100%;">`;
@@ -895,7 +895,7 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
                 style="margin: 0; padding: 12px; font-size: 13px; border-radius: 12px; font-weight: bold; grid-column: span 2;
                 border-top: 2px solid ${restBorderColor} !important;
                 color: #fde047; background: rgba(253, 224, 71, 0.05);">
-                🧘  Vila
+                🧘  Vila
             </button>
         </div>
         </div>`;
