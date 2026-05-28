@@ -2802,7 +2802,7 @@ function confirmDiscardActiveWorkout() {
             }
         }
         // UX-OPTIMERING: Skifta gränssnittet till hemskärmen OMEDELBART innan vi stänger popupen/modalen. Detta förhindrar layout-flash.
-        if (typeof showView === 'function') showView("home-view");
+        if (typeof showView === 'function') showView("calendar-view");
         if (typeof renderHome === 'function') renderHome();
 
         hideDefaultCloseButton(false);
