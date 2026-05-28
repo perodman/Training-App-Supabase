@@ -697,6 +697,12 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
     const body = document.getElementById("modal-body");
 
     if (body) {
+        // STRUKTURELLT SCROLL-LOCK: Spara nuvarande höjd så att rutan inte kollapsar till 0px vid omritning!
+        const currentHeight = body.offsetHeight;
+        if (currentHeight > 0) {
+            body.style.minHeight = `${currentHeight}px`;
+        }
+
         body.style.display = "flex";
         body.style.flexDirection = "column";
         body.style.justifyContent = "flex-start";
@@ -716,7 +722,7 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
     const safeCompleted = Array.isArray(completed) ? completed : [];
     const hasCompleted = safeCompleted.length > 0;
 
-    // 1. Slutförda pass på detta datum (Historik)
+    // 1. Slutförda pass (Historik)
     if (hasCompleted) {
         html += `
         <div style="display: flex; align-items: center; gap: 10px; margin-top: 10px; width: 100%;">
@@ -900,23 +906,22 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
         </div>`;
     }
 
+    // Injicera den nya koden
     body.innerHTML = html;
+
+    // SLÄPP HÖJDEN FRI IGEN: Nu när HTML har laddats, låt rutan expandera/krympa naturligt utan hopp
+    if (body) {
+        requestAnimationFrame(() => {
+            body.style.minHeight = '';
+        });
+    }
+
     openModal();
 }
 
 // --- SYNKRONISERADE OCH LIVE-UPPDATERANDE OVERRIDES ---
 function setOverrideSilent(dateStr, programId) {
-    // 1. SCROLL-LOCK: Spara exakta positioner
-    const savedWindowScroll = window.scrollY || document.documentElement.scrollTop;
-    const modalContent = document.querySelector(".modal-content");
-    const savedModalScroll = modalContent ? modalContent.scrollTop : 0;
-
-    // 2. Tvinga webbläsaren att frysa bakgrunden helt genom CSS
-    document.body.style.position = 'fixed';
-    document.body.style.top = `-${savedWindowScroll}px`;
-    document.body.style.width = '100%';
-
-    // 3. Uppdatera det lokala tillståndet OMEDELBART
+    // 1. Uppdatera det lokala tillståndet OMEDELBART
     if (programId === "none" || programId === "") {
         calendarOverrides[dateStr] = "none";
     } else {
@@ -925,12 +930,12 @@ function setOverrideSilent(dateStr, programId) {
 
     localStorage.setItem("calendarOverrides", JSON.stringify(calendarOverrides));
 
-    // 4. Uppdatera bakomliggande kalendervy direkt
+    // 2. Uppdatera bakomliggande kalendervy direkt
     if (typeof renderCalendar === "function") {
         renderCalendar();
     }
 
-    // 5. Hämta de korrekta och aktuella tillstånden live
+    // 3. Hämta de korrekta och aktuella tillstånden live
     let nextPlannedProgram = null;
     if (programId !== "none" && programId !== "") {
         nextPlannedProgram = programData.routine.find(p => p.id === programId) || null;
@@ -938,29 +943,10 @@ function setOverrideSilent(dateStr, programId) {
     const currentCompleted = typeof workoutHistory !== 'undefined' ? workoutHistory.filter(w => w.date === dateStr) : [];
     const currentIsOngoing = typeof activeDraft !== 'undefined' && activeDraft && activeDraft.date === dateStr;
 
-    // Ladda om vyn inuti modalen
+    // Ladda om vyn
     openDayManager(dateStr, nextPlannedProgram, currentCompleted, currentIsOngoing);
 
-    // 6. LÅS UPP OCH ÅTERSTÄLL: Släpp frysnings-CSS och tvinga tillbaka scroll-pixlarna
-    document.body.style.position = '';
-    document.body.style.top = '';
-    document.body.style.width = '';
-    
-    // Scrolla fönstret och modalen till exakt där de var
-    window.scrollTo(0, savedWindowScroll);
-    if (modalContent) {
-        modalContent.scrollTop = savedModalScroll;
-    }
-
-    // En extra säkerhet för mobila webbläsare (iOS/Safari) som ibland behöver en mikrosekund på sig
-    requestAnimationFrame(() => {
-        window.scrollTo(0, savedWindowScroll);
-        if (modalContent) {
-            modalContent.scrollTop = savedModalScroll;
-        }
-    });
-
-    // 7. KÖR DE TUNGA SPAR- OCH SUPABASE-ANROPEN I BAKGRUNDEN
+    // 4. KÖR DE TUNGA SPAR- OCH SUPABASE-ANROPEN I BAKGRUNDEN
     setTimeout(async () => {
         try {
             await saveAll();
