@@ -179,8 +179,17 @@ async function loadDefaultProgram() {
     }
 }
 
+// Högst upp i supabase-data.js (eller precis ovanför funktionen)
+let isSyncingCustomProgramGlobal = false;
+
 async function saveCustomProgram() {
     if (!currentUser) return;
+
+    // Om en synk redan pågår, avbryt direkt för att förhindra 409-krockar i databasen
+    if (isSyncingCustomProgramGlobal) {
+        console.log(" ⏳ [DEBUG] Synk av custom_program pågår redan, hoppar över detta anrop.");
+        return;
+    }
 
     if (typeof programData !== 'undefined' && programData) {
         window.programData = programData;
@@ -194,15 +203,20 @@ async function saveCustomProgram() {
     if (typeof masterExercises !== 'undefined') {
         localStorage.setItem("masterExercises", JSON.stringify(masterExercises));
     }
+
+    // Lås dörren för efterföljande anrop
+    isSyncingCustomProgramGlobal = true;
+
     console.log("Skickar uppdaterat custom_program till Supabase:", dataToSave);
     try {
-        const { existing, error: fetchErr } = await supabaseClient
+        const { data: existing, error: fetchErr } = await supabaseClient
             .from('custom_program')
             .select('id')
             .eq('user_id', currentUser.id)
-            .limit(1)
             .maybeSingle();
+            
         if (fetchErr) throw fetchErr;
+        
         if (existing) {
             console.log("Uppdaterar befintligt program i Supabase (ID:", existing.id, ")");
             const { error: updateErr } = await supabaseClient
@@ -222,6 +236,9 @@ async function saveCustomProgram() {
         console.log(" ✅  Custom program sparades framgångsrikt i Supabase!");
     } catch (err) {
         console.error("Fel vid sparande av custom_program i Supabase:", err);
+    } finally {
+        // Lås upp dörren när anropet är helt klart (oavsett om det gick bra eller fel)
+        isSyncingCustomProgramGlobal = false;
     }
 }
 
