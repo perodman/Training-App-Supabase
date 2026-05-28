@@ -2051,9 +2051,11 @@ function updateSingleExerciseCard(exIdx) {
         </div>`;
 }
 
-// ÄNDRING: Uppdaterad med robust synkronisering mot tabellen public.active_draft i Supabase
+// Vi skapar en global flagga längst upp (utanför funktionen)
+let isSyncingWithSupabase = false;
+
 async function persistActiveWorkout() {
-    // SÄKERHETSSPÄRR: Om activeDraft inte finns eller inte är startat, avbryt omedelbart för att förhindra databaskrockar!
+    // SÄKERHETSSPÄRR: Om activeDraft inte finns eller inte är startat, avbryt omedelbart
     if (!activeDraft || !activeDraft.isStarted) {
         localStorage.removeItem("activeWorkoutDraft");
         return;
@@ -2061,6 +2063,15 @@ async function persistActiveWorkout() {
 
     localStorage.setItem("activeWorkoutDraft", JSON.stringify(activeDraft));
     if (!currentUser) return;
+    
+    // DÖRRVAKT: Om ett anrop redan pågår, avbryt detta anrop direkt!
+    if (isSyncingWithSupabase) {
+        console.log(" ⏳ [DEBUG] Synk pågår redan, hoppar över detta anrop för att förhindra krock.");
+        return;
+    }
+
+    // Nu låser vi dörren för efterföljande anrop
+    isSyncingWithSupabase = true;
     
     try {
         // 1. Försök uppdatera raden som hör till user_id
@@ -2083,6 +2094,9 @@ async function persistActiveWorkout() {
         }
     } catch (err) {
         console.error(" ❌ Kritiskt fel i persistActiveWorkout:", err);
+    } finally {
+        // Oavsett om det gick bra eller fel, lås upp dörren när vi är helt klara
+        isSyncingWithSupabase = false;
     }
 }
 
