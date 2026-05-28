@@ -1306,24 +1306,32 @@ async function updateExerciseNameInHistory(oldName, newName) {
 
 // Läser ut historisk data från den lokala variabeln (som är synkad med Supabase vid start)
 function getExerciseHistory(exerciseName) {
-    for (let i = workoutHistory.length - 1; i >= 0; i--) {
-        const workout = workoutHistory[i];
-        if (!workout.exercises) continue;
-        const exMatch = workout.exercises.find(e => e.name === exerciseName);
-        if (exMatch) {
-            if (!exMatch.sets_data) {
-                const count = parseInt(exMatch.sets || 3) || 3;
-                return Array.from({ length: count }, () => ({
-                    weight: exMatch.weight || "",
-                    reps: exMatch.reps || "",
-                    userConfirmed: false
-                }));
-            }
-            // returnera deep copy så vi inte muterar historiken direkt
-            return JSON.parse(JSON.stringify(exMatch.sets_data));
-        }
-    }
-    return null;
+  if (!Array.isArray(workoutHistory) || workoutHistory.length === 0) return null;
+
+  // försök tolka datum och hitta senaste passet
+  const withDates = workoutHistory
+    .map(w => ({ w, dt: w.date ? new Date(w.date) : new Date(0) }))
+    .filter(x => x.dt.toString() !== 'Invalid Date');
+
+  if (withDates.length === 0) return null;
+
+  withDates.sort((a, b) => b.dt - a.dt); // nyast först
+  const latest = withDates[0].w;
+
+  if (!latest.exercises) return null;
+  const exMatch = latest.exercises.find(e => e.name === exerciseName);
+  if (!exMatch) return null;
+
+  if (exMatch.sets_data && Array.isArray(exMatch.sets_data)) {
+    return JSON.parse(JSON.stringify(exMatch.sets_data)); // deep copy
+  }
+
+  const count = parseInt(exMatch.sets || 3, 10) || 3;
+  return Array.from({ length: count }, (_, i) => ({
+    weight: exMatch.weight || "",
+    reps: exMatch.reps || "",
+    userConfirmed: false
+  }));
 }
 
 async function startWorkout(workout, data = null, date = null, isImmediateStart = false) {
