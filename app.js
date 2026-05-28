@@ -907,9 +907,10 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
 
 // --- SYNKRONISERADE OCH LIVE-UPPDATERANDE OVERRIDES ---
 function setOverrideSilent(dateStr, programId) {
-    // SCROLL-LOCK: Hitta modalens body och spara exakt hur många pixlar användaren har scrollat ner
+    // SCROLL-LOCK: Spara scroll-positionen för BÅDE modalen och hela webbsidan
     const modalBody = document.getElementById("modal-body");
-    const savedScrollTop = modalBody ? modalBody.scrollTop : 0;
+    const savedModalScroll = modalBody ? modalBody.scrollTop : 0;
+    const savedWindowScroll = window.scrollY || document.documentElement.scrollTop;
 
     // 1. Uppdatera det lokala tillståndet OMEDELBART
     if (programId === "none" || programId === "") {
@@ -934,24 +935,25 @@ function setOverrideSilent(dateStr, programId) {
     const currentCompleted = typeof workoutHistory !== 'undefined' ? workoutHistory.filter(w => w.date === dateStr) : [];
     const currentIsOngoing = typeof activeDraft !== 'undefined' && activeDraft && activeDraft.date === dateStr;
 
-    // Ladda om vyn direkt utan fördröjning (Gränssnittet uppdateras här på under 1ms!)
+    // Ladda om vyn direkt utan fördröjning
     openDayManager(dateStr, nextPlannedProgram, currentCompleted, currentIsOngoing);
 
-    // SCROLL-LOCK ÅTERSTÄLLNING: Tvinga omedelbart tillbaka scrollen till exakt samma ställe!
-    if (modalBody) {
-        requestAnimationFrame(() => {
-            modalBody.scrollTop = savedScrollTop;
-        });
-    }
+    // SCROLL-LOCK ÅTERSTÄLLNING: Tvinga omedelbart tillbaka allt till exakt samma ställe
+    requestAnimationFrame(() => {
+        // Återställ huvudfönstret
+        window.scrollTo(0, savedWindowScroll);
+        
+        // Återställ modalen
+        if (modalBody) {
+            modalBody.scrollTop = savedModalScroll;
+        }
+    });
 
     // 4. KÖR DE TUNGA SPAR- OCH SUPABASE-ANROPEN I BAKGRUNDEN
-    // Genom att lägga detta i en setTimeout frigörs huvudtråden så att appen inte laggar eller låser sig
     setTimeout(async () => {
         try {
-            // Sparar i bakgrunden
             await saveAll();
 
-            // Skottsäker integration mot Supabase (PGRST116-säkrad) i bakgrunden
             if (typeof currentUser !== 'undefined' && currentUser) {
                 const { data: existingRows, error: checkErr } = await supabaseClient
                     .from('calendar_overrides')
