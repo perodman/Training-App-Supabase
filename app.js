@@ -1313,10 +1313,13 @@ function getExerciseHistory(exerciseName) {
         if (exMatch) {
             if (!exMatch.sets_data) {
                 const count = parseInt(exMatch.sets || 3) || 3;
-                // skapa separata objekt (ej samme referens)
-                return Array.from({ length: count }, () => ({ weight: exMatch.weight || "", reps: exMatch.reps || "", userConfirmed: false }));
+                return Array.from({ length: count }, () => ({
+                    weight: exMatch.weight || "",
+                    reps: exMatch.reps || "",
+                    userConfirmed: false
+                }));
             }
-            // returnera deep copy så vi inte muterar history-objektet direkt
+            // returnera deep copy så vi inte muterar historiken direkt
             return JSON.parse(JSON.stringify(exMatch.sets_data));
         }
     }
