@@ -1882,83 +1882,67 @@ const debouncedPersistActiveWorkout = debounce(() => {
 }, 700);
 
 async function updateSetDataOnly(exIdx, setIdx) {
-  console.log(`--- 🚀 updateSetDataOnly startade för övning index: ${exIdx}, set index: ${setIdx} ---`);
-
   const wInp = document.getElementById(`w-${exIdx}-${setIdx}`);
   const rInp = document.getElementById(`r-${exIdx}-${setIdx}`);
-  if (!wInp || !rInp) {
-    console.warn(`⚠️ Saknar input-element i DOM:en för ${exIdx}, ${setIdx}`);
-    return;
-  }
+  if (!wInp || !rInp) return;
  
-  if (!activeDraft || !activeDraft.data || !activeDraft.data[exIdx]) {
-    console.warn("⚠️ activeDraft eller dess data saknas helt.");
-    return;
-  }
-
-  activeDraft.data[exIdx].sets_data = activeDraft.data[exIdx].sets_data || [];
-  const setsArray = activeDraft.data[exIdx].sets_data;
+  if (!activeDraft || !activeDraft.data || !activeDraft.data[exIdx]) return;
+  const setsArray = activeDraft.data[exIdx].sets_data || [];
   
+  // Säkra att objektet finns i arrayen
   setsArray[setIdx] = Object.assign({}, setsArray[setIdx] || {});
   const setObj = setsArray[setIdx];
 
-  const newWeight = wInp.value;
-  const newReps = rInp.value;
-
-  const oldWeight = newWeight.length > 0 ? newWeight.slice(0, -1) : "";
-  const oldReps = newReps.length > 0 ? newReps.slice(0, -1) : "";
+  // Spara vad som fanns i Set 1 innan du tryckte på tangenten (för både KG och Reps)
+  const oldWeight = setObj.weight || "";
+  const oldReps = setObj.reps || "";
  
-  console.log(`Det nya du skrev: KG=${newWeight}, REPS=${newReps}`);
-  console.log(`Det koden tror stod där innan: KG=${oldWeight}, REPS=${oldReps}`);
-
-  setObj.weight = newWeight;
-  setObj.reps = newReps;
+  // Uppdatera Set 1 med det nya du skrev på skärmen
+  setObj.weight = wInp.value;
+  setObj.reps = rInp.value;
   if (typeof setObj.userConfirmed === "undefined") setObj.userConfirmed = false;
  
-  const exerciseName = activeDraft.workout?.exercises?.[exIdx]?.name;
-  const history = exerciseName ? getExerciseHistory(exerciseName) : null;
-  const isNoHistory = history === null;
- 
-  console.log(`Övningsnamn: "${exerciseName}". Hittade vi historik? ${history ? "Ja" : "Nej (Blankhistorik)"}`);
-  console.log(`Är detta set index 0? ${setIdx === 0 ? "Ja" : "Nej"}`);
-
-  if (isNoHistory && setIdx === 0) {
-    console.log("Krav uppfyllda (Ingen historik + Set 1). Kollar nu om efterföljande set är tomma/matchar...");
-
-    for (let i = 1; i < (setsArray.length || 3); i++) {
-      setsArray[i] = Object.assign({}, setsArray[i] || {});
-    }
+  // Autofyll-logik: Körs BARA om du skriver i det första setet (index 0)
+  if (setIdx === 0) {
     
-    const othersAreBlankOrMatchOld = setsArray.slice(1).every((s, currentLoopIdx) => {
-      const currentWeightInSet = s.weight || "";
-      const currentRepsInSet = s.reps || "";
-
-      const isWValid = currentWeightInSet === "" || currentWeightInSet === oldWeight;
-      const isRValid = currentRepsInSet === "" || currentRepsInSet === oldReps;
-      
-      console.log(`  -> Set ${currentLoopIdx + 2}: Nuvarande KG="${currentWeightInSet}", Nuvarande REPS="${currentRepsInSet}". Godkänd för autofyll? ${isWValid && isRValid ? "JA" : "NEJ"}`);
-      return isWValid && isRValid;
+    // 1. Kolla om efterföljande KG-fält är tomma eller matchar det gamla KG-värdet
+    const shouldCopyWeight = setsArray.slice(1).every(s => {
+      const currentW = s.weight || "";
+      return currentW === "" || currentW === oldWeight;
     });
 
-    console.log(`Blev hela kontrollen godkänd? ${othersAreBlankOrMatchOld ? "JA (Kopierar nu!)" : "NEJ (Kopiering avbröts)"}`);
+    // 2. Kolla om efterföljande REPS-fält är tomma eller matchar det gamla REPS-värdet
+    const shouldCopyReps = setsArray.slice(1).every(s => {
+      const currentR = s.reps || "";
+      return currentR === "" || currentR === oldReps;
+    });
 
-    if (othersAreBlankOrMatchOld) {
-      for (let i = 1; i < setsArray.length; i++) {
+    // Loopa igenom efterföljande set och uppdatera det spår som är godkänt
+    for (let i = 1; i < setsArray.length; i++) {
+      setsArray[i] = Object.assign({}, setsArray[i] || {});
+      
+      // Kopiera KG om det spåret är godkänt (orört)
+      if (shouldCopyWeight) {
         setsArray[i].weight = setObj.weight;
-        setsArray[i].reps = setObj.reps;
-        setsArray[i].userConfirmed = false;
         const wEl = document.getElementById(`w-${exIdx}-${i}`);
+        if (wEl) wEl.value = setObj.weight || "";
+      }
+
+      // Kopiera REPS om det spåret är godkänt (orört)
+      if (shouldCopyReps) {
+        setsArray[i].reps = setObj.reps;
         const rEl = document.getElementById(`r-${exIdx}-${i}`);
-        if (wEl) wEl.value = setsArray[i].weight || "";
-        if (rEl) rEl.value = setsArray[i].reps || "";
+        if (rEl) rEl.value = setObj.reps || "";
+      }
+
+      // Om något av spåren kopierades, nollställ bekräftelsen så det sparas rätt
+      if (shouldCopyWeight || shouldCopyReps) {
+        setsArray[i].userConfirmed = false;
       }
     }
-  } else {
-    console.log("Kopiering kördes inte eftersom det antingen finns historik eller så skriver du inte i Set 1.");
   }
  
   debouncedPersistActiveWorkout();
-  console.log("--- 🏁 updateSetDataOnly klar ---");
 }
 
 async function confirmSet(exIdx, setIdx) {
