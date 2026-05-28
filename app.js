@@ -2801,9 +2801,11 @@ function confirmDiscardActiveWorkout() {
                 console.error("Supabase: Fel vid radering av pågående utkast:", err);
             }
         }
-        // UX-OPTIMERING: Skifta gränssnittet till hemskärmen OMEDELBART innan vi stänger popupen/modalen. Detta förhindrar layout-flash.
+       // UX-OPTIMERING: Skifta gränssnittet till kalendern innan vi stänger modalen.
         if (typeof showView === 'function') showView("calendar-view");
-        if (typeof renderHome === 'function') renderHome();
+        
+        // Uppdatera kalendervyn så att det raderade passet försvinner direkt
+        if (typeof renderCalendar === 'function') renderCalendar();
 
         hideDefaultCloseButton(false);
         closeModal();
