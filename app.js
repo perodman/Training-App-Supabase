@@ -2853,48 +2853,93 @@ async function saveCustomProgramToSupabase() {
     if (window.programData) programData = window.programData;
 }
 
-// Kör efter att inputs finns i DOM
+// DROP-IN: Robust mobil/desktop enhancement för numeriska inputs
 function enhanceNumericInputs(root = document) {
-  const inputs = root.querySelectorAll('input[id^="w-"], input[id^="r-"]');
+  const inputs = Array.from(root.querySelectorAll('input[id^="w-"], input[id^="r-"]'));
+
   inputs.forEach(input => {
-    // öppna numeriskt tangentbord om inte redan satt i HTML
+    // Sätt numeriskt tangentbord-attribut
     input.setAttribute('inputmode', input.getAttribute('inputmode') || 'numeric');
+    input.setAttribute('pattern', input.getAttribute('pattern') || '[0-9]*');
+    input.setAttribute('autocomplete', input.getAttribute('autocomplete') || 'off');
 
-    // select-all när fält får fokus (desktop + mobile)
-    input.addEventListener('focus', e => {
-      try { e.target.select(); } catch (err) {}
-    });
-
-    // extra för touch så select() inte hindras av native tap behavior
-    input.addEventListener('touchend', e => {
-      // kort delay för att fokus ska hinna sättas
-      setTimeout(() => {
-        try { e.target.select(); } catch (err) {}
-      }, 50);
-    }, { passive: true });
-
-    // Smart-first-digit: om användaren trycker en siffra som första tangent -> ersätt hela fältet med den siffran
-    function onKeydown(e) {
-      // ignorera modifierare etc.
-      if (e.ctrlKey || e.metaKey || e.altKey) return;
-      const k = e.key;
-      if (!/^[0-9]$/.test(k)) return; // bara rena siffror
-      // Om hela texten är markerad, eller caret är i början, eller vi vill alltid ersätta på första tryck:
-      const isAllSelected = input.selectionStart === 0 && input.selectionEnd === input.value.length;
-      const caretAtStart = input.selectionStart === 0 && input.selectionEnd === 0;
-      if (isAllSelected || caretAtStart || input.value.length > 0) {
-        e.preventDefault();
-        input.value = k;
-        // trigga input-event så befintliga handlers uppdaterar modell + debounced persist
-        input.dispatchEvent(new Event('input', { bubbles: true }));
-        // placera caret efter inskrivet tecken så användaren kan fortsätta skriva
-        input.setSelectionRange(1, 1);
-      }
+    // Rensa tidigare handlers om de finns (så vi inte binder flera gånger)
+    if (input.__enhHandlers) {
+      const h = input.__enhHandlers;
+      input.removeEventListener('pointerdown', h.onPointerDown, { passive: false });
+      input.removeEventListener('touchstart', h.onTouchStart, { passive: false });
+      input.removeEventListener('focus', h.onFocus);
+      input.removeEventListener('touchend', h.onTouchEnd, { passive: true });
+      input.removeEventListener('beforeinput', h.onBeforeInput);
+      input.removeEventListener('keydown', h.onKeydown);
     }
-    input.removeEventListener('keydown', onKeydown);
-    input.addEventListener('keydown', onKeydown);
+
+    // Handlers (sparas så vi kan avbinda senare)
+    const handlers = {
+      onPointerDown(e) {
+        if (e.isPrimary === false) return;
+        // förhindra native caret-placering och sätt vår egen fokus/selection
+        e.preventDefault();
+        input.focus({ preventScroll: true });
+        setTimeout(() => { try { input.select(); } catch (_) {} }, 0);
+      },
+      onTouchStart(e) {
+        // backup för äldre enheter
+        e.preventDefault();
+        input.focus({ preventScroll: true });
+        setTimeout(() => { try { input.select(); } catch (_) {} }, 0);
+      },
+      onFocus(e) {
+        try { input.select(); } catch (_) {}
+      },
+      onTouchEnd(e) {
+        // liten delay så fokus hinner sättas av browser
+        setTimeout(() => { try { input.select(); } catch (_) {} }, 50);
+      },
+      onBeforeInput(e) {
+        const ch = e.data;
+        if (!ch) return;
+        if (/^[0-9]$/.test(ch)) {
+          const isAllSelected = input.selectionStart === 0 && input.selectionEnd === input.value.length;
+          const caretAtStart = input.selectionStart === 0 && input.selectionEnd === 0;
+          // Ersätt fältet med första inmatade siffra när lämpligt
+          if (isAllSelected || caretAtStart || input.value.length > 0) {
+            e.preventDefault();
+            input.value = ch;
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+            try { input.setSelectionRange(1, 1); } catch (_) {}
+          }
+        }
+      },
+      // fallback för enheter där beforeinput inte fångas som väntat
+      onKeydown(e) {
+        if (e.ctrlKey || e.metaKey || e.altKey) return;
+        const k = e.key;
+        if (!/^[0-9]$/.test(k)) return;
+        const isAllSelected = input.selectionStart === 0 && input.selectionEnd === input.value.length;
+        const caretAtStart = input.selectionStart === 0 && input.selectionEnd === 0;
+        if (isAllSelected || caretAtStart || input.value.length > 0) {
+          e.preventDefault();
+          input.value = k;
+          input.dispatchEvent(new Event('input', { bubbles: true }));
+          try { input.setSelectionRange(1, 1); } catch (_) {}
+        }
+      }
+    };
+
+    // Spara referenser och bind
+    input.__enhHandlers = handlers;
+    input.addEventListener('pointerdown', handlers.onPointerDown, { passive: false });
+    input.addEventListener('touchstart', handlers.onTouchStart, { passive: false });
+    input.addEventListener('focus', handlers.onFocus);
+    input.addEventListener('touchend', handlers.onTouchEnd, { passive: true });
+    input.addEventListener('beforeinput', handlers.onBeforeInput);
+    input.addEventListener('keydown', handlers.onKeydown);
   });
 }
 
-// Anropa efter render / efter bindSetInputListeners()
-enhanceNumericInputs();
+// Anropa efter render / efter bindSetInputListeners():
+// bindSetInputListeners && bindSetInputListeners();
+// enhanceNumericInputs && enhanceNumericInputs();
+
+
