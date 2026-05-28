@@ -832,7 +832,7 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
         </div>`;
     }
 
-    // 4. ÄNDRA PLANERING - GRID MED ALLA PASS I RUTINEN (DÖLJS NU OM PASSET ÄR IGÅNG ELLER HAR HISTORIK)
+    // 4. ÄNDRA PLANERING - GRID MED ALLA PASS I RUTINEN (DÖLJS OM PASSET ÄR IGÅNG ELLER HAR HISTORIK)
     if (!isOngoing && !hasCompleted) {
         html += `
         <div style="margin-top: 1px; width: 100%;">
@@ -865,15 +865,16 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
                 const borderColor = `rgba(${c.r}, ${c.g}, ${c.b}, ${currentOpacity})`;
                 const btnBg = `rgba(${c.r}, ${c.g}, ${c.b}, 0.04)`;
 
+                // FIX: Lagt till event.preventDefault() direkt i onclick, onmouseup och ontouchend
                 html += `
                 <button class="mode-btn plan-override-btn ${isSelected ? 'active-choice' : ''}"
                     id="btn-ovr-${p.id}"
-                    onclick="if(typeof isLongPress !== 'undefined' && !isLongPress) { setOverrideSilent('${dateStr}', '${p.id}'); if(typeof cancelPress === 'function') cancelPress(); }"
+                    onclick="if(typeof isLongPress !== 'undefined' && !isLongPress) { event.preventDefault(); setOverrideSilent('${dateStr}', '${p.id}'); if(typeof cancelPress === 'function') cancelPress(); }"
                     onmousedown="startPress(${idx}, event)"
-                    onmouseup="if(!isLongPress && !hasScrolled) setOverrideSilent('${dateStr}', '${p.id}'); cancelPress();"
+                    onmouseup="if(!isLongPress && !hasScrolled) { event.preventDefault(); setOverrideSilent('${dateStr}', '${p.id}'); } cancelPress();"
                     onmouseleave="cancelPress();"
                     ontouchstart="startPress(${idx}, event)"
-                    ontouchend="handleTouchEnd(${idx}, '${dateStr}', '${p.id}', event)"
+                    ontouchend="event.preventDefault(); handleTouchEnd(${idx}, '${dateStr}', '${p.id}', event)"
                     ontouchmove="handleTouchMove(event)"
                     style="margin: 0; padding: 15px 12px; font-size: 13px; border-radius: 12px; font-weight: 600; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; width: 100%;
                     background: ${isSelected ? 'rgba(255,255,255,0.1)' : btnBg} !important;
@@ -888,10 +889,11 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
         const isRestSelected = !planned;
         const restBorderColor = isRestSelected ? "rgba(253, 224, 71, 1)" : "rgba(253, 224, 71, 0.2)";
 
+        // FIX: Lagt till event.preventDefault() på viloknappen
         html += `
             <button class="mode-btn plan-override-btn override-rest-btn ${isRestSelected ? 'active-choice' : ''}"
                 id="btn-ovr-none"
-                onclick="setOverrideSilent('${dateStr}', 'none')"
+                onclick="event.preventDefault(); setOverrideSilent('${dateStr}', 'none')"
                 style="margin: 0; padding: 12px; font-size: 13px; border-radius: 12px; font-weight: bold; grid-column: span 2;
                 border-top: 2px solid ${restBorderColor} !important;
                 color: #fde047; background: rgba(253, 224, 71, 0.05);">
@@ -907,10 +909,11 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
 
 // --- SYNKRONISERADE OCH LIVE-UPPDATERANDE OVERRIDES ---
 function setOverrideSilent(dateStr, programId) {
-    // SCROLL-LOCK: Spara scroll-positionen för BÅDE modalen och hela webbsidan
-    const modalBody = document.getElementById("modal-body");
-    const savedModalScroll = modalBody ? modalBody.scrollTop : 0;
-    const savedWindowScroll = window.scrollY || document.documentElement.scrollTop;
+    // STOPPA HOPPET DIREKT: Om webbläsaren skickar med ett klick-event, stoppa standard-scrollet
+    if (typeof event !== 'undefined' && event) {
+        if (typeof event.preventDefault === 'function') event.preventDefault();
+        if (typeof event.stopPropagation === 'function') event.stopPropagation();
+    }
 
     // 1. Uppdatera det lokala tillståndet OMEDELBART
     if (programId === "none" || programId === "") {
@@ -926,28 +929,16 @@ function setOverrideSilent(dateStr, programId) {
         renderCalendar();
     }
 
-    // 3. Hämta de korrekta och aktuella tillstånden live istället för sparad historiksträngar
+    // 3. Hämta de korrekta och aktuella tillstånden live
     let nextPlannedProgram = null;
     if (programId !== "none" && programId !== "") {
         nextPlannedProgram = programData.routine.find(p => p.id === programId) || null;
     }
-    // Hämta historik och pågående status direkt från dina globala arrayer live
     const currentCompleted = typeof workoutHistory !== 'undefined' ? workoutHistory.filter(w => w.date === dateStr) : [];
     const currentIsOngoing = typeof activeDraft !== 'undefined' && activeDraft && activeDraft.date === dateStr;
 
-    // Ladda om vyn direkt utan fördröjning
+    // Ladda om vyn direkt
     openDayManager(dateStr, nextPlannedProgram, currentCompleted, currentIsOngoing);
-
-    // SCROLL-LOCK ÅTERSTÄLLNING: Tvinga omedelbart tillbaka allt till exakt samma ställe
-    requestAnimationFrame(() => {
-        // Återställ huvudfönstret
-        window.scrollTo(0, savedWindowScroll);
-        
-        // Återställ modalen
-        if (modalBody) {
-            modalBody.scrollTop = savedModalScroll;
-        }
-    });
 
     // 4. KÖR DE TUNGA SPAR- OCH SUPABASE-ANROPEN I BAKGRUNDEN
     setTimeout(async () => {
