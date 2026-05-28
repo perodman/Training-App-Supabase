@@ -1873,7 +1873,7 @@ function updateSetDataOnly(i, sIdx) {
     const exerciseData = activeDraft.data[i];
     if (!exerciseData.sets_data || !exerciseData.sets_data[sIdx]) return;
     
-    // 1. Hämta de aktuella input-fälten från DOM baserat på dina ID:n
+    // 1. Hämta de aktuella input-fälten från DOM baserat på dina exakta ID:n
     const weightInput = document.getElementById(`w-${i}-${sIdx}`);
     const repsInput = document.getElementById(`r-${i}-${sIdx}`);
     
@@ -1904,52 +1904,57 @@ function updateSetDataOnly(i, sIdx) {
         });
     }
     
-    // 4. Spara ändringarna i bakgrunden utan att rita om hela skärmen
+    // 4. Spara ändringarna i bakgrunden utan att rita om hela skärmen (så du slipper tappa fokus)
     localStorage.setItem("activeWorkoutDraft", JSON.stringify(activeDraft));
     if (typeof persistActiveWorkout === 'function') {
         persistActiveWorkout();
     }
 }
 
-// Söker baklänges i historiken och fyller i vikter/reps från senaste tillfället övningen kördes
+// Söker baklänges i historiken och fyller i vikter/reps baserat på din exakta datastruktur
 function prefillActiveWorkoutWithHistory() {
     if (!activeDraft || !activeDraft.data || !activeDraft.workout || !activeDraft.workout.exercises) return;
     if (!workoutHistory || workoutHistory.length === 0) return;
 
-    // Loopa igenom varje övning i det nyss öppnade passet
+    // Loopa igenom varje övning i det nuvarande passet
     activeDraft.workout.exercises.forEach((ex, i) => {
         const exerciseData = activeDraft.data[i];
         if (!exerciseData || !exerciseData.sets_data) return;
 
-        // Kontrollera om övningen är helt tom (inga vikter eller reps ifyllda än)
+        // Kolla om alla set är helt tomma (så vi inte skriver över manuellt inmatad data)
         const isBrandNew = exerciseData.sets_data.every(s => !s.weight && !s.reps);
 
         if (isBrandNew) {
-            // Sök baklänges i träningshistoriken (från senaste till äldsta passet)
+            // Sök baklänges i historiken (från senaste till äldsta passet)
             for (let h = workoutHistory.length - 1; h >= 0; h--) {
                 const pastWorkout = workoutHistory[h];
-                if (!pastWorkout.data) continue;
+                if (!pastWorkout.workout || !pastWorkout.workout.exercises || !pastWorkout.data) continue;
 
-                // Hitta om samma övning kördes i det historiska passet
-                const foundPastEx = pastWorkout.data.find(pEx => pEx.name === ex.name);
-                
-                if (foundPastEx && foundPastEx.sets_data && foundPastEx.sets_data.length > 0) {
-                    // Vi hittade senaste tillfället! Kopiera över historiska vikter och reps
-                    exerciseData.sets_data.forEach((set, sIdx) => {
-                        const pastSet = foundPastEx.sets_data[sIdx];
-                        if (pastSet) {
-                            set.weight = pastSet.weight || "";
-                            set.reps = pastSet.reps || "";
-                            set.userConfirmed = false; // Det nya passets set ska inte vara klarmarkerande än
-                        }
-                    });
-                    break; // Avbryt sökningen för denna övning eftersom vi hittade den senaste
+                // Hitta indexet för övningen i det historiska passet baserat på namnet
+                const pastExIdx = pastWorkout.workout.exercises.findIndex(pEx => pEx && pEx.name === ex.name);
+
+                // Om övningen hittades i det gamla passet, hämta dess sets_data via det indexet
+                if (pastExIdx !== -1) {
+                    const pastExData = pastWorkout.data[pastExIdx];
+                    if (pastExData && pastExData.sets_data && pastExData.sets_data.length > 0) {
+                        
+                        // Kopiera över historikens vikter och reps till våra nuvarande tomma set
+                        exerciseData.sets_data.forEach((set, sIdx) => {
+                            const pastSet = pastExData.sets_data[sIdx];
+                            if (pastSet) {
+                                set.weight = pastSet.weight || "";
+                                set.reps = pastSet.reps || "";
+                                set.userConfirmed = false; // Lås dem inte direkt
+                            }
+                        });
+                        break; // Avbryt historik-loopen för denna övning eftersom vi hittat senaste tillfället
+                    }
                 }
             }
         }
     });
 
-    // Spara det uppdaterade utkastet med historiken inkluderad
+    // Spara det uppdaterade utkastet lokalt
     localStorage.setItem("activeWorkoutDraft", JSON.stringify(activeDraft));
 }
 
