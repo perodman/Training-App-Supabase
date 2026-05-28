@@ -2853,7 +2853,7 @@ async function saveCustomProgramToSupabase() {
     if (window.programData) programData = window.programData;
 }
 
-// --- Custom numeric keypad (drop-in) ---
+// --- Custom numeric keypad (drop-in) with debug logs ---
 (function(){ 
   // Skapa pad DOM (enda gången)
   if (document.getElementById('custom-num-pad')) return;
@@ -2868,6 +2868,9 @@ async function saveCustomProgramToSupabase() {
     #custom-num-pad button.action { background:#444; }
     #custom-num-pad .wide { flex:2; }
     #custom-num-pad .done { background:#0a84ff; color:#fff; font-weight:600; }
+    /* debug div styling (visible if dbg used) */
+    #num-debug { position: fixed; bottom: 220px; left: 8px; z-index: 10001;
+      background: rgba(0,0,0,0.7); color: #fff; padding:6px 8px; border-radius:6px; font-size:13px; }
   </style>
 
   <div id="custom-num-pad" aria-hidden="true" role="dialog" aria-label="Numeric keypad">
@@ -2896,10 +2899,24 @@ async function saveCustomProgramToSupabase() {
       <button class="wide done" data-key="done">Done</button>
     </div>
   </div>
+  <div id="num-debug" aria-hidden="true" style="display:none"></div>
   `;
   document.body.insertAdjacentHTML('beforeend', padHtml);
 
   const pad = document.getElementById('custom-num-pad');
+  const dbgDiv = document.getElementById('num-debug');
+
+  // Simple helper: logs to console and to on-page debug div (visible if no Web Inspector)
+  function logDebug(...args) {
+    try { console.log('[NUMPAD]', ...args); } catch(_) {}
+    try {
+      dbgDiv.style.display = 'block';
+      dbgDiv.textContent = '[NUMPAD] ' + args.map(a => (typeof a === 'object' ? JSON.stringify(a) : String(a))).join(' ');
+      // auto-hide after 4s
+      clearTimeout(dbgDiv._t);
+      dbgDiv._t = setTimeout(() => { dbgDiv.style.display = 'none'; }, 4000);
+    } catch(_) {}
+  }
 
   // State
   let activeInput = null;
@@ -2917,6 +2934,7 @@ async function saveCustomProgramToSupabase() {
     input.classList.add('custom-num-active');
     // Markera hela värdet så användaren kan ersätta genom att börja skriva
     try { input.select(); } catch (_) {}
+    logDebug('showPadFor', input.id || input.name || input);
   }
   function hidePad() {
     if (!activeInput) return;
@@ -2925,6 +2943,7 @@ async function saveCustomProgramToSupabase() {
     pad.style.display = 'none';
     pad.setAttribute('aria-hidden','true');
     activeInput.classList.remove('custom-num-active');
+    logDebug('hidePad', activeInput.id || activeInput.name || activeInput);
     activeInput = null;
   }
 
@@ -2937,6 +2956,7 @@ async function saveCustomProgramToSupabase() {
 
   // Append digit/back/clear handlers
   pad.addEventListener('click', e => {
+    logDebug('pad click', e.target && e.target.closest ? (e.target.closest('button')?.getAttribute('data-key')) : e.target);
     if (!activeInput) return;
     const btn = e.target.closest('button');
     if (!btn) return;
@@ -2957,19 +2977,15 @@ async function saveCustomProgramToSupabase() {
         setValue('');
         break;
       case 'toggle-sign':
-        // valfritt: toggla minus i början
         if (v.startsWith('-')) v = v.slice(1);
         else v = v ? ('-' + v) : v;
         setValue(v);
         break;
       default:
-        // siffra
         if (/^[0-9]$/.test(key)) {
-          // smart-ersätt: om hela är markerat -> ersätt (så man snabbt kan ändra)
           const isAllSelected = activeInput.selectionStart === 0 && activeInput.selectionEnd === (activeInput.value || '').length;
           if (isAllSelected) v = key;
           else v = (v || '') + key;
-          // valfri maxlength-hantering: om input har maxlength, respektera den
           const mx = activeInput.getAttribute('maxlength');
           if (mx) v = v.slice(0, Number(mx));
           setValue(v);
@@ -2982,6 +2998,7 @@ async function saveCustomProgramToSupabase() {
   function onInputPointerDown(e) {
     const el = e.currentTarget;
     // Prevent native keyboard on iOS by preventing default pointerdown/touchstart
+    logDebug('pointerdown on', el.id || el.name || el, 'eventType', e.type);
     e.preventDefault();
     showPadFor(el);
     // fokusera utan att öppna keyboard (readonly blocks it)
@@ -2990,6 +3007,7 @@ async function saveCustomProgramToSupabase() {
 
   // Init/attach: anropa efter varje render så nya inputs binds
   window.initCustomNumericKeypad = function(root=document) {
+    logDebug('initCustomNumericKeypad called', root);
     const inputs = Array.from((root || document).querySelectorAll('input[id^="w-"], input[id^="r-"]'));
     inputs.forEach(inp => {
       // Ignorera om input explicit sagt att native keyboard ska användas
@@ -3002,15 +3020,14 @@ async function saveCustomProgramToSupabase() {
         inp.addEventListener('touchstart', onInputPointerDown, { passive:false });
         // Om användaren programmässigt fokuserar (t.ex. keyboard från desktop), öppna ändå pad
         inp.addEventListener('focus', () => {
-          // ignore focus caused by pad's own operations when readonly toggling
           if (document.activeElement === inp) {
             // Om inte readonly, låt native beteende ske (desktop)
             if (inp.hasAttribute('readonly')) return;
-            // annars visa pad (useful if keyboard was not blocked)
             showPadFor(inp);
           }
         });
         inp.__customNumBound = true;
+        logDebug('bound input', inp.id || inp.name || inp);
       }
     });
   };
@@ -3028,5 +3045,8 @@ async function saveCustomProgramToSupabase() {
   // Exponera helper för att programatiskt stänga/öppna
   window.showCustomNumPadFor = showPadFor;
   window.hideCustomNumPad = hidePad;
+
+  // Auto-init for initial DOM (you still should call initCustomNumericKeypad after dynamic renders)
+  try { window.initCustomNumericKeypad(); } catch(_) {}
 })();
 
