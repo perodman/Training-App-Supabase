@@ -1749,7 +1749,15 @@ function restoreDraftState() {
     if (saved) {
         temporarySelectedExercises = JSON.parse(saved);
         localStorage.removeItem('temp_exercise_draft');
-        updateExerciseSelectionView();
+        
+        // Vi kollar om funktionen finns. Finns den inte (vilket den inte gör) 
+        // så kör vi filterExercises istället som också ritar om listan!
+        if (typeof updateExerciseSelectionView === 'function') {
+            updateExerciseSelectionView();
+        } else if (typeof filterExercises === 'function') {
+            const cat = typeof currentExerciseCategory !== 'undefined' ? currentExerciseCategory : 'Ben';
+            filterExercises(cat);
+        }
     }
 }
 
