@@ -2923,3 +2923,28 @@ async function saveCustomProgramToSupabase() {
     // FIX: Se till att den lokala referensen uppdateras
     if (window.programData) programData = window.programData;
 }
+
+// GLOBAL SCROLL-VAKT SOM TOTALVÄGRAR ATT LÅTA SIDAN HOPPA
+window.isChangingOverride = false;
+
+window.addEventListener('scroll', function() {
+    if (window.isChangingOverride) {
+        const savedScroll = localStorage.getItem("forcedScrollPosition");
+        if (savedScroll !== null) {
+            const targetScroll = parseInt(savedScroll, 10);
+            if (window.scrollY !== targetScroll) {
+                window.scrollTo(0, targetScroll);
+            }
+        }
+    }
+}, { passive: true });
+
+// Säkra upp att flaggan rensas om användaren stänger modalen helt
+const originalCloseModal = window.closeModal;
+window.closeModal = function() {
+    window.isChangingOverride = false;
+    localStorage.removeItem("forcedScrollPosition");
+    if (typeof originalCloseModal === 'function') {
+        originalCloseModal();
+    }
+};
