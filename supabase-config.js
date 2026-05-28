@@ -1,31 +1,24 @@
 // ==========================================================================
 // SUPABASE KONFIGURATION & AUTENTISERING (KOMPLETT)
 // ==========================================================================
-
-if ('scrollRestoration' in history) {
-    history.scrollRestoration = 'manual';
-}
-
 const SUPABASE_URL = 'https://oixavkihfvbagzlyoocm.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_v6MqFHOeimJvtx-dZWFn1g_s0YOTUE8';
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let currentUser = null;
 
-
-// Vi skapar en variabel som håller koll på om vi är "nyinloggade"
-let justLoggedIn = false;
-
 async function initAuth() {
+    window.supabaseDataLoadedOnce = false;  // ← NOLLSTÄLLER FLAGGAN
+    
     const response = await supabaseClient.auth.getSession();
-    if (response.data.session) {
-        currentUser = response.data.session.user;
+    const session = response.data.session;
+    
+    if (session) {
+        currentUser = session.user;
         await loadUserData();
-        justLoggedIn = true; // Markera att vi loggat in
         showApp();
     } else {
         showAuth();
     }
-}
     
     supabaseClient.auth.onAuthStateChange(async (event, session) => {
         if (event === 'SIGNED_IN' && session) {
@@ -38,7 +31,7 @@ async function initAuth() {
             showAuth();
         }
     });
-
+}
 
 function showAuth() {
     document.getElementById('auth-view').classList.remove('hidden');
@@ -47,12 +40,11 @@ function showAuth() {
 }
 
 function showApp() {
-    console.log("Försöker visa app-vyn...");
     document.getElementById('auth-view').classList.add('hidden');
     document.getElementById('app-container').classList.remove('hidden');
     document.getElementById('global-header').classList.remove('hidden');
     
-    // Om vi just loggat in, scrolla upp
+    // Den här raden tvingar skärmen att hoppa upp till toppen direkt vid inloggning!
     window.scrollTo({ top: 0, behavior: 'instant' });
 }
 
@@ -119,16 +111,11 @@ document.addEventListener("DOMContentLoaded", () => {
             
             if (error) {
                 alert('Inloggning misslyckades: ' + error.message);
-            } else {
-                // HÄR VAR FELET! Vi måste anropa showApp() när inloggningen lyckas.
-                currentUser = data.user;
-                await loadUserData(); // Se till att denna finns kvar
-                showApp();
             }
         };
     }
     
-  if (document.getElementById('global-logout')) {
+    if (document.getElementById('global-logout')) {
         document.getElementById('global-logout').onclick = async () => {
             const { error } = await supabaseClient.auth.signOut();
             if (error) {
@@ -150,13 +137,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 calendarOverrides = {};
                 
                 currentUser = null;
-                
-                // Byt vy till inloggning
                 showAuth();
                 
-                // Tvinga upp scrollen till toppen för en ren startvy, 
-                // men ladda INTE om sidan (location.reload är borttagen)
-                window.scrollTo({ top: 0, behavior: 'instant' });
+                // Scrollar upp till toppen innan sidan laddas om för en ren nystart
+                window.scrollTo(0, 0);
+                location.reload();
             }
         };
     }
