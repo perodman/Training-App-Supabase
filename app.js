@@ -907,6 +907,10 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
 
 // --- SYNKRONISERADE OCH LIVE-UPPDATERANDE OVERRIDES ---
 function setOverrideSilent(dateStr, programId) {
+    // SCROLL-LOCK: Hitta modalens body och spara exakt hur många pixlar användaren har scrollat ner
+    const modalBody = document.getElementById("modal-body");
+    const savedScrollTop = modalBody ? modalBody.scrollTop : 0;
+
     // 1. Uppdatera det lokala tillståndet OMEDELBART
     if (programId === "none" || programId === "") {
         calendarOverrides[dateStr] = "none";
@@ -932,6 +936,13 @@ function setOverrideSilent(dateStr, programId) {
 
     // Ladda om vyn direkt utan fördröjning (Gränssnittet uppdateras här på under 1ms!)
     openDayManager(dateStr, nextPlannedProgram, currentCompleted, currentIsOngoing);
+
+    // SCROLL-LOCK ÅTERSTÄLLNING: Tvinga omedelbart tillbaka scrollen till exakt samma ställe!
+    if (modalBody) {
+        requestAnimationFrame(() => {
+            modalBody.scrollTop = savedScrollTop;
+        });
+    }
 
     // 4. KÖR DE TUNGA SPAR- OCH SUPABASE-ANROPEN I BAKGRUNDEN
     // Genom att lägga detta i en setTimeout frigörs huvudtråden så att appen inte laggar eller låser sig
