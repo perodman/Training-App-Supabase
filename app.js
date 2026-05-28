@@ -1312,9 +1312,12 @@ function getExerciseHistory(exerciseName) {
         const exMatch = workout.exercises.find(e => e.name === exerciseName);
         if (exMatch) {
             if (!exMatch.sets_data) {
-                return Array(parseInt(exMatch.sets || 3)).fill({ weight: exMatch.weight, reps: exMatch.reps });
+                const count = parseInt(exMatch.sets || 3) || 3;
+                // skapa separata objekt (ej samme referens)
+                return Array.from({ length: count }, () => ({ weight: exMatch.weight || "", reps: exMatch.reps || "", userConfirmed: false }));
             }
-            return exMatch.sets_data;
+            // returnera deep copy så vi inte muterar history-objektet direkt
+            return JSON.parse(JSON.stringify(exMatch.sets_data));
         }
     }
     return null;
@@ -1854,29 +1857,47 @@ async function confirmAddExerciseToActive(exId, replaceIndex = null) {
 }
 
 async function updateSetDataOnly(exIdx, setIdx) {
-    // 1. Hämta värdena från input-fälten
-    const wInput = document.getElementById(`w-${exIdx}-${setIdx}`);
-    const rInput = document.getElementById(`r-${exIdx}-${setIdx}`);
-
-    // Säkerställ att fälten faktiskt finns i DOM:en innan vi fortsätter
-    if (!wInput || !rInput) {
-        console.warn(` ⚠️  Kunde inte hitta input-fält för övning ${exIdx}, set ${setIdx}`);
+    // Hämta inputelementen säkert
+    const wInp = document.getElementById(`w-${exIdx}-${setIdx}`);
+    const rInp = document.getElementById(`r-${exIdx}-${setIdx}`);
+    if (!wInp || !rInp) {
+        console.warn(`⚠️ Saknar input för ${exIdx}, ${setIdx}`);
         return;
     }
-    const weightVal = wInput.value;
-    const repsVal = rInput.value;
-    // 2. Uppdatera objektet i minnet (säkerhetskontroll inkluderad)
-    if (activeDraft && activeDraft.data && activeDraft.data[exIdx] && activeDraft.data[exIdx].sets_data) {
-        activeDraft.data[exIdx].sets_data[setIdx].weight = weightVal;
-        activeDraft.data[exIdx].sets_data[setIdx].reps = repsVal;
 
-        console.log(` 📝  Uppdaterar minne: Övning ${exIdx}, Set ${setIdx} -> ${weightVal}kg, ${repsVal} reps`);
-    } else {
-        console.error(" ❌  activeDraft-strukturen matchar inte f ö rv ä ntad data.");
-        return;
+    if (!activeDraft || !activeDraft.data || !activeDraft.data[exIdx] || !activeDraft.data[exIdx].sets_data) return;
+    const setsArray = activeDraft.data[exIdx].sets_data;
+    const setObj = setsArray[setIdx];
+
+    // Uppdatera setet
+    setObj.weight = wInp.value;
+    setObj.reps = rInp.value;
+    if (typeof setObj.userConfirmed === "undefined") setObj.userConfirmed = false;
+
+    // Kontrollera om det finns historik för övningen
+    const exerciseName = activeDraft.workout?.exercises?.[exIdx]?.name;
+    const history = exerciseName ? getExerciseHistory(exerciseName) : null;
+    const isNoHistory = history === null;
+
+    // Om ingen historik OCH detta är första setet, kopiera till efterföljande set om de är tomma
+    if (isNoHistory && setIdx === 0) {
+        const othersAreBlank = setsArray.slice(1).every(s => (!s.weight && !s.reps));
+        if (othersAreBlank) {
+            for (let i = 1; i < setsArray.length; i++) {
+                setsArray[i].weight = setObj.weight;
+                setsArray[i].reps = setObj.reps;
+                setsArray[i].userConfirmed = false;
+                const wEl = document.getElementById(`w-${exIdx}-${i}`);
+                const rEl = document.getElementById(`r-${exIdx}-${i}`);
+                if (wEl) wEl.value = setsArray[i].weight || "";
+                if (rEl) rEl.value = setsArray[i].reps || "";
+            }
+        }
     }
-    // 3. Synka till localStorage och Supabase
-    await persistActiveWorkout();
+
+    // Persist och uppdatera UI
+    if (typeof persistActiveWorkout === "function") await persistActiveWorkout();
+    if (typeof renderActiveWorkout === "function") renderActiveWorkout();
 }
 
 async function confirmSet(exIdx, setIdx) {
