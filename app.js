@@ -1378,7 +1378,7 @@ let temporarySelectedExercises = [];
 
 function renderActiveWorkout() {
     if (!activeDraft || !activeDraft.workout) {
-        console.warn(" ⚠️  Inget aktivt utkast tillgängligt.");
+        console.warn(" ⚠️  Inget aktivt utkast tillgängligt.");
         return;
     }
     if (activeDraft.data) {
@@ -1403,7 +1403,7 @@ function renderActiveWorkout() {
         if (footer) footer.classList.add("hidden");
         list.innerHTML = `
         <div style="text-align:center; padding:20px 0;">
-            <button class="mode-btn green" style="width:100%; padding:20px; font-size:18px; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);" onclick="actuallyStartWorkout()">STARTA TRÄNINGSPASSET  🔥 </button>
+            <button class="mode-btn green" style="width:100%; padding:20px; font-size:18px; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);" onclick="actuallyStartWorkout()">STARTA TRÄNINGSPASSET  🔥 </button>
         </div>
         <p style="color:var(--text-light); font-size:13px; text-align:center; margin-top:10px;">Klicka på knappen ovan för att starta klockan.</p>
         `;
@@ -1425,7 +1425,7 @@ function renderActiveWorkout() {
 
     const pauseBtn = document.getElementById("pause-workout-btn");
     if (pauseBtn) {
-        pauseBtn.innerHTML = `Spara utkast  💾 `;
+        pauseBtn.innerHTML = `Spara utkast  💾 `;
         pauseBtn.className = "mode-btn save-draft-btn";
         pauseBtn.onclick = saveDraftAndGoHome;
     }
@@ -1461,10 +1461,11 @@ function renderActiveWorkout() {
             const completedSets = exerciseData.sets_data ? exerciseData.sets_data.filter(s => s.userConfirmed).length : 0;
             const totalSets = exerciseData.sets_data ? exerciseData.sets_data.length : 0;
             let setsHtml = `<div style="margin-top:10px;">
-                <div style="display:grid; grid-template-columns: 40px 1fr 1fr 30px; gap:8px; margin-bottom:5px; align-items:center;">
+                <div style="display:grid; grid-template-columns: 40px 1fr 1fr 1fr 30px; gap:8px; margin-bottom:5px; align-items:center;">
                     <small style="text-align:left; padding-left:5px; color:var(--text-light); font-size:9px; font-weight:700;">SET</small>
                     <small style="text-align:center; color:var(--text-light); font-size:9px;">KG</small>
                     <small style="text-align:center; color:var(--text-light); font-size:9px;">REPS</small>
+                    <small style="text-align:center; color:var(--text-light); font-size:9px;">VILA (S)</small>
                     <span></span>
                 </div>`;
             if (exerciseData.sets_data) {
@@ -1481,7 +1482,7 @@ function renderActiveWorkout() {
                     let circleColor = showSuccess ? '#22c55e' : (isCurrent ? '#facc15' : '#f59e0b');
                     const statusContent = showSuccess ? ' ✅ ' : `#${sIdx + 1}`;
                     setsHtml += `
-                    <div style="display:grid; grid-template-columns: 40px 1fr 1fr 30px; gap:8px; margin-bottom:8px; align-items:center;">
+                    <div style="display:grid; grid-template-columns: 40px 1fr 1fr 1fr 30px; gap:8px; margin-bottom:8px; align-items:center;">
                         <div onclick="${isLocked && !isDone ? '' : `confirmSet(${i}, ${sIdx})`}"
                             style="width:32px; height:32px; border-radius:50%; border:2px solid ${circleColor}; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:10px; font-weight:800; background: ${showSuccess ? 'rgba(34, 197, 94, 0.2)' : (isCurrent ? 'rgba(250, 204, 21, 0.15)' : 'rgba(245, 158, 11, 0.05)')}; color: ${circleColor}; opacity: 1;">
                             ${statusContent}
@@ -1490,12 +1491,14 @@ function renderActiveWorkout() {
                         'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})">
                         <input type="text" inputmode="decimal" id="r-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'};" value="${set.reps || ''}" ${isLocked ?
                         'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})">
+                        <input type="text" inputmode="decimal" id="v-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'}; border-color: rgba(52, 152, 219, 0.3);" value="${set.rest || '90'}" ${isLocked ?
+                        'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})">
                         <button onclick="removeSetFromExercise(${i}, ${sIdx})" style="background:none; border:none; color:var(--danger); font-size:16px; opacity: ${isLocked || showSuccess ? '0.1' : '0.8'};" ${isLocked ? 'disabled' : ''}>×</button>
                     </div>`;
                     if (isCurrent) {
                         setsHtml += `
-                        <div style="grid-column: 2 / span 2; margin:-4px 0 8px 0; padding-left:2px; opacity:0.8; font-size:10px; color:var(--primary); font-weight:600; letter-spacing:0.3px;">
-                            💡  Klicka på ${statusContent} för att låsa & gå vidare
+                        <div style="grid-column: 2 / span 3; margin:-4px 0 8px 0; padding-left:2px; opacity:0.8; font-size:10px; color:var(--primary); font-weight:600; letter-spacing:0.3px;">
+                            💡  Klicka på ${statusContent} för att låsa & gå vidare
                         </div>`;
                     }
                 });
@@ -1511,7 +1514,7 @@ function renderActiveWorkout() {
                             ${ex.name}
                         </strong>
                         <small style="color: ${isDone ? '#22c55e' : 'var(--primary)'}; font-size: 10px;">
-                            ${isDone ? 'KLAR  ✅ ' : `${completedSets}/${totalSets} set`}
+                            ${isDone ? 'KLAR  ✅ ' : `${completedSets}/${totalSets} set`}
                         </small>
                     </div>
                     <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0; margin-left: 10px;">
@@ -1524,7 +1527,7 @@ function renderActiveWorkout() {
                     ${setsHtml}
                     <button class="mode-border glass-border" style="padding:8px; font-size:11px; margin-top:10px; border-style:dashed; width:100%;" onclick="addSetToExercise(${i})" ${isDone ? 'disabled' : ''}>+ Lägg till set</button>
                     <button class="mode-btn ${isDone ? 'blue' : 'green'}" style="padding:12px; font-size:13px; margin-top:15px; width:100%; font-weight:bold;" onclick="toggleExerciseDone(${i})">
-                        ${isDone ? 'Ångra Klar  ↩️ ' : 'Markera övning som klar  ✅ '}
+                        ${isDone ? 'Ångra Klar  ↩️ ' : 'Markera övning som klar  ✅ '}
                     </button>
                 </div>`;
 
@@ -1533,19 +1536,19 @@ function renderActiveWorkout() {
     } else {
         const emptyNotice = document.createElement("p");
         emptyNotice.style.cssText = "color: var(--text-light); text-align: center; padding: 30px 10px; font-size: 14px;";
-        emptyNotice.innerHTML = "Det här passet är tomt. Klicka på knappen nedan för att lägga till dina övningar!  👇 ";
+        emptyNotice.innerHTML = "Det här passet är tomt. Klicka på knappen nedan för att lägga till dina övningar!  👇 ";
         list.appendChild(emptyNotice);
     }
     const addBtn = document.createElement("button");
     addBtn.className = "mode-btn glass-border";
     addBtn.style.marginTop = "10px";
-    addBtn.innerHTML = " ➕  L ä gg till  ö vning";
+    addBtn.innerHTML = " ➕  L ä gg till  ö vning";
     addBtn.onclick = openCustomAddExerciseModal;
     list.appendChild(addBtn);
     const discardBtn = document.createElement("button");
     discardBtn.className = "mode-btn";
     discardBtn.style.cssText = "background:none; color:var(--danger); font-size:14px; margin-top:20px; border:1px solid rgba(239, 68, 68, 0.2);";
-    discardBtn.innerHTML = "Radera pass  🗑️ ";
+    discardBtn.innerHTML = "Radera pass  🗑️ ";
     discardBtn.onclick = confirmDiscardActiveWorkout;
     list.appendChild(discardBtn);
     showView("workout-view");
@@ -1970,10 +1973,11 @@ function updateSingleExerciseCard(exIdx) {
     const completedSets = exerciseData.sets_data ? exerciseData.sets_data.filter(s => s.userConfirmed).length : 0;
     const totalSets = exerciseData.sets_data ? exerciseData.sets_data.length : 0;
     let setsHtml = `<div style="margin-top:10px;">
-        <div style="display:grid; grid-template-columns: 40px 1fr 1fr 30px; gap:8px; margin-bottom:5px; align-items:center;">
+        <div style="display:grid; grid-template-columns: 40px 1fr 1fr 1fr 30px; gap:8px; margin-bottom:5px; align-items:center;">
             <small style="text-align:left; padding-left:5px; color:var(--text-light); font-size:9px; font-weight:700;">SET</small>
             <small style="text-align:center; color:var(--text-light); font-size:9px;">KG</small>
             <small style="text-align:center; color:var(--text-light); font-size:9px;">REPS</small>
+            <small style="text-align:center; color:var(--text-light); font-size:9px;">VILA (S)</small>
             <span></span>
         </div>`;
     if (exerciseData.sets_data) {
@@ -1990,7 +1994,7 @@ function updateSingleExerciseCard(exIdx) {
             let circleColor = showSuccess ? '#22c55e' : (isCurrent ? '#facc15' : '#f59e0b');
             const statusContent = showSuccess ? ' ✅ ' : `#${sIdx + 1}`;
             setsHtml += `
-            <div style="display:grid; grid-template-columns: 40px 1fr 1fr 30px; gap:8px; margin-bottom:8px; align-items:center;">
+            <div style="display:grid; grid-template-columns: 40px 1fr 1fr 1fr 30px; gap:8px; margin-bottom:8px; align-items:center;">
                 <div onclick="${isLocked && !isDone ? '' : `confirmSet(${exIdx}, ${sIdx})`}"
                     style="width:32px; height:32px; border-radius:50%; border:2px solid ${circleColor}; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:10px; font-weight:800; background: ${showSuccess ? 'rgba(34, 197, 94, 0.2)' : (isCurrent ? 'rgba(250, 204, 21, 0.15)' : 'rgba(245, 158, 11, 0.05)')}; color: ${circleColor}; opacity: 1;">
                     ${statusContent}
@@ -1999,12 +2003,14 @@ function updateSingleExerciseCard(exIdx) {
                 'readonly' : ''} oninput="updateSetDataOnly(${exIdx}, ${sIdx})">
                 <input type="text" inputmode="decimal" id="r-${exIdx}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'};" value="${set.reps || ''}" ${isLocked ?
                 'readonly' : ''} oninput="updateSetDataOnly(${exIdx}, ${sIdx})">
+                <input type="text" inputmode="decimal" id="v-${exIdx}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'}; border-color: rgba(52, 152, 219, 0.3);" value="${set.rest || '90'}" ${isLocked ?
+                'readonly' : ''} oninput="updateSetDataOnly(${exIdx}, ${sIdx})">
                 <button onclick="removeSetFromExercise(${exIdx}, ${sIdx})" style="background:none; border:none; color:var(--danger); font-size:16px; opacity: ${isLocked || showSuccess ? '0.1' : '0.8'};" ${isLocked ? 'disabled' : ''}>×</button>
             </div>`;
             if (isCurrent) {
                 setsHtml += `
-                <div style="grid-column: 2 / span 2; margin:-4px 0 8px 0; padding-left:2px; opacity:0.8; font-size:10px; color:var(--primary); font-weight:600; letter-spacing:0.3px;">
-                    💡  Klicka på ${statusContent} för att låsa & gå vidare
+                <div style="grid-column: 2 / span 3; margin:-4px 0 8px 0; padding-left:2px; opacity:0.8; font-size:10px; color:var(--primary); font-weight:600; letter-spacing:0.3px;">
+                    💡  Klicka på ${statusContent} för att låsa & gå vidare
                 </div>`;
             }
         });
@@ -2020,7 +2026,7 @@ function updateSingleExerciseCard(exIdx) {
                     ${ex.name}
                 </strong>
                 <small style="color: ${isDone ? '#22c55e' : 'var(--primary)'}; font-size: 10px;">
-                    ${isDone ? 'KLAR  ✅ ' : `${completedSets}/${totalSets} set`}
+                    ${isDone ? 'KLAR  ✅ ' : `${completedSets}/${totalSets} set`}
                 </small>
             </div>
             <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0; margin-left: 10px;">
@@ -2033,7 +2039,7 @@ function updateSingleExerciseCard(exIdx) {
             ${setsHtml}
             <button class="mode-border glass-border" style="padding:8px; font-size:11px; margin-top:10px; border-style:dashed; width:100%;" onclick="addSetToExercise(${exIdx})" ${isDone ? 'disabled' : ''}>+ Lägg till set</button>
             <button class="mode-btn ${isDone ? 'blue' : 'green'}" style="padding:12px; font-size:13px; margin-top:15px; width:100%; font-weight:bold;" onclick="toggleExerciseDone(${exIdx})">
-                ${isDone ? 'Ångra Klar  ↩️ ' : 'Markera övning som klar  ✅ '}
+                ${isDone ? 'Ångra Klar  ↩️ ' : 'Markera övning som klar  ✅ '}
             </button>
         </div>`;
 }
