@@ -2853,93 +2853,180 @@ async function saveCustomProgramToSupabase() {
     if (window.programData) programData = window.programData;
 }
 
-// DROP-IN: Robust mobil/desktop enhancement för numeriska inputs
-function enhanceNumericInputs(root = document) {
-  const inputs = Array.from(root.querySelectorAll('input[id^="w-"], input[id^="r-"]'));
+// --- Custom numeric keypad (drop-in) ---
+(function(){ 
+  // Skapa pad DOM (enda gången)
+  if (document.getElementById('custom-num-pad')) return;
 
-  inputs.forEach(input => {
-    // Sätt numeriskt tangentbord-attribut
-    input.setAttribute('inputmode', input.getAttribute('inputmode') || 'numeric');
-    input.setAttribute('pattern', input.getAttribute('pattern') || '[0-9]*');
-    input.setAttribute('autocomplete', input.getAttribute('autocomplete') || 'off');
+  const padHtml = `
+  <style id="custom-num-pad-style">
+    #custom-num-pad { position: fixed; left: 0; right: 0; bottom: 0; background:#111; color:#fff;
+      box-shadow: 0 -6px 20px rgba(0,0,0,.4); padding:8px; display:none; z-index:9999; }
+    #custom-num-pad .row { display:flex; gap:8px; margin-bottom:8px; }
+    #custom-num-pad button { flex:1; font-size:20px; padding:14px 8px; border-radius:8px; border:0;
+      background:#222; color:#fff; box-shadow: inset 0 -2px 0 rgba(0,0,0,.4); }
+    #custom-num-pad button.action { background:#444; }
+    #custom-num-pad .wide { flex:2; }
+    #custom-num-pad .done { background:#0a84ff; color:#fff; font-weight:600; }
+  </style>
 
-    // Rensa tidigare handlers om de finns (så vi inte binder flera gånger)
-    if (input.__enhHandlers) {
-      const h = input.__enhHandlers;
-      input.removeEventListener('pointerdown', h.onPointerDown, { passive: false });
-      input.removeEventListener('touchstart', h.onTouchStart, { passive: false });
-      input.removeEventListener('focus', h.onFocus);
-      input.removeEventListener('touchend', h.onTouchEnd, { passive: true });
-      input.removeEventListener('beforeinput', h.onBeforeInput);
-      input.removeEventListener('keydown', h.onKeydown);
+  <div id="custom-num-pad" aria-hidden="true" role="dialog" aria-label="Numeric keypad">
+    <div class="row">
+      <button data-key="1">1</button>
+      <button data-key="2">2</button>
+      <button data-key="3">3</button>
+    </div>
+    <div class="row">
+      <button data-key="4">4</button>
+      <button data-key="5">5</button>
+      <button data-key="6">6</button>
+    </div>
+    <div class="row">
+      <button data-key="7">7</button>
+      <button data-key="8">8</button>
+      <button data-key="9">9</button>
+    </div>
+    <div class="row">
+      <button class="action" data-key="clear">C</button>
+      <button data-key="0">0</button>
+      <button class="action" data-key="back">⌫</button>
+    </div>
+    <div class="row">
+      <button class="wide action" data-key="toggle-sign">±</button>
+      <button class="wide done" data-key="done">Done</button>
+    </div>
+  </div>
+  `;
+  document.body.insertAdjacentHTML('beforeend', padHtml);
+
+  const pad = document.getElementById('custom-num-pad');
+
+  // State
+  let activeInput = null;
+  let originalReadonly = null;
+
+  // Utility to show/hide
+  function showPadFor(input) {
+    activeInput = input;
+    originalReadonly = input.hasAttribute('readonly');
+    // Gör input readonly så native keyboard inte öppnas (men vi ändå kan fokusera)
+    input.setAttribute('readonly',''); 
+    pad.style.display = 'block';
+    pad.setAttribute('aria-hidden','false');
+    // Sätt visuellt fokus (för skärm­läsare)
+    input.classList.add('custom-num-active');
+    // Markera hela värdet så användaren kan ersätta genom att börja skriva
+    try { input.select(); } catch (_) {}
+  }
+  function hidePad() {
+    if (!activeInput) return;
+    // Återställ readonly endast om vi satte det
+    if (!originalReadonly) activeInput.removeAttribute('readonly');
+    pad.style.display = 'none';
+    pad.setAttribute('aria-hidden','true');
+    activeInput.classList.remove('custom-num-active');
+    activeInput = null;
+  }
+
+  // Update input value helper
+  function setValue(v, dispatch=true) {
+    if (!activeInput) return;
+    activeInput.value = v;
+    if (dispatch) activeInput.dispatchEvent(new Event('input', { bubbles:true }));
+  }
+
+  // Append digit/back/clear handlers
+  pad.addEventListener('click', e => {
+    if (!activeInput) return;
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    const key = btn.getAttribute('data-key');
+    let v = activeInput.value || '';
+    switch(key) {
+      case 'done':
+        hidePad();
+        // trigga blur så din befintliga blur-handling körs
+        try { activeInput.blur(); } catch (_) {}
+        break;
+      case 'back':
+        v = v.slice(0, -1);
+        setValue(v);
+        try { activeInput.setSelectionRange(v.length, v.length); } catch (_) {}
+        break;
+      case 'clear':
+        setValue('');
+        break;
+      case 'toggle-sign':
+        // valfritt: toggla minus i början
+        if (v.startsWith('-')) v = v.slice(1);
+        else v = v ? ('-' + v) : v;
+        setValue(v);
+        break;
+      default:
+        // siffra
+        if (/^[0-9]$/.test(key)) {
+          // smart-ersätt: om hela är markerat -> ersätt (så man snabbt kan ändra)
+          const isAllSelected = activeInput.selectionStart === 0 && activeInput.selectionEnd === (activeInput.value || '').length;
+          if (isAllSelected) v = key;
+          else v = (v || '') + key;
+          // valfri maxlength-hantering: om input har maxlength, respektera den
+          const mx = activeInput.getAttribute('maxlength');
+          if (mx) v = v.slice(0, Number(mx));
+          setValue(v);
+          try { activeInput.setSelectionRange(v.length, v.length); } catch (_) {}
+        }
     }
-
-    // Handlers (sparas så vi kan avbinda senare)
-    const handlers = {
-      onPointerDown(e) {
-        if (e.isPrimary === false) return;
-        // förhindra native caret-placering och sätt vår egen fokus/selection
-        e.preventDefault();
-        input.focus({ preventScroll: true });
-        setTimeout(() => { try { input.select(); } catch (_) {} }, 0);
-      },
-      onTouchStart(e) {
-        // backup för äldre enheter
-        e.preventDefault();
-        input.focus({ preventScroll: true });
-        setTimeout(() => { try { input.select(); } catch (_) {} }, 0);
-      },
-      onFocus(e) {
-        try { input.select(); } catch (_) {}
-      },
-      onTouchEnd(e) {
-        // liten delay så fokus hinner sättas av browser
-        setTimeout(() => { try { input.select(); } catch (_) {} }, 50);
-      },
-      onBeforeInput(e) {
-        const ch = e.data;
-        if (!ch) return;
-        if (/^[0-9]$/.test(ch)) {
-          const isAllSelected = input.selectionStart === 0 && input.selectionEnd === input.value.length;
-          const caretAtStart = input.selectionStart === 0 && input.selectionEnd === 0;
-          // Ersätt fältet med första inmatade siffra när lämpligt
-          if (isAllSelected || caretAtStart || input.value.length > 0) {
-            e.preventDefault();
-            input.value = ch;
-            input.dispatchEvent(new Event('input', { bubbles: true }));
-            try { input.setSelectionRange(1, 1); } catch (_) {}
-          }
-        }
-      },
-      // fallback för enheter där beforeinput inte fångas som väntat
-      onKeydown(e) {
-        if (e.ctrlKey || e.metaKey || e.altKey) return;
-        const k = e.key;
-        if (!/^[0-9]$/.test(k)) return;
-        const isAllSelected = input.selectionStart === 0 && input.selectionEnd === input.value.length;
-        const caretAtStart = input.selectionStart === 0 && input.selectionEnd === 0;
-        if (isAllSelected || caretAtStart || input.value.length > 0) {
-          e.preventDefault();
-          input.value = k;
-          input.dispatchEvent(new Event('input', { bubbles: true }));
-          try { input.setSelectionRange(1, 1); } catch (_) {}
-        }
-      }
-    };
-
-    // Spara referenser och bind
-    input.__enhHandlers = handlers;
-    input.addEventListener('pointerdown', handlers.onPointerDown, { passive: false });
-    input.addEventListener('touchstart', handlers.onTouchStart, { passive: false });
-    input.addEventListener('focus', handlers.onFocus);
-    input.addEventListener('touchend', handlers.onTouchEnd, { passive: true });
-    input.addEventListener('beforeinput', handlers.onBeforeInput);
-    input.addEventListener('keydown', handlers.onKeydown);
   });
-}
 
-// Anropa efter render / efter bindSetInputListeners():
-// bindSetInputListeners && bindSetInputListeners();
-// enhanceNumericInputs && enhanceNumericInputs();
+  // Klick på input öppnar vårt pad (bypass native keyboard)
+  function onInputPointerDown(e) {
+    const el = e.currentTarget;
+    // Prevent native keyboard on iOS by preventing default pointerdown/touchstart
+    e.preventDefault();
+    showPadFor(el);
+    // fokusera utan att öppna keyboard (readonly blocks it)
+    try { el.focus({ preventScroll: true }); } catch (_) { el.focus(); }
+  }
 
+  // Init/attach: anropa efter varje render så nya inputs binds
+  window.initCustomNumericKeypad = function(root=document) {
+    const inputs = Array.from((root || document).querySelectorAll('input[id^="w-"], input[id^="r-"]'));
+    inputs.forEach(inp => {
+      // Ignorera om input explicit sagt att native keyboard ska användas
+      if (inp.dataset.customNum === 'false') return;
+      // Sätt attribut för visning/maxlength osv
+      inp.setAttribute('inputmode', inp.getAttribute('inputmode') || 'numeric');
+      // Bind pointer/touch handler (skydda mot dubbla bind)
+      if (!inp.__customNumBound) {
+        inp.addEventListener('pointerdown', onInputPointerDown, { passive:false });
+        inp.addEventListener('touchstart', onInputPointerDown, { passive:false });
+        // Om användaren programmässigt fokuserar (t.ex. keyboard från desktop), öppna ändå pad
+        inp.addEventListener('focus', () => {
+          // ignore focus caused by pad's own operations when readonly toggling
+          if (document.activeElement === inp) {
+            // Om inte readonly, låt native beteende ske (desktop)
+            if (inp.hasAttribute('readonly')) return;
+            // annars visa pad (useful if keyboard was not blocked)
+            showPadFor(inp);
+          }
+        });
+        inp.__customNumBound = true;
+      }
+    });
+  };
+
+  // Klick utanför pad/input stänger pad
+  document.addEventListener('click', e => {
+    if (!pad.contains(e.target) && activeInput && e.target !== activeInput) hidePad();
+  }, true);
+
+  // ESC eller Back-button stöd
+  window.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && pad.style.display === 'block') { hidePad(); e.preventDefault(); }
+  });
+
+  // Exponera helper för att programatiskt stänga/öppna
+  window.showCustomNumPadFor = showPadFor;
+  window.hideCustomNumPad = hidePad;
+})();
 
