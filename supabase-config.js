@@ -43,6 +43,9 @@ function showApp() {
     document.getElementById('auth-view').classList.add('hidden');
     document.getElementById('app-container').classList.remove('hidden');
     document.getElementById('global-header').classList.remove('hidden');
+    
+    // Den här raden tvingar skärmen att hoppa upp till toppen direkt vid inloggning!
+    window.scrollTo({ top: 0, behavior: 'instant' });
 }
 
 // Kopplingar till UI-element för inloggning och registrering
@@ -50,8 +53,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const loginCard = document.querySelector('#auth-view > .card');
     const registerCard = document.getElementById('register-card');
 
-    if (document.getElementById('goto-register-btn')) {
-        document.getElementById('goto-register-btn').onclick = () => {
+    // Den här koden öppnar registreringsfönstret när man klickar på "Skapa konto"
+    if (document.getElementById('show-register-btn')) {
+        document.getElementById('show-register-btn').onclick = () => {
             if (loginCard) loginCard.classList.add('hidden');
             if (registerCard) registerCard.classList.remove('hidden');
         };
@@ -134,6 +138,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 
                 currentUser = null;
                 showAuth();
+                
+                // Scrollar upp till toppen innan sidan laddas om för en ren nystart
+                window.scrollTo(0, 0);
                 location.reload();
             }
         };
