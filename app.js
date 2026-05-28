@@ -184,9 +184,6 @@ document.getElementById("timer-toggle-btn").onclick = () => {
 };
 
 // --- ÖVNINGAR & INSTÄLLNINGAR ---
-// Global flagga för att förhindra dubbelsparande av program/övningar
-let isSyncingCustomProgram = false;
-
 function openCreateExerciseModal(callback = null) {
     const body = document.getElementById("modal-body");
 
@@ -244,16 +241,6 @@ function openCreateExerciseModal(callback = null) {
         const name = document.getElementById("new-ex-name").value.trim();
         if(!name) return alert("Ange ett namn!");
 
-        // Om en synk redan pågår, stoppa klicket så det inte krockar i databasen
-        if (isSyncingCustomProgram) {
-            console.log(" ⏳ [DEBUG] Sparande av övning pågår redan, väntar...");
-            return;
-        }
-
-        // Lås dörren
-        isSyncingCustomProgram = true;
-
-        // FIX: Om man väljer "Armar", sätter vi target till "Biceps" (eller behåller "Armar" om du ändrar ditt filter)
         let finalTarget = selectedCategory;
         if (selectedCategory === "Armar") {
             finalTarget = "Biceps";
@@ -267,26 +254,23 @@ function openCreateExerciseModal(callback = null) {
             animation: ""
         };
 
-        try {
-            // Peta in i den globala arrayen
-            masterExercises.push(newEx);
+        // 1. Peta in i den globala arrayen
+        masterExercises.push(newEx);
 
-            // Sparar lokalt i localStorage
-            if (typeof saveAll === 'function') saveAll();
-
-            // Skicka till Supabase direkt (endast om det behövs separat)
-            if (typeof saveCustomProgram === 'function') {
-                await saveCustomProgram();
-            }
-        } catch (error) {
-            console.error(" Fel vid sparande av ny övning:", error);
-        } finally {
-            // Lås upp dörren igen oavsett om det gick bra eller fel
-            isSyncingCustomProgram = false;
+        // 2. Sparar lokalt OCH till Supabase automatiskt (eftersom saveAll() sköter båda i din app!)
+        if (typeof saveAll === 'function') {
+            await saveAll();
         }
 
+        // 3. Hantera vad som händer efteråt utan att krascha om vyer saknas
         if(callback) {
-            callback(newEx);
+            try {
+                callback(newEx);
+            } catch (callbackError) {
+                console.warn("⚠️ Callback kördes men det fanns ett mindre UI-fel i återställningen:", callbackError);
+                // Om den interna återställningen i ditt fria pass kraschar, stänger vi ändå modalen så du inte fastnar
+                closeModal();
+            }
         } else {
             closeModal();
 
