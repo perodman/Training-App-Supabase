@@ -184,6 +184,9 @@ document.getElementById("timer-toggle-btn").onclick = () => {
 };
 
 // --- ÖVNINGAR & INSTÄLLNINGAR ---
+// Global flagga för att förhindra dubbelsparande av program/övningar
+let isSyncingCustomProgram = false;
+
 function openCreateExerciseModal(callback = null) {
     const body = document.getElementById("modal-body");
 
@@ -241,6 +244,15 @@ function openCreateExerciseModal(callback = null) {
         const name = document.getElementById("new-ex-name").value.trim();
         if(!name) return alert("Ange ett namn!");
 
+        // Om en synk redan pågår, stoppa klicket så det inte krockar i databasen
+        if (isSyncingCustomProgram) {
+            console.log(" ⏳ [DEBUG] Sparande av övning pågår redan, väntar...");
+            return;
+        }
+
+        // Lås dörren
+        isSyncingCustomProgram = true;
+
         // FIX: Om man väljer "Armar", sätter vi target till "Biceps" (eller behåller "Armar" om du ändrar ditt filter)
         let finalTarget = selectedCategory;
         if (selectedCategory === "Armar") {
@@ -255,15 +267,22 @@ function openCreateExerciseModal(callback = null) {
             animation: ""
         };
 
-        // Peta in i den globala arrayen
-        masterExercises.push(newEx);
+        try {
+            // Peta in i den globala arrayen
+            masterExercises.push(newEx);
 
-        // Sparar lokalt i localStorage
-        if (typeof saveAll === 'function') saveAll();
+            // Sparar lokalt i localStorage
+            if (typeof saveAll === 'function') saveAll();
 
-        // Skicka till Supabase direkt
-        if (typeof saveCustomProgram === 'function') {
-            await saveCustomProgram();
+            // Skicka till Supabase direkt (endast om det behövs separat)
+            if (typeof saveCustomProgram === 'function') {
+                await saveCustomProgram();
+            }
+        } catch (error) {
+            console.error(" Fel vid sparande av ny övning:", error);
+        } finally {
+            // Lås upp dörren igen oavsett om det gick bra eller fel
+            isSyncingCustomProgram = false;
         }
 
         if(callback) {
