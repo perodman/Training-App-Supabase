@@ -38,7 +38,7 @@ async function initAuth() {
             showAuth();
         }
     });
-}
+
 
 function showAuth() {
     document.getElementById('auth-view').classList.remove('hidden');
