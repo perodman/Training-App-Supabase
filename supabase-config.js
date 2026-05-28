@@ -44,8 +44,11 @@ function showApp() {
     document.getElementById('app-container').classList.remove('hidden');
     document.getElementById('global-header').classList.remove('hidden');
     
-    // Den här raden tvingar skärmen att hoppa upp till toppen direkt vid inloggning!
-    window.scrollTo({ top: 0, behavior: 'instant' });
+    // Vi väntar 50 millisekunder, sen tvingar vi toppen. 
+    // Det brukar räcka för att webbläsaren ska "släppa" sin gamla scroll-position.
+    setTimeout(() => {
+        window.scrollTo(0, 0);
+    }, 50);
 }
 
 // Kopplingar till UI-element för inloggning och registrering
