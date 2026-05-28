@@ -1893,15 +1893,15 @@ async function updateSetDataOnly(exIdx, setIdx) {
   activeDraft.data[exIdx].sets_data = activeDraft.data[exIdx].sets_data || [];
   const setsArray = activeDraft.data[exIdx].sets_data;
   
-  // 1. Sparar undan vad som stod i fältet INNAN du tryckte på tangenten
-  const oldWeight = setsArray[setIdx] ? setsArray[setIdx].weight : "";
-  const oldReps = setsArray[setIdx] ? setsArray[setIdx].reps : "";
-
+  // 1. Säkra att objektet finns i arrayen först
   setsArray[setIdx] = Object.assign({}, setsArray[setIdx] || {});
- 
   const setObj = setsArray[setIdx];
+
+  // 2. Spara undan det gamla värdet (innan vi skriver över det med det nya)
+  const oldWeight = setObj.weight || "";
+  const oldReps = setObj.reps || "";
  
-  // 2. Uppdaterar setet med det nya tecknet du just skrev
+  // 3. Uppdatera objektet med det nya du just skrev i fälten
   setObj.weight = wInp.value;
   setObj.reps = rInp.value;
   if (typeof setObj.userConfirmed === "undefined") setObj.userConfirmed = false;
@@ -1915,7 +1915,7 @@ async function updateSetDataOnly(exIdx, setIdx) {
       setsArray[i] = Object.assign({}, setsArray[i] || {});
     }
     
-    // 3. Kollar om efterföljande fält är tomma ELLER matchar det gamla värdet
+    // 4. Kolla om efterföljande set är tomma ELLER matchar det gamla tecknet exakt
     const othersAreBlankOrMatchOld = setsArray.slice(1).every(s => {
       const isWValid = !s.weight || s.weight === oldWeight;
       const isRValid = !s.reps || s.reps === oldReps;
