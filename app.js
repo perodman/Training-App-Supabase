@@ -1882,29 +1882,35 @@ const debouncedPersistActiveWorkout = debounce(() => {
 }, 700);
 
 async function updateSetDataOnly(exIdx, setIdx) {
+  console.log(`--- 🚀 updateSetDataOnly startade för övning index: ${exIdx}, set index: ${setIdx} ---`);
+
   const wInp = document.getElementById(`w-${exIdx}-${setIdx}`);
   const rInp = document.getElementById(`r-${exIdx}-${setIdx}`);
   if (!wInp || !rInp) {
-    console.warn(`⚠️ Saknar input för ${exIdx}, ${setIdx}`);
+    console.warn(`⚠️ Saknar input-element i DOM:en för ${exIdx}, ${setIdx}`);
     return;
   }
  
-  if (!activeDraft || !activeDraft.data || !activeDraft.data[exIdx]) return;
+  if (!activeDraft || !activeDraft.data || !activeDraft.data[exIdx]) {
+    console.warn("⚠️ activeDraft eller dess data saknas helt.");
+    return;
+  }
+
   activeDraft.data[exIdx].sets_data = activeDraft.data[exIdx].sets_data || [];
   const setsArray = activeDraft.data[exIdx].sets_data;
   
   setsArray[setIdx] = Object.assign({}, setsArray[setIdx] || {});
   const setObj = setsArray[setIdx];
 
-  // Här sparar vi vad som står i inputfälten JUST NU (inklusive det nya tecknet)
   const newWeight = wInp.value;
   const newReps = rInp.value;
 
-  // Räkna ut vad det GAMLA tecknet var genom att ta bort det sista tecknet från det nya värdet
   const oldWeight = newWeight.length > 0 ? newWeight.slice(0, -1) : "";
   const oldReps = newReps.length > 0 ? newReps.slice(0, -1) : "";
  
-  // Uppdatera objektet i appens minne
+  console.log(`Det nya du skrev: KG=${newWeight}, REPS=${newReps}`);
+  console.log(`Det koden tror stod där innan: KG=${oldWeight}, REPS=${oldReps}`);
+
   setObj.weight = newWeight;
   setObj.reps = newReps;
   if (typeof setObj.userConfirmed === "undefined") setObj.userConfirmed = false;
@@ -1913,20 +1919,28 @@ async function updateSetDataOnly(exIdx, setIdx) {
   const history = exerciseName ? getExerciseHistory(exerciseName) : null;
   const isNoHistory = history === null;
  
+  console.log(`Övningsnamn: "${exerciseName}". Hittade vi historik? ${history ? "Ja" : "Nej (Blankhistorik)"}`);
+  console.log(`Är detta set index 0? ${setIdx === 0 ? "Ja" : "Nej"}`);
+
   if (isNoHistory && setIdx === 0) {
+    console.log("Krav uppfyllda (Ingen historik + Set 1). Kollar nu om efterföljande set är tomma/matchar...");
+
     for (let i = 1; i < (setsArray.length || 3); i++) {
       setsArray[i] = Object.assign({}, setsArray[i] || {});
     }
     
-    // Nu kollar vi om set 2 och 3 antingen är tomma, eller innehåller det gamla tecknet
-    const othersAreBlankOrMatchOld = setsArray.slice(1).every(s => {
+    const othersAreBlankOrMatchOld = setsArray.slice(1).every((s, currentLoopIdx) => {
       const currentWeightInSet = s.weight || "";
       const currentRepsInSet = s.reps || "";
 
       const isWValid = currentWeightInSet === "" || currentWeightInSet === oldWeight;
       const isRValid = currentRepsInSet === "" || currentRepsInSet === oldReps;
+      
+      console.log(`  -> Set ${currentLoopIdx + 2}: Nuvarande KG="${currentWeightInSet}", Nuvarande REPS="${currentRepsInSet}". Godkänd för autofyll? ${isWValid && isRValid ? "JA" : "NEJ"}`);
       return isWValid && isRValid;
     });
+
+    console.log(`Blev hela kontrollen godkänd? ${othersAreBlankOrMatchOld ? "JA (Kopierar nu!)" : "NEJ (Kopiering avbröts)"}`);
 
     if (othersAreBlankOrMatchOld) {
       for (let i = 1; i < setsArray.length; i++) {
@@ -1939,9 +1953,12 @@ async function updateSetDataOnly(exIdx, setIdx) {
         if (rEl) rEl.value = setsArray[i].reps || "";
       }
     }
+  } else {
+    console.log("Kopiering kördes inte eftersom det antingen finns historik eller så skriver du inte i Set 1.");
   }
  
   debouncedPersistActiveWorkout();
+  console.log("--- 🏁 updateSetDataOnly klar ---");
 }
 
 async function confirmSet(exIdx, setIdx) {
