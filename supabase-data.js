@@ -495,6 +495,7 @@ async function deleteWorkoutFromHistoryV2(dateStr, idx, passedId = null) {
     
     try {
         let workoutIdToDelete = passedId;
+        let workoutData = null;
         
         // Om inget ID skickades, försök hitta det i localStorage
         if (!workoutIdToDelete) {
@@ -502,20 +503,42 @@ async function deleteWorkoutFromHistoryV2(dateStr, idx, passedId = null) {
             const filtered = localHistory.filter(w => w.date === dateStr);
             
             if (filtered[idx]) {
+                workoutData = filtered[idx];
                 // Försök flera möjliga platser där ID:t kan finnas
-                workoutIdToDelete = filtered[idx].id 
-                    || filtered[idx].workout_id 
-                    || filtered[idx].workoutId
-                    || (filtered[idx].workout_data && filtered[idx].workout_data.id);
+                workoutIdToDelete = workoutData.id 
+                    || workoutData.workout_id 
+                    || workoutData.workoutId
+                    || (workoutData.workout_data && workoutData.workout_data.id);
                 
-                console.log("🔍 [SUPABASE-DATA] Hittade träningspass:", filtered[idx]);
+                console.log("🔍 [SUPABASE-DATA] Hittade träningspass:", workoutData);
                 console.log("🔍 [SUPABASE-DATA] Extraherat ID:", workoutIdToDelete);
             }
         }
         
         if (!workoutIdToDelete) {
             console.error("❌ [SUPABASE-DATA] Kunde inte fastställa vilket tränings-ID som ska raderas.");
-            console.log("📋 [SUPABASE-DATA] Tillgänglig data:", JSON.stringify(filtered[idx], null, 2));
+            console.log("📋 [SUPABASE-DATA] Tillgänglig data:", JSON.stringify(workoutData, null, 2));
+            
+            // GAMMALT PASS UTAN ID - radera baserat på datum + programnamn
+            if (workoutData && workoutData.date && workoutData.programName) {
+                console.log("🔧 [SUPABASE-DATA] Försöker radera gammalt pass utan ID baserat på datum + programnamn");
+                
+                const { error: deleteError } = await supabaseClient
+                    .from('workout_history')
+                    .delete()
+                    .eq('user_id', currentUser.id)
+                    .eq('workout_data->>date', workoutData.date)
+                    .eq('workout_data->>programName', workoutData.programName);
+                
+                if (deleteError) {
+                    console.error("❌ [SUPABASE-DATA] Supabase returnerade ett fel vid radering:", deleteError);
+                    throw deleteError;
+                }
+                
+                console.log("✅ [SUPABASE-DATA] Gammalt pass raderat baserat på datum + programnamn!");
+                return { success: true };
+            }
+            
             return { success: false, error: "No ID found" };
         }
         
