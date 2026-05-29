@@ -13,7 +13,8 @@
             <h1 class="main-title">LIFT</h1>
             <div class="subtitle-container">
                 <span class="line"></span>
-                <p class="subtitle" style="line-height: 1.3;">Workout tracking<br>made simple</p>
+                <p class="subtitle" style="line-height: 1.3;">Workout tracking
+made simple</p>
                 <span class="line"></span>
             </div>
         </div>
@@ -64,7 +65,8 @@
                 <h1 class="main-title">LIFT</h1>
                 <div class="subtitle-container">
                     <span class="line"></span>
-                    <p class="subtitle" style="line-height: 1.3;">Workout tracking<br>made simple</p>
+                    <p class="subtitle" style="line-height: 1.3;">Workout tracking
+made simple</p>
                     <span class="line"></span>
                 </div>
             </div>
@@ -199,11 +201,27 @@
         </div>
     </div>
 
+    <!-- DEBUG CONSOLE FÖR MOBIL -->
+    <div id="debug-console" style="position: fixed; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.9); color: lime; padding: 10px; font-size: 11px; max-height: 150px; overflow-y: auto; z-index: 99999; font-family: monospace;"></div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
  
 <script src="supabase-config.js"></script>
 <script src="supabase-data.js"></script>
  
 <script src="app.js?v=2.0.0"></script>
+
+<script>
+// Debug console för mobil
+const debugDiv = document.getElementById('debug-console');
+const originalLog = console.log;
+console.log = function(...args) {
+    originalLog.apply(console, args);
+    debugDiv.innerHTML += args.join(' ') + '
+';
+    debugDiv.scrollTop = debugDiv.scrollHeight;
+};
+</script>
+
 </body>
 </html>
