@@ -495,61 +495,66 @@ async function deleteWorkoutFromHistoryV2(dateStr, idx, passedId = null) {
     
     try {
         let workoutIdToDelete = passedId;
-        let workoutData = null;
         
-        // Om inget ID skickades, försök hitta det i localStorage
+        // Om inget ID skickades, hitta det i localStorage
         if (!workoutIdToDelete) {
             const localHistory = JSON.parse(localStorage.getItem("workoutHistory") || "[]");
             const filtered = localHistory.filter(w => w.date === dateStr);
             
             if (filtered[idx]) {
-                workoutData = filtered[idx];
-                // Försök flera möjliga platser där ID:t kan finnas
-                workoutIdToDelete = workoutData.id 
-                    || workoutData.workout_id 
-                    || workoutData.workoutId
-                    || (workoutData.workout_data && workoutData.workout_data.id);
-                
-                console.log("🔍 [SUPABASE-DATA] Hittade träningspass:", workoutData);
-                console.log("🔍 [SUPABASE-DATA] Extraherat ID:", workoutIdToDelete);
+                workoutIdToDelete = filtered[idx].id;
+                console.log("🔍 [SUPABASE-DATA] Hittade träningspass med ID:", workoutIdToDelete);
             }
         }
         
         if (!workoutIdToDelete) {
             console.error("❌ [SUPABASE-DATA] Kunde inte fastställa vilket tränings-ID som ska raderas.");
-            console.log("📋 [SUPABASE-DATA] Tillgänglig data:", JSON.stringify(workoutData, null, 2));
-            
-            // GAMMALT PASS UTAN ID - radera baserat på datum + programnamn
-            if (workoutData && workoutData.date && workoutData.programName) {
-                console.log("🔧 [SUPABASE-DATA] Försöker radera gammalt pass utan ID baserat på datum + programnamn");
-                
-                const { error: deleteError } = await supabaseClient
-                    .from('workout_history')
-                    .delete()
-                    .eq('user_id', currentUser.id)
-                    .eq('workout_data->>date', workoutData.date)
-                    .eq('workout_data->>programName', workoutData.programName);
-                
-                if (deleteError) {
-                    console.error("❌ [SUPABASE-DATA] Supabase returnerade ett fel vid radering:", deleteError);
-                    throw deleteError;
-                }
-                
-                console.log("✅ [SUPABASE-DATA] Gammalt pass raderat baserat på datum + programnamn!");
-                return { success: true };
-            }
-            
             return { success: false, error: "No ID found" };
         }
         
-        console.log("🔎 [SUPABASE-DATA] Utför radering i Supabase för tränings-id:", workoutIdToDelete);
+        console.log("🔎 [SUPABASE-DATA] Letar i Supabase efter datum:", dateStr);
         
-        // Försök radera med flera möjliga ID-strukturer
+        // Hämta alla rader för detta datum
+        const { rows, error: fetchErr } = await supabaseClient
+            .from('workout_history')
+            .select('id, workout_data')
+            .eq('user_id', currentUser.id)
+            .eq('workout_date', dateStr);
+        
+        if (fetchErr) {
+            console.error("❌ [SUPABASE-DATA] Fel vid hämtning:", fetchErr);
+            throw fetchErr;
+        }
+        
+        console.log("📊 [SUPABASE-DATA] Hittade", rows ? rows.length : 0, "rader för detta datum");
+        
+        if (!rows || rows.length === 0) {
+            console.warn("⚠️ [SUPABASE-DATA] Ingen rad hittades i Supabase för detta datum");
+            return { success: false, error: "No row found in database" };
+        }
+        
+        // Hitta rätt rad genom att matcha workout_data.id
+        let supabaseRowId = null;
+        for (const row of rows) {
+            if (row.workout_data && row.workout_data.id === workoutIdToDelete) {
+                supabaseRowId = row.id;
+                console.log("✅ [SUPABASE-DATA] Matchade Supabase rad-ID:", supabaseRowId);
+                break;
+            }
+        }
+        
+        if (!supabaseRowId) {
+            console.error("❌ [SUPABASE-DATA] Kunde inte hitta matchande rad med workout_data.id =", workoutIdToDelete);
+            console.log("📋 [DEBUG] Tillgängliga rader:", JSON.stringify(rows, null, 2));
+            return { success: false, error: "No matching row found" };
+        }
+        
+        // Radera baserat på Supabase rad-ID
+        console.log("🗑️ [SUPABASE-DATA] Raderar Supabase-rad:", supabaseRowId);
         const { error: deleteError } = await supabaseClient
             .from('workout_history')
             .delete()
-            .eq('user_id', currentUser.id)
-            .or(`workout_data->>id.eq.${workoutIdToDelete},workout_data->workout_data->>id.eq.${workoutIdToDelete},id.eq.${workoutIdToDelete}`);
+            .eq('id', supabaseRowId);
         
         if (deleteError) {
             console.error("❌ [SUPABASE-DATA] Supabase returnerade ett fel vid radering:", deleteError);
