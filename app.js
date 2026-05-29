@@ -2957,11 +2957,3 @@ async function saveCustomProgramToSupabase() {
     // FIX: Se till att den lokala referensen uppdateras
     if (window.programData) programData = window.programData;
 }
-
-function clearLocalStorage() {
-    localStorage.clear(); // Detta tar bort all data
-    console.log("✅ All data raderades från local storage!");
-}
-
-// Lägg till en event listener för knappen
-document.getElementById("clearButton").addEventListener("click", clearLocalStorage);
