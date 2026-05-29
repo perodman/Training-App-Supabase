@@ -517,7 +517,6 @@ async function deleteWorkoutFromHistoryV2(dateStr, idx, passedId = null) {
         
         if (!workoutIdToDelete) {
             console.error("❌ [SUPABASE-DATA] Kunde inte fastställa vilket tränings-ID som ska raderas.");
-            console.log("📋 [SUPABASE-DATA] Tillgänglig data:", JSON.stringify(workoutData, null, 2));
             
             // GAMMALT PASS UTAN ID - radera baserat på datum + programnamn
             if (workoutData && workoutData.date && workoutData.programName) {
@@ -544,12 +543,12 @@ async function deleteWorkoutFromHistoryV2(dateStr, idx, passedId = null) {
         
         console.log("🔎 [SUPABASE-DATA] Utför radering i Supabase för tränings-id:", workoutIdToDelete);
         
-        // Försök radera med flera möjliga ID-strukturer
+        // Radering mot JSONB-kolumnen (undviker matchning mot bigint-kolumnen 'id')
         const { error: deleteError } = await supabaseClient
             .from('workout_history')
             .delete()
             .eq('user_id', currentUser.id)
-            .or(`workout_data->>id.eq.${workoutIdToDelete},workout_data->workout_data->>id.eq.${workoutIdToDelete},id.eq.${workoutIdToDelete}`);
+            .eq('workout_data->>id', workoutIdToDelete);
         
         if (deleteError) {
             console.error("❌ [SUPABASE-DATA] Supabase returnerade ett fel vid radering:", deleteError);
