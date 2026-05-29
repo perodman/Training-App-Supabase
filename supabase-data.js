@@ -136,8 +136,6 @@ async function loadUserData(isSilent = false) {
         }
         console.log(" ✅  All data synkad i loadUserData. Kontrollerar rendering...");
         window.supabaseDataLoadedOnce = true;
-        console.log("📍 loadUserData klar, scroll:", window.scrollY);
-console.log("📍 Synlig vy:", document.querySelector('.view:not(.hidden)')?.id);
 
         // KONTROLL: Om anropet är tyst (isSilent), rör INTE gränssnittet mitt under en aktiv session!
         if (!isSilent) {
