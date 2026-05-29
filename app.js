@@ -924,29 +924,61 @@ function setOverrideSilent(dateStr, programId) {
         renderCalendar();
     }
 
-    // 3. Hämta de korrekta och aktuella tillstånden live
+    // 3. UPPDATERA ENDAST VISUELLT UTAN ATT RITA OM HELA MODALEN
     let nextPlannedProgram = null;
     if (programId !== "none" && programId !== "") {
         nextPlannedProgram = programData.routine.find(p => p.id === programId) || null;
     }
-    const currentCompleted = typeof workoutHistory !== 'undefined' ? workoutHistory.filter(w => w.date === dateStr) : [];
-    const currentIsOngoing = typeof activeDraft !== 'undefined' && activeDraft && activeDraft.date === dateStr;
 
-    // ÄNDRING: Spara scrollpositionen INNAN vi uppdaterar modalen
-    const modalContent = document.querySelector('.modal-content');
-    const savedScrollPos = modalContent ? modalContent.scrollTop : 0;
-
-    // Ladda om vyn direkt utan fördröjning
-    openDayManager(dateStr, nextPlannedProgram, currentCompleted, currentIsOngoing);
-
-    // ÅTERSTÄLL scrollpositionen efter att DOM uppdaterats
-    setTimeout(() => {
-        if (modalContent) {
-            modalContent.scrollTop = savedScrollPos;
+    // Uppdatera texten för planerad status
+    const plannedLabel = document.getElementById("current-planned-label");
+    if (plannedLabel) {
+        if (nextPlannedProgram) {
+            plannedLabel.innerHTML = `📋 <span class="status-highlight-text">${nextPlannedProgram.name}</span>`;
+        } else {
+            plannedLabel.innerHTML = '🧘 Planerad Vila';
         }
-    }, 0);
+    }
 
-    // 4. KÖR DE TUNGA SPAR- OCH SUPABASE-ANROPEN I BAKGRUNDEN
+    // Uppdatera "Starta Träning"-knappen
+    const actionBtnContainer = document.getElementById("day-manager-action-btn-container");
+    if (actionBtnContainer) {
+        if (nextPlannedProgram) {
+            actionBtnContainer.innerHTML = `
+                <button class="mode-btn premium-action-btn premium-green-btn" onclick="prepareStart('${dateStr}', '${nextPlannedProgram.id}')" style="width: 100% !important; margin: 0 !important; padding: 12px !important;">
+                    Starta Träning 🔥
+                </button>`;
+        } else {
+            actionBtnContainer.innerHTML = '';
+        }
+    }
+
+    // Uppdatera aktiva knappar visuellt
+    document.querySelectorAll('.plan-override-btn').forEach(btn => {
+        btn.classList.remove('active-choice');
+        const btnBg = btn.style.background;
+        if (!btn.classList.contains('override-rest-btn')) {
+            btn.style.setProperty('background', btnBg.replace('rgba(255,255,255,0.1)', 'rgba(255,255,255,0.04)').replace(/0\.\d+\)/, '0.04)'), 'important');
+            btn.style.color = 'var(--text-light)';
+        }
+    });
+
+    // Markera den valda knappen
+    if (programId === "none") {
+        const restBtn = document.getElementById("btn-ovr-none");
+        if (restBtn) {
+            restBtn.classList.add('active-choice');
+        }
+    } else {
+        const selectedBtn = document.getElementById(`btn-ovr-${programId}`);
+        if (selectedBtn) {
+            selectedBtn.classList.add('active-choice');
+            selectedBtn.style.setProperty('background', 'rgba(255,255,255,0.1)', 'important');
+            selectedBtn.style.color = '#ffffff';
+        }
+    }
+
+    // 4. KÖR SUPABASE-SYNK I BAKGRUNDEN
     setTimeout(async () => {
         try {
             await saveAll();
