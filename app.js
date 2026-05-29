@@ -2962,3 +2962,6 @@ function clearLocalStorage() {
     localStorage.clear(); // Detta tar bort all data
     console.log("✅ All data raderades från local storage!");
 }
+
+// Lägg till en event listener för knappen
+document.getElementById("clearButton").addEventListener("click", clearLocalStorage);
