@@ -119,7 +119,13 @@ function showView(id) {
         target.offsetHeight; // Tvingar fram reflow för ren CSS-animation
         target.style.animation = null;
     }
-    window.scrollTo(0, 0);
+    
+    // Scrolla till toppen (mobil + desktop)
+    setTimeout(() => {
+        window.scrollTo(0, 0);
+        document.body.scrollTop = 0;
+        document.documentElement.scrollTop = 0;
+    }, 50);
 }
 
 function closeModal() {
