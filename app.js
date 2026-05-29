@@ -2232,6 +2232,7 @@ document.getElementById("add-custom-pass-btn").onclick = openCreateProgramModal;
 // GRÄNSSNITT & KNAPPHANTERING (HOME & SAVE WORKOUT)
 // ==========================================================================
 function renderHome() {
+    console.log("🏠 renderHome() kallad");
     // 🛡️ Om järnridån är aktiv, totalvägra att köra startsidans logik överhuvudtaget!
     if (window.blockAllSync) return;
  
