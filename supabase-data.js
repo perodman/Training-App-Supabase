@@ -137,13 +137,15 @@ async function loadUserData(isSilent = false) {
         console.log(" ✅  All data synkad i loadUserData. Kontrollerar rendering...");
         window.supabaseDataLoadedOnce = true;
 
-        // KONTROLL: Om anropet är tyst (isSilent), rör INTE gränssnittet mitt under en aktiv session!
-        if (!isSilent) {
-            if (typeof renderCalendar === 'function') renderCalendar();
-            if (typeof renderHome === 'function') renderHome();
-        } else {
-            console.log(" 🤫 [SILENT] Ignorerade rendering av kalendern för att skydda skärmens scrollposition.");
-        }
+           // KONTROLL: Om anropet är tyst (isSilent), rör INTE gränssnittet mitt under en aktiv session!
+    if (!isSilent) {
+        if (typeof renderCalendar === 'function') renderCalendar();
+        if (typeof renderHome === 'function') renderHome();
+        // LÄGG TILL DENNA RAD HÄR:
+        window.scrollTo(0, 0);
+    } else {
+        console.log(" 🤫 [SILENT] Ignorerade rendering av kalendern för att skydda skärmens scrollposition.");
+    }
     } catch (err) {
         console.error(' ❌  Kritiskt fel i loadUserData:', err);
     }
