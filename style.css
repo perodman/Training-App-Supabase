@@ -663,3 +663,17 @@ select.log-input { font-size: 16px !important; text-align-last: center; appearan
 .view.hidden {
     display: none !important;
 }
+
+#home-view {
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+}
+ 
+.app-container {
+    padding-top: 20px !important; /* Minska från 60px */
+}
+ 
+/* Se till att sidan alltid börjar högst upp */
+body, html {
+    scroll-behavior: auto !important;
+}
