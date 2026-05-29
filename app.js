@@ -2228,6 +2228,8 @@ document.getElementById("add-custom-pass-btn").onclick = openCreateProgramModal;
 function renderHome() {
     // 🛡️ Om järnridån är aktiv, totalvägra att köra startsidans logik överhuvudtaget!
     if (window.blockAllSync) return;
+    
+    window.scrollTo(0, 0);
 
     showView("home-view");
     
