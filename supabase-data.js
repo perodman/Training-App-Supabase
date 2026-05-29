@@ -486,40 +486,58 @@ async function saveActiveDraft() {
 // UPPDATERAD OCH SÄKRAD RADERING DIREKT VIA JSON-MATCHNING PÅ SERVERBOTTEN
 // ==========================================================================
 async function deleteWorkoutFromHistoryV2(dateStr, idx, passedId = null) {
-    console.log(" 📥  [SUPABASE-DATA] deleteWorkoutFromHistoryV2 startad. Datum:", dateStr, "Index:", idx, "Skickat ID:", passedId);
+    console.log("📥 [SUPABASE-DATA] deleteWorkoutFromHistoryV2 startad. Datum:", dateStr, "Index:", idx, "Skickat ID:", passedId);
 
     if (!currentUser) {
-        console.warn(" ⚠️  [SUPABASE-DATA] Ingen inloggad användare, avbryter databasradering.");
+        console.warn("⚠️ [SUPABASE-DATA] Ingen inloggad användare, avbryter databasradering.");
         return { success: false, error: "No user" };
     }
+    
     try {
         let workoutIdToDelete = passedId;
+        
+        // Om inget ID skickades, försök hitta det i localStorage
         if (!workoutIdToDelete) {
             const localHistory = JSON.parse(localStorage.getItem("workoutHistory") || "[]");
             const filtered = localHistory.filter(w => w.date === dateStr);
+            
             if (filtered[idx]) {
-                workoutIdToDelete = filtered[idx].id;
+                // Försök flera möjliga platser där ID:t kan finnas
+                workoutIdToDelete = filtered[idx].id 
+                    || filtered[idx].workout_id 
+                    || filtered[idx].workoutId
+                    || (filtered[idx].workout_data && filtered[idx].workout_data.id);
+                
+                console.log("🔍 [SUPABASE-DATA] Hittade träningspass:", filtered[idx]);
+                console.log("🔍 [SUPABASE-DATA] Extraherat ID:", workoutIdToDelete);
             }
         }
+        
         if (!workoutIdToDelete) {
-            console.error(" ❌  [SUPABASE-DATA] Kunde inte fastställa vilket tränings-ID som ska raderas.");
+            console.error("❌ [SUPABASE-DATA] Kunde inte fastställa vilket tränings-ID som ska raderas.");
+            console.log("📋 [SUPABASE-DATA] Tillgänglig data:", JSON.stringify(filtered[idx], null, 2));
             return { success: false, error: "No ID found" };
         }
-        console.log(" 🔎  [SUPABASE-DATA] Utför radering i Supabase för tränings-id:", workoutIdToDelete);
+        
+        console.log("🔎 [SUPABASE-DATA] Utför radering i Supabase för tränings-id:", workoutIdToDelete);
+        
+        // Försök radera med flera möjliga ID-strukturer
         const { error: deleteError } = await supabaseClient
             .from('workout_history')
             .delete()
             .eq('user_id', currentUser.id)
-            .or(`workout_data->>id.eq.${workoutIdToDelete},workout_data->workout_data->>id.eq.${workoutIdToDelete}`);
+            .or(`workout_data->>id.eq.${workoutIdToDelete},workout_data->workout_data->>id.eq.${workoutIdToDelete},id.eq.${workoutIdToDelete}`);
+        
         if (deleteError) {
-            console.error(" ❌  [SUPABASE-DATA] Supabase returnerade ett fel vid radering:", deleteError);
+            console.error("❌ [SUPABASE-DATA] Supabase returnerade ett fel vid radering:", deleteError);
             throw deleteError;
         }
-        console.log(" ✅  [SUPABASE-DATA] Raden raderades framgångsrikt från Supabase via JSON-matchning!");
-
+        
+        console.log("✅ [SUPABASE-DATA] Raden raderades framgångsrikt från Supabase!");
         return { success: true };
+        
     } catch (err) {
-        console.error(" ❌  [SUPABASE-DATA] Allvarligt fel i deleteWorkoutFromHistoryV2:", err);
+        console.error("❌ [SUPABASE-DATA] Allvarligt fel i deleteWorkoutFromHistoryV2:", err);
         return { success: false, error: err.message };
     }
 }
