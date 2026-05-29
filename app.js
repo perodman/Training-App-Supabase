@@ -2711,7 +2711,7 @@ function openConfirmDeleteModal(dateStr, idx) {
             <div style="font-size:40px; margin-bottom:15px;"> 🗑️ </div>
             <h3 style="color:var(--danger); margin: 0 0 10px 0; font-size:22px;">Radera pass ur historiken?</h3>
             <p style="color:var(--text-light); margin-bottom:25px; font-size:14px; line-height:1.4;">
-                This pass will be permanently removed from your calendar and disappear from the database.
+                Detta pass kommer att tas bort permanent från din kalender och försvinna från databasen.
             </p>
             <button class="mode-btn" id="confirm-delete-history-btn" style="background:linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color:white; margin-bottom:12px; font-weight:700; width:100%; padding:14px; border-radius:12px; border:none; cursor:pointer;">
                 Ja, radera passet
