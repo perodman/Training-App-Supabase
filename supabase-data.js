@@ -507,11 +507,6 @@ async function deleteWorkoutFromHistoryV2(dateStr, idx, passedId = null) {
             }
         }
         
-        if (!workoutIdToDelete) {
-            console.error("❌ [SUPABASE-DATA] Kunde inte fastställa vilket tränings-ID som ska raderas.");
-            return { success: false, error: "No ID found" };
-        }
-        
         console.log("🔎 [SUPABASE-DATA] Letar i Supabase efter datum:", dateStr);
         
         // Hämta alla rader för detta datum
@@ -533,20 +528,24 @@ async function deleteWorkoutFromHistoryV2(dateStr, idx, passedId = null) {
             return { success: false, error: "No row found in database" };
         }
         
-        // Hitta rätt rad genom att matcha workout_data.id
         let supabaseRowId = null;
-        for (const row of rows) {
-            if (row.workout_data && row.workout_data.id === workoutIdToDelete) {
-                supabaseRowId = row.id;
-                console.log("✅ [SUPABASE-DATA] Matchade Supabase rad-ID:", supabaseRowId);
-                break;
+        
+        // Om vi har ett ID, försök matcha det
+        if (workoutIdToDelete) {
+            for (const row of rows) {
+                if (row.workout_data && row.workout_data.id === workoutIdToDelete) {
+                    supabaseRowId = row.id;
+                    console.log("✅ [SUPABASE-DATA] Matchade Supabase rad-ID via workout_data.id:", supabaseRowId);
+                    break;
+                }
             }
         }
         
+        // Om ingen matchning hittades (gammalt pass utan ID) → ta första passet för datumet
         if (!supabaseRowId) {
-            console.error("❌ [SUPABASE-DATA] Kunde inte hitta matchande rad med workout_data.id =", workoutIdToDelete);
-            console.log("📋 [DEBUG] Tillgängliga rader:", JSON.stringify(rows, null, 2));
-            return { success: false, error: "No matching row found" };
+            console.warn("⚠️ [SUPABASE-DATA] Inget ID eller ingen matchning. Raderar första passet för detta datum.");
+            supabaseRowId = rows[0].id;
+            console.log("🗑️ [SUPABASE-DATA] Använder första radens ID:", supabaseRowId);
         }
         
         // Radera baserat på Supabase rad-ID
