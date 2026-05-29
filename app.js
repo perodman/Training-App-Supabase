@@ -137,14 +137,17 @@ function closeModal() {
     }
 }
 
-function openModal() {
+function openModal(preventScroll = false) {
     const modal = document.getElementById("workout-modal");
     if (modal) modal.classList.remove("hidden");
-    // Samma logik här för att garantera toppen vid öppning
-    setTimeout(() => {
-        const modalContent = document.querySelector('.modal-content');
-        if (modalContent) modalContent.scrollTop = 0;
-    }, 20);
+    
+    // Förhindra scroll endast om flaggan är satt
+    if (!preventScroll) {
+        setTimeout(() => {
+            const modalContent = document.querySelector('.modal-content');
+            if (modalContent) modalContent.scrollTop = 0;
+        }, 20);
+    }
 }
 
 // --- TIMER LOGIK ---
@@ -921,28 +924,35 @@ function setOverrideSilent(dateStr, programId) {
         renderCalendar();
     }
 
-    // 3. Hämta de korrekta och aktuella tillstånden live istället för sparad historiksträngar
+    // 3. Hämta de korrekta och aktuella tillstånden live
     let nextPlannedProgram = null;
     if (programId !== "none" && programId !== "") {
         nextPlannedProgram = programData.routine.find(p => p.id === programId) || null;
     }
-    // Hämta historik och pågående status direkt från dina globala arrayer live
     const currentCompleted = typeof workoutHistory !== 'undefined' ? workoutHistory.filter(w => w.date === dateStr) : [];
     const currentIsOngoing = typeof activeDraft !== 'undefined' && activeDraft && activeDraft.date === dateStr;
 
-    // Ladda om vyn direkt utan fördröjning (Gränssnittet uppdateras här på under 1ms!)
+    // ÄNDRING: Spara scrollpositionen INNAN vi uppdaterar modalen
+    const modalContent = document.querySelector('.modal-content');
+    const savedScrollPos = modalContent ? modalContent.scrollTop : 0;
+
+    // Ladda om vyn direkt utan fördröjning
     openDayManager(dateStr, nextPlannedProgram, currentCompleted, currentIsOngoing);
 
+    // ÅTERSTÄLL scrollpositionen efter att DOM uppdaterats
+    setTimeout(() => {
+        if (modalContent) {
+            modalContent.scrollTop = savedScrollPos;
+        }
+    }, 0);
+
     // 4. KÖR DE TUNGA SPAR- OCH SUPABASE-ANROPEN I BAKGRUNDEN
-    // Genom att lägga detta i en setTimeout frigörs huvudtråden så att appen inte laggar eller låser sig
     setTimeout(async () => {
         try {
-            // Sparar i bakgrunden
             await saveAll();
 
-            // Skottsäker integration mot Supabase (PGRST116-säkrad) i bakgrunden
             if (typeof currentUser !== 'undefined' && currentUser) {
-                const { data: existingRows, error: checkErr } = await supabaseClient
+                const { existingRows, error: checkErr } = await supabaseClient
                     .from('calendar_overrides')
                     .select('id')
                     .eq('user_id', currentUser.id);
@@ -952,12 +962,12 @@ function setOverrideSilent(dateStr, programId) {
                 if (existingRows && existingRows.length > 0) {
                     await supabaseClient
                         .from('calendar_overrides')
-                        .update({ data: calendarOverrides })
+                        .update({ calendarOverrides })
                         .eq('user_id', currentUser.id);
                 } else {
                     await supabaseClient
                         .from('calendar_overrides')
-                        .insert([{ user_id: currentUser.id, data: calendarOverrides }]);
+                        .insert([{ user_id: currentUser.id, calendarOverrides }]);
                 }
             }
         } catch (err) {
