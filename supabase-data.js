@@ -138,11 +138,15 @@ async function loadUserData(isSilent = false) {
         window.supabaseDataLoadedOnce = true;
 
            // KONTROLL: Om anropet är tyst (isSilent), rör INTE gränssnittet mitt under en aktiv session!
-    if (!isSilent) {
+        if (!isSilent) {
         if (typeof renderCalendar === 'function') renderCalendar();
         if (typeof renderHome === 'function') renderHome();
-        // LÄGG TILL DENNA RAD HÄR:
-        window.scrollTo(0, 0);
+        // Scrolla till toppen (mobil + desktop)
+        setTimeout(() => {
+            window.scrollTo(0, 0);
+            document.body.scrollTop = 0;
+            document.documentElement.scrollTop = 0;
+        }, 100);
     } else {
         console.log(" 🤫 [SILENT] Ignorerade rendering av kalendern för att skydda skärmens scrollposition.");
     }
