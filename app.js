@@ -1429,32 +1429,38 @@ let temporarySelectedExercises = [];
 
 function renderActiveWorkout() {
     if (!activeDraft || !activeDraft.workout) {
-        console.warn(" ⚠️  Inget aktivt utkast tillgängligt.");
+        console.warn(" ⚠️ Inget aktivt utkast tillgängligt.");
         return;
     }
+
+    // --- 1. ROBUST UI_STATE INITIERING ---
+    if (!activeDraft.ui_state) activeDraft.ui_state = { openExercises: [] };
+    if (!Array.isArray(activeDraft.ui_state.openExercises)) activeDraft.ui_state.openExercises = [];
+
+    // --- 2. LOGIK FÖR SETS ---
     if (activeDraft.data) {
         activeDraft.data.forEach((exerciseData, i) => {
             if (!exerciseData.isCompleted && exerciseData.sets_data) {
-                const isBrandNewAndGhostChecked = exerciseData.sets_data.every(s => s.userConfirmed === true) && !activeDraft.ui_state?.openExercises?.includes(i);
-
+                const isBrandNewAndGhostChecked = exerciseData.sets_data.every(s => s.userConfirmed === true) && !activeDraft.ui_state.openExercises.includes(i);
                 if (isBrandNewAndGhostChecked && exerciseData.sets_data.length > 0) {
-                    exerciseData.sets_data.forEach(set => {
-                        set.userConfirmed = false;
-                    });
+                    exerciseData.sets_data.forEach(set => { set.userConfirmed = false; });
                 }
             }
         });
     }
+
     document.getElementById("active-title").textContent = activeDraft.workout.name;
     const list = document.getElementById("exercise-list");
     const footer = document.querySelector(".workout-footer");
     if (!list) return;
     list.innerHTML = "";
+
+    // --- 3. START-VY ---
     if (!activeDraft.isStarted) {
         if (footer) footer.classList.add("hidden");
         list.innerHTML = `
         <div style="text-align:center; padding:20px 0;">
-            <button class="mode-btn green" style="width:100%; padding:20px; font-size:18px; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);" onclick="actuallyStartWorkout()">STARTA TRÄNINGSPASSET  🔥 </button>
+            <button class="mode-btn green" style="width:100%; padding:20px; font-size:18px; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);" onclick="actuallyStartWorkout()">STARTA TRÄNINGSPASSET 🔥 </button>
         </div>
         <p style="color:var(--text-light); font-size:13px; text-align:center; margin-top:10px;">Klicka på knappen ovan för att starta klockan.</p>
         `;
@@ -1463,46 +1469,18 @@ function renderActiveWorkout() {
         showView("workout-view");
         return;
     }
-    if (typeof renderCalendar === 'function') {
-        const calendarView = document.getElementById("calendar-view");
-        if (calendarView) {
-            const originalDisplay = calendarView.style.display;
-            calendarView.style.display = "none";
-            renderCalendar();
-            calendarView.style.display = originalDisplay;
-        }
-    }
+
     if (footer) footer.classList.remove("hidden");
 
-    const pauseBtn = document.getElementById("pause-workout-btn");
-    if (pauseBtn) {
-        pauseBtn.innerHTML = `Spara utkast  💾 `;
-        pauseBtn.className = "mode-btn save-draft-btn";
-        pauseBtn.onclick = saveDraftAndGoHome;
-    }
-    if (!activeDraft.ui_state) {
-        activeDraft.ui_state = {};
-    }
-
-    if (!activeDraft.ui_state.openExercises) {
-        activeDraft.ui_state.openExercises = [];
-    }
-    const isFrittPass = activeDraft.workout.name === "Fritt Pass";
-    if (!isFrittPass) {
-        if (!activeDraft.ui_state.hasOwnProperty('hasInitializedOpen')) {
-            activeDraft.ui_state.openExercises = [0];
-            activeDraft.ui_state.hasInitializedOpen = true;
-            if (typeof persistActiveWorkout === 'function') persistActiveWorkout();
-        }
-    }
-
+    // --- 4. RENDERERING AV ÖVNINGAR ---
     const openExercises = activeDraft.ui_state.openExercises;
+
     if (activeDraft.workout.exercises && activeDraft.workout.exercises.length > 0) {
         activeDraft.workout.exercises.forEach((ex, i) => {
             const exerciseData = activeDraft.data[i];
             if (!exerciseData) return;
             const isDone = exerciseData.isCompleted;
-            const isOpen = openExercises.includes(i);
+            const isOpen = openExercises.includes(i); // Kontrollerar mot din bevarade lista
 
             const div = document.createElement("div");
             div.className = "card glass" + (isDone ? " exercise-done" : "");
@@ -1511,6 +1489,7 @@ function renderActiveWorkout() {
 
             const completedSets = exerciseData.sets_data ? exerciseData.sets_data.filter(s => s.userConfirmed).length : 0;
             const totalSets = exerciseData.sets_data ? exerciseData.sets_data.length : 0;
+            
             let setsHtml = `<div style="margin-top:10px;">
                 <div style="display:grid; grid-template-columns: 40px 1fr 1fr 1fr 30px; gap:8px; margin-bottom:5px; align-items:center;">
                     <small style="text-align:left; padding-left:5px; color:var(--text-light); font-size:9px; font-weight:700;">SET</small>
@@ -1519,6 +1498,7 @@ function renderActiveWorkout() {
                     <small style="text-align:center; color:var(--text-light); font-size:9px;">VILA (S)</small>
                     <span></span>
                 </div>`;
+            
             if (exerciseData.sets_data) {
                 exerciseData.sets_data.forEach((set, sIdx) => {
                     let isLocked = false;
@@ -1532,28 +1512,21 @@ function renderActiveWorkout() {
                     const showSuccess = set.userConfirmed || isDone;
                     let circleColor = showSuccess ? '#22c55e' : (isCurrent ? '#facc15' : '#f59e0b');
                     const statusContent = showSuccess ? ' ✅ ' : `#${sIdx + 1}`;
+                    
                     setsHtml += `
                     <div style="display:grid; grid-template-columns: 40px 1fr 1fr 1fr 30px; gap:8px; margin-bottom:8px; align-items:center;">
                         <div onclick="${isLocked && !isDone ? '' : `confirmSet(${i}, ${sIdx})`}"
                             style="width:32px; height:32px; border-radius:50%; border:2px solid ${circleColor}; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:10px; font-weight:800; background: ${showSuccess ? 'rgba(34, 197, 94, 0.2)' : (isCurrent ? 'rgba(250, 204, 21, 0.15)' : 'rgba(245, 158, 11, 0.05)')}; color: ${circleColor}; opacity: 1;">
                             ${statusContent}
                         </div>
-                        <input type="text" inputmode="decimal" id="w-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'};" value="${set.weight || ''}" ${isLocked ?
-                        'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})">
-                        <input type="text" inputmode="decimal" id="r-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'};" value="${set.reps || ''}" ${isLocked ?
-                        'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})">
-                        <input type="text" inputmode="decimal" id="v-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'}; border-color: rgba(52, 152, 219, 0.3);" value="${set.rest || '90'}" ${isLocked ?
-                        'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})">
+                        <input type="text" inputmode="decimal" id="w-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'};" value="${set.weight || ''}" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})">
+                        <input type="text" inputmode="decimal" id="r-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'};" value="${set.reps || ''}" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})">
+                        <input type="text" inputmode="decimal" id="v-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'}; border-color: rgba(52, 152, 219, 0.3);" value="${set.rest || '90'}" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})">
                         <button onclick="removeSetFromExercise(${i}, ${sIdx})" style="background:none; border:none; color:var(--danger); font-size:16px; opacity: ${isLocked || showSuccess ? '0.1' : '0.8'};" ${isLocked ? 'disabled' : ''}>×</button>
                     </div>`;
-                    if (isCurrent) {
-                        setsHtml += `
-                        <div style="grid-column: 2 / span 3; margin:-4px 0 8px 0; padding-left:2px; opacity:0.8; font-size:10px; color:var(--primary); font-weight:600; letter-spacing:0.3px;">
-                            💡  Klicka på ${statusContent} för att låsa & gå vidare
-                        </div>`;
-                    }
                 });
             }
+
             div.innerHTML = `
                 <div onclick="toggleExercise(${i})" style="padding: 12px 15px; display: flex; align-items: center; cursor: pointer; background: ${isOpen ? 'rgba(250, 204, 21, 0.05)' : 'transparent'}">
                     <div style="display: flex; gap: 4px; margin-right: 12px; flex-shrink: 0;">
@@ -1565,7 +1538,7 @@ function renderActiveWorkout() {
                             ${ex.name}
                         </strong>
                         <small style="color: ${isDone ? '#22c55e' : 'var(--primary)'}; font-size: 10px;">
-                            ${isDone ? 'KLAR  ✅ ' : `${completedSets}/${totalSets} set`}
+                            ${isDone ? 'KLAR ✅ ' : `${completedSets}/${totalSets} set`}
                         </small>
                     </div>
                     <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0; margin-left: 10px;">
@@ -1578,30 +1551,28 @@ function renderActiveWorkout() {
                     ${setsHtml}
                     <button class="mode-border glass-border" style="padding:8px; font-size:11px; margin-top:10px; border-style:dashed; width:100%;" onclick="addSetToExercise(${i})" ${isDone ? 'disabled' : ''}>+ Lägg till set</button>
                     <button class="mode-btn ${isDone ? 'blue' : 'green'}" style="padding:12px; font-size:13px; margin-top:15px; width:100%; font-weight:bold;" onclick="toggleExerciseDone(${i})">
-                        ${isDone ? 'Ångra Klar  ↩️ ' : 'Markera övning som klar  ✅ '}
+                        ${isDone ? 'Ångra Klar ↩️ ' : 'Markera övning som klar ✅ '}
                     </button>
                 </div>`;
-
             list.appendChild(div);
         });
-    } else {
-        const emptyNotice = document.createElement("p");
-        emptyNotice.style.cssText = "color: var(--text-light); text-align: center; padding: 30px 10px; font-size: 14px;";
-        emptyNotice.innerHTML = "Det här passet är tomt. Klicka på knappen nedan för att lägga till dina övningar!  👇 ";
-        list.appendChild(emptyNotice);
     }
+
+    // --- 5. FOOTER-KNAPPAR ---
     const addBtn = document.createElement("button");
     addBtn.className = "mode-btn glass-border";
     addBtn.style.marginTop = "10px";
     addBtn.innerHTML = " ➕ Lägg till övning";
     addBtn.onclick = openCustomAddExerciseModal;
     list.appendChild(addBtn);
+
     const discardBtn = document.createElement("button");
     discardBtn.className = "mode-btn";
     discardBtn.style.cssText = "background:none; color:var(--danger); font-size:14px; margin-top:20px; border:1px solid rgba(239, 68, 68, 0.2);";
-    discardBtn.innerHTML = "Radera pass  🗑️ ";
+    discardBtn.innerHTML = "Radera pass 🗑️ ";
     discardBtn.onclick = confirmDiscardActiveWorkout;
     list.appendChild(discardBtn);
+
     showView("workout-view");
 }
 
@@ -1611,30 +1582,25 @@ function openCustomAddExerciseModal() {
 }
 
 async function toggleExercise(index) {
-    // 1. Skapa strukturen om den saknas
-    if (!activeDraft.ui_state) {
-        activeDraft.ui_state = { openExercises: [] };
-    }
-    if (!Array.isArray(activeDraft.ui_state.openExercises)) {
-        activeDraft.ui_state.openExercises = [];
-    }
+    // 1. Skapa en säker "hink" för öppna övningar om den inte finns
+    if (!activeDraft.ui_state) activeDraft.ui_state = { openExercises: [] };
+    if (!activeDraft.ui_state.openExercises) activeDraft.ui_state.openExercises = [];
 
-    // 2. Ändra i arrayen
+    // 2. Kolla om övningen redan är öppen
     const openIdx = activeDraft.ui_state.openExercises.indexOf(index);
+    
+    // 3. Om den finns: ta bort den (stäng). Om inte: lägg till den (öppna).
     if (openIdx > -1) {
         activeDraft.ui_state.openExercises.splice(openIdx, 1);
     } else {
         activeDraft.ui_state.openExercises.push(index);
     }
 
-    // 3. DEBUG: Skriv ut i konsolen så vi SER att den ändras
-    console.log(" 📝 [DEBUG] Uppdaterar openExercises till:", activeDraft.ui_state.openExercises);
-
-    // 4. Rendera omedelbart (UI svarar)
+    // 4. Rendera om vyn så att den ser att övningen nu ska vara öppen/stängd
     renderActiveWorkout();
 
-    // 5. Spara till localStorage OCH Supabase
-    await persistActiveWorkout(); 
+    // 5. Spara det nya "minnet"
+    persistActiveWorkout();
 }
 
 async function addSetToExercise(exIdx) {
