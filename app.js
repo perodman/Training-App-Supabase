@@ -1492,13 +1492,13 @@ function renderActiveWorkout() {
         activeDraft.ui_state.openExercises = [];
     }
     const isFrittPass = activeDraft.workout.name === "Fritt Pass";
-    if (!isFrittPass) {
-        if (!activeDraft.ui_state.hasOwnProperty('hasInitializedOpen')) {
-            activeDraft.ui_state.openExercises = [0];
-            activeDraft.ui_state.hasInitializedOpen = true;
-            if (typeof persistActiveWorkout === 'function') persistActiveWorkout();
-        }
+   if (!isFrittPass) {
+    if (!activeDraft.ui_state.hasInitializedOpen && activeDraft.ui_state.openExercises.length === 0) {
+        activeDraft.ui_state.openExercises = [0];
+        activeDraft.ui_state.hasInitializedOpen = true;
+        if (typeof persistActiveWorkout === 'function') persistActiveWorkout();
     }
+}
 
     const openExercises = activeDraft.ui_state.openExercises;
     if (activeDraft.workout.exercises && activeDraft.workout.exercises.length > 0) {
