@@ -1622,11 +1622,11 @@ function renderActiveWorkout() {
     list.appendChild(discardBtn);
     showView("workout-view");
     
-    // Återställ scroll-position säkert
+    // Återställ scroll-position pålitligt med en mikropaus så DOM hinner byggas
     if (activeDraft.ui_state && typeof activeDraft.ui_state.scrollPosition === 'number') {
-        requestAnimationFrame(() => {
+        setTimeout(() => {
             window.scrollTo(0, activeDraft.ui_state.scrollPosition);
-        });
+        }, 50);
     }
 }
 
