@@ -116,6 +116,10 @@ async function loadUserData(isSilent = false) {
 
             // Synka till app.js om variabeln finns
             if (typeof activeDraft !== 'undefined') activeDraft = window.activeDraft;
+                        // Säkerställ att ui_state återställs korrekt
+            if (window.activeDraft && !window.activeDraft.ui_state) {
+                window.activeDraft.ui_state = { openExercises: [] };
+            }
 
             if (window.activeDraft && window.activeDraft.isStarted) {
                 if (typeof secondsElapsed !== 'undefined') {
