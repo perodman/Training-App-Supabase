@@ -112,14 +112,16 @@ async function loadUserData(isSilent = false) {
         // Kontrollerar att vi har en rad och att den har innehåll i kolumnen 'data'
         if (draftRow && draftRow.data && Object.keys(draftRow.data).length > 0) {
             window.activeDraft = draftRow.data;
+            
+            // KRITISKT: Säkerställ att ui_state.hasInitializedOpen finns så att renderActiveWorkout inte skriver över
+            if (window.activeDraft.ui_state && Array.isArray(window.activeDraft.ui_state.openExercises)) {
+                window.activeDraft.ui_state.hasInitializedOpen = true;
+            }
+            
             localStorage.setItem("activeWorkoutDraft", JSON.stringify(window.activeDraft));
 
             // Synka till app.js om variabeln finns
             if (typeof activeDraft !== 'undefined') activeDraft = window.activeDraft;
-                        // Säkerställ att ui_state återställs korrekt
-            if (window.activeDraft && !window.activeDraft.ui_state) {
-                window.activeDraft.ui_state = { openExercises: [] };
-            }
 
             if (window.activeDraft && window.activeDraft.isStarted) {
                 if (typeof secondsElapsed !== 'undefined') {
