@@ -1631,6 +1631,9 @@ async function toggleExercise(index) {
         activeDraft.ui_state.openExercises.push(index);
     }
     
+    // Markera att UI-state har initierats så den inte skrivs över vid nästa laddning
+    activeDraft.ui_state.hasInitializedOpen = true;
+    
     // Spara scroll-position innan persist
     activeDraft.ui_state.scrollPosition = scrollPos;
     
