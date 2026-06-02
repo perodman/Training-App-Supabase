@@ -1483,11 +1483,10 @@ function renderActiveWorkout() {
     }
 
     // --- SMART INITIALISERING ---
-    // Initiera ui_state om den saknas
     if (!activeDraft.ui_state) activeDraft.ui_state = {};
-    if (!activeDraft.ui_state.openExercises) activeDraft.ui_state.openExercises = [];
+    if (!Array.isArray(activeDraft.ui_state.openExercises)) activeDraft.ui_state.openExercises = [];
 
-    // Om listan är tom (nytt pass), expandera första ofärdiga övning
+    // Endast om listan är helt tom vid start, välj första ofärdiga övning
     if (activeDraft.ui_state.openExercises.length === 0) {
         const firstIncompleteIdx = activeDraft.data.findIndex(ex => !ex.isCompleted);
         if (firstIncompleteIdx !== -1) {
@@ -1503,7 +1502,7 @@ function renderActiveWorkout() {
             const exerciseData = activeDraft.data[i];
             if (!exerciseData) return;
             const isDone = exerciseData.isCompleted;
-            const isOpen = openExercises.includes(i);
+            const isOpen = openExercises.includes(i); // Respekterar nu flera öppna övningar
 
             const div = document.createElement("div");
             div.className = "card glass" + (isDone ? " exercise-done" : "");
@@ -1577,7 +1576,6 @@ function renderActiveWorkout() {
     }
 
     // --- AUTOMATISK SCROLL-LOGIK ---
-    // Scrolla till den första expanderade övningen, oavsett om den är sparad eller autogenererad
     setTimeout(() => {
         const sortedOpen = [...openExercises].sort((a, b) => a - b);
         const targetIdx = (sortedOpen.length > 0) ? sortedOpen[0] : -1;
