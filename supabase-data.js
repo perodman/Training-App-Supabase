@@ -12,7 +12,7 @@ window.isSavingWorkout = false;
 // LÄGG TILL PARAMETERN isSilent = false HÄR FÖR ATT KUNNA KÖRA I BAKGRUNDEN UTAN HOPP
 async function loadUserData(isSilent = false) {
     if (!currentUser) return;
-    // JÄRNRIDÅ: Om data redan har synkats en gång, avbryt för att skydda minnet
+    // JÄRNRIDÅ: Om data redan har synkats en gång, totalvägra att köra om denna tunga funktion!
     if (window.supabaseDataLoadedOnce === true) {
         console.log(" 🛑  [SUPABASE-DATA] loadUserData avbröts aktivt. Sessionen är redan initierad. Skyddar lokalt minne.");
         return;
@@ -46,7 +46,8 @@ async function loadUserData(isSilent = false) {
             console.error('Fel vid laddning av program:', programError);
         }
         if (programDataResult && programDataResult.data && programDataResult.data.routine && programDataResult.data.routine.length > 0) {
-            window.programData = programDataResult.data;
+            // JUSTERING (DEEP CLONE): Bryt minneslänkar till träningsmallen
+            window.programData = JSON.parse(JSON.stringify(programDataResult.data));
             localStorage.setItem("myCustomProgram", JSON.stringify(window.programData));
             if (programDataResult.data.masterExercises) {
                 window.masterExercises = programDataResult.data.masterExercises;
@@ -62,7 +63,6 @@ async function loadUserData(isSilent = false) {
         if (typeof masterExercises !== 'undefined') masterExercises = window.masterExercises;
         if (typeof workoutHistory !== 'undefined') workoutHistory = window.workoutHistory;
         if (typeof calendarOverrides !== 'undefined') calendarOverrides = window.calendarOverrides;
-        
         // 3. LADDAR WORKOUT_HISTORY
         const { data : historyData, error: historyError } = await supabaseClient
             .from('workout_history')
@@ -100,7 +100,6 @@ async function loadUserData(isSilent = false) {
             localStorage.setItem("calendarOverrides", JSON.stringify(window.calendarOverrides));
         }
         if (typeof calendarOverrides !== 'undefined') calendarOverrides = window.calendarOverrides;
-        
         // 5. LADDAR ACTIVE_DRAFT
         const { data : draftRow, error: draftError } = await supabaseClient
             .from('active_draft')
@@ -112,28 +111,17 @@ async function loadUserData(isSilent = false) {
             console.error('Fel vid laddning av utkast:', draftError);
         }
         
-        let hasSavedScroll = false;
+        let hasOpenExercises = false;
 
         if (draftRow && draftRow.data && Object.keys(draftRow.data).length > 0) {
-            window.activeDraft = draftRow.data;
-            
-            if (!window.activeDraft.ui_state) {
-                window.activeDraft.ui_state = {};
-            }
-            
-            if (Array.isArray(window.activeDraft.ui_state.openExercises) && window.activeDraft.ui_state.openExercises.length > 0) {
-                window.activeDraft.ui_state.hasInitializedOpen = true;
-            }
-
-            // Kolla om det finns en sparad scrollposition så vi vet om vi ska skippa nollställningen
-            if (typeof window.activeDraft.ui_state.scrollPosition === 'number') {
-                hasSavedScroll = true;
-            }
-            
+            // JUSTERING (DEEP CLONE): Skapa en stenhård databarriär för det aktiva passet så historik inte kan läcka
+            window.activeDraft = JSON.parse(JSON.stringify(draftRow.data));
             localStorage.setItem("activeWorkoutDraft", JSON.stringify(window.activeDraft));
 
-            if (typeof activeDraft !== 'undefined') {
-                activeDraft = window.activeDraft;
+            if (typeof activeDraft !== 'undefined') activeDraft = window.activeDraft;
+
+            if (window.activeDraft.ui_state && Array.isArray(window.activeDraft.ui_state.openExercises) && window.activeDraft.ui_state.openExercises.length > 0) {
+                hasOpenExercises = true;
             }
 
             if (window.activeDraft && window.activeDraft.isStarted) {
@@ -156,19 +144,21 @@ async function loadUserData(isSilent = false) {
         console.log(" ✅  All data synkad i loadUserData. Kontrollerar rendering...");
         window.supabaseDataLoadedOnce = true;
 
-        // Rendera ALLTID efter att data laddats
-        if (typeof renderCalendar === 'function') renderCalendar();
-        if (typeof renderHome === 'function') renderHome();
-        
-        // Scrolla BARA till toppen om vi INTE har ett sparat scroll-läge att ta hänsyn till
-        if (!hasSavedScroll) {
-            setTimeout(() => {
-                window.scrollTo(0, 0);
-                document.body.scrollTop = 0;
-                document.documentElement.scrollTop = 0;
-            }, 100);
+        if (!isSilent) {
+            if (typeof renderCalendar === 'function') renderCalendar();
+            if (typeof renderHome === 'function') renderHome();
+            
+            // JUSTERING: Scrolla bara till toppen om vi INTE har öppna övningar som väntar på smart-scroll!
+            if (!hasOpenExercises) {
+                setTimeout(() => {
+                    window.scrollTo(0, 0);
+                    document.body.scrollTop = 0;
+                    document.documentElement.scrollTop = 0;
+                }, 100);
+            }
+        } else {
+            console.log(" 🤫 [SILENT] Ignorerade rendering av kalendern för att skydda skärmens scrollposition.");
         }
-
     } catch (err) {
         console.error(' ❌  Kritiskt fel i loadUserData:', err);
     }
