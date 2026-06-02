@@ -1488,13 +1488,14 @@ function renderActiveWorkout() {
     if (!activeDraft.ui_state) activeDraft.ui_state = {};
     if (!activeDraft.ui_state.openExercises) activeDraft.ui_state.openExercises = [];
 
-    // --- AUTOMATISK EXPANDERING AV AKTIV ÖVNING ---
-    const firstIncompleteIdx = activeDraft.data.findIndex(ex => !ex.isCompleted);
-    if (firstIncompleteIdx !== -1) {
-        // Vi ser till att den första ofärdiga övningen alltid är expanderad
-        activeDraft.ui_state.openExercises = [firstIncompleteIdx];
+    // --- LOGIK FÖR AUTOMATISK EXPANDERING ---
+    // Om ingen övning är öppen, expandera första ofärdiga övning automatiskt
+    if (activeDraft.ui_state.openExercises.length === 0) {
+        const firstIncompleteIdx = activeDraft.data.findIndex(ex => !ex.isCompleted);
+        if (firstIncompleteIdx !== -1) {
+            activeDraft.ui_state.openExercises = [firstIncompleteIdx];
+        }
     }
-    // ----------------------------------------------
 
     const openExercises = activeDraft.ui_state.openExercises;
 
@@ -1576,14 +1577,19 @@ function renderActiveWorkout() {
     }
 
     // --- AUTOMATISK SCROLL-LOGIK ---
-    if (firstIncompleteIdx !== -1) {
-        setTimeout(() => {
-            const targetElement = document.querySelector(`[data-exercise-index="${firstIncompleteIdx}"]`);
+    // Scrolla till den övning som användaren har valt att ha öppen
+    setTimeout(() => {
+        const targetIdx = (openExercises.length > 0) 
+            ? openExercises[0] 
+            : activeDraft.data.findIndex(ex => !ex.isCompleted);
+            
+        if (targetIdx !== -1) {
+            const targetElement = document.querySelector(`[data-exercise-index="${targetIdx}"]`);
             if (targetElement) {
                 targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
-        }, 100);
-    }
+        }
+    }, 100);
 
     const addBtn = document.createElement("button");
     addBtn.className = "mode-btn glass-border";
