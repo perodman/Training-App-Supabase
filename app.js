@@ -1508,7 +1508,6 @@ function renderActiveWorkout() {
             div.className = "card glass" + (isDone ? " exercise-done" : "");
             div.style.padding = "0";
             div.style.overflow = "hidden";
-            // Här lägger vi till indexet för att kunna hitta diven senare
             div.setAttribute("data-exercise-index", i); 
 
             const completedSets = exerciseData.sets_data ? exerciseData.sets_data.filter(s => s.userConfirmed).length : 0;
@@ -1540,12 +1539,9 @@ function renderActiveWorkout() {
                             style="width:32px; height:32px; border-radius:50%; border:2px solid ${circleColor}; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:10px; font-weight:800; background: ${showSuccess ? 'rgba(34, 197, 94, 0.2)' : (isCurrent ? 'rgba(250, 204, 21, 0.15)' : 'rgba(245, 158, 11, 0.05)')}; color: ${circleColor}; opacity: 1;">
                             ${statusContent}
                         </div>
-                        <input type="text" inputmode="decimal" id="w-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'};" value="${set.weight || ''}" ${isLocked ?
-                        'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})">
-                        <input type="text" inputmode="decimal" id="r-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'};" value="${set.reps || ''}" ${isLocked ?
-                        'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})">
-                        <input type="text" inputmode="decimal" id="v-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'}; border-color: rgba(52, 152, 219, 0.3);" value="${set.rest || '90'}" ${isLocked ?
-                        'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})">
+                        <input type="text" inputmode="decimal" id="w-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'};" value="${set.weight || ''}" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})">
+                        <input type="text" inputmode="decimal" id="r-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'};" value="${set.reps || ''}" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})">
+                        <input type="text" inputmode="decimal" id="v-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'}; border-color: rgba(52, 152, 219, 0.3);" value="${set.rest || '90'}" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})">
                         <button onclick="removeSetFromExercise(${i}, ${sIdx})" style="background:none; border:none; color:var(--danger); font-size:16px; opacity: ${isLocked || showSuccess ? '0.1' : '0.8'};" ${isLocked ? 'disabled' : ''}>×</button>
                     </div>`;
                 });
@@ -1576,19 +1572,25 @@ function renderActiveWorkout() {
         });
     }
 
-    // --- AUTOMATISK SCROLL-LOGIK ---
-    // Hitta första indexet som inte är klart
-    const firstIncompleteIdx = activeDraft.data.findIndex(ex => !ex.isCompleted);
-    if (firstIncompleteIdx !== -1) {
-        // Vänta en tick så att DOM har hunnit renderas klart
-        setTimeout(() => {
-            const targetElement = document.querySelector(`[data-exercise-index="${firstIncompleteIdx}"]`);
+    // --- AUTOMATISK SCROLL-LOGIK (PRIORITERAR ÖPPEN ÖVNING) ---
+    setTimeout(() => {
+        const openExercises = activeDraft.ui_state.openExercises;
+        let targetIdx = -1;
+
+        if (openExercises && openExercises.length > 0) {
+            targetIdx = openExercises[0];
+        } else {
+            targetIdx = activeDraft.data.findIndex(ex => !ex.isCompleted);
+        }
+
+        if (targetIdx !== -1) {
+            const targetElement = document.querySelector(`[data-exercise-index="${targetIdx}"]`);
             if (targetElement) {
                 targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
-        }, 100);
-    }
-    // -------------------------------
+        }
+    }, 100);
+    // ---------------------------------------------------------
 
     const addBtn = document.createElement("button");
     addBtn.className = "mode-btn glass-border";
