@@ -1603,10 +1603,11 @@ function openCustomAddExerciseModal() {
 }
 
 async function toggleExercise(index) {
-    // 1. Uppdatera lokalt tillstånd (Säkert)
+    // Säkerställ att ui_state finns och är ett objekt
     if (!activeDraft.ui_state) activeDraft.ui_state = { openExercises: [] };
     if (!activeDraft.ui_state.openExercises) activeDraft.ui_state.openExercises = [];
 
+    // Logik för att öppna/stänga
     const openIdx = activeDraft.ui_state.openExercises.indexOf(index);
     if (openIdx > -1) {
         activeDraft.ui_state.openExercises.splice(openIdx, 1);
@@ -1614,14 +1615,11 @@ async function toggleExercise(index) {
         activeDraft.ui_state.openExercises.push(index);
     }
 
-    // 2. Rendera direkt (för användarupplevelsen)
+    // Rendera direkt
     renderActiveWorkout();
 
-    // 3. Anropa din existerande funktion. 
-    // Om den hoppar över synken pga dörrvakten är det OK, 
-    // för nästa gång du gör en ändring (t.ex. ändrar en siffra i ett set) 
-    // så kommer den synken att skicka med hela det uppdaterade objektet!
-    persistActiveWorkout(); 
+    // Spara (din befintliga funktion som rör Supabase)
+    persistActiveWorkout();
 }
 
 async function addSetToExercise(exIdx) {
