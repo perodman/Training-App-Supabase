@@ -14,7 +14,7 @@ let isTimerRunning = false;
 
 // --- INIT ---
 async function initApp() {
-    // 1. LADDA DATA FRÅN SUPABASE FÖRST (VÄNTA PÅ ATT DEN ÄR KLAR)
+    // 1. LADDA DATA FRÅN SUPABASE FÖRST (VÄNTA PÅ ATT DEN ÉR KLAR)
     await loadUserData(false);
     
     // 2. Om vi redan har ett sparat program i localStorage, använd det direkt för snabb start
@@ -40,9 +40,10 @@ async function initApp() {
     }
 
     // 3. Återställ timer om ett aktivt utkast pågår lokalt
-    if (activeDraft && activeDraft.isStarted) {
-        secondsElapsed = activeDraft.secondsElapsed || 0;
-        if (activeDraft.wasTimerRunning) {
+    const currentDraft = activeDraft || window.activeDraft;
+    if (currentDraft && currentDraft.isStarted) {
+        secondsElapsed = currentDraft.secondsElapsed || 0;
+        if (currentDraft.wasTimerRunning) {
             if (typeof startTimer === 'function') startTimer();
         } else {
             if (typeof updateTimerDisplay === 'function') updateTimerDisplay();
@@ -1431,11 +1432,18 @@ async function startWorkout(workout, data = null, date = null, isImmediateStart 
 let temporarySelectedExercises = [];
 
 function renderActiveWorkout() {
-     console.log("🔍 [DEBUG] renderActiveWorkout körs. openExercises FÖRE:", activeDraft?.ui_state?.openExercises);
+    // Säkra upp synkronisering mellan globala och lokala objektet direkt vid start av rendering
+    if (typeof activeDraft !== 'undefined' && window.activeDraft) {
+        activeDraft = window.activeDraft;
+    }
+
+    console.log("🔍 [DEBUG] renderActiveWorkout körs. openExercises FÖRE:", activeDraft?.ui_state?.openExercises);
+    
     if (!activeDraft || !activeDraft.workout) {
         console.warn(" ⚠️  Inget aktivt utkast tillgängligt.");
         return;
     }
+    
     if (activeDraft.data) {
         activeDraft.data.forEach((exerciseData, i) => {
             if (!exerciseData.isCompleted && exerciseData.sets_data) {
@@ -1449,11 +1457,13 @@ function renderActiveWorkout() {
             }
         });
     }
+    
     document.getElementById("active-title").textContent = activeDraft.workout.name;
     const list = document.getElementById("exercise-list");
     const footer = document.querySelector(".workout-footer");
     if (!list) return;
     list.innerHTML = "";
+    
     if (!activeDraft.isStarted) {
         if (footer) footer.classList.add("hidden");
         list.innerHTML = `
@@ -1467,6 +1477,7 @@ function renderActiveWorkout() {
         showView("workout-view");
         return;
     }
+    
     if (typeof renderCalendar === 'function') {
         const calendarView = document.getElementById("calendar-view");
         if (calendarView) {
@@ -1484,21 +1495,24 @@ function renderActiveWorkout() {
         pauseBtn.className = "mode-btn save-draft-btn";
         pauseBtn.onclick = saveDraftAndGoHome;
     }
+    
+    // Fallback-initiering av ui_state om det saknas helt
     if (!activeDraft.ui_state) {
         activeDraft.ui_state = {};
     }
-
     if (!activeDraft.ui_state.openExercises) {
         activeDraft.ui_state.openExercises = [];
     }
+    
     const isFrittPass = activeDraft.workout.name === "Fritt Pass";
-   if (!isFrittPass) {
-    if (!activeDraft.ui_state.hasInitializedOpen && activeDraft.ui_state.openExercises.length === 0) {
-        activeDraft.ui_state.openExercises = [0];
-        activeDraft.ui_state.hasInitializedOpen = true;
-        if (typeof persistActiveWorkout === 'function') persistActiveWorkout();
+    if (!isFrittPass) {
+        // Kontrollera strikt att det inte finns sparat UI-tillstånd innan vi tvingar upp första övningen
+        if (!activeDraft.ui_state.hasInitializedOpen && activeDraft.ui_state.openExercises.length === 0) {
+            activeDraft.ui_state.openExercises = [0];
+            activeDraft.ui_state.hasInitializedOpen = true;
+            if (typeof persistActiveWorkout === 'function') persistActiveWorkout();
+        }
     }
-}
 
     const openExercises = activeDraft.ui_state.openExercises;
     if (activeDraft.workout.exercises && activeDraft.workout.exercises.length > 0) {
@@ -1608,7 +1622,7 @@ function renderActiveWorkout() {
     list.appendChild(discardBtn);
     showView("workout-view");
     
-    // Återställ scroll-position
+    // Återställ scroll-position säkert
     if (activeDraft.ui_state && typeof activeDraft.ui_state.scrollPosition === 'number') {
         requestAnimationFrame(() => {
             window.scrollTo(0, activeDraft.ui_state.scrollPosition);
@@ -1624,6 +1638,16 @@ function openCustomAddExerciseModal() {
 async function toggleExercise(index) {
     console.log("🔍 Togglar övning:", index);
     const scrollPos = window.scrollY;
+
+    // Se till att både globala och lokala fältet pekar på samma referens
+    if (typeof activeDraft !== 'undefined' && window.activeDraft) {
+        activeDraft = window.activeDraft;
+    }
+
+    if (!activeDraft) {
+        console.error("❌ activeDraft saknas vid toggling.");
+        return;
+    }
 
     // Initiera ui_state om den inte redan finns
     if (!activeDraft.ui_state) {
@@ -1645,21 +1669,26 @@ async function toggleExercise(index) {
         console.log("🔍 Öppnar övning:", index);
     }
     
-    // Markera att UI-state har initierats
+    // Markera att UI-state har initierats och sparats av användaren
     activeDraft.ui_state.hasInitializedOpen = true;
     
     // Spara scroll-position innan persist
     activeDraft.ui_state.scrollPosition = scrollPos;
 
-    // Logga det aktuella tillståndet som ska sparas
+    // Tryck upp datan till window-objektet och localStorage för absolut synk
+    window.activeDraft = activeDraft;
+    localStorage.setItem("activeWorkoutDraft", JSON.stringify(window.activeDraft));
+
     console.log("🔍 Sparar ui_state:", activeDraft.ui_state);
 
-    // Spara UI-tillståndet (öppna/stängda övningar) asynkront
-    const saveError = await persistActiveWorkout();
-    if (saveError) {
-        console.error("⚠️ Fel vid sparande av ui_state:", saveError);
-    } else {
-        console.log("✅ ui_state har sparats!");
+    // Spara UI-tillståndet (öppna/stängda övningar) asynkront till Supabase
+    if (typeof persistActiveWorkout === 'function') {
+        const saveError = await persistActiveWorkout();
+        if (saveError) {
+            console.error("⚠️ Fel vid sparande av ui_state till Supabase:", saveError);
+        } else {
+            console.log("✅ ui_state har sparats till Supabase!");
+        }
     }
 
     // Rendera det aktiva träningspasset
