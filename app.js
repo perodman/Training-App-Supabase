@@ -1484,21 +1484,16 @@ function renderActiveWorkout() {
         pauseBtn.className = "mode-btn save-draft-btn";
         pauseBtn.onclick = saveDraftAndGoHome;
     }
+    
+    // Säkra upp ui_state om det saknas
     if (!activeDraft.ui_state) {
         activeDraft.ui_state = {};
     }
-
     if (!activeDraft.ui_state.openExercises) {
         activeDraft.ui_state.openExercises = [];
     }
-    const isFrittPass = activeDraft.workout.name === "Fritt Pass";
-    if (!isFrittPass) {
-        if (!activeDraft.ui_state.hasOwnProperty('hasInitializedOpen')) {
-            activeDraft.ui_state.openExercises = [0];
-            activeDraft.ui_state.hasInitializedOpen = true;
-            if (typeof persistActiveWorkout === 'function') persistActiveWorkout();
-        }
-    }
+
+    // BORTTAGET: Logiken som tvingade openExercises = [0] vid varje rendering är nu helt raderad härifrån!
 
     const openExercises = activeDraft.ui_state.openExercises;
     if (activeDraft.workout.exercises && activeDraft.workout.exercises.length > 0) {
@@ -1509,7 +1504,6 @@ function renderActiveWorkout() {
             const isOpen = openExercises.includes(i);
 
             const div = document.createElement("div");
-            // JUSTERING: Sätter ID på korten så scrollen kan hitta rätt element efter app-omstart
             div.id = `exercise-card-${i}`;
             div.className = "card glass" + (isDone ? " exercise-done" : "");
             div.style.padding = "0";
@@ -1610,7 +1604,7 @@ function renderActiveWorkout() {
     list.appendChild(discardBtn);
     showView("workout-view");
 
-    // JUSTERING: Smart scroll som letar upp den aktiva och expanderade övningen direkt vid app-omstart
+    // Smart scroll respekterar nu EXAKT den övning som faktiskt är öppen
     if (activeDraft.ui_state && Array.isArray(activeDraft.ui_state.openExercises) && activeDraft.ui_state.openExercises.length > 0) {
         const firstOpenIndex = activeDraft.ui_state.openExercises[0];
         setTimeout(() => {
@@ -1721,14 +1715,28 @@ async function toggleExerciseDone(exIdx) {
     await persistActiveWorkout();
 }
 
-async function actuallyStartWorkout() {
+function actuallyStartWorkout() {
+    if (!activeDraft) return;
+    
     activeDraft.isStarted = true;
-    activeDraft.wasTimerRunning = true;
-
-    // Aktiverar passet och tidtagningen i bakgrunden mot Supabase
-    await persistActiveWorkout();
+    activeDraft.openedAt = new Date().toISOString();
+    
+    // NYTT: Sätt första övningen som expanderad ENBART vid den faktiska starten av passet
+    if (activeDraft.workout && activeDraft.workout.name !== "Fritt Pass") {
+        if (!activeDraft.ui_state) activeDraft.ui_state = {};
+        activeDraft.ui_state.openExercises = [0];
+        activeDraft.ui_state.hasInitializedOpen = true;
+    }
+    
+    if (typeof startTimer === 'function') {
+        startTimer();
+    }
+    
+    if (typeof persistActiveWorkout === 'function') {
+        persistActiveWorkout();
+    }
+    
     renderActiveWorkout();
-    if (typeof startTimer === "function") startTimer();
 }
 
 function openAddExerciseToWorkoutModal() {
