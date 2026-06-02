@@ -1604,12 +1604,12 @@ function renderActiveWorkout() {
     list.appendChild(discardBtn);
     showView("workout-view");
 
-    // ✨ ÅTERSTÄLL SCROLL-POSITION efter rendering
-    if (activeDraft.ui_state && activeDraft.ui_state.scrollPosition !== undefined) {
-        // Använd setTimeout för att säkerställa att DOM:en är färdigrenderad
-        setTimeout(() => {
+       // ✨ ÅTERSTÄLL SCROLL-POSITION efter rendering
+    if (activeDraft.ui_state && typeof activeDraft.ui_state.scrollPosition === 'number') {
+        // Använd requestAnimationFrame för att säkerställa att DOM:en är färdigrenderad
+        requestAnimationFrame(() => {
             window.scrollTo(0, activeDraft.ui_state.scrollPosition);
-        }, 0);
+        });
     }
 }
 
@@ -1619,11 +1619,15 @@ function openCustomAddExerciseModal() {
 }
 
 async function toggleExercise(index) {
-
     if (!activeDraft.ui_state) activeDraft.ui_state = {};
     if (!activeDraft.ui_state.openExercises) {
         activeDraft.ui_state.openExercises = [];
     }
+    
+    // Spara scroll-positionen FÖRST
+    const scrollPos = window.scrollY;
+    
+    // Uppdatera vilka övningar som är öppna/stängda
     const openIdx = activeDraft.ui_state.openExercises.indexOf(index);
     if (openIdx > -1) {
         activeDraft.ui_state.openExercises.splice(openIdx, 1);
@@ -1631,13 +1635,12 @@ async function toggleExercise(index) {
         activeDraft.ui_state.openExercises.push(index);
     }
     
-    // Sparar scroll-positionen INNAN rendering
-    activeDraft.ui_state.scrollPosition = window.scrollY;
+    // Spara den nya scroll-positionen i ui_state
+    activeDraft.ui_state.scrollPosition = scrollPos;
     
     // Sparar UI-tillståndet (öppna/stängda övningar) asynkront
     await persistActiveWorkout();
     renderActiveWorkout();
-    
 }
 
 async function addSetToExercise(exIdx) {
