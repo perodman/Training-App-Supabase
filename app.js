@@ -14,13 +14,15 @@ let isTimerRunning = false;
 
 // --- INIT ---
 async function initApp() {
-    // 1. Om vi redan har ett sparat program i localStorage, använd det direkt för snabb start
+    // 1. LADDA DATA FRÅN SUPABASE FÖRST (VÄNTA PÅ ATT DEN ÄR KLAR)
+    await loadUserData(false);
+    
+    // 2. Om vi redan har ett sparat program i localStorage, använd det direkt för snabb start
     if (window.programData && window.programData.routine && window.programData.routine.length > 0) {
         console.log(" 📦  Initierar appen med lokalt sparat custom-program.");
         programData = window.programData;
-        setupMasterExercisesFallback([]); // Behövs ej genereras från grunden, men uppdaterar animationer
+        setupMasterExercisesFallback([]);
     } else {
-        // 2. Annars (eller om det är första gången), hämta från program.json
         try {
             console.log(" 🌐  Inget lokalt program hittat. Hämtar från program.json...");
             const r = await fetch("program.json");
@@ -47,8 +49,9 @@ async function initApp() {
         }
     }
 
-    // 4. Slutgiltig rendering för startskärmen
-    if (typeof renderHome === 'function') renderHome();
+    // 4. Slutgiltig rendering för startskärmen (EFTER att data laddats)
+    // VIKTIGT: renderHome körs redan i loadUserData(), så vi behöver inte köra den igen
+    // if (typeof renderHome === 'function') renderHome();
 }
 
 // Hjälpfunktion för att hantera masterExercises och hålla init-koden ren
