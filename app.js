@@ -1505,8 +1505,6 @@ function renderActiveWorkout() {
             const isOpen = openExercises.includes(i);
 
             const div = document.createElement("div");
-            // Sätter ett förutsägbart unikt ID baserat på loop-index
-            div.id = `exercise-card-${i}`;
             div.className = "card glass" + (isDone ? " exercise-done" : "");
             div.style.padding = "0";
             div.style.overflow = "hidden";
@@ -1605,17 +1603,6 @@ function renderActiveWorkout() {
     discardBtn.onclick = confirmDiscardActiveWorkout;
     list.appendChild(discardBtn);
     showView("workout-view");
-
-    // Smart scroll via Micro-Timeout baserat på tillståndet i activeDraft
-    if (activeDraft.ui_state && activeDraft.ui_state.openExercises && activeDraft.ui_state.openExercises.length > 0) {
-        const firstOpenIndex = activeDraft.ui_state.openExercises[0];
-        setTimeout(() => {
-            const targetCard = document.getElementById(`exercise-card-${firstOpenIndex}`);
-            if (targetCard) {
-                targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
-        }, 150);
-    }
 }
 
 function openCustomAddExerciseModal() {
@@ -1624,27 +1611,22 @@ function openCustomAddExerciseModal() {
 }
 
 async function toggleExercise(index) {
+    const scrollPos = window.scrollY;
+
     if (!activeDraft.ui_state) activeDraft.ui_state = {};
     if (!activeDraft.ui_state.openExercises) {
         activeDraft.ui_state.openExercises = [];
     }
-
     const openIdx = activeDraft.ui_state.openExercises.indexOf(index);
     if (openIdx > -1) {
-        // Om den redan var öppen, stänger vi den
         activeDraft.ui_state.openExercises.splice(openIdx, 1);
     } else {
-        // Rensa ut tidigare öppna index så att max en övning är öppen samtidigt
-        activeDraft.ui_state.openExercises = [index];
+        activeDraft.ui_state.openExercises.push(index);
     }
-
-    // Spara tillståndet synkront till window och localStorage, samt asynkront till Supabase
-    window.activeDraft = activeDraft;
-    localStorage.setItem("activeWorkoutDraft", JSON.stringify(activeDraft));
+    // Sparar UI-tillståndet (öppna/stängda övningar) asynkront
     await persistActiveWorkout();
-
-    // Rendera om vyn
     renderActiveWorkout();
+    window.scrollTo(0, scrollPos);
 }
 
 async function addSetToExercise(exIdx) {
@@ -1671,38 +1653,13 @@ async function removeSetFromExercise(exIdx, setIdx) {
 }
 
 async function toggleExerciseDone(exIdx) {
-    if (!activeDraft.ui_state) activeDraft.ui_state = {};
-    if (!activeDraft.ui_state.openExercises) {
-        activeDraft.ui_state.openExercises = [];
-    }
-
-    // Växla isCompleted-statusen
+    const scrollPos = window.scrollY;
     activeDraft.data[exIdx].isCompleted = !activeDraft.data[exIdx].isCompleted;
 
-    if (activeDraft.data[exIdx].isCompleted) {
-        // Ta bort från openExercises om den markerades som klar
-        const openIdx = activeDraft.ui_state.openExercises.indexOf(exIdx);
-        if (openIdx > -1) {
-            activeDraft.ui_state.openExercises.splice(openIdx, 1);
-        }
-
-        // Leta automatiskt upp nästa ej klara övning i listan
-        const nextIncompleteIdx = activeDraft.data.findIndex(ex => !ex.isCompleted);
-        if (nextIncompleteIdx > -1) {
-            activeDraft.ui_state.openExercises = [nextIncompleteIdx];
-        }
-    } else {
-        // Om användaren ångrar sig (klickar ur klar), öppna den här övningen igen
-        activeDraft.ui_state.openExercises = [exIdx];
-    }
-
-    // Spara tillståndet synkront till window och localStorage, samt asynkront till Supabase
-    window.activeDraft = activeDraft;
-    localStorage.setItem("activeWorkoutDraft", JSON.stringify(activeDraft));
-    await persistActiveWorkout();
-
-    // Rendera om vyn
     renderActiveWorkout();
+    window.scrollTo(0, scrollPos);
+    // Synkar tillståndet för slutförd övning asynkront i bakgrunden
+    await persistActiveWorkout();
 }
 
 async function actuallyStartWorkout() {
