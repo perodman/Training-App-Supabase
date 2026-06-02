@@ -1428,6 +1428,15 @@ async function startWorkout(workout, data = null, date = null, isImmediateStart 
 let temporarySelectedExercises = [];
 
 function renderActiveWorkout() {
+
+    const localSaved = localStorage.getItem("activeWorkoutDraft");
+    if (localSaved) {
+        const parsed = JSON.parse(localSaved);
+        if (parsed.ui_state) {
+            activeDraft.ui_state = parsed.ui_state; // Tvinga in det lokala UI-tillståndet
+        }
+    }
+    
     if (!activeDraft || !activeDraft.workout) {
         console.warn(" ⚠️  Inget aktivt utkast tillgängligt.");
         return;
@@ -1594,13 +1603,10 @@ function openCustomAddExerciseModal() {
 }
 
 async function toggleExercise(index) {
-    // 1. Initiera om det saknas
-    if (!activeDraft.ui_state) activeDraft.ui_state = {};
-    if (!activeDraft.ui_state.openExercises) {
-        activeDraft.ui_state.openExercises = [];
-    }
+    // 1. Uppdatera lokalt tillstånd (Säkert)
+    if (!activeDraft.ui_state) activeDraft.ui_state = { openExercises: [] };
+    if (!activeDraft.ui_state.openExercises) activeDraft.ui_state.openExercises = [];
 
-    // 2. Toggla index
     const openIdx = activeDraft.ui_state.openExercises.indexOf(index);
     if (openIdx > -1) {
         activeDraft.ui_state.openExercises.splice(openIdx, 1);
@@ -1608,11 +1614,14 @@ async function toggleExercise(index) {
         activeDraft.ui_state.openExercises.push(index);
     }
 
-    // 3. Spara och rendera om
-    // Vi tar bort scroll-hanteringen härifrån då renderActiveWorkout 
-    // sköter den logiken nu (då blir det konsekvent)
-    await persistActiveWorkout();
+    // 2. Rendera direkt (för användarupplevelsen)
     renderActiveWorkout();
+
+    // 3. Anropa din existerande funktion. 
+    // Om den hoppar över synken pga dörrvakten är det OK, 
+    // för nästa gång du gör en ändring (t.ex. ändrar en siffra i ett set) 
+    // så kommer den synken att skicka med hela det uppdaterade objektet!
+    persistActiveWorkout(); 
 }
 
 async function addSetToExercise(exIdx) {
