@@ -1437,11 +1437,8 @@ function renderActiveWorkout() {
         activeDraft.data.forEach((exerciseData, i) => {
             if (!exerciseData.isCompleted && exerciseData.sets_data) {
                 const isBrandNewAndGhostChecked = exerciseData.sets_data.every(s => s.userConfirmed === true) && !activeDraft.ui_state?.openExercises?.includes(i);
-
                 if (isBrandNewAndGhostChecked && exerciseData.sets_data.length > 0) {
-                    exerciseData.sets_data.forEach(set => {
-                        set.userConfirmed = false;
-                    });
+                    exerciseData.sets_data.forEach(set => { set.userConfirmed = false; });
                 }
             }
         });
@@ -1485,17 +1482,19 @@ function renderActiveWorkout() {
         pauseBtn.onclick = saveDraftAndGoHome;
     }
 
+    // --- SMART INITIALISERING ---
+    // Initiera ui_state om den saknas
     if (!activeDraft.ui_state) activeDraft.ui_state = {};
     if (!activeDraft.ui_state.openExercises) activeDraft.ui_state.openExercises = [];
 
-    // --- LOGIK FÖR AUTOMATISK EXPANDERING ---
-    // Om ingen övning är öppen, expandera första ofärdiga övning automatiskt
+    // Om listan är tom (nytt pass), expandera första ofärdiga övning
     if (activeDraft.ui_state.openExercises.length === 0) {
         const firstIncompleteIdx = activeDraft.data.findIndex(ex => !ex.isCompleted);
         if (firstIncompleteIdx !== -1) {
             activeDraft.ui_state.openExercises = [firstIncompleteIdx];
         }
     }
+    // ----------------------------
 
     const openExercises = activeDraft.ui_state.openExercises;
 
@@ -1514,6 +1513,7 @@ function renderActiveWorkout() {
 
             const completedSets = exerciseData.sets_data ? exerciseData.sets_data.filter(s => s.userConfirmed).length : 0;
             const totalSets = exerciseData.sets_data ? exerciseData.sets_data.length : 0;
+            
             let setsHtml = `<div style="margin-top:10px;">
                 <div style="display:grid; grid-template-columns: 40px 1fr 1fr 1fr 30px; gap:8px; margin-bottom:5px; align-items:center;">
                     <small style="text-align:left; padding-left:5px; color:var(--text-light); font-size:9px; font-weight:700;">SET</small>
@@ -1577,11 +1577,10 @@ function renderActiveWorkout() {
     }
 
     // --- AUTOMATISK SCROLL-LOGIK ---
-    // Scrolla till den övning som användaren har valt att ha öppen
+    // Scrolla till den första expanderade övningen, oavsett om den är sparad eller autogenererad
     setTimeout(() => {
-        const targetIdx = (openExercises.length > 0) 
-            ? openExercises[0] 
-            : activeDraft.data.findIndex(ex => !ex.isCompleted);
+        const sortedOpen = [...openExercises].sort((a, b) => a - b);
+        const targetIdx = (sortedOpen.length > 0) ? sortedOpen[0] : -1;
             
         if (targetIdx !== -1) {
             const targetElement = document.querySelector(`[data-exercise-index="${targetIdx}"]`);
