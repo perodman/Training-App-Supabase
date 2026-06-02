@@ -2143,6 +2143,7 @@ function updateSingleExerciseCard(exIdx) {
 let isSyncingWithSupabase = false;
 
 async function persistActiveWorkout() {
+    console.log("🔍 Försöker spara ui_state:", activeDraft.ui_state);
     // SÄKERHETSSPÄRR: Om activeDraft inte finns eller inte är startat, avbryt omedelbart
     if (!activeDraft || !activeDraft.isStarted) {
         localStorage.removeItem("activeWorkoutDraft");
