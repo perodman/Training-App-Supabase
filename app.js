@@ -1454,6 +1454,7 @@ function renderActiveWorkout() {
     const footer = document.querySelector(".workout-footer");
     if (!list) return;
     list.innerHTML = "";
+    
     if (!activeDraft.isStarted) {
         if (footer) footer.classList.add("hidden");
         list.innerHTML = `
@@ -1467,6 +1468,7 @@ function renderActiveWorkout() {
         showView("workout-view");
         return;
     }
+    
     if (typeof renderCalendar === 'function') {
         const calendarView = document.getElementById("calendar-view");
         if (calendarView) {
@@ -1485,15 +1487,13 @@ function renderActiveWorkout() {
         pauseBtn.onclick = saveDraftAndGoHome;
     }
     
-    // Säkra upp ui_state om det saknas
+    // Säkra upp ui_state gällande öppna övningar om det saknas
     if (!activeDraft.ui_state) {
         activeDraft.ui_state = {};
     }
     if (!activeDraft.ui_state.openExercises) {
         activeDraft.ui_state.openExercises = [];
     }
-
-    // BORTTAGET: Logiken som tvingade openExercises = [0] vid varje rendering är nu helt raderad härifrån!
 
     const openExercises = activeDraft.ui_state.openExercises;
     if (activeDraft.workout.exercises && activeDraft.workout.exercises.length > 0) {
@@ -1604,7 +1604,7 @@ function renderActiveWorkout() {
     list.appendChild(discardBtn);
     showView("workout-view");
 
-    // Smart scroll respekterar nu EXAKT den övning som faktiskt är öppen
+    // Smart scroll baserat EXAKT på den sparade öppna övningen
     if (activeDraft.ui_state && Array.isArray(activeDraft.ui_state.openExercises) && activeDraft.ui_state.openExercises.length > 0) {
         const firstOpenIndex = activeDraft.ui_state.openExercises[0];
         setTimeout(() => {
@@ -2550,10 +2550,27 @@ async function prepareStart(date, id) {
     //  ✅  Byt vy F Ö RST
     showView('workout-view');
 
-    //  ✅  Starta tr ä ning
+    //  ✅  Starta träning
     await startWorkout(p, null, date, true);
 
-    //  ✅  St ä ng modal SIST (i bakgrunden)
+    // JUSTERING: Initiera ui_state här eftersom passet precis har fötts via kalendern
+    if (activeDraft && activeDraft.workout && activeDraft.workout.name !== "Fritt Pass") {
+        if (!activeDraft.ui_state) activeDraft.ui_state = {};
+        activeDraft.ui_state.openExercises = [0];
+        activeDraft.ui_state.hasInitializedOpen = true;
+        
+        // Spara ner det direkt så det hänger med till databasen
+        if (typeof persistActiveWorkout === 'function') {
+            await persistActiveWorkout();
+        }
+        
+        // Rendera om för att reflektera det öppna kortet
+        if (typeof renderActiveWorkout === 'function') {
+            renderActiveWorkout();
+        }
+    }
+
+    //  ✅  Stäng modal SIST (i bakgrunden)
     setTimeout(() => closeModal(), 0);
 }
 
