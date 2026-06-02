@@ -1573,8 +1573,8 @@ function renderActiveWorkout() {
                         <button onclick="event.stopPropagation(); removeActiveExercise(${i})" style="background:none; border:none; font-size:14px; padding:5px; opacity: 0.7;" ${isDone ? 'disabled' : ''}> ✖ </button>
                         <span style="font-size: 10px; color: var(--text-light); margin-left: 5px; transform: ${isOpen ? 'rotate(180deg)' : 'rotate(0)'}; transition: 0.3s;"> ▼ </span>
                     </div>
-                </div>
-                <div style="padding: 0 15px 15px 15px; display: ${isOpen ? 'block' : 'none'}; border-top: 1px solid rgba(255,255,255,0.05);">
+                </div
+                 <div style="padding: 0 15px 15px 15px; display: ${isOpen ? 'block' : 'none'}; border-top: 1px solid rgba(255,255,255,0.05);">
                     ${setsHtml}
                     <button class="mode-border glass-border" style="padding:8px; font-size:11px; margin-top:10px; border-style:dashed; width:100%;" onclick="addSetToExercise(${i})" ${isDone ? 'disabled' : ''}>+ Lägg till set</button>
                     <button class="mode-btn ${isDone ? 'blue' : 'green'}" style="padding:12px; font-size:13px; margin-top:15px; width:100%; font-weight:bold;" onclick="toggleExerciseDone(${i})">
@@ -1603,6 +1603,14 @@ function renderActiveWorkout() {
     discardBtn.onclick = confirmDiscardActiveWorkout;
     list.appendChild(discardBtn);
     showView("workout-view");
+
+    // ✨ ÅTERSTÄLL SCROLL-POSITION efter rendering
+    if (activeDraft.ui_state && activeDraft.ui_state.scrollPosition !== undefined) {
+        // Använd setTimeout för att säkerställa att DOM:en är färdigrenderad
+        setTimeout(() => {
+            window.scrollTo(0, activeDraft.ui_state.scrollPosition);
+        }, 0);
+    }
 }
 
 function openCustomAddExerciseModal() {
@@ -1611,7 +1619,6 @@ function openCustomAddExerciseModal() {
 }
 
 async function toggleExercise(index) {
-    const scrollPos = window.scrollY;
 
     if (!activeDraft.ui_state) activeDraft.ui_state = {};
     if (!activeDraft.ui_state.openExercises) {
@@ -1623,10 +1630,14 @@ async function toggleExercise(index) {
     } else {
         activeDraft.ui_state.openExercises.push(index);
     }
+    
+    // Sparar scroll-positionen INNAN rendering
+    activeDraft.ui_state.scrollPosition = window.scrollY;
+    
     // Sparar UI-tillståndet (öppna/stängda övningar) asynkront
     await persistActiveWorkout();
     renderActiveWorkout();
-    window.scrollTo(0, scrollPos);
+    
 }
 
 async function addSetToExercise(exIdx) {
@@ -2132,6 +2143,10 @@ async function persistActiveWorkout() {
         return;
     }
 
+    // Spara nuvarande scroll-position
+    if (!activeDraft.ui_state) activeDraft.ui_state = {};
+    activeDraft.ui_state.scrollPosition = window.scrollY;
+
     localStorage.setItem("activeWorkoutDraft", JSON.stringify(activeDraft));
     if (!currentUser) return;
     
@@ -2157,7 +2172,7 @@ async function persistActiveWorkout() {
             console.log(" 🔍 [DEBUG] Ingen rad fanns att uppdatera i active_draft, försöker insert...");
             const { error: insertError } = await supabaseClient
                 .from('active_draft')
-                .insert([{ user_id: currentUser.id, data: activeDraft }]);
+                .insert([{ user_id: currentUser.id, activeDraft }]);
             if (insertError) throw insertError;
             console.log(" ✅ [DEBUG] Nytt utkast skapat i active_draft!");
         } else {
