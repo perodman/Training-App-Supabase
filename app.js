@@ -2162,7 +2162,7 @@ async function persistActiveWorkout() {
         // 1. Försök uppdatera raden som hör till user_id
         const { data, error: updateError } = await supabaseClient
             .from('active_draft')
-            .update({ activeDraft })
+            .update({ data: activeDraft })
             .eq('user_id', currentUser.id)
             .select();
             
@@ -2171,7 +2171,7 @@ async function persistActiveWorkout() {
             console.log(" 🔍 [DEBUG] Ingen rad fanns att uppdatera i active_draft, försöker insert...");
             const { error: insertError } = await supabaseClient
                 .from('active_draft')
-                .insert([{ user_id: currentUser.id, activeDraft }]);
+                .insert([{ user_id: currentUser.id, data: activeDraft }]);
             if (insertError) throw insertError;
             console.log(" ✅ [DEBUG] Nytt utkast skapat i active_draft!");
         } else {
