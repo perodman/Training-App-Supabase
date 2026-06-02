@@ -1428,25 +1428,25 @@ async function startWorkout(workout, data = null, date = null, isImmediateStart 
 let temporarySelectedExercises = [];
 
 function renderActiveWorkout() {
-
-    const localSaved = localStorage.getItem("activeWorkoutDraft");
-    if (localSaved) {
-        const parsed = JSON.parse(localSaved);
-        if (parsed.ui_state) {
-            activeDraft.ui_state = parsed.ui_state; // Tvinga in det lokala UI-tillståndet
-        }
-    }
-    
     if (!activeDraft || !activeDraft.workout) {
-        console.warn(" ⚠️  Inget aktivt utkast tillgängligt.");
+        console.warn(" ⚠️ Inget aktivt utkast tillgängligt.");
         return;
     }
 
-    // 1. Rensa ghost-checkade sets
+    // --- 1. SÄKERHETSKONTROLL: ui_state ---
+    // Detta block ser till att ui_state ALLTID finns, oavsett vad som finns i databasen
+    if (!activeDraft.ui_state) {
+        activeDraft.ui_state = { openExercises: [] };
+    }
+    if (!Array.isArray(activeDraft.ui_state.openExercises)) {
+        activeDraft.ui_state.openExercises = [];
+    }
+
+    // --- 2. LOGIK FÖR SETS (Behåll din befintliga logik) ---
     if (activeDraft.data) {
         activeDraft.data.forEach((exerciseData, i) => {
             if (!exerciseData.isCompleted && exerciseData.sets_data) {
-                const isBrandNewAndGhostChecked = exerciseData.sets_data.every(s => s.userConfirmed === true) && !activeDraft.ui_state?.openExercises?.includes(i);
+                const isBrandNewAndGhostChecked = exerciseData.sets_data.every(s => s.userConfirmed === true) && !activeDraft.ui_state.openExercises.includes(i);
                 if (isBrandNewAndGhostChecked && exerciseData.sets_data.length > 0) {
                     exerciseData.sets_data.forEach(set => { set.userConfirmed = false; });
                 }
@@ -1460,7 +1460,7 @@ function renderActiveWorkout() {
     if (!list) return;
     list.innerHTML = "";
 
-    // 2. Start-vy
+    // --- 3. START-VY ---
     if (!activeDraft.isStarted) {
         if (footer) footer.classList.add("hidden");
         list.innerHTML = `
@@ -1469,17 +1469,21 @@ function renderActiveWorkout() {
         </div>
         <p style="color:var(--text-light); font-size:13px; text-align:center; margin-top:10px;">Klicka på knappen ovan för att starta klockan.</p>
         `;
+        const timerDisp = document.getElementById("workout-timer");
+        if (timerDisp) timerDisp.textContent = "00:00:00";
         showView("workout-view");
         return;
     }
 
     if (footer) footer.classList.remove("hidden");
+    const pauseBtn = document.getElementById("pause-workout-btn");
+    if (pauseBtn) {
+        pauseBtn.innerHTML = `Spara utkast  💾 `;
+        pauseBtn.className = "mode-btn save-draft-btn";
+        pauseBtn.onclick = saveDraftAndGoHome;
+    }
 
-    // 3. INITIERING: Skapa ui_state om den saknas
-    if (!activeDraft.ui_state) activeDraft.ui_state = {};
-    if (!Array.isArray(activeDraft.ui_state.openExercises)) activeDraft.ui_state.openExercises = [];
-
-    // 4. "SMART START": Endast om listan är helt tom vid första start, öppna första ofärdiga
+    // --- 4. SMART INITIALISERING (Endast om listan är helt tom) ---
     if (activeDraft.ui_state.openExercises.length === 0) {
         const firstIncompleteIdx = activeDraft.data.findIndex(ex => !ex.isCompleted);
         if (firstIncompleteIdx !== -1) {
@@ -1487,7 +1491,7 @@ function renderActiveWorkout() {
         }
     }
 
-    // 5. RENDERING: Använd den sparade listan som den är
+    // --- 5. RENDERING ---
     const openExercises = activeDraft.ui_state.openExercises;
 
     if (activeDraft.workout.exercises && activeDraft.workout.exercises.length > 0) {
@@ -1495,7 +1499,7 @@ function renderActiveWorkout() {
             const exerciseData = activeDraft.data[i];
             if (!exerciseData) return;
             const isDone = exerciseData.isCompleted;
-            const isOpen = openExercises.includes(i); // <-- LÄSER FRÅN DEN SPARADE LISTAN
+            const isOpen = openExercises.includes(i); // Kontrollerar arrayen
 
             const div = document.createElement("div");
             div.className = "card glass" + (isDone ? " exercise-done" : "");
@@ -1568,7 +1572,7 @@ function renderActiveWorkout() {
         });
     }
 
-    // 6. SCROLL: Scrolla till den ÖVERSTA öppna övningen (minsta indexet)
+    // --- 6. AUTOMATISK SCROLL-LOGIK ---
     setTimeout(() => {
         const sortedOpen = [...openExercises].sort((a, b) => a - b);
         if (sortedOpen.length > 0) {
@@ -1579,7 +1583,7 @@ function renderActiveWorkout() {
         }
     }, 100);
 
-    // 7. Knappar
+    // --- 7. FOOTER-KNAPPAR ---
     const addBtn = document.createElement("button");
     addBtn.className = "mode-btn glass-border";
     addBtn.style.marginTop = "10px";
