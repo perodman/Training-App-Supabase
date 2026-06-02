@@ -1432,6 +1432,7 @@ function renderActiveWorkout() {
         console.warn(" ⚠️  Inget aktivt utkast tillgängligt.");
         return;
     }
+
     if (activeDraft.data) {
         activeDraft.data.forEach((exerciseData, i) => {
             if (!exerciseData.isCompleted && exerciseData.sets_data) {
@@ -1445,11 +1446,13 @@ function renderActiveWorkout() {
             }
         });
     }
+
     document.getElementById("active-title").textContent = activeDraft.workout.name;
     const list = document.getElementById("exercise-list");
     const footer = document.querySelector(".workout-footer");
     if (!list) return;
     list.innerHTML = "";
+
     if (!activeDraft.isStarted) {
         if (footer) footer.classList.add("hidden");
         list.innerHTML = `
@@ -1463,6 +1466,7 @@ function renderActiveWorkout() {
         showView("workout-view");
         return;
     }
+
     if (typeof renderCalendar === 'function') {
         const calendarView = document.getElementById("calendar-view");
         if (calendarView) {
@@ -1480,23 +1484,20 @@ function renderActiveWorkout() {
         pauseBtn.className = "mode-btn save-draft-btn";
         pauseBtn.onclick = saveDraftAndGoHome;
     }
-    if (!activeDraft.ui_state) {
-        activeDraft.ui_state = {};
-    }
 
-    if (!activeDraft.ui_state.openExercises) {
-        activeDraft.ui_state.openExercises = [];
+    if (!activeDraft.ui_state) activeDraft.ui_state = {};
+    if (!activeDraft.ui_state.openExercises) activeDraft.ui_state.openExercises = [];
+
+    // --- AUTOMATISK EXPANDERING AV AKTIV ÖVNING ---
+    const firstIncompleteIdx = activeDraft.data.findIndex(ex => !ex.isCompleted);
+    if (firstIncompleteIdx !== -1) {
+        // Vi ser till att den första ofärdiga övningen alltid är expanderad
+        activeDraft.ui_state.openExercises = [firstIncompleteIdx];
     }
-    const isFrittPass = activeDraft.workout.name === "Fritt Pass";
-    if (!isFrittPass) {
-        if (!activeDraft.ui_state.hasOwnProperty('hasInitializedOpen')) {
-            activeDraft.ui_state.openExercises = [0];
-            activeDraft.ui_state.hasInitializedOpen = true;
-            if (typeof persistActiveWorkout === 'function') persistActiveWorkout();
-        }
-    }
+    // ----------------------------------------------
 
     const openExercises = activeDraft.ui_state.openExercises;
+
     if (activeDraft.workout.exercises && activeDraft.workout.exercises.length > 0) {
         activeDraft.workout.exercises.forEach((ex, i) => {
             const exerciseData = activeDraft.data[i];
@@ -1520,6 +1521,7 @@ function renderActiveWorkout() {
                     <small style="text-align:center; color:var(--text-light); font-size:9px;">VILA (S)</small>
                     <span></span>
                 </div>`;
+            
             if (exerciseData.sets_data) {
                 exerciseData.sets_data.forEach((set, sIdx) => {
                     let isLocked = false;
@@ -1546,6 +1548,7 @@ function renderActiveWorkout() {
                     </div>`;
                 });
             }
+
             div.innerHTML = `
                 <div onclick="toggleExercise(${i})" style="padding: 12px 15px; display: flex; align-items: center; cursor: pointer; background: ${isOpen ? 'rgba(250, 204, 21, 0.05)' : 'transparent'}">
                     <div style="display: flex; gap: 4px; margin-right: 12px; flex-shrink: 0;">
@@ -1572,25 +1575,15 @@ function renderActiveWorkout() {
         });
     }
 
-    // --- AUTOMATISK SCROLL-LOGIK (PRIORITERAR ÖPPEN ÖVNING) ---
-    setTimeout(() => {
-        const openExercises = activeDraft.ui_state.openExercises;
-        let targetIdx = -1;
-
-        if (openExercises && openExercises.length > 0) {
-            targetIdx = openExercises[0];
-        } else {
-            targetIdx = activeDraft.data.findIndex(ex => !ex.isCompleted);
-        }
-
-        if (targetIdx !== -1) {
-            const targetElement = document.querySelector(`[data-exercise-index="${targetIdx}"]`);
+    // --- AUTOMATISK SCROLL-LOGIK ---
+    if (firstIncompleteIdx !== -1) {
+        setTimeout(() => {
+            const targetElement = document.querySelector(`[data-exercise-index="${firstIncompleteIdx}"]`);
             if (targetElement) {
                 targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
-        }
-    }, 100);
-    // ---------------------------------------------------------
+        }, 100);
+    }
 
     const addBtn = document.createElement("button");
     addBtn.className = "mode-btn glass-border";
@@ -1598,12 +1591,14 @@ function renderActiveWorkout() {
     addBtn.innerHTML = " ➕ Lägg till övning";
     addBtn.onclick = openCustomAddExerciseModal;
     list.appendChild(addBtn);
+
     const discardBtn = document.createElement("button");
     discardBtn.className = "mode-btn";
     discardBtn.style.cssText = "background:none; color:var(--danger); font-size:14px; margin-top:20px; border:1px solid rgba(239, 68, 68, 0.2);";
     discardBtn.innerHTML = "Radera pass  🗑️ ";
     discardBtn.onclick = confirmDiscardActiveWorkout;
     list.appendChild(discardBtn);
+
     showView("workout-view");
 }
 
