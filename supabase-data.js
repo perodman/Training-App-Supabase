@@ -12,16 +12,13 @@ window.isSavingWorkout = false;
 // LÄGG TILL PARAMETERN isSilent = false HÄR FÖR ATT KUNNA KÖRA I BAKGRUNDEN UTAN HOPP
 async function loadUserData(isSilent = false) {
     if (!currentUser) return;
-
     // JÄRNRIDÅ: Om data redan har synkats en gång, totalvägra att köra om denna tunga funktion!
     if (window.supabaseDataLoadedOnce === true) {
-        console.log("🛑 [SUPABASE-DATA] loadUserData avbröts aktivt. Sessionen är redan initierad. Skyddar lokalt minne.");
+        console.log(" 🛑  [SUPABASE-DATA] loadUserData avbröts aktivt. Sessionen är redan initierad. Skyddar lokalt minne.");
         return;
     }
-
     try {
         console.log("Startar synkroniserad laddning av data från Supabase...");
-
         // 1. SÄKRA UPP GRUNDSTRUKTURER I WINDOW-OBJEKTET SOM BACKUP
         if (!window.programData) {
             try { window.programData = JSON.parse(localStorage.getItem("myCustomProgram")); } catch(e) { window.programData = null; }
@@ -38,19 +35,16 @@ async function loadUserData(isSilent = false) {
         if (typeof window.activeDraft === 'undefined') {
             try { window.activeDraft = JSON.parse(localStorage.getItem("activeWorkoutDraft") || "null"); } catch(e) { window.activeDraft = null; }
         }
-
         // 2. LADDAR CUSTOM_PROGRAM
-        const { programDataResult, error: programError } = await supabaseClient
+        const { data : programDataResult, error: programError } = await supabaseClient
             .from('custom_program')
             .select('data')
             .eq('user_id', currentUser.id)
             .limit(1)
             .maybeSingle();
-        
         if (programError && programError.code !== 'PGRST116') {
             console.error('Fel vid laddning av program:', programError);
         }
-        
         if (programDataResult && programDataResult.data && programDataResult.data.routine && programDataResult.data.routine.length > 0) {
             window.programData = programDataResult.data;
             localStorage.setItem("myCustomProgram", JSON.stringify(window.programData));
@@ -63,20 +57,17 @@ async function loadUserData(isSilent = false) {
                 await loadDefaultProgram();
             }
         }
-
         // Synka globala variabler i app.js
         if (typeof programData !== 'undefined') programData = window.programData;
         if (typeof masterExercises !== 'undefined') masterExercises = window.masterExercises;
         if (typeof workoutHistory !== 'undefined') workoutHistory = window.workoutHistory;
         if (typeof calendarOverrides !== 'undefined') calendarOverrides = window.calendarOverrides;
-
         // 3. LADDAR WORKOUT_HISTORY
-        const { historyData, error: historyError } = await supabaseClient
+        const { data : historyData, error: historyError } = await supabaseClient
             .from('workout_history')
             .select('*')
             .eq('user_id', currentUser.id)
             .order('workout_date', { ascending: false });
-        
         if (historyError) {
             console.error('Fel vid laddning av historik:', historyError);
         } else if (historyData) {
@@ -90,19 +81,16 @@ async function loadUserData(isSilent = false) {
             localStorage.setItem("workoutHistory", JSON.stringify(window.workoutHistory));
             if (typeof workoutHistory !== 'undefined') workoutHistory = window.workoutHistory;
         }
-
         // 4. LADDAR CALENDAR_OVERRIDES
-        const { calendarData, error: calendarError } = await supabaseClient
+        const { data : calendarData, error: calendarError } = await supabaseClient
             .from('calendar_overrides')
             .select('data')
             .eq('user_id', currentUser.id)
             .limit(1)
             .maybeSingle();
-        
         if (calendarError && calendarError.code !== 'PGRST116') {
             console.error('Fel vid laddning av kalender:', calendarError);
         }
-        
         if (calendarData && calendarData.data) {
             window.calendarOverrides = calendarData.data;
             localStorage.setItem("calendarOverrides", JSON.stringify(window.calendarOverrides));
@@ -111,38 +99,30 @@ async function loadUserData(isSilent = false) {
             localStorage.setItem("calendarOverrides", JSON.stringify(window.calendarOverrides));
         }
         if (typeof calendarOverrides !== 'undefined') calendarOverrides = window.calendarOverrides;
-
         // 5. LADDAR ACTIVE_DRAFT (UPPDATERAD TILL KOLUMNEN 'data')
-        const { draftRow, error: draftError } = await supabaseClient
+        const { data : draftRow, error: draftError } = await supabaseClient
             .from('active_draft')
             .select('data')
             .eq('user_id', currentUser.id)
             .limit(1)
             .maybeSingle();
-        
         if (draftError && draftError.code !== 'PGRST116') {
             console.error('Fel vid laddning av utkast:', draftError);
         }
-
-        // Kontrollera att vi har en rad och att den har innehåll
+        // Kontrollerar att vi har en rad och att den har innehåll i kolumnen 'data'
         if (draftRow && draftRow.data && Object.keys(draftRow.data).length > 0) {
             window.activeDraft = draftRow.data;
-
-            // Säkerställ att ui_state är korrekt
-            if (!window.activeDraft.ui_state) {
-                window.activeDraft.ui_state = {};
+            
+            // KRITISKT: Säkerställ att ui_state.hasInitializedOpen finns så att renderActiveWorkout inte skriver över
+            if (window.activeDraft.ui_state && Array.isArray(window.activeDraft.ui_state.openExercises)) {
+                window.activeDraft.ui_state.hasInitializedOpen = true;
             }
-            if (!Array.isArray(window.activeDraft.ui_state.openExercises)) {
-                window.activeDraft.ui_state.openExercises = [];
-            }
-
-            // Spara till localStorage
+            
             localStorage.setItem("activeWorkoutDraft", JSON.stringify(window.activeDraft));
 
-            // Synka till app.js
+            // Synka till app.js om variabeln finns
             if (typeof activeDraft !== 'undefined') activeDraft = window.activeDraft;
 
-            // Timerhantering
             if (window.activeDraft && window.activeDraft.isStarted) {
                 if (typeof secondsElapsed !== 'undefined') {
                     secondsElapsed = window.activeDraft.secondsElapsed || 0;
@@ -154,20 +134,20 @@ async function loadUserData(isSilent = false) {
                 }
             }
         } else {
-            // Om det inte finns något aktivt utkast
-            window.activeDraft = null;
-            localStorage.removeItem("activeWorkoutDraft");
-            if (typeof activeDraft !== 'undefined') activeDraft = null;
+            if (!window.activeDraft || !window.activeDraft.isStarted) {
+                window.activeDraft = null;
+                localStorage.removeItem("activeWorkoutDraft");
+                if (typeof activeDraft !== 'undefined') activeDraft = null;
+            }
         }
-
-        console.log("✅ All data synkad i loadUserData. Kontrollerar rendering...");
+        console.log(" ✅  All data synkad i loadUserData. Kontrollerar rendering...");
         window.supabaseDataLoadedOnce = true;
 
-        // Rendera alltid efter att data laddats
+        // Rendera ALLTID efter att data laddats
         if (typeof renderCalendar === 'function') renderCalendar();
         if (typeof renderHome === 'function') renderHome();
-
-        // Scrolla till toppen
+        
+        // Scrolla till toppen (mobil + desktop)
         setTimeout(() => {
             window.scrollTo(0, 0);
             document.body.scrollTop = 0;
@@ -175,7 +155,7 @@ async function loadUserData(isSilent = false) {
         }, 100);
 
     } catch (err) {
-        console.error('❌ Kritiskt fel i loadUserData:', err);
+        console.error(' ❌  Kritiskt fel i loadUserData:', err);
     }
 }
 
