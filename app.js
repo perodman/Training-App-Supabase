@@ -1433,6 +1433,7 @@ function renderActiveWorkout() {
         return;
     }
 
+    // 1. Rensa ghost-checkade sets
     if (activeDraft.data) {
         activeDraft.data.forEach((exerciseData, i) => {
             if (!exerciseData.isCompleted && exerciseData.sets_data) {
@@ -1450,6 +1451,7 @@ function renderActiveWorkout() {
     if (!list) return;
     list.innerHTML = "";
 
+    // 2. Start-vy
     if (!activeDraft.isStarted) {
         if (footer) footer.classList.add("hidden");
         list.innerHTML = `
@@ -1458,43 +1460,25 @@ function renderActiveWorkout() {
         </div>
         <p style="color:var(--text-light); font-size:13px; text-align:center; margin-top:10px;">Klicka på knappen ovan för att starta klockan.</p>
         `;
-        const timerDisp = document.getElementById("workout-timer");
-        if (timerDisp) timerDisp.textContent = "00:00:00";
         showView("workout-view");
         return;
     }
 
-    if (typeof renderCalendar === 'function') {
-        const calendarView = document.getElementById("calendar-view");
-        if (calendarView) {
-            const originalDisplay = calendarView.style.display;
-            calendarView.style.display = "none";
-            renderCalendar();
-            calendarView.style.display = originalDisplay;
-        }
-    }
     if (footer) footer.classList.remove("hidden");
 
-    const pauseBtn = document.getElementById("pause-workout-btn");
-    if (pauseBtn) {
-        pauseBtn.innerHTML = `Spara utkast  💾 `;
-        pauseBtn.className = "mode-btn save-draft-btn";
-        pauseBtn.onclick = saveDraftAndGoHome;
-    }
-
-    // --- SMART INITIALISERING ---
+    // 3. INITIERING: Skapa ui_state om den saknas
     if (!activeDraft.ui_state) activeDraft.ui_state = {};
     if (!Array.isArray(activeDraft.ui_state.openExercises)) activeDraft.ui_state.openExercises = [];
 
-    // Endast om listan är helt tom vid start, välj första ofärdiga övning
+    // 4. "SMART START": Endast om listan är helt tom vid första start, öppna första ofärdiga
     if (activeDraft.ui_state.openExercises.length === 0) {
         const firstIncompleteIdx = activeDraft.data.findIndex(ex => !ex.isCompleted);
         if (firstIncompleteIdx !== -1) {
             activeDraft.ui_state.openExercises = [firstIncompleteIdx];
         }
     }
-    // ----------------------------
 
+    // 5. RENDERING: Använd den sparade listan som den är
     const openExercises = activeDraft.ui_state.openExercises;
 
     if (activeDraft.workout.exercises && activeDraft.workout.exercises.length > 0) {
@@ -1502,7 +1486,7 @@ function renderActiveWorkout() {
             const exerciseData = activeDraft.data[i];
             if (!exerciseData) return;
             const isDone = exerciseData.isCompleted;
-            const isOpen = openExercises.includes(i); // Respekterar nu flera öppna övningar
+            const isOpen = openExercises.includes(i); // <-- LÄSER FRÅN DEN SPARADE LISTAN
 
             const div = document.createElement("div");
             div.className = "card glass" + (isDone ? " exercise-done" : "");
@@ -1575,19 +1559,18 @@ function renderActiveWorkout() {
         });
     }
 
-    // --- AUTOMATISK SCROLL-LOGIK ---
+    // 6. SCROLL: Scrolla till den ÖVERSTA öppna övningen (minsta indexet)
     setTimeout(() => {
         const sortedOpen = [...openExercises].sort((a, b) => a - b);
-        const targetIdx = (sortedOpen.length > 0) ? sortedOpen[0] : -1;
-            
-        if (targetIdx !== -1) {
-            const targetElement = document.querySelector(`[data-exercise-index="${targetIdx}"]`);
+        if (sortedOpen.length > 0) {
+            const targetElement = document.querySelector(`[data-exercise-index="${sortedOpen[0]}"]`);
             if (targetElement) {
                 targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
         }
     }, 100);
 
+    // 7. Knappar
     const addBtn = document.createElement("button");
     addBtn.className = "mode-btn glass-border";
     addBtn.style.marginTop = "10px";
@@ -1611,22 +1594,25 @@ function openCustomAddExerciseModal() {
 }
 
 async function toggleExercise(index) {
-    const scrollPos = window.scrollY;
-
+    // 1. Initiera om det saknas
     if (!activeDraft.ui_state) activeDraft.ui_state = {};
     if (!activeDraft.ui_state.openExercises) {
         activeDraft.ui_state.openExercises = [];
     }
+
+    // 2. Toggla index
     const openIdx = activeDraft.ui_state.openExercises.indexOf(index);
     if (openIdx > -1) {
         activeDraft.ui_state.openExercises.splice(openIdx, 1);
     } else {
         activeDraft.ui_state.openExercises.push(index);
     }
-    // Sparar UI-tillståndet (öppna/stängda övningar) asynkront
+
+    // 3. Spara och rendera om
+    // Vi tar bort scroll-hanteringen härifrån då renderActiveWorkout 
+    // sköter den logiken nu (då blir det konsekvent)
     await persistActiveWorkout();
     renderActiveWorkout();
-    window.scrollTo(0, scrollPos);
 }
 
 async function addSetToExercise(exIdx) {
