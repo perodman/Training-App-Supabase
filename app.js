@@ -1444,8 +1444,6 @@ function renderActiveWorkout() {
         return;
     }
     
-    // RENSAT: Här låg tidigare blocket som loopade igenom och råkade röra userConfirmed på fel sätt.
-    
     document.getElementById("active-title").textContent = activeDraft.workout.name;
     const list = document.getElementById("exercise-list");
     const footer = document.querySelector(".workout-footer");
@@ -1494,7 +1492,6 @@ function renderActiveWorkout() {
     
     const isFrittPass = activeDraft.workout.name === "Fritt Pass";
     if (!isFrittPass) {
-        // Kontrollera strikt att det inte finns sparat UI-tillstånd innan vi tvingar upp första övningen
         if (!activeDraft.ui_state.hasInitializedOpen && activeDraft.ui_state.openExercises.length === 0) {
             activeDraft.ui_state.openExercises = [0];
             activeDraft.ui_state.hasInitializedOpen = true;
@@ -1511,6 +1508,8 @@ function renderActiveWorkout() {
             const isOpen = openExercises.includes(i);
 
             const div = document.createElement("div");
+            // NYTT: Vi sätter ett ID på varje kort så vi kan hitta det i DOM:en sen
+            div.id = `exercise-card-${i}`;
             div.className = "card glass" + (isDone ? " exercise-done" : "");
             div.style.padding = "0";
             div.style.overflow = "hidden";
@@ -1596,25 +1595,36 @@ function renderActiveWorkout() {
         emptyNotice.innerHTML = "Det här passet är tomt. Klicka på knappen nedan för att lägga till dina övningar!  👇 ";
         list.appendChild(emptyNotice);
     }
+    
     const addBtn = document.createElement("button");
     addBtn.className = "mode-btn glass-border";
     addBtn.style.marginTop = "10px";
     addBtn.innerHTML = " ➕ Lägg till övning";
     addBtn.onclick = openCustomAddExerciseModal;
     list.appendChild(addBtn);
+    
     const discardBtn = document.createElement("button");
     discardBtn.className = "mode-btn";
     discardBtn.style.cssText = "background:none; color:var(--danger); font-size:14px; margin-top:20px; border:1px solid rgba(239, 68, 68, 0.2);";
     discardBtn.innerHTML = "Radera pass  🗑️ ";
     discardBtn.onclick = confirmDiscardActiveWorkout;
     list.appendChild(discardBtn);
+    
     showView("workout-view");
     
-    // Återställ scroll-position pålitligt med en mikropaus så DOM hinner byggas
-    if (activeDraft.ui_state && typeof activeDraft.ui_state.scrollPosition === 'number') {
+    // NYTT, SMARTARE SCROLL-LÄGE:
+    // Istället för att lita på en pixelsiffra letar vi upp den första övningen som är öppen (expandegubbe)
+    if (activeDraft.ui_state && Array.isArray(activeDraft.ui_state.openExercises) && activeDraft.ui_state.openExercises.length > 0) {
+        // Ta det första indexet som är öppet
+        const firstOpenIndex = activeDraft.ui_state.openExercises[0];
+        
         setTimeout(() => {
-            window.scrollTo(0, activeDraft.ui_state.scrollPosition);
-        }, 50);
+            const targetCard = document.getElementById(`exercise-card-${firstOpenIndex}`);
+            if (targetCard) {
+                console.log(`🎯 Scrollar fokuserat till expanderad övning på index: ${firstOpenIndex}`);
+                targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }, 150); // En liten micro-delay ger webbläsaren tid att rita ut DOM:en vid appstart
     }
 }
 
