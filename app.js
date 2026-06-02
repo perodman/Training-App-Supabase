@@ -1573,11 +1573,11 @@ function renderActiveWorkout() {
                         <button onclick="event.stopPropagation(); removeActiveExercise(${i})" style="background:none; border:none; font-size:14px; padding:5px; opacity: 0.7;" ${isDone ? 'disabled' : ''}> ✖ </button>
                         <span style="font-size: 10px; color: var(--text-light); margin-left: 5px; transform: ${isOpen ? 'rotate(180deg)' : 'rotate(0)'}; transition: 0.3s;"> ▼ </span>
                     </div>
-                </div
-                 <div style="padding: 0 15px 15px 15px; display: ${isOpen ? 'block' : 'none'}; border-top: 1px solid rgba(255,255,255,0.05);">
+                </div>
+                <div style="padding: 0 15px 15px 15px; display: ${isOpen ? 'block' : 'none'}; border-top: 1px solid rgba(255,255,255,0.05);">
                     ${setsHtml}
                     <button class="mode-border glass-border" style="padding:8px; font-size:11px; margin-top:10px; border-style:dashed; width:100%;" onclick="addSetToExercise(${i})" ${isDone ? 'disabled' : ''}>+ Lägg till set</button>
-                    <button class="mode-btn ${isDone ? 'blue' : 'green'}" style="padding:12px; font-size:13px; margin-top:15px; width:100%; font-weight:bold;" onclick="toggleExerciseDone(${i})">
+                                        <button class="mode-btn ${isDone ? 'blue' : 'green'}" style="padding:12px; font-size:13px; margin-top:15px; width:100%; font-weight:bold;" onclick="toggleExerciseDone(${i})">
                         ${isDone ? 'Ångra Klar  ↩️ ' : 'Markera övning som klar  ✅ '}
                     </button>
                 </div>`;
@@ -1603,10 +1603,9 @@ function renderActiveWorkout() {
     discardBtn.onclick = confirmDiscardActiveWorkout;
     list.appendChild(discardBtn);
     showView("workout-view");
-
-       // ✨ ÅTERSTÄLL SCROLL-POSITION efter rendering
+    
+    // Återställ scroll-position
     if (activeDraft.ui_state && typeof activeDraft.ui_state.scrollPosition === 'number') {
-        // Använd requestAnimationFrame för att säkerställa att DOM:en är färdigrenderad
         requestAnimationFrame(() => {
             window.scrollTo(0, activeDraft.ui_state.scrollPosition);
         });
@@ -1619,15 +1618,12 @@ function openCustomAddExerciseModal() {
 }
 
 async function toggleExercise(index) {
+    const scrollPos = window.scrollY;
+
     if (!activeDraft.ui_state) activeDraft.ui_state = {};
     if (!activeDraft.ui_state.openExercises) {
         activeDraft.ui_state.openExercises = [];
     }
-    
-    // Spara scroll-positionen FÖRST
-    const scrollPos = window.scrollY;
-    
-    // Uppdatera vilka övningar som är öppna/stängda
     const openIdx = activeDraft.ui_state.openExercises.indexOf(index);
     if (openIdx > -1) {
         activeDraft.ui_state.openExercises.splice(openIdx, 1);
@@ -1635,7 +1631,7 @@ async function toggleExercise(index) {
         activeDraft.ui_state.openExercises.push(index);
     }
     
-    // Spara den nya scroll-positionen i ui_state
+    // Spara scroll-position innan persist
     activeDraft.ui_state.scrollPosition = scrollPos;
     
     // Sparar UI-tillståndet (öppna/stängda övningar) asynkront
@@ -2146,7 +2142,7 @@ async function persistActiveWorkout() {
         return;
     }
 
-    // Spara nuvarande scroll-position
+    // Spara scroll-position
     if (!activeDraft.ui_state) activeDraft.ui_state = {};
     activeDraft.ui_state.scrollPosition = window.scrollY;
 
@@ -2166,7 +2162,7 @@ async function persistActiveWorkout() {
         // 1. Försök uppdatera raden som hör till user_id
         const { data, error: updateError } = await supabaseClient
             .from('active_draft')
-            .update({ data: activeDraft })
+            .update({ activeDraft })
             .eq('user_id', currentUser.id)
             .select();
             
