@@ -1432,24 +1432,28 @@ async function startWorkout(workout, data = null, date = null, isImmediateStart 
 let temporarySelectedExercises = [];
 
 function renderActiveWorkout() {
-    // Säkra upp synkronisering mellan globala och lokala objektet direkt vid start av rendering
-    if (typeof activeDraft !== 'undefined' && window.activeDraft) {
-        activeDraft = window.activeDraft;
-    }
-
-    console.log("🔍 [DEBUG] renderActiveWorkout körs. openExercises:", activeDraft?.ui_state?.openExercises);
-    
     if (!activeDraft || !activeDraft.workout) {
         console.warn(" ⚠️  Inget aktivt utkast tillgängligt.");
         return;
     }
-    
+    if (activeDraft.data) {
+        activeDraft.data.forEach((exerciseData, i) => {
+            if (!exerciseData.isCompleted && exerciseData.sets_data) {
+                const isBrandNewAndGhostChecked = exerciseData.sets_data.every(s => s.userConfirmed === true) && !activeDraft.ui_state?.openExercises?.includes(i);
+
+                if (isBrandNewAndGhostChecked && exerciseData.sets_data.length > 0) {
+                    exerciseData.sets_data.forEach(set => {
+                        set.userConfirmed = false;
+                    });
+                }
+            }
+        });
+    }
     document.getElementById("active-title").textContent = activeDraft.workout.name;
     const list = document.getElementById("exercise-list");
     const footer = document.querySelector(".workout-footer");
     if (!list) return;
     list.innerHTML = "";
-    
     if (!activeDraft.isStarted) {
         if (footer) footer.classList.add("hidden");
         list.innerHTML = `
@@ -1463,7 +1467,6 @@ function renderActiveWorkout() {
         showView("workout-view");
         return;
     }
-    
     if (typeof renderCalendar === 'function') {
         const calendarView = document.getElementById("calendar-view");
         if (calendarView) {
@@ -1481,18 +1484,16 @@ function renderActiveWorkout() {
         pauseBtn.className = "mode-btn save-draft-btn";
         pauseBtn.onclick = saveDraftAndGoHome;
     }
-    
-    // Fallback-initiering av ui_state om det saknas helt
     if (!activeDraft.ui_state) {
         activeDraft.ui_state = {};
     }
+
     if (!activeDraft.ui_state.openExercises) {
         activeDraft.ui_state.openExercises = [];
     }
-    
     const isFrittPass = activeDraft.workout.name === "Fritt Pass";
     if (!isFrittPass) {
-        if (!activeDraft.ui_state.hasInitializedOpen && activeDraft.ui_state.openExercises.length === 0) {
+        if (!activeDraft.ui_state.hasOwnProperty('hasInitializedOpen')) {
             activeDraft.ui_state.openExercises = [0];
             activeDraft.ui_state.hasInitializedOpen = true;
             if (typeof persistActiveWorkout === 'function') persistActiveWorkout();
@@ -1508,7 +1509,7 @@ function renderActiveWorkout() {
             const isOpen = openExercises.includes(i);
 
             const div = document.createElement("div");
-            // NYTT: Vi sätter ett ID på varje kort så vi kan hitta det i DOM:en sen
+            // JUSTERING: Sätter ID på korten så scrollen kan hitta rätt element efter app-omstart
             div.id = `exercise-card-${i}`;
             div.className = "card glass" + (isDone ? " exercise-done" : "");
             div.style.padding = "0";
@@ -1582,7 +1583,7 @@ function renderActiveWorkout() {
                 <div style="padding: 0 15px 15px 15px; display: ${isOpen ? 'block' : 'none'}; border-top: 1px solid rgba(255,255,255,0.05);">
                     ${setsHtml}
                     <button class="mode-border glass-border" style="padding:8px; font-size:11px; margin-top:10px; border-style:dashed; width:100%;" onclick="addSetToExercise(${i})" ${isDone ? 'disabled' : ''}>+ Lägg till set</button>
-                                        <button class="mode-btn ${isDone ? 'blue' : 'green'}" style="padding:12px; font-size:13px; margin-top:15px; width:100%; font-weight:bold;" onclick="toggleExerciseDone(${i})">
+                    <button class="mode-btn ${isDone ? 'blue' : 'green'}" style="padding:12px; font-size:13px; margin-top:15px; width:100%; font-weight:bold;" onclick="toggleExerciseDone(${i})">
                         ${isDone ? 'Ångra Klar  ↩️ ' : 'Markera övning som klar  ✅ '}
                     </button>
                 </div>`;
@@ -1595,36 +1596,30 @@ function renderActiveWorkout() {
         emptyNotice.innerHTML = "Det här passet är tomt. Klicka på knappen nedan för att lägga till dina övningar!  👇 ";
         list.appendChild(emptyNotice);
     }
-    
     const addBtn = document.createElement("button");
     addBtn.className = "mode-btn glass-border";
     addBtn.style.marginTop = "10px";
     addBtn.innerHTML = " ➕ Lägg till övning";
     addBtn.onclick = openCustomAddExerciseModal;
     list.appendChild(addBtn);
-    
     const discardBtn = document.createElement("button");
     discardBtn.className = "mode-btn";
     discardBtn.style.cssText = "background:none; color:var(--danger); font-size:14px; margin-top:20px; border:1px solid rgba(239, 68, 68, 0.2);";
     discardBtn.innerHTML = "Radera pass  🗑️ ";
     discardBtn.onclick = confirmDiscardActiveWorkout;
     list.appendChild(discardBtn);
-    
     showView("workout-view");
-    
-    // NYTT, SMARTARE SCROLL-LÄGE:
-    // Istället för att lita på en pixelsiffra letar vi upp den första övningen som är öppen (expandegubbe)
+
+    // JUSTERING: Smart scroll som letar upp den aktiva och expanderade övningen direkt vid app-omstart
     if (activeDraft.ui_state && Array.isArray(activeDraft.ui_state.openExercises) && activeDraft.ui_state.openExercises.length > 0) {
-        // Ta det första indexet som är öppet
         const firstOpenIndex = activeDraft.ui_state.openExercises[0];
-        
         setTimeout(() => {
             const targetCard = document.getElementById(`exercise-card-${firstOpenIndex}`);
             if (targetCard) {
                 console.log(`🎯 Scrollar fokuserat till expanderad övning på index: ${firstOpenIndex}`);
                 targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
-        }, 150); // En liten micro-delay ger webbläsaren tid att rita ut DOM:en vid appstart
+        }, 150);
     }
 }
 
