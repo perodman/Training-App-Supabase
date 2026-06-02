@@ -1487,7 +1487,6 @@ function renderActiveWorkout() {
         pauseBtn.onclick = saveDraftAndGoHome;
     }
     
-    // Säkra upp ui_state gällande öppna övningar om det saknas
     if (!activeDraft.ui_state) {
         activeDraft.ui_state = {};
     }
@@ -1604,13 +1603,12 @@ function renderActiveWorkout() {
     list.appendChild(discardBtn);
     showView("workout-view");
 
-    // Smart scroll baserat EXAKT på den sparade öppna övningen
+    // Fokus-scroll
     if (activeDraft.ui_state && Array.isArray(activeDraft.ui_state.openExercises) && activeDraft.ui_state.openExercises.length > 0) {
         const firstOpenIndex = activeDraft.ui_state.openExercises[0];
         setTimeout(() => {
             const targetCard = document.getElementById(`exercise-card-${firstOpenIndex}`);
             if (targetCard) {
-                console.log(`🎯 Scrollar fokuserat till expanderad övning på index: ${firstOpenIndex}`);
                 targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
         }, 150);
@@ -1651,7 +1649,11 @@ async function toggleExercise(index) {
         activeDraft.ui_state.openExercises.splice(openIdx, 1);
         console.log("🔍 Stänger övning:", index);
     } else {
-        // Om den är stängd, öppna den
+        // ✅ BUGGFIX: Nollställ arrayen först så att gamla övningar garanterat stängs 
+        // när du öppnar en ny övning. Detta förhindrar att gamla "spöken" hoppar upp!
+        activeDraft.ui_state.openExercises.length = 0;
+
+        // Om den var stängd, öppna den
         activeDraft.ui_state.openExercises.push(index);
         console.log("🔍 Öppnar övning:", index);
     }
@@ -1706,13 +1708,63 @@ async function removeSetFromExercise(exIdx, setIdx) {
 }
 
 async function toggleExerciseDone(exIdx) {
+    console.log("🔍 Togglar Klar-status för övning index:", exIdx);
     const scrollPos = window.scrollY;
+
+    if (!activeDraft || !activeDraft.data) {
+        console.error("❌ activeDraft eller activeDraft.data saknas vid klarmarkering.");
+        return;
+    }
+
+    // 1. Växla klar-status för den klickade övningen
     activeDraft.data[exIdx].isCompleted = !activeDraft.data[exIdx].isCompleted;
 
+    // Säkra upp ui_state structures
+    if (!activeDraft.ui_state) activeDraft.ui_state = {};
+    if (!activeDraft.ui_state.openExercises) activeDraft.ui_state.openExercises = [];
+
+    const isNowCompleted = activeDraft.data[exIdx].isCompleted;
+
+    if (isNowCompleted) {
+        // OM ÖVNINGEN BLEV KLAR:
+        // Ta bort den från listan över öppna övningar (eftersom den är klar vill vi stänga den)
+        const pos = activeDraft.ui_state.openExercises.indexOf(exIdx);
+        if (pos > -1) {
+            activeDraft.ui_state.openExercises.splice(pos, 1);
+        }
+
+        // Leta automatiskt upp NÄSTA övning i ordningen som inte är klar än
+        const nextIncompleteIdx = activeDraft.data.findIndex((ex, idx) => !ex.isCompleted);
+        
+        if (nextIncompleteIdx !== -1) {
+            // Öppna nästa ej klara övning automatiskt
+            activeDraft.ui_state.openExercises = [nextIncompleteIdx];
+            console.log("🎯 Övning klar! Öppnar automatiskt nästa ej klara övning på index:", nextIncompleteIdx);
+        }
+    } else {
+        // OM ANVÄNDAREN ÅNGRAR SIG (Klickar ur "Klar"):
+        // Öppna den här övningen igen så att man kan redigera sina set direkt
+        activeDraft.ui_state.openExercises = [exIdx];
+        console.log("↩️ Ångrade klar. Öppnar övning index:", exIdx, "igen.");
+    }
+
+    // 2. Tryck upp till window och localStorage för att hålla allt i absolut synk
+    window.activeDraft = activeDraft;
+    localStorage.setItem("activeWorkoutDraft", JSON.stringify(window.activeDraft));
+
+    // 3. Rendera om gränssnittet direkt
     renderActiveWorkout();
+    
+    // Återställ scrollen direkt efter renderingen
     window.scrollTo(0, scrollPos);
-    // Synkar tillståndet för slutförd övning asynkront i bakgrunden
-    await persistActiveWorkout();
+
+    // 4. Synka tillståndet för slutförd övning asynkront i bakgrunden till Supabase
+    const saveError = await persistActiveWorkout();
+    if (saveError) {
+        console.error("⚠️ Fel vid sparande av klarmarkering till Supabase:", saveError);
+    } else {
+        console.log("✅ Klarmarkering och ui_state synkat till Supabase!");
+    }
 }
 
 function actuallyStartWorkout() {
@@ -1721,11 +1773,16 @@ function actuallyStartWorkout() {
     activeDraft.isStarted = true;
     activeDraft.openedAt = new Date().toISOString();
     
-    // NYTT: Sätt första övningen som expanderad ENBART vid den faktiska starten av passet
     if (activeDraft.workout && activeDraft.workout.name !== "Fritt Pass") {
-        if (!activeDraft.ui_state) activeDraft.ui_state = {};
-        activeDraft.ui_state.openExercises = [0];
-        activeDraft.ui_state.hasInitializedOpen = true;
+        activeDraft.ui_state = {
+            openExercises: [0], // Tvinga övning 1 att vara öppen precis vid födseln
+            hasInitializedOpen: true
+        };
+    } else {
+        activeDraft.ui_state = {
+            openExercises: [],
+            hasInitializedOpen: true
+        };
     }
     
     if (typeof startTimer === 'function') {
@@ -2553,18 +2610,17 @@ async function prepareStart(date, id) {
     //  ✅  Starta träning
     await startWorkout(p, null, date, true);
 
-    // JUSTERING: Initiera ui_state här eftersom passet precis har fötts via kalendern
+    // Initiera ui_state här eftersom passet precis har fötts via kalendern
     if (activeDraft && activeDraft.workout && activeDraft.workout.name !== "Fritt Pass") {
-        if (!activeDraft.ui_state) activeDraft.ui_state = {};
-        activeDraft.ui_state.openExercises = [0];
-        activeDraft.ui_state.hasInitializedOpen = true;
+        activeDraft.ui_state = {
+            openExercises: [0], // Tvinga övning 1 att vara öppen precis vid födseln
+            hasInitializedOpen: true
+        };
         
-        // Spara ner det direkt så det hänger med till databasen
         if (typeof persistActiveWorkout === 'function') {
             await persistActiveWorkout();
         }
         
-        // Rendera om för att reflektera det öppna kortet
         if (typeof renderActiveWorkout === 'function') {
             renderActiveWorkout();
         }
