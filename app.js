@@ -1625,24 +1625,36 @@ async function toggleExercise(index) {
     console.log("🔍 Togglar övning:", index);
     const scrollPos = window.scrollY;
 
-    if (!activeDraft.ui_state) activeDraft.ui_state = {};
+    // Initiera ui_state om den inte redan finns
+    if (!activeDraft.ui_state) {
+        activeDraft.ui_state = {};
+    }
     if (!activeDraft.ui_state.openExercises) {
         activeDraft.ui_state.openExercises = [];
     }
 
+    // Kolla om övningen redan är öppen
     const openIdx = activeDraft.ui_state.openExercises.indexOf(index);
     if (openIdx > -1) {
+        // Om den är öppen, stäng den
         activeDraft.ui_state.openExercises.splice(openIdx, 1);
         console.log("🔍 Stänger övning:", index);
     } else {
+        // Om den är stängd, öppna den
         activeDraft.ui_state.openExercises.push(index);
         console.log("🔍 Öppnar övning:", index);
     }
     
+    // Markera att UI-state har initierats
     activeDraft.ui_state.hasInitializedOpen = true;
+    
+    // Spara scroll-position innan persist
     activeDraft.ui_state.scrollPosition = scrollPos;
 
+    // Logga det aktuella tillståndet som ska sparas
     console.log("🔍 Sparar ui_state:", activeDraft.ui_state);
+
+    // Spara UI-tillståndet (öppna/stängda övningar) asynkront
     const saveError = await persistActiveWorkout();
     if (saveError) {
         console.error("⚠️ Fel vid sparande av ui_state:", saveError);
@@ -1650,6 +1662,7 @@ async function toggleExercise(index) {
         console.log("✅ ui_state har sparats!");
     }
 
+    // Rendera det aktiva träningspasset
     renderActiveWorkout();
 }
 
