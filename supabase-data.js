@@ -143,19 +143,17 @@ async function loadUserData(isSilent = false) {
         console.log(" ✅  All data synkad i loadUserData. Kontrollerar rendering...");
         window.supabaseDataLoadedOnce = true;
 
-      
         // Rendera ALLTID efter att data laddats
         if (typeof renderCalendar === 'function') renderCalendar();
         if (typeof renderHome === 'function') renderHome();
-            // Scrolla till toppen (mobil + desktop)
-            setTimeout(() => {
-                window.scrollTo(0, 0);
-                document.body.scrollTop = 0;
-                document.documentElement.scrollTop = 0;
-            }, 100);
-        } else {
-            console.log(" 🤫 [SILENT] Ignorerade rendering av kalendern för att skydda skärmens scrollposition.");
-        }
+        
+        // Scrolla till toppen (mobil + desktop)
+        setTimeout(() => {
+            window.scrollTo(0, 0);
+            document.body.scrollTop = 0;
+            document.documentElement.scrollTop = 0;
+        }, 100);
+
     } catch (err) {
         console.error(' ❌  Kritiskt fel i loadUserData:', err);
     }
