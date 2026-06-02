@@ -143,10 +143,10 @@ async function loadUserData(isSilent = false) {
         console.log(" ✅  All data synkad i loadUserData. Kontrollerar rendering...");
         window.supabaseDataLoadedOnce = true;
 
-        // KONTROLL: Om anropet är tyst (isSilent), rör INTE gränssnittet mitt under en aktiv session!
-        if (!isSilent) {
-            if (typeof renderCalendar === 'function') renderCalendar();
-            if (typeof renderHome === 'function') renderHome();
+      
+        // Rendera ALLTID efter att data laddats
+        if (typeof renderCalendar === 'function') renderCalendar();
+        if (typeof renderHome === 'function') renderHome();
             // Scrolla till toppen (mobil + desktop)
             setTimeout(() => {
                 window.scrollTo(0, 0);
