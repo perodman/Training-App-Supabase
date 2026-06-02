@@ -12,7 +12,7 @@ window.isSavingWorkout = false;
 // LÄGG TILL PARAMETERN isSilent = false HÄR FÖR ATT KUNNA KÖRA I BAKGRUNDEN UTAN HOPP
 async function loadUserData(isSilent = false) {
     if (!currentUser) return;
-    // JÄRNRIDÅ: Om data redan har synkats en gång, totalvägra att köra om denna tunga funktion!
+    // JÄRNRIDÅ: Om data redan har synkats en gång, avbryt för att skydda minnet
     if (window.supabaseDataLoadedOnce === true) {
         console.log(" 🛑  [SUPABASE-DATA] loadUserData avbröts aktivt. Sessionen är redan initierad. Skyddar lokalt minne.");
         return;
@@ -62,6 +62,7 @@ async function loadUserData(isSilent = false) {
         if (typeof masterExercises !== 'undefined') masterExercises = window.masterExercises;
         if (typeof workoutHistory !== 'undefined') workoutHistory = window.workoutHistory;
         if (typeof calendarOverrides !== 'undefined') calendarOverrides = window.calendarOverrides;
+        
         // 3. LADDAR WORKOUT_HISTORY
         const { data : historyData, error: historyError } = await supabaseClient
             .from('workout_history')
@@ -99,7 +100,8 @@ async function loadUserData(isSilent = false) {
             localStorage.setItem("calendarOverrides", JSON.stringify(window.calendarOverrides));
         }
         if (typeof calendarOverrides !== 'undefined') calendarOverrides = window.calendarOverrides;
-        // 5. LADDAR ACTIVE_DRAFT (UPPDATERAD TILL KOLUMNEN 'data')
+        
+        // 5. LADDAR ACTIVE_DRAFT
         const { data : draftRow, error: draftError } = await supabaseClient
             .from('active_draft')
             .select('data')
@@ -109,19 +111,26 @@ async function loadUserData(isSilent = false) {
         if (draftError && draftError.code !== 'PGRST116') {
             console.error('Fel vid laddning av utkast:', draftError);
         }
-        // Kontrollerar att vi har en rad och att den har innehåll i kolumnen 'data'
+        
         if (draftRow && draftRow.data && Object.keys(draftRow.data).length > 0) {
             window.activeDraft = draftRow.data;
             
-            // KRITISKT: Säkerställ att ui_state.hasInitializedOpen finns så att renderActiveWorkout inte skriver över
-            if (window.activeDraft.ui_state && Array.isArray(window.activeDraft.ui_state.openExercises)) {
+            // Säkra upp ui_state om det kom in naket från DB
+            if (!window.activeDraft.ui_state) {
+                window.activeDraft.ui_state = {};
+            }
+            
+            // KRITISKT: Om openExercises finns med data, märk den som färdiginitierad direkt här!
+            if (Array.isArray(window.activeDraft.ui_state.openExercises) && window.activeDraft.ui_state.openExercises.length > 0) {
                 window.activeDraft.ui_state.hasInitializedOpen = true;
             }
             
             localStorage.setItem("activeWorkoutDraft", JSON.stringify(window.activeDraft));
 
-            // Synka till app.js om variabeln finns
-            if (typeof activeDraft !== 'undefined') activeDraft = window.activeDraft;
+            // Synka TILL den lokala skopade variabeln i app.js EXPLICIT
+            if (typeof activeDraft !== 'undefined') {
+                activeDraft = window.activeDraft;
+            }
 
             if (window.activeDraft && window.activeDraft.isStarted) {
                 if (typeof secondsElapsed !== 'undefined') {
