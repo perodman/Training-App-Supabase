@@ -45,11 +45,6 @@ async function initApp() {
         } else {
             if (typeof updateTimerDisplay === 'function') updateTimerDisplay();
         }
-        
-        // Återställ vilka övningar som var expanderade
-        if (activeDraft.ui_state && activeDraft.ui_state.expandedExercises) {
-            expandedExercises = new Set(activeDraft.ui_state.expandedExercises);
-        }
     }
 
     // 4. Slutgiltig rendering för startskärmen
