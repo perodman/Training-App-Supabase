@@ -1437,26 +1437,14 @@ function renderActiveWorkout() {
         activeDraft = window.activeDraft;
     }
 
-    console.log("🔍 [DEBUG] renderActiveWorkout körs. openExercises FÖRE:", activeDraft?.ui_state?.openExercises);
+    console.log("🔍 [DEBUG] renderActiveWorkout körs. openExercises:", activeDraft?.ui_state?.openExercises);
     
     if (!activeDraft || !activeDraft.workout) {
         console.warn(" ⚠️  Inget aktivt utkast tillgängligt.");
         return;
     }
     
-    if (activeDraft.data) {
-        activeDraft.data.forEach((exerciseData, i) => {
-            if (!exerciseData.isCompleted && exerciseData.sets_data) {
-                const isBrandNewAndGhostChecked = exerciseData.sets_data.every(s => s.userConfirmed === true) && !activeDraft.ui_state?.openExercises?.includes(i);
-
-                if (isBrandNewAndGhostChecked && exerciseData.sets_data.length > 0) {
-                    exerciseData.sets_data.forEach(set => {
-                        set.userConfirmed = false;
-                    });
-                }
-            }
-        });
-    }
+    // RENSAT: Här låg tidigare blocket som loopade igenom och råkade röra userConfirmed på fel sätt.
     
     document.getElementById("active-title").textContent = activeDraft.workout.name;
     const list = document.getElementById("exercise-list");
