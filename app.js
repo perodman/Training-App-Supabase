@@ -1428,6 +1428,7 @@ async function startWorkout(workout, data = null, date = null, isImmediateStart 
 let temporarySelectedExercises = [];
 
 function renderActiveWorkout() {
+     console.log("🔍 [DEBUG] renderActiveWorkout körs. openExercises FÖRE:", activeDraft?.ui_state?.openExercises);
     if (!activeDraft || !activeDraft.workout) {
         console.warn(" ⚠️  Inget aktivt utkast tillgängligt.");
         return;
