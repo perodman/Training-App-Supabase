@@ -1611,22 +1611,30 @@ function openCustomAddExerciseModal() {
 }
 
 async function toggleExercise(index) {
-    const scrollPos = window.scrollY;
-
-    if (!activeDraft.ui_state) activeDraft.ui_state = {};
-    if (!activeDraft.ui_state.openExercises) {
+    // 1. Skapa strukturen om den saknas
+    if (!activeDraft.ui_state) {
+        activeDraft.ui_state = { openExercises: [] };
+    }
+    if (!Array.isArray(activeDraft.ui_state.openExercises)) {
         activeDraft.ui_state.openExercises = [];
     }
+
+    // 2. Ändra i arrayen
     const openIdx = activeDraft.ui_state.openExercises.indexOf(index);
     if (openIdx > -1) {
         activeDraft.ui_state.openExercises.splice(openIdx, 1);
     } else {
         activeDraft.ui_state.openExercises.push(index);
     }
-    // Sparar UI-tillståndet (öppna/stängda övningar) asynkront
-    await persistActiveWorkout();
+
+    // 3. DEBUG: Skriv ut i konsolen så vi SER att den ändras
+    console.log(" 📝 [DEBUG] Uppdaterar openExercises till:", activeDraft.ui_state.openExercises);
+
+    // 4. Rendera omedelbart (UI svarar)
     renderActiveWorkout();
-    window.scrollTo(0, scrollPos);
+
+    // 5. Spara till localStorage OCH Supabase
+    await persistActiveWorkout(); 
 }
 
 async function addSetToExercise(exIdx) {
