@@ -1855,13 +1855,20 @@ async function confirmAndAddAllSelectedExercises() {
         const newExObj = { name: ex.name, target: ex.target };
         let newDataEntry;
         const history = getExerciseHistory(ex.name);
+        
         if (history) {
-            newDataEntry = { sets_data: JSON.parse(JSON.stringify(history)), isCompleted: false };
+            // Skapa en djupkopia av historiken
+            let historyCopy = JSON.parse(JSON.stringify(history));
+            // Nollställ klarmarkeringar för att övningen ska börja "fräsch"
+            historyCopy.forEach(set => set.userConfirmed = false);
+            newDataEntry = { sets_data: historyCopy, isCompleted: false };
         } else {
             newDataEntry = { sets_data: [{ weight: "", reps: "" }, { weight: "", reps: "" }, { weight: "", reps: "" }], isCompleted: false };
         }
+        
         activeDraft.workout.exercises.push(newExObj);
         activeDraft.data.push(newDataEntry);
+        
         if (isFrittPass) {
             const currentInsertedIndex = startIdx + loopIdx;
             if (loopIdx === 0) {
@@ -1872,9 +1879,8 @@ async function confirmAndAddAllSelectedExercises() {
         }
     });
 
-    // Rensa det temporära urvalet när de har lagts till i passet
     temporarySelectedExercises = [];
-    await persistActiveWorkout(); // Synkar till både localStorage och Supabase (active_draft)
+    await persistActiveWorkout();
     closeModal();
     renderActiveWorkout();
 }
@@ -1906,12 +1912,18 @@ async function confirmAddExerciseToActive(exId, replaceIndex = null) {
 
     let newDataEntry;
     const history = getExerciseHistory(ex.name);
-    if(history) {
-        newDataEntry = { sets_data: JSON.parse(JSON.stringify(history)), isCompleted: false };
+    
+    if (history) {
+        // Skapa en djupkopia av historiken
+        let historyCopy = JSON.parse(JSON.stringify(history));
+        // Nollställ klarmarkeringar
+        historyCopy.forEach(set => set.userConfirmed = false);
+        newDataEntry = { sets_data: historyCopy, isCompleted: false };
     } else {
         newDataEntry = { sets_data: [{ weight: "", reps: "" }, { weight: "", reps: "" }, { weight: "", reps: "" }], isCompleted: false };
     }
-    if(replaceIndex !== null) {
+    
+    if (replaceIndex !== null) {
         activeDraft.workout.exercises[replaceIndex] = newExObj;
         activeDraft.data[replaceIndex] = newDataEntry;
     } else {
@@ -1923,8 +1935,8 @@ async function confirmAddExerciseToActive(exId, replaceIndex = null) {
             activeDraft.ui_state.openExercises.push(newIdx);
         }
     }
-
-    await persistActiveWorkout(); // Synkar till både localStorage och Supabase (active_draft)
+    
+    await persistActiveWorkout();
     closeModal();
     renderActiveWorkout();
 }
