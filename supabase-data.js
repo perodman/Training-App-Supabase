@@ -112,22 +112,26 @@ async function loadUserData(isSilent = false) {
             console.error('Fel vid laddning av utkast:', draftError);
         }
         
+        let hasSavedScroll = false;
+
         if (draftRow && draftRow.data && Object.keys(draftRow.data).length > 0) {
             window.activeDraft = draftRow.data;
             
-            // Säkra upp ui_state om det kom in naket från DB
             if (!window.activeDraft.ui_state) {
                 window.activeDraft.ui_state = {};
             }
             
-            // KRITISKT: Om openExercises finns med data, märk den som färdiginitierad direkt här!
             if (Array.isArray(window.activeDraft.ui_state.openExercises) && window.activeDraft.ui_state.openExercises.length > 0) {
                 window.activeDraft.ui_state.hasInitializedOpen = true;
+            }
+
+            // Kolla om det finns en sparad scrollposition så vi vet om vi ska skippa nollställningen
+            if (typeof window.activeDraft.ui_state.scrollPosition === 'number') {
+                hasSavedScroll = true;
             }
             
             localStorage.setItem("activeWorkoutDraft", JSON.stringify(window.activeDraft));
 
-            // Synka TILL den lokala skopade variabeln i app.js EXPLICIT
             if (typeof activeDraft !== 'undefined') {
                 activeDraft = window.activeDraft;
             }
@@ -156,12 +160,14 @@ async function loadUserData(isSilent = false) {
         if (typeof renderCalendar === 'function') renderCalendar();
         if (typeof renderHome === 'function') renderHome();
         
-        // Scrolla till toppen (mobil + desktop)
-        setTimeout(() => {
-            window.scrollTo(0, 0);
-            document.body.scrollTop = 0;
-            document.documentElement.scrollTop = 0;
-        }, 100);
+        // Scrolla BARA till toppen om vi INTE har ett sparat scroll-läge att ta hänsyn till
+        if (!hasSavedScroll) {
+            setTimeout(() => {
+                window.scrollTo(0, 0);
+                document.body.scrollTop = 0;
+                document.documentElement.scrollTop = 0;
+            }, 100);
+        }
 
     } catch (err) {
         console.error(' ❌  Kritiskt fel i loadUserData:', err);
