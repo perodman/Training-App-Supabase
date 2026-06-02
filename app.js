@@ -1433,11 +1433,11 @@ function renderActiveWorkout() {
         return;
     }
 
-    // --- 1. ROBUST UI_STATE INITIERING ---
-    if (!activeDraft.ui_state) activeDraft.ui_state = { openExercises: [] };
+    // --- SÄKERHETSKONTROLL FÖR UI_STATE ---
+    if (!activeDraft.ui_state) activeDraft.ui_state = { openExercises: [], hasInitializedOpen: true };
     if (!Array.isArray(activeDraft.ui_state.openExercises)) activeDraft.ui_state.openExercises = [];
 
-    // --- 2. LOGIK FÖR SETS ---
+    // --- LOGIK FÖR SETS ---
     if (activeDraft.data) {
         activeDraft.data.forEach((exerciseData, i) => {
             if (!exerciseData.isCompleted && exerciseData.sets_data) {
@@ -1455,7 +1455,7 @@ function renderActiveWorkout() {
     if (!list) return;
     list.innerHTML = "";
 
-    // --- 3. START-VY ---
+    // --- START-VY ---
     if (!activeDraft.isStarted) {
         if (footer) footer.classList.add("hidden");
         list.innerHTML = `
@@ -1470,17 +1470,34 @@ function renderActiveWorkout() {
         return;
     }
 
+    // --- KALENDER-LOGIK ---
+    if (typeof renderCalendar === 'function') {
+        const calendarView = document.getElementById("calendar-view");
+        if (calendarView) {
+            const originalDisplay = calendarView.style.display;
+            calendarView.style.display = "none";
+            renderCalendar();
+            calendarView.style.display = originalDisplay;
+        }
+    }
+
     if (footer) footer.classList.remove("hidden");
 
-    // --- 4. RENDERERING AV ÖVNINGAR ---
-    const openExercises = activeDraft.ui_state.openExercises;
+    const pauseBtn = document.getElementById("pause-workout-btn");
+    if (pauseBtn) {
+        pauseBtn.innerHTML = `Spara utkast 💾 `;
+        pauseBtn.className = "mode-btn save-draft-btn";
+        pauseBtn.onclick = saveDraftAndGoHome;
+    }
 
+    // --- RENDERING AV ÖVNINGSLISTA ---
+    const openExercises = activeDraft.ui_state.openExercises;
     if (activeDraft.workout.exercises && activeDraft.workout.exercises.length > 0) {
         activeDraft.workout.exercises.forEach((ex, i) => {
             const exerciseData = activeDraft.data[i];
             if (!exerciseData) return;
             const isDone = exerciseData.isCompleted;
-            const isOpen = openExercises.includes(i); // Kontrollerar mot din bevarade lista
+            const isOpen = openExercises.includes(i);
 
             const div = document.createElement("div");
             div.className = "card glass" + (isDone ? " exercise-done" : "");
@@ -1524,6 +1541,12 @@ function renderActiveWorkout() {
                         <input type="text" inputmode="decimal" id="v-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'}; border-color: rgba(52, 152, 219, 0.3);" value="${set.rest || '90'}" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})">
                         <button onclick="removeSetFromExercise(${i}, ${sIdx})" style="background:none; border:none; color:var(--danger); font-size:16px; opacity: ${isLocked || showSuccess ? '0.1' : '0.8'};" ${isLocked ? 'disabled' : ''}>×</button>
                     </div>`;
+                    if (isCurrent) {
+                        setsHtml += `
+                        <div style="grid-column: 2 / span 3; margin:-4px 0 8px 0; padding-left:2px; opacity:0.8; font-size:10px; color:var(--primary); font-weight:600; letter-spacing:0.3px;">
+                            💡 Klicka på ${statusContent} för att låsa & gå vidare
+                        </div>`;
+                    }
                 });
             }
 
@@ -1556,9 +1579,14 @@ function renderActiveWorkout() {
                 </div>`;
             list.appendChild(div);
         });
+    } else {
+        const emptyNotice = document.createElement("p");
+        emptyNotice.style.cssText = "color: var(--text-light); text-align: center; padding: 30px 10px; font-size: 14px;";
+        emptyNotice.innerHTML = "Det här passet är tomt. Klicka på knappen nedan för att lägga till dina övningar! 👇 ";
+        list.appendChild(emptyNotice);
     }
 
-    // --- 5. FOOTER-KNAPPAR ---
+    // --- FOOTER-KNAPPAR ---
     const addBtn = document.createElement("button");
     addBtn.className = "mode-btn glass-border";
     addBtn.style.marginTop = "10px";
