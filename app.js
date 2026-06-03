@@ -1229,7 +1229,7 @@ function renderProgramView(activeIdx = null) {
         `;
 
         const ungroupedGrid = document.createElement("div");
-        ungroupedGrid.style.cssText = "display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 12px 0 4px 0;";
+        ungroupedGrid.style.cssText = "display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 12px 0 4px 0;";
 
         ungroupedPasses.forEach(pass => {
             const passIdx = programData.routine.indexOf(pass);
