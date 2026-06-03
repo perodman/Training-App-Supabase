@@ -2015,6 +2015,16 @@ function handleInputBlur(el) {
     }
 }
 
+function flushFocusedInputs() {
+    document.querySelectorAll('.log-input').forEach(el => {
+        if (el.dataset.prevValue !== undefined && el.value === '') {
+            el.value = el.dataset.prevValue;
+            el.placeholder = '';
+            delete el.dataset.prevValue;
+        }
+    });
+}
+
 async function updateSetDataOnly(exIdx, setIdx) {
   const wInp = document.getElementById(`w-${exIdx}-${setIdx}`);
   const rInp = document.getElementById(`r-${exIdx}-${setIdx}`);
@@ -2080,17 +2090,18 @@ async function updateSetDataOnly(exIdx, setIdx) {
 }
 
 async function confirmSet(exIdx, setIdx) {
+    // Återställ alla fält som är i "focus-läge" (tomma med värdet i placeholder)
+    flushFocusedInputs();
+
     // 1. Hämta vilofältet från skärmen
     const vInp = document.getElementById(`v-${exIdx}-${setIdx}`);
     
     // 2. Om fältet finns, spara värdet i activeDraft innan vi låser
     if (vInp) activeDraft.data[exIdx].sets_data[setIdx].rest = vInp.value;
 
-    // --- Här är din befintliga kod ---
     const currentState = activeDraft.data[exIdx].sets_data[setIdx].userConfirmed;
     activeDraft.data[exIdx].sets_data[setIdx].userConfirmed = !currentState;
-
-    await persistActiveWorkout(); // Synkar vid klarmarkering av set
+    await persistActiveWorkout();
 
     //  ✅  Uppdatera BARA det berörda övningskortet (inte hela listan)
     updateSingleExerciseCard(exIdx);
