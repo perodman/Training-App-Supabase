@@ -1485,16 +1485,19 @@ function renderActiveWorkout() {
 
     if (footer) {
         footer.classList.remove("hidden");
-        // Ger "Spara utkast" och "Avsluta pass" ett snyggt mellanrum
+        // Ändrat layouten i footern så att knapparna och checkboxen får plats och har bra mellanrum
         footer.style.display = "flex";
-        footer.style.gap = "15px";
-    }
-
-    const pauseBtn = document.getElementById("pause-workout-btn");
-    if (pauseBtn) {
-        pauseBtn.innerHTML = `Spara utkast  💾 `;
-        pauseBtn.className = "mode-btn save-draft-btn";
-        pauseBtn.onclick = saveDraftAndGoHome;
+        footer.style.alignItems = "center";
+        footer.style.gap = "12px";
+        
+        // Här bygger vi om innehållet i footern för att trycka in en checkbox till höger om Avsluta pass
+        footer.innerHTML = `
+            <button id="pause-workout-btn" class="mode-btn save-draft-btn" onclick="saveDraftAndGoHome()" style="flex: 1;">Spara utkast  💾 </button>
+            <div style="display: flex; align-items: center; gap: 8px; flex: 1; background: rgba(255,255,255,0.05); padding: 2px 10px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+                <button class="mode-btn green" onclick="finishWorkout()" style="width: 100%; background: none !important; border: none !important; padding: 10px 0 !important; box-shadow: none !important; color: #22c55e; font-weight: bold;">Avsluta pass</button>
+                <input type="checkbox" id="workout-lock-check" style="width: 18px; height: 18px; cursor: pointer; accent-color: #22c55e;">
+            </div>
+        `;
     }
 
     if (!activeDraft.ui_state) {
@@ -1625,19 +1628,17 @@ function renderActiveWorkout() {
 
     const addBtn = document.createElement("button");
     addBtn.className = "mode-btn glass-border";
-    addBtn.style.cssText = "margin-top:10px; border: 2px dashed rgba(34, 211, 238, 0.4); color: var(--primary); background: rgba(34, 211, 238, 0.04); font-weight: 700; width:100%;";
+    // ÄNDRING 1: Lade till margin-bottom: 90px; så att listans sista knapp får ett rejält avstånd till footern när man scrollar till botten
+    addBtn.style.cssText = "margin-top:10px; margin-bottom: 90px; border: 2px dashed rgba(34, 211, 238, 0.4); color: var(--primary); background: rgba(34, 211, 238, 0.04); font-weight: 700; width:100%;";
     addBtn.innerHTML = " ➕ Lägg till övning";
     addBtn.onclick = openCustomAddExerciseModal;
     list.appendChild(addBtn);
 
-    // HÄR LÖSER VI DET: Vi lägger till raderaknappen direkt i huvudvyn istället för i träningslistan
     const viewContainer = document.getElementById("workout-view");
     if (viewContainer) {
-        // Ta bort ett eventuellt gammalt raderablock om det redan finns, så det inte blir dubbletter
         const oldContainer = document.getElementById("discard-button-container");
         if (oldContainer) oldContainer.remove();
 
-        // Skapa en ny, ren container som vi tvingar att ligga i botten med marginal
         const discardContainer = document.createElement("div");
         discardContainer.id = "discard-button-container";
         discardContainer.style.cssText = "width: 100%; padding: 0 10px; margin-top: 40px; margin-bottom: 20px; box-sizing: border-box;";
@@ -1649,14 +1650,11 @@ function renderActiveWorkout() {
         discardBtn.onclick = confirmDiscardActiveWorkout;
 
         discardContainer.appendChild(discardBtn);
-        
-        // Sätt in den i vyn, precis ovanför footern
         viewContainer.appendChild(discardContainer);
     }
 
     showView("workout-view");
 
-    // SCROLL-LOGIK
     if (isReturning && openExercises.length > 0 && !window._suppressAutoScroll) {
         const firstOpenIndex = openExercises.slice().sort((a, b) => a - b)[0];
         setTimeout(() => {
