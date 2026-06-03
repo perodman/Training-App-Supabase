@@ -360,9 +360,9 @@ function openEditExerciseModal(id) {
         { id: "Armar", icon: " 💪 " },
         { id: "Bål", icon: " 🧘 " }
     ];
-    body.innerHTML = `
+   body.innerHTML = `
         <h3 style="text-align:center; margin-bottom: 20px;">Redigera Övning</h3>
-        <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 10px; min-height: 400px;">
             <div style="width: 100%; max-width: 300px; margin-bottom: 10px;">
                 <label style="font-size:11px; color:var(--text-light); text-transform: uppercase; letter-spacing: 1px; display:block; margin-bottom: 8px; text-align: center;">Namn på övning</label>
                 <input type="text" id="edit-ex-name" class="log-input" value="${ex.name}" style="text-align: center;">
@@ -382,7 +382,8 @@ function openEditExerciseModal(id) {
                 </div>
             </div>
             <button class="mode-btn blue" style="width: 100%; max-width: 300px; margin-top: 15px;" id="update-exercise-confirm-btn">Uppdatera</button>
-            <button class="mode-btn" style="color:var(--danger); background:none; font-size:13px; margin-top: 15px; padding: 5px;" onclick="deleteMasterExercise(${id})">Radera övning permanent</button>
+            
+            <button class="mode-btn glass-border" style="color:var(--danger); background:none; font-size:13px; margin-top: auto; padding: 5px; pt-3; width: 100%; max-width: 300px;" onclick="deleteMasterExercise(${id})">Radera övning permanent</button>
         </div>
         <style>
             .cat-select-item.active {
