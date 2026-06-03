@@ -361,19 +361,19 @@ function openEditExerciseModal(id) {
         { id: "Bål", icon: " 🧘 " }
     ];
    body.innerHTML = `
-        <h3 style="text-align:center; margin-bottom: 20px;">Skapa Ny Övning</h3>
+        <h3 style="text-align:center; margin-bottom: 20px;">Redigera Övning</h3>
         <div style="display: flex; flex-direction: column; align-items: center; gap: 10px; min-height: 480px; box-sizing: border-box;">
-            <div style="width: 100%; max-width: 300px;">
+            <div style="width: 100%; max-width: 300px; margin-bottom: 10px;">
                 <label style="font-size:11px; color:var(--text-light); text-transform: uppercase; letter-spacing: 1px; display:block; margin-bottom: 8px; text-align: center;">Namn på övning</label>
-                <input type="text" id="new-ex-name" class="log-input" placeholder="T.ex. Knäböj" style="text-align: center;">
+                <input type="text" id="edit-ex-name" class="log-input" value="${ex.name}" style="text-align: center;">
             </div>
             <div style="width: 100%;">
                 <label style="font-size:11px; color:var(--text-light); text-transform: uppercase; letter-spacing: 1px; display:block; margin-bottom: 12px; text-align: center;">Välj Kategori</label>
-                <div id="category-selector-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 0 10px;">
+                <div id="edit-category-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 0 10px;">
                     ${categories.map(cat => `
                     <div class="cat-select-item ${cat.id === selectedCategory ? 'active' : ''}"
-                        onclick="window.selectModalCategory('${cat.id}')"
-                        id="modal-cat-${cat.id}"
+                        onclick="window.selectEditModalCategory('${cat.id}')"
+                        id="edit-modal-cat-${cat.id}"
                         style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 12px 5px; border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.2s ease;">
                         <div style="font-size: 20px; margin-bottom: 4px;">${cat.icon}</div>
                         <div style="font-size: 10px; font-weight: 700; color: var(--text-light);">${cat.id}</div>
@@ -382,18 +382,18 @@ function openEditExerciseModal(id) {
                 </div>
             </div>
             
-            <button id="save-new-ex-btn" class="mode-btn blue main-action" style="width: 100%; max-width: 300px; margin-top: 20px;">
+            <button id="update-exercise-confirm-btn" class="mode-btn blue main-action" style="width: 100%; max-width: 300px; margin-top: 20px;">
                 <span class="btn-icon">💾</span>
                 <div class="btn-text-container">
-                    <span class="btn-main-text">Spara Övning</span>
-                    <span class="btn-sub-text">Lägg till i listan</span>
+                    <span class="btn-main-text">Uppdatera</span>
+                    <span class="btn-sub-text">Spara ändringar</span>
                 </div>
             </button>
             
             <button class="mode-btn glass-border" onclick="deleteMasterExercise(${id})" style="width: 100%; max-width: 300px; margin-top: auto; border-color: rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.05);">
                 <span class="btn-icon" style="color: var(--danger);">🗑️</span>
                 <div class="btn-text-container">
-                    <span class="btn-main-text" style="color: var(--danger);">Radera permanent</span>
+                    <span class="btn-main-text" style="color: var(--danger);">Radera övning permanent</span>
                     <span class="btn-sub-text" style="color: rgba(239, 68, 68, 0.6);">Går ej att ångra</span>
                 </div>
             </button>
