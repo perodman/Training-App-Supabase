@@ -1485,17 +1485,17 @@ function renderActiveWorkout() {
 
     if (footer) {
         footer.classList.remove("hidden");
-        // Ändrat layouten i footern så att knapparna och checkboxen får plats och har bra mellanrum
+        // Behåller flexbox för layouten men ser till att knapparna inte krockar
         footer.style.display = "flex";
         footer.style.alignItems = "center";
         footer.style.gap = "12px";
         
-        // Här bygger vi om innehållet i footern för att trycka in en checkbox till höger om Avsluta pass
+        // HÄR ÄR RÄTT DESIGN: Knapparna har kvar sina originalklasser och utseende, checkboxen ligger diskret till höger
         footer.innerHTML = `
             <button id="pause-workout-btn" class="mode-btn save-draft-btn" onclick="saveDraftAndGoHome()" style="flex: 1;">Spara utkast  💾 </button>
-            <div style="display: flex; align-items: center; gap: 8px; flex: 1; background: rgba(255,255,255,0.05); padding: 2px 10px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
-                <button class="mode-btn green" onclick="finishWorkout()" style="width: 100%; background: none !important; border: none !important; padding: 10px 0 !important; box-shadow: none !important; color: #22c55e; font-weight: bold;">Avsluta pass</button>
-                <input type="checkbox" id="workout-lock-check" style="width: 18px; height: 18px; cursor: pointer; accent-color: #22c55e;">
+            <div style="display: flex; align-items: center; gap: 10px; flex: 1;">
+                <button class="mode-btn green" onclick="finishWorkout()" style="flex: 1; font-weight: bold;">Avsluta pass</button>
+                <input type="checkbox" id="workout-lock-check" style="width: 20px; height: 20px; cursor: pointer; accent-color: #22c55e; flex-shrink: 0;">
             </div>
         `;
     }
@@ -1628,8 +1628,8 @@ function renderActiveWorkout() {
 
     const addBtn = document.createElement("button");
     addBtn.className = "mode-btn glass-border";
-    // ÄNDRING 1: Lade till margin-bottom: 90px; så att listans sista knapp får ett rejält avstånd till footern när man scrollar till botten
-    addBtn.style.cssText = "margin-top:10px; margin-bottom: 90px; border: 2px dashed rgba(34, 211, 238, 0.4); color: var(--primary); background: rgba(34, 211, 238, 0.04); font-weight: 700; width:100%;";
+    // FIX 1: Ändrat margin-bottom från 90px till 25px för ett helt normalt och lagom mellanrum till bottenknapparna
+    addBtn.style.cssText = "margin-top:10px; margin-bottom: 25px; border: 2px dashed rgba(34, 211, 238, 0.4); color: var(--primary); background: rgba(34, 211, 238, 0.04); font-weight: 700; width:100%;";
     addBtn.innerHTML = " ➕ Lägg till övning";
     addBtn.onclick = openCustomAddExerciseModal;
     list.appendChild(addBtn);
