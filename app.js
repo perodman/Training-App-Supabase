@@ -1509,7 +1509,17 @@ function renderActiveWorkout() {
         if (typeof persistActiveWorkout === 'function') persistActiveWorkout();
     }
 
-    const openExercises = activeDraft.ui_state.openExercises;
+   let openExercises = activeDraft.ui_state.openExercises;
+ 
+// FIX: Om alla övningar är stängda, öppna första icke-klara övningen
+if (!openExercises || openExercises.length === 0) {
+    const firstIncomplete = activeDraft.data.findIndex(ex => !ex.isCompleted);
+    if (firstIncomplete !== -1) {
+        openExercises = [firstIncomplete];
+        activeDraft.ui_state.openExercises = openExercises;
+        persistActiveWorkout();
+    }
+}
     
     if (activeDraft.workout.exercises && activeDraft.workout.exercises.length > 0) {
         activeDraft.workout.exercises.forEach((ex, i) => {
