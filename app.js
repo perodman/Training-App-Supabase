@@ -1402,19 +1402,23 @@ async function startWorkout(workout, data = null, date = null, isImmediateStart 
                         set.userConfirmed = false;
                     });
                 }
-                // Fixad variabelreferens från din inskickade kod (sets_historyCopy -> sets_data)
                 return { sets_data: historyCopy, isCompleted: false };
             }
             return { sets_data: [{ weight: "", reps: "" }, { weight: "", reps: "" }, { weight: "", reps: "" }], isCompleted: false };
         });
     }
+
+    // Bevara befintligt ui_state om passet redan har ett (återkomst till pågående pass)
+    const existingUiState = (activeDraft && activeDraft.ui_state) ? activeDraft.ui_state : null;
+
     activeDraft = {
         workout: JSON.parse(JSON.stringify(workout)),
         data,
         date: date || new Date().toISOString().split('T')[0],
         secondsElapsed: secondsElapsed,
         isStarted: true,
-        wasTimerRunning: true
+        wasTimerRunning: true,
+        ui_state: existingUiState || {}
     };
 
     // Sparar det skapade passutkastet direkt till både localStorage och Supabase
