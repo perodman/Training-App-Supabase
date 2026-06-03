@@ -1486,6 +1486,8 @@ function renderActiveWorkout() {
         pauseBtn.className = "mode-btn save-draft-btn";
         pauseBtn.onclick = saveDraftAndGoHome;
     }
+    
+    // UPPDATERAD LOGIK: Initiera ui_state korrekt
     if (!activeDraft.ui_state) {
         activeDraft.ui_state = {};
     }
@@ -1493,16 +1495,21 @@ function renderActiveWorkout() {
     if (!activeDraft.ui_state.openExercises) {
         activeDraft.ui_state.openExercises = [];
     }
+    
+    // NYCKELN: Expandera första övningen ENDAST vid allra första starten (inte vid återkomst)
     const isFrittPass = activeDraft.workout.name === "Fritt Pass";
     if (!isFrittPass) {
         if (!activeDraft.ui_state.hasOwnProperty('hasInitializedOpen')) {
+            // Detta är FÖRSTA GÅNGEN passet startas - expandera övning 0
             activeDraft.ui_state.openExercises = [0];
             activeDraft.ui_state.hasInitializedOpen = true;
             if (typeof persistActiveWorkout === 'function') persistActiveWorkout();
         }
+        // Om hasInitializedOpen redan är true, rör INTE openExercises!
     }
 
     const openExercises = activeDraft.ui_state.openExercises;
+    
     if (activeDraft.workout.exercises && activeDraft.workout.exercises.length > 0) {
         activeDraft.workout.exercises.forEach((ex, i) => {
             const exerciseData = activeDraft.data[i];
@@ -1515,7 +1522,7 @@ function renderActiveWorkout() {
             div.style.padding = "0";
             div.style.overflow = "hidden";
             
-            // NYTT: Lägg till unikt ID baserat på index
+            // Lägg till unikt ID baserat på index
             div.id = `exercise-card-${i}`;
 
             const completedSets = exerciseData.sets_data ? exerciseData.sets_data.filter(s => s.userConfirmed).length : 0;
