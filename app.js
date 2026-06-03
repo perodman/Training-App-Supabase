@@ -1509,17 +1509,18 @@ function renderActiveWorkout() {
         if (typeof persistActiveWorkout === 'function') persistActiveWorkout();
     }
 
-   let openExercises = activeDraft.ui_state.openExercises;
+    let openExercises = activeDraft.ui_state.openExercises;
  
-// FIX: Om alla övningar är stängda, öppna första icke-klara övningen
-if (!openExercises || openExercises.length === 0) {
-    const firstIncomplete = activeDraft.data.findIndex(ex => !ex.isCompleted);
-    if (firstIncomplete !== -1) {
-        openExercises = [firstIncomplete];
-        activeDraft.ui_state.openExercises = openExercises;
-        persistActiveWorkout();
+    // FIX: Om inga övningar alls är öppna OCH vi inte har initierat eller har ett pågående tillstånd, öppna första icke-klara övningen
+    if ((!openExercises || openExercises.length === 0) && !activeDraft.ui_state.hasInitializedOpen) {
+        const firstIncomplete = activeDraft.data.findIndex(ex => !ex.isCompleted);
+        if (firstIncomplete !== -1) {
+            openExercises = [firstIncomplete];
+            activeDraft.ui_state.openExercises = openExercises;
+            activeDraft.ui_state.hasInitializedOpen = true;
+            if (typeof persistActiveWorkout === 'function') persistActiveWorkout();
+        }
     }
-}
     
     if (activeDraft.workout.exercises && activeDraft.workout.exercises.length > 0) {
         activeDraft.workout.exercises.forEach((ex, i) => {
@@ -1602,7 +1603,7 @@ if (!openExercises || openExercises.length === 0) {
                     </div>
                 </div>
                 <div style="padding: 0 15px 15px 15px; display: ${isOpen ? 'block' : 'none'}; border-top: 1px solid rgba(255,255,255,0.05);">
-                                        ${setsHtml}
+                                                        ${setsHtml}
                     <button class="mode-border glass-border" style="padding:8px; font-size:11px; margin-top:10px; border-style:dashed; width:100%;" onclick="addSetToExercise(${i})" ${isDone ? 'disabled' : ''}>+ Lägg till set</button>
                     <button class="mode-btn ${isDone ? 'blue' : 'green'}" style="padding:12px; font-size:13px; margin-top:15px; width:100%; font-weight:bold;" onclick="toggleExerciseDone(${i})">
                         ${isDone ? 'Ångra Klar  ↩️ ' : 'Markera övning som klar  ✅ '}
