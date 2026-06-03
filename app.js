@@ -40,6 +40,12 @@ async function initApp() {
     // 3. Återställ timer om ett aktivt utkast pågår lokalt
     if (activeDraft && activeDraft.isStarted) {
         secondsElapsed = activeDraft.secondsElapsed || 0;
+        
+        // NYTT: Initiera ui_state om det saknas
+        if (!activeDraft.ui_state) {
+            activeDraft.ui_state = { openExercises: [] };
+        }
+        
         if (activeDraft.wasTimerRunning) {
             if (typeof startTimer === 'function') startTimer();
         } else {
@@ -1508,6 +1514,9 @@ function renderActiveWorkout() {
             div.className = "card glass" + (isDone ? " exercise-done" : "");
             div.style.padding = "0";
             div.style.overflow = "hidden";
+            
+            // NYTT: Lägg till unikt ID baserat på index
+            div.id = `exercise-card-${i}`;
 
             const completedSets = exerciseData.sets_data ? exerciseData.sets_data.filter(s => s.userConfirmed).length : 0;
             const totalSets = exerciseData.sets_data ? exerciseData.sets_data.length : 0;
@@ -1603,6 +1612,18 @@ function renderActiveWorkout() {
     discardBtn.onclick = confirmDiscardActiveWorkout;
     list.appendChild(discardBtn);
     showView("workout-view");
+    
+    // NYTT: Smart scroll-logik som körs EFTER att DOM:en är färdigbyggd
+    setTimeout(() => {
+        if (activeDraft.ui_state && activeDraft.ui_state.openExercises && activeDraft.ui_state.openExercises.length > 0) {
+            const targetIndex = activeDraft.ui_state.openExercises[0];
+            const targetCard = document.getElementById(`exercise-card-${targetIndex}`);
+            
+            if (targetCard) {
+                targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+    }, 150);
 }
 
 function openCustomAddExerciseModal() {
@@ -1611,8 +1632,6 @@ function openCustomAddExerciseModal() {
 }
 
 async function toggleExercise(index) {
-    const scrollPos = window.scrollY;
-
     if (!activeDraft.ui_state) activeDraft.ui_state = {};
     if (!activeDraft.ui_state.openExercises) {
         activeDraft.ui_state.openExercises = [];
@@ -1623,10 +1642,10 @@ async function toggleExercise(index) {
     } else {
         activeDraft.ui_state.openExercises.push(index);
     }
+    
     // Sparar UI-tillståndet (öppna/stängda övningar) asynkront
     await persistActiveWorkout();
     renderActiveWorkout();
-    window.scrollTo(0, scrollPos);
 }
 
 async function addSetToExercise(exIdx) {
@@ -1653,13 +1672,11 @@ async function removeSetFromExercise(exIdx, setIdx) {
 }
 
 async function toggleExerciseDone(exIdx) {
-    const scrollPos = window.scrollY;
     activeDraft.data[exIdx].isCompleted = !activeDraft.data[exIdx].isCompleted;
 
-    renderActiveWorkout();
-    window.scrollTo(0, scrollPos);
     // Synkar tillståndet för slutförd övning asynkront i bakgrunden
     await persistActiveWorkout();
+    renderActiveWorkout();
 }
 
 async function actuallyStartWorkout() {
