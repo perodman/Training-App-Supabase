@@ -99,64 +99,41 @@ async function loadUserData(isSilent = false) {
             localStorage.setItem("calendarOverrides", JSON.stringify(window.calendarOverrides));
         }
         if (typeof calendarOverrides !== 'undefined') calendarOverrides = window.calendarOverrides;
-            // 5. LADDAR ACTIVE_DRAFT (UPPDATERAD TILL KOLUMNEN 'data')
-    const { data : draftRow, error: draftError } = await supabaseClient
-        .from('active_draft')
-        .select('data')
-        .eq('user_id', currentUser.id)
-        .limit(1)
-        .maybeSingle();
-    
-    if (draftError && draftError.code !== 'PGRST116') {
-        console.error('Fel vid laddning av utkast:', draftError);
-    }
-    
-    // Kontrollerar att vi har en rad och att den har innehåll i kolumnen 'data'
-    if (draftRow && draftRow.data && Object.keys(draftRow.data).length > 0) {
-        // BEVARA ui_state från localStorage (den är mest aktuell)
-        const localDraft = localStorage.getItem("activeWorkoutDraft");
-        let preservedUiState = null;
-        
-        if (localDraft) {
-            try {
-                const parsed = JSON.parse(localDraft);
-                if (parsed.ui_state) {
-                    preservedUiState = parsed.ui_state;
+        // 5. LADDAR ACTIVE_DRAFT (UPPDATERAD TILL KOLUMNEN 'data')
+        const { data : draftRow, error: draftError } = await supabaseClient
+            .from('active_draft')
+            .select('data')
+            .eq('user_id', currentUser.id)
+            .limit(1)
+            .maybeSingle();
+        if (draftError && draftError.code !== 'PGRST116') {
+            console.error('Fel vid laddning av utkast:', draftError);
+        }
+        // Kontrollerar att vi har en rad och att den har innehåll i kolumnen 'data'
+        if (draftRow && draftRow.data && Object.keys(draftRow.data).length > 0) {
+            window.activeDraft = draftRow.data;
+            localStorage.setItem("activeWorkoutDraft", JSON.stringify(window.activeDraft));
+
+            // Synka till app.js om variabeln finns
+            if (typeof activeDraft !== 'undefined') activeDraft = window.activeDraft;
+
+            if (window.activeDraft && window.activeDraft.isStarted) {
+                if (typeof secondsElapsed !== 'undefined') {
+                    secondsElapsed = window.activeDraft.secondsElapsed || 0;
                 }
-            } catch (e) {
-                console.error("Kunde inte läsa ui_state från localStorage:", e);
+                if (window.activeDraft.wasTimerRunning) {
+                    if (typeof startTimer === 'function') startTimer();
+                } else {
+                    if (typeof updateTimerDisplay === 'function') updateTimerDisplay();
+                }
+            }
+        } else {
+            if (!window.activeDraft || !window.activeDraft.isStarted) {
+                window.activeDraft = null;
+                localStorage.removeItem("activeWorkoutDraft");
+                if (typeof activeDraft !== 'undefined') activeDraft = null;
             }
         }
-        
-        window.activeDraft = draftRow.data;
-        
-        // Återställ ui_state från localStorage om den fanns
-        if (preservedUiState) {
-            window.activeDraft.ui_state = preservedUiState;
-        }
-        
-        localStorage.setItem("activeWorkoutDraft", JSON.stringify(window.activeDraft));
-    
-        // Synka till app.js om variabeln finns
-        if (typeof activeDraft !== 'undefined') activeDraft = window.activeDraft;
-    
-        if (window.activeDraft && window.activeDraft.isStarted) {
-            if (typeof secondsElapsed !== 'undefined') {
-                secondsElapsed = window.activeDraft.secondsElapsed || 0;
-            }
-            if (window.activeDraft.wasTimerRunning) {
-                if (typeof startTimer === 'function') startTimer();
-            } else {
-                if (typeof updateTimerDisplay === 'function') updateTimerDisplay();
-            }
-        }
-    } else {
-        if (!window.activeDraft || !window.activeDraft.isStarted) {
-            window.activeDraft = null;
-            localStorage.removeItem("activeWorkoutDraft");
-            if (typeof activeDraft !== 'undefined') activeDraft = null;
-        }
-    }
         console.log(" ✅  All data synkad i loadUserData. Kontrollerar rendering...");
         window.supabaseDataLoadedOnce = true;
 
