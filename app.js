@@ -362,7 +362,7 @@ function openEditExerciseModal(id) {
     ];
    body.innerHTML = `
         <h3 style="text-align:center; margin-bottom: 20px;">Redigera Övning</h3>
-        <div style="display: flex; flex-direction: column; align-items: center; gap: 10px; min-height: 480px; box-sizing: border-box;">
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 10px; min-height: 400px;">
             <div style="width: 100%; max-width: 300px; margin-bottom: 10px;">
                 <label style="font-size:11px; color:var(--text-light); text-transform: uppercase; letter-spacing: 1px; display:block; margin-bottom: 8px; text-align: center;">Namn på övning</label>
                 <input type="text" id="edit-ex-name" class="log-input" value="${ex.name}" style="text-align: center;">
@@ -381,22 +381,9 @@ function openEditExerciseModal(id) {
                     `).join('')}
                 </div>
             </div>
+            <button class="mode-btn blue" style="width: 100%; max-width: 300px; margin-top: 15px;" id="update-exercise-confirm-btn">Uppdatera</button>
             
-            <button id="update-exercise-confirm-btn" class="mode-btn blue main-action" style="width: 100%; max-width: 300px; margin-top: 20px;">
-                <span class="btn-icon">💾</span>
-                <div class="btn-text-container">
-                    <span class="btn-main-text">Uppdatera</span>
-                    <span class="btn-sub-text">Spara ändringar</span>
-                </div>
-            </button>
-            
-            <button class="mode-btn glass-border" onclick="deleteMasterExercise(${id})" style="width: 100%; max-width: 300px; margin-top: auto; border-color: rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.05);">
-                <span class="btn-icon" style="color: var(--danger);">🗑️</span>
-                <div class="btn-text-container">
-                    <span class="btn-main-text" style="color: var(--danger);">Radera övning permanent</span>
-                    <span class="btn-sub-text" style="color: rgba(239, 68, 68, 0.6);">Går ej att ångra</span>
-                </div>
-            </button>
+            <button class="mode-btn glass-border" style="color:var(--danger); background:none; font-size:13px; margin-top: auto; padding: 5px; width: 100%; max-width: 300px;" onclick="deleteMasterExercise(${id})">Radera övning permanent</button>
         </div>
         <style>
             .cat-select-item.active {
