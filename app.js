@@ -1284,7 +1284,7 @@ function openCreateProgramModal() {
     const body = document.getElementById("modal-body");
     body.innerHTML = `
         <h3>Skapa Nytt Pass</h3>
-        <label style="font-size:12px; color:var(--text-light); text-align:left; display:block; margin-left:10px;">NAMN PÅ PASS</label>
+        <label style="font-size:12px; color:var(--text-light); text-align:center; display:block;">NAMN PÅ PASS</label>
         <input type="text" id="new-pass-name" class="log-input" placeholder="T.ex. Överkropp Deluxe">
         <button class="mode-btn blue" onclick="saveNewProgram()">Spara och Redigera</button>
     `;
