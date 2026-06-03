@@ -1114,6 +1114,11 @@ function showProgramDetails(idx) {
 function renderExercisePickerForEdit(idx, category = "Ben") {
     const container = document.getElementById("modal-exercise-picker-container");
     if (!container) return;
+
+    // HÄR SPARAR VI SCROLLPOSITIONEN: Kollar var användaren är just nu innan vi ritar om
+    const modalContent = document.querySelector('.modal-content');
+    const currentScrollTop = modalContent ? modalContent.scrollTop : 0;
+
     const categories = [
         { name: "Ben", icon: " 🦵 " },
         { name: "Bröst", icon: " 🏋️ " },
@@ -1132,7 +1137,7 @@ function renderExercisePickerForEdit(idx, category = "Ben") {
         html += `
         <button onclick="renderExercisePickerForEdit(${idx}, '${cat.name}')"
             style="padding:10px 5px; font-size:11px; border-radius:12px; border:1px solid ${isActive ? 'var(--primary)' : 'rgba(255,255,255,0.1)'};
-            background:${isActive ? 'rgba(34, 211, 238, 0.1)' : 'var(--card)'}; color:${isActive ? 'var(--primary)' : 'white'}; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:4px;">
+            background:${isActive ? 'rgba(34, 197, 94, 0.15)' : 'var(--card)'}; color:${isActive ? '#22c55e' : 'white'}; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:4px; font-weight: ${isActive ? 'bold' : 'normal'};">
             <span style="font-size:16px;">${cat.icon}</span> ${cat.name}
         </button>`;
     });
@@ -1154,17 +1159,20 @@ function renderExercisePickerForEdit(idx, category = "Ben") {
         </div>`;
     });
     html += `</div>`;
+    
     container.innerHTML = html;
+
+    // ÅTERSTÄLL SCROLLPOSITIONEN: Här sätter vi tillbaka modalen exakt där användaren var
     setTimeout(() => {
-        const modalContent = document.querySelector('.modal-content');
-        if (modalContent) {
-            modalContent.scrollTop = 0;
+        const modalContentToScroll = document.querySelector('.modal-content');
+        if (modalContentToScroll) {
+            modalContentToScroll.scrollTop = currentScrollTop;
         }
         const list = document.getElementById("exercise-picker-list");
         if (list) {
-            list.scrollTop = 0;
+            list.scrollTop = 0; // Den interna lilla listan kan nollställas så den startar i toppen av sin kategori
         }
-    }, 50);
+    }, 10);
 }
 
 // SKICKAR VALD ÖVNING ASYNKRONT IN I PROGRAMRUTINEN
