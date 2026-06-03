@@ -2026,67 +2026,55 @@ function flushFocusedInputs() {
 }
 
 async function updateSetDataOnly(exIdx, setIdx) {
-  const wInp = document.getElementById(`w-${exIdx}-${setIdx}`);
-  const rInp = document.getElementById(`r-${exIdx}-${setIdx}`);
-  if (!wInp || !rInp) return;
- 
-  if (!activeDraft || !activeDraft.data || !activeDraft.data[exIdx]) return;
-  const setsArray = activeDraft.data[exIdx].sets_data || [];
-  
-  // Säkra att objektet finns i arrayen
-  setsArray[setIdx] = Object.assign({}, setsArray[setIdx] || {});
-  const setObj = setsArray[setIdx];
+    const wInp = document.getElementById(`w-${exIdx}-${setIdx}`);
+    const rInp = document.getElementById(`r-${exIdx}-${setIdx}`);
+    if (!wInp || !rInp) return;
 
-  // Spara vad som fanns i Set 1 innan du tryckte på tangenten (för både KG och Reps)
-  const oldWeight = setObj.weight || "";
-  const oldReps = setObj.reps || "";
- 
-  // Uppdatera Set 1 med det nya du skrev på skärmen
-  setObj.weight = wInp.value;
-  setObj.reps = rInp.value;
-  if (typeof setObj.userConfirmed === "undefined") setObj.userConfirmed = false;
- 
-  // Autofyll-logik: Körs BARA om du skriver i det första setet (index 0)
-  if (setIdx === 0) {
-    
-    // 1. Kolla om efterföljande KG-fält är tomma eller matchar det gamla KG-värdet
-    const shouldCopyWeight = setsArray.slice(1).every(s => {
-      const currentW = s.weight || "";
-      return currentW === "" || currentW === oldWeight;
-    });
+    if (!activeDraft || !activeDraft.data || !activeDraft.data[exIdx]) return;
+    const setsArray = activeDraft.data[exIdx].sets_data || [];
 
-    // 2. Kolla om efterföljande REPS-fält är tomma eller matchar det gamla REPS-värdet
-    const shouldCopyReps = setsArray.slice(1).every(s => {
-      const currentR = s.reps || "";
-      return currentR === "" || currentR === oldReps;
-    });
+    setsArray[setIdx] = Object.assign({}, setsArray[setIdx] || {});
+    const setObj = setsArray[setIdx];
 
-    // Loopa igenom efterföljande set och uppdatera det spår som är godkänt
-    for (let i = 1; i < setsArray.length; i++) {
-      setsArray[i] = Object.assign({}, setsArray[i] || {});
-      
-      // Kopiera KG om det spåret är godkänt (orört)
-      if (shouldCopyWeight) {
-        setsArray[i].weight = setObj.weight;
-        const wEl = document.getElementById(`w-${exIdx}-${i}`);
-        if (wEl) wEl.value = setObj.weight || "";
-      }
+    setObj.weight = wInp.value;
+    setObj.reps = rInp.value;
+    if (typeof setObj.userConfirmed === "undefined") setObj.userConfirmed = false;
 
-      // Kopiera REPS om det spåret är godkänt (orört)
-      if (shouldCopyReps) {
-        setsArray[i].reps = setObj.reps;
-        const rEl = document.getElementById(`r-${exIdx}-${i}`);
-        if (rEl) rEl.value = setObj.reps || "";
-      }
+    // Autofyll-logik: Körs BARA om du skriver i det första setet (index 0)
+    if (setIdx === 0) {
 
-      // Om något av spåren kopierades, nollställ bekräftelsen så det sparas rätt
-      if (shouldCopyWeight || shouldCopyReps) {
-        setsArray[i].userConfirmed = false;
-      }
+        // Kopiera KG endast om ALLA efterföljande set har helt tomt kg-fält
+        const shouldCopyWeight = setsArray.slice(1).every(s => {
+            return (s.weight === "" || s.weight === null || s.weight === undefined);
+        });
+
+        // Kopiera REPS endast om ALLA efterföljande set har helt tomt reps-fält
+        const shouldCopyReps = setsArray.slice(1).every(s => {
+            return (s.reps === "" || s.reps === null || s.reps === undefined);
+        });
+
+        for (let i = 1; i < setsArray.length; i++) {
+            setsArray[i] = Object.assign({}, setsArray[i] || {});
+
+            if (shouldCopyWeight) {
+                setsArray[i].weight = setObj.weight;
+                const wEl = document.getElementById(`w-${exIdx}-${i}`);
+                if (wEl) wEl.value = setObj.weight || "";
+            }
+
+            if (shouldCopyReps) {
+                setsArray[i].reps = setObj.reps;
+                const rEl = document.getElementById(`r-${exIdx}-${i}`);
+                if (rEl) rEl.value = setObj.reps || "";
+            }
+
+            if (shouldCopyWeight || shouldCopyReps) {
+                setsArray[i].userConfirmed = false;
+            }
+        }
     }
-  }
- 
-  debouncedPersistActiveWorkout();
+
+    debouncedPersistActiveWorkout();
 }
 
 async function confirmSet(exIdx, setIdx) {
