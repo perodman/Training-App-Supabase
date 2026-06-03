@@ -381,9 +381,10 @@ function openEditExerciseModal(id) {
                     `).join('')}
                 </div>
             </div>
+            
             <button class="mode-btn blue" style="width: 100%; max-width: 300px; margin-top: 15px;" id="update-exercise-confirm-btn">Uppdatera</button>
             
-            <button class="mode-btn glass-border" style="color:var(--danger); background:none; font-size:13px; margin-top: auto; padding: 5px; width: 100%; max-width: 300px;" onclick="deleteMasterExercise(${id})">Radera övning permanent</button>
+            <button class="mode-btn glass-border" style="color:var(--danger); background:none; margin-top: auto; width: 100%; max-width: 300px;" onclick="deleteMasterExercise(${id})">Radera övning permanent</button>
         </div>
         <style>
             .cat-select-item.active {
