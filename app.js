@@ -2040,36 +2040,39 @@ async function updateSetDataOnly(exIdx, setIdx) {
     setObj.reps = rInp.value;
     if (typeof setObj.userConfirmed === "undefined") setObj.userConfirmed = false;
 
-    // Autofyll-logik körs fördröjt via debounce så att hela talet hinner skrivas klart
+    // Autofyll-logik: Kopiera direkt till DOM för omedelbar visuell feedback,
+    // men spara till activeDraft först när användaren slutat skriva (via debounce-timern nedan)
     if (setIdx === 0) {
+        const shouldCopyWeight = setsArray.slice(1).every(s => {
+            return (s.weight === "" || s.weight === null || s.weight === undefined);
+        });
+
+        const shouldCopyReps = setsArray.slice(1).every(s => {
+            return (s.reps === "" || s.reps === null || s.reps === undefined);
+        });
+
+        for (let i = 1; i < setsArray.length; i++) {
+            if (shouldCopyWeight) {
+                const wEl = document.getElementById(`w-${exIdx}-${i}`);
+                if (wEl) wEl.value = wInp.value || "";
+            }
+            if (shouldCopyReps) {
+                const rEl = document.getElementById(`r-${exIdx}-${i}`);
+                if (rEl) rEl.value = rInp.value || "";
+            }
+        }
+
+        // Spara det slutgiltiga värdet till activeDraft efter att användaren slutat skriva
         clearTimeout(updateSetDataOnly._copyTimer);
         updateSetDataOnly._copyTimer = setTimeout(() => {
-            const currentWeight = wInp.value;
-            const currentReps = rInp.value;
-
-            const shouldCopyWeight = setsArray.slice(1).every(s => {
-                return (s.weight === "" || s.weight === null || s.weight === undefined);
-            });
-
-            const shouldCopyReps = setsArray.slice(1).every(s => {
-                return (s.reps === "" || s.reps === null || s.reps === undefined);
-            });
-
             for (let i = 1; i < setsArray.length; i++) {
                 setsArray[i] = Object.assign({}, setsArray[i] || {});
-
                 if (shouldCopyWeight) {
-                    setsArray[i].weight = currentWeight;
-                    const wEl = document.getElementById(`w-${exIdx}-${i}`);
-                    if (wEl) wEl.value = currentWeight || "";
+                    setsArray[i].weight = wInp.value;
                 }
-
                 if (shouldCopyReps) {
-                    setsArray[i].reps = currentReps;
-                    const rEl = document.getElementById(`r-${exIdx}-${i}`);
-                    if (rEl) rEl.value = currentReps || "";
+                    setsArray[i].reps = rInp.value;
                 }
-
                 if (shouldCopyWeight || shouldCopyReps) {
                     setsArray[i].userConfirmed = false;
                 }
