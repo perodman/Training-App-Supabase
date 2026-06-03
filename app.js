@@ -384,7 +384,7 @@ function openEditExerciseModal(id) {
             
             <button class="mode-btn blue" style="width: 100%; max-width: 300px; margin-top: 15px;" id="update-exercise-confirm-btn">Uppdatera</button>
             
-            <button class="mode-btn glass-border" style="color:var(--danger); background:none; margin-top: auto; width: 100%; max-width: 300px;" onclick="deleteMasterExercise(${id})">Radera övning permanent</button>
+            <button class="mode-btn" style="color:var(--danger); background:none; font-size:14px; margin-top: auto;" onclick="deleteMasterExercise(${id})">Radera övning permanent</button>
         </div>
         <style>
             .cat-select-item.active {
