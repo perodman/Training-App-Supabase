@@ -1147,7 +1147,7 @@ function renderProgramView(activeIdx = null) {
 
         // Grid med passen i gruppen
         const passGrid = document.createElement("div");
-        passGrid.style.cssText = "display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 12px 0 4px 0;";
+        passGrid.style.cssText = "display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 12px 0 4px 0;";
 
         passesInGroup.forEach(pass => {
             const passIdx = programData.routine.indexOf(pass);
