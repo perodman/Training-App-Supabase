@@ -2040,38 +2040,41 @@ async function updateSetDataOnly(exIdx, setIdx) {
     setObj.reps = rInp.value;
     if (typeof setObj.userConfirmed === "undefined") setObj.userConfirmed = false;
 
-    // Autofyll-logik: Körs BARA om du skriver i det första setet (index 0)
+    // Autofyll-logik körs fördröjt via debounce så att hela talet hinner skrivas klart
     if (setIdx === 0) {
+        clearTimeout(updateSetDataOnly._copyTimer);
+        updateSetDataOnly._copyTimer = setTimeout(() => {
+            const currentWeight = wInp.value;
+            const currentReps = rInp.value;
 
-        // Kopiera KG endast om ALLA efterföljande set har helt tomt kg-fält
-        const shouldCopyWeight = setsArray.slice(1).every(s => {
-            return (s.weight === "" || s.weight === null || s.weight === undefined);
-        });
+            const shouldCopyWeight = setsArray.slice(1).every(s => {
+                return (s.weight === "" || s.weight === null || s.weight === undefined);
+            });
 
-        // Kopiera REPS endast om ALLA efterföljande set har helt tomt reps-fält
-        const shouldCopyReps = setsArray.slice(1).every(s => {
-            return (s.reps === "" || s.reps === null || s.reps === undefined);
-        });
+            const shouldCopyReps = setsArray.slice(1).every(s => {
+                return (s.reps === "" || s.reps === null || s.reps === undefined);
+            });
 
-        for (let i = 1; i < setsArray.length; i++) {
-            setsArray[i] = Object.assign({}, setsArray[i] || {});
+            for (let i = 1; i < setsArray.length; i++) {
+                setsArray[i] = Object.assign({}, setsArray[i] || {});
 
-            if (shouldCopyWeight) {
-                setsArray[i].weight = setObj.weight;
-                const wEl = document.getElementById(`w-${exIdx}-${i}`);
-                if (wEl) wEl.value = setObj.weight || "";
+                if (shouldCopyWeight) {
+                    setsArray[i].weight = currentWeight;
+                    const wEl = document.getElementById(`w-${exIdx}-${i}`);
+                    if (wEl) wEl.value = currentWeight || "";
+                }
+
+                if (shouldCopyReps) {
+                    setsArray[i].reps = currentReps;
+                    const rEl = document.getElementById(`r-${exIdx}-${i}`);
+                    if (rEl) rEl.value = currentReps || "";
+                }
+
+                if (shouldCopyWeight || shouldCopyReps) {
+                    setsArray[i].userConfirmed = false;
+                }
             }
-
-            if (shouldCopyReps) {
-                setsArray[i].reps = setObj.reps;
-                const rEl = document.getElementById(`r-${exIdx}-${i}`);
-                if (rEl) rEl.value = setObj.reps || "";
-            }
-
-            if (shouldCopyWeight || shouldCopyReps) {
-                setsArray[i].userConfirmed = false;
-            }
-        }
+        }, 600);
     }
 
     debouncedPersistActiveWorkout();
