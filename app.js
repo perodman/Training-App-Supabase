@@ -1436,11 +1436,11 @@ function renderActiveWorkout() {
         console.warn(" ⚠️  Inget aktivt utkast tillgängligt.");
         return;
     }
+
     if (activeDraft.data) {
         activeDraft.data.forEach((exerciseData, i) => {
             if (!exerciseData.isCompleted && exerciseData.sets_data) {
                 const isBrandNewAndGhostChecked = exerciseData.sets_data.every(s => s.userConfirmed === true) && !activeDraft.ui_state?.openExercises?.includes(i);
-
                 if (isBrandNewAndGhostChecked && exerciseData.sets_data.length > 0) {
                     exerciseData.sets_data.forEach(set => {
                         set.userConfirmed = false;
@@ -1449,11 +1449,14 @@ function renderActiveWorkout() {
             }
         });
     }
+
     document.getElementById("active-title").textContent = activeDraft.workout.name;
+
     const list = document.getElementById("exercise-list");
     const footer = document.querySelector(".workout-footer");
     if (!list) return;
     list.innerHTML = "";
+
     if (!activeDraft.isStarted) {
         if (footer) footer.classList.add("hidden");
         list.innerHTML = `
@@ -1467,6 +1470,7 @@ function renderActiveWorkout() {
         showView("workout-view");
         return;
     }
+
     if (typeof renderCalendar === 'function') {
         const calendarView = document.getElementById("calendar-view");
         if (calendarView) {
@@ -1476,6 +1480,7 @@ function renderActiveWorkout() {
             calendarView.style.display = originalDisplay;
         }
     }
+
     if (footer) footer.classList.remove("hidden");
 
     const pauseBtn = document.getElementById("pause-workout-btn");
@@ -1484,14 +1489,19 @@ function renderActiveWorkout() {
         pauseBtn.className = "mode-btn save-draft-btn";
         pauseBtn.onclick = saveDraftAndGoHome;
     }
+
     if (!activeDraft.ui_state) {
         activeDraft.ui_state = {};
     }
-
     if (!activeDraft.ui_state.openExercises) {
         activeDraft.ui_state.openExercises = [];
     }
+
     const isFrittPass = activeDraft.workout.name === "Fritt Pass";
+
+    // Håll koll på om detta är en återkomst (hasInitializedOpen är redan true)
+    const isReturning = activeDraft.ui_state.hasOwnProperty('hasInitializedOpen');
+
     if (!isFrittPass) {
         if (!activeDraft.ui_state.hasOwnProperty('hasInitializedOpen')) {
             activeDraft.ui_state.openExercises = [0];
@@ -1501,10 +1511,12 @@ function renderActiveWorkout() {
     }
 
     const openExercises = activeDraft.ui_state.openExercises;
+
     if (activeDraft.workout.exercises && activeDraft.workout.exercises.length > 0) {
         activeDraft.workout.exercises.forEach((ex, i) => {
             const exerciseData = activeDraft.data[i];
             if (!exerciseData) return;
+
             const isDone = exerciseData.isCompleted;
             const isOpen = openExercises.includes(i);
 
@@ -1512,9 +1524,11 @@ function renderActiveWorkout() {
             div.className = "card glass" + (isDone ? " exercise-done" : "");
             div.style.padding = "0";
             div.style.overflow = "hidden";
+            div.id = `exercise-card-${i}`;
 
             const completedSets = exerciseData.sets_data ? exerciseData.sets_data.filter(s => s.userConfirmed).length : 0;
             const totalSets = exerciseData.sets_data ? exerciseData.sets_data.length : 0;
+
             let setsHtml = `<div style="margin-top:10px;">
                 <div style="display:grid; grid-template-columns: 40px 1fr 1fr 1fr 30px; gap:8px; margin-bottom:5px; align-items:center;">
                     <small style="text-align:left; padding-left:5px; color:var(--text-light); font-size:9px; font-weight:700;">SET</small>
@@ -1523,6 +1537,7 @@ function renderActiveWorkout() {
                     <small style="text-align:center; color:var(--text-light); font-size:9px;">VILA (S)</small>
                     <span></span>
                 </div>`;
+
             if (exerciseData.sets_data) {
                 exerciseData.sets_data.forEach((set, sIdx) => {
                     let isLocked = false;
@@ -1536,6 +1551,7 @@ function renderActiveWorkout() {
                     const showSuccess = set.userConfirmed || isDone;
                     let circleColor = showSuccess ? '#22c55e' : (isCurrent ? '#facc15' : '#f59e0b');
                     const statusContent = showSuccess ? ' ✅ ' : `#${sIdx + 1}`;
+
                     setsHtml += `
                     <div style="display:grid; grid-template-columns: 40px 1fr 1fr 1fr 30px; gap:8px; margin-bottom:8px; align-items:center;">
                         <div onclick="${isLocked && !isDone ? '' : `confirmSet(${i}, ${sIdx})`}"
@@ -1550,6 +1566,7 @@ function renderActiveWorkout() {
                         'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})">
                         <button onclick="removeSetFromExercise(${i}, ${sIdx})" style="background:none; border:none; color:var(--danger); font-size:16px; opacity: ${isLocked || showSuccess ? '0.1' : '0.8'};" ${isLocked ? 'disabled' : ''}>×</button>
                     </div>`;
+
                     if (isCurrent) {
                         setsHtml += `
                         <div style="grid-column: 2 / span 3; margin:-4px 0 8px 0; padding-left:2px; opacity:0.8; font-size:10px; color:var(--primary); font-weight:600; letter-spacing:0.3px;">
@@ -1558,6 +1575,7 @@ function renderActiveWorkout() {
                     }
                 });
             }
+
             div.innerHTML = `
                 <div onclick="toggleExercise(${i})" style="padding: 12px 15px; display: flex; align-items: center; cursor: pointer; background: ${isOpen ? 'rgba(250, 204, 21, 0.05)' : 'transparent'}">
                     <div style="display: flex; gap: 4px; margin-right: 12px; flex-shrink: 0;">
@@ -1594,19 +1612,33 @@ function renderActiveWorkout() {
         emptyNotice.innerHTML = "Det här passet är tomt. Klicka på knappen nedan för att lägga till dina övningar!  👇 ";
         list.appendChild(emptyNotice);
     }
+
     const addBtn = document.createElement("button");
     addBtn.className = "mode-btn glass-border";
     addBtn.style.marginTop = "10px";
     addBtn.innerHTML = " ➕ Lägg till övning";
     addBtn.onclick = openCustomAddExerciseModal;
     list.appendChild(addBtn);
+
     const discardBtn = document.createElement("button");
     discardBtn.className = "mode-btn";
     discardBtn.style.cssText = "background:none; color:var(--danger); font-size:14px; margin-top:20px; border:1px solid rgba(239, 68, 68, 0.2);";
     discardBtn.innerHTML = "Radera pass  🗑️ ";
     discardBtn.onclick = confirmDiscardActiveWorkout;
     list.appendChild(discardBtn);
+
     showView("workout-view");
+
+    // SCROLL-LOGIK: Scrolla till första expanderade övningen vid återkomst till pågående pass
+    if (isReturning && openExercises.length > 0) {
+        const firstOpenIndex = openExercises.slice().sort((a, b) => a - b)[0];
+        setTimeout(() => {
+            const targetCard = document.getElementById(`exercise-card-${firstOpenIndex}`);
+            if (targetCard) {
+                targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }, 120);
+    }
 }
 
 function openCustomAddExerciseModal() {
