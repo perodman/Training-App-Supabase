@@ -1505,7 +1505,6 @@ function renderActiveWorkout() {
             const isOpen = openExercises.includes(i);
 
             const div = document.createElement("div");
-            div.id = `exercise-card-${i}`;
             div.className = "card glass" + (isDone ? " exercise-done" : "");
             div.style.padding = "0";
             div.style.overflow = "hidden";
@@ -1603,28 +1602,6 @@ function renderActiveWorkout() {
     discardBtn.innerHTML = "Radera pass  🗑️ ";
     discardBtn.onclick = confirmDiscardActiveWorkout;
     list.appendChild(discardBtn);
-    const openExercisesForScroll =
-        activeDraft?.ui_state?.openExercises || [];
-
-    if (openExercisesForScroll.length > 0) {
-        const targetIndex =
-            openExercisesForScroll[
-                openExercisesForScroll.length - 1
-            ];
-
-        setTimeout(() => {
-            const targetCard = document.getElementById(
-                `exercise-card-${targetIndex}`
-            );
-
-            if (targetCard) {
-                targetCard.scrollIntoView({
-                    behavior: "smooth",
-                    block: "center"
-                });
-            }
-        }, 150);
-    }
     showView("workout-view");
 }
 
@@ -1634,24 +1611,22 @@ function openCustomAddExerciseModal() {
 }
 
 async function toggleExercise(index) {
-    if (!activeDraft.ui_state) {
-        activeDraft.ui_state = {};
-    }
+    const scrollPos = window.scrollY;
 
+    if (!activeDraft.ui_state) activeDraft.ui_state = {};
     if (!activeDraft.ui_state.openExercises) {
         activeDraft.ui_state.openExercises = [];
     }
-
     const openIdx = activeDraft.ui_state.openExercises.indexOf(index);
-
     if (openIdx > -1) {
         activeDraft.ui_state.openExercises.splice(openIdx, 1);
     } else {
-        activeDraft.ui_state.openExercises = [index];
+        activeDraft.ui_state.openExercises.push(index);
     }
-
+    // Sparar UI-tillståndet (öppna/stängda övningar) asynkront
     await persistActiveWorkout();
     renderActiveWorkout();
+    window.scrollTo(0, scrollPos);
 }
 
 async function addSetToExercise(exIdx) {
@@ -1678,21 +1653,12 @@ async function removeSetFromExercise(exIdx, setIdx) {
 }
 
 async function toggleExerciseDone(exIdx) {
-    activeDraft.data[exIdx].isCompleted =
-        !activeDraft.data[exIdx].isCompleted;
-
-    if (!activeDraft.ui_state) {
-        activeDraft.ui_state = {};
-    }
-
-    if (!activeDraft.ui_state.openExercises) {
-        activeDraft.ui_state.openExercises = [];
-    }
-
-    activeDraft.ui_state.openExercises = [exIdx];
+    const scrollPos = window.scrollY;
+    activeDraft.data[exIdx].isCompleted = !activeDraft.data[exIdx].isCompleted;
 
     renderActiveWorkout();
-
+    window.scrollTo(0, scrollPos);
+    // Synkar tillståndet för slutförd övning asynkront i bakgrunden
     await persistActiveWorkout();
 }
 
