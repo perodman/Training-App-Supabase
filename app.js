@@ -1156,7 +1156,6 @@ function renderProgramView(activeIdx = null) {
             passCard.className = `prog-card ${activeIdx === passIdx ? 'active' : ''}`;
             passCard.style.cssText = "position: relative;";
             passCard.innerHTML = `
-               passCard.innerHTML = `
             <div style="font-size:28px;">${icons[passIdx % 4]}</div>
             <h4 style="font-size: 13px; margin: 6px 0 3px 0; line-height: 1.2;">${pass.name}</h4>
             <div style="font-size:10px; color:var(--primary); font-weight:800;">${pass.exercises.length} ÖVN</div>
