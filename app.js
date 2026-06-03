@@ -1485,18 +1485,14 @@ function renderActiveWorkout() {
 
     if (footer) {
         footer.classList.remove("hidden");
-        // Behåller flexbox för layouten men ser till att knapparna inte krockar
         footer.style.display = "flex";
         footer.style.alignItems = "center";
         footer.style.gap = "12px";
         
-        // HÄR ÄR RÄTT DESIGN: Knapparna har kvar sina originalklasser och utseende, checkboxen ligger diskret till höger
+        // Återställt till bara de två originalknapparna med ett snyggt mellanrum emellan
         footer.innerHTML = `
             <button id="pause-workout-btn" class="mode-btn save-draft-btn" onclick="saveDraftAndGoHome()" style="flex: 1;">Spara utkast  💾 </button>
-            <div style="display: flex; align-items: center; gap: 10px; flex: 1;">
-                <button class="mode-btn green" onclick="finishWorkout()" style="flex: 1; font-weight: bold;">Avsluta pass</button>
-                <input type="checkbox" id="workout-lock-check" style="width: 20px; height: 20px; cursor: pointer; accent-color: #22c55e; flex-shrink: 0;">
-            </div>
+            <button class="mode-btn green" onclick="finishWorkout()" style="flex: 1; font-weight: bold;">Avsluta pass</button>
         `;
     }
 
@@ -1628,7 +1624,7 @@ function renderActiveWorkout() {
 
     const addBtn = document.createElement("button");
     addBtn.className = "mode-btn glass-border";
-    // FIX 1: Ändrat margin-bottom från 90px till 25px för ett helt normalt och lagom mellanrum till bottenknapparna
+    // Lagom och snygg marginal under "+ Lägg till övning"
     addBtn.style.cssText = "margin-top:10px; margin-bottom: 25px; border: 2px dashed rgba(34, 211, 238, 0.4); color: var(--primary); background: rgba(34, 211, 238, 0.04); font-weight: 700; width:100%;";
     addBtn.innerHTML = " ➕ Lägg till övning";
     addBtn.onclick = openCustomAddExerciseModal;
