@@ -1617,6 +1617,12 @@ function renderActiveWorkout() {
         list.appendChild(emptyNotice);
     }
 
+    // Tvinga listans container att bli en flexbox med min-height så att botten-push fungerar perfekt
+    list.style.display = "flex";
+    list.style.flexDirection = "column";
+    list.style.gap = "12px"; /* Detta ger ett skönt, jämnt mellanrum mellan alla träningskort/knappar */
+    list.style.minHeight = "calc(100vh - 220px)"; /* Ger containern nog med höjd för att trycka ner raderaknappen */
+
     const addBtn = document.createElement("button");
     addBtn.className = "mode-btn glass-border";
     addBtn.style.cssText = "margin-top:10px; border: 2px dashed rgba(34, 211, 238, 0.4); color: var(--primary); background: rgba(34, 211, 238, 0.04); font-weight: 700;";
@@ -1626,7 +1632,8 @@ function renderActiveWorkout() {
 
     const discardBtn = document.createElement("button");
     discardBtn.className = "mode-btn";
-    discardBtn.style.cssText = "background:none; color:var(--danger); font-size:14px; margin-top:20px; border:1px solid rgba(239, 68, 68, 0.2);";
+    /* margin-top: auto; trycker ner den till absolut botten, och margin-bottom sätter lite extra luft ner till Stäng-knappen */
+    discardBtn.style.cssText = "background:none; color:var(--danger); font-size:14px; margin-top: auto; margin-bottom: 25px; border:1px solid rgba(239, 68, 68, 0.2);";
     discardBtn.innerHTML = "Radera pass  🗑️ ";
     discardBtn.onclick = confirmDiscardActiveWorkout;
     list.appendChild(discardBtn);
@@ -1634,7 +1641,6 @@ function renderActiveWorkout() {
     showView("workout-view");
 
     // SCROLL-LOGIK: Scrolla till första expanderade övningen vid återkomst till pågående pass
-    // Körs INTE om användaren precis manuellt togglade en övning
     if (isReturning && openExercises.length > 0 && !window._suppressAutoScroll) {
         const firstOpenIndex = openExercises.slice().sort((a, b) => a - b)[0];
         setTimeout(() => {
