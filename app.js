@@ -1631,18 +1631,21 @@ function renderActiveWorkout() {
 
     showView("workout-view");
 
-     // SCROLL-LOGIK: Scrolla till första expanderade övningen vid återkomst till pågående pass
+    // SCROLL-LOGIK: Scrolla till första expanderade övningen vid återkomst till pågående pass
     // Körs INTE om användaren precis manuellt togglade en övning
     if (isReturning && openExercises.length > 0 && !window._suppressAutoScroll) {
         const firstOpenIndex = openExercises.slice().sort((a, b) => a - b)[0];
         setTimeout(() => {
+            window._suppressAutoScroll = false;
             const targetCard = document.getElementById(`exercise-card-${firstOpenIndex}`);
             if (targetCard) {
                 targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
         }, 120);
+    } else {
+        window._suppressAutoScroll = false;
     }
-    window._suppressAutoScroll = false;
+}
 
 function openCustomAddExerciseModal() {
     temporarySelectedExercises = [];
