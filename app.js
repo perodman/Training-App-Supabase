@@ -2093,17 +2093,16 @@ async function confirmSet(exIdx, setIdx) {
     // Återställ alla fält som är i "focus-läge" (tomma med värdet i placeholder)
     flushFocusedInputs();
 
-    // 1. Hämta vilofältet från skärmen
+    // Läs kg och reps direkt från activeDraft.data (redan sparat löpande via updateSetDataOnly)
+    // Hämta vilofältet separat från skärmen eftersom det inte alltid triggar oninput
     const vInp = document.getElementById(`v-${exIdx}-${setIdx}`);
-    
-    // 2. Om fältet finns, spara värdet i activeDraft innan vi låser
     if (vInp) activeDraft.data[exIdx].sets_data[setIdx].rest = vInp.value;
 
     const currentState = activeDraft.data[exIdx].sets_data[setIdx].userConfirmed;
     activeDraft.data[exIdx].sets_data[setIdx].userConfirmed = !currentState;
     await persistActiveWorkout();
 
-    //  ✅  Uppdatera BARA det berörda övningskortet (inte hela listan)
+    // Uppdatera BARA det berörda övningskortet (inte hela listan)
     updateSingleExerciseCard(exIdx);
 }
 
@@ -2113,12 +2112,10 @@ function updateSingleExerciseCard(exIdx) {
     const isDone = exerciseData.isCompleted;
     const openExercises = activeDraft.ui_state.openExercises || [];
     const isOpen = openExercises.includes(exIdx);
-
     const list = document.getElementById("exercise-list");
     const cards = list.querySelectorAll(".card.glass");
     const targetCard = cards[exIdx];
     if (!targetCard) return;
-
     const completedSets = exerciseData.sets_data ? exerciseData.sets_data.filter(s => s.userConfirmed).length : 0;
     const totalSets = exerciseData.sets_data ? exerciseData.sets_data.length : 0;
     let setsHtml = `<div style="margin-top:10px;">
@@ -2148,12 +2145,12 @@ function updateSingleExerciseCard(exIdx) {
                     style="width:32px; height:32px; border-radius:50%; border:2px solid ${circleColor}; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:10px; font-weight:800; background: ${showSuccess ? 'rgba(34, 197, 94, 0.2)' : (isCurrent ? 'rgba(250, 204, 21, 0.15)' : 'rgba(245, 158, 11, 0.05)')}; color: ${circleColor}; opacity: 1;">
                     ${statusContent}
                 </div>
-                <input type="text" inputmode="decimal" id="w-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'};" value="${set.weight || ''}" placeholder="" ${isLocked ?
-                        'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
-                        <input type="text" inputmode="decimal" id="r-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'};" value="${set.reps || ''}" placeholder="" ${isLocked ?
-                        'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
-                        <input type="text" inputmode="decimal" id="v-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'}; border-color: rgba(52, 152, 219, 0.3);" value="${set.rest || '90'}" placeholder="" ${isLocked ?
-                        'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
+                <input type="text" inputmode="decimal" id="w-${exIdx}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'};" value="${set.weight || ''}" placeholder="" ${isLocked ?
+                'readonly' : ''} oninput="updateSetDataOnly(${exIdx}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
+                <input type="text" inputmode="decimal" id="r-${exIdx}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'};" value="${set.reps || ''}" placeholder="" ${isLocked ?
+                'readonly' : ''} oninput="updateSetDataOnly(${exIdx}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
+                <input type="text" inputmode="decimal" id="v-${exIdx}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'}; border-color: rgba(52, 152, 219, 0.3);" value="${set.rest || '90'}" placeholder="" ${isLocked ?
+                'readonly' : ''} oninput="updateSetDataOnly(${exIdx}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
                 <button onclick="removeSetFromExercise(${exIdx}, ${sIdx})" style="background:none; border:none; color:var(--danger); font-size:16px; opacity: ${isLocked || showSuccess ? '0.1' : '0.8'};" ${isLocked ? 'disabled' : ''}>×</button>
             </div>`;
             if (isCurrent) {
