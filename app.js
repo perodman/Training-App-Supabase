@@ -1188,7 +1188,7 @@ async function openEditProgramModal(idx) {
 
     body.innerHTML = `
         <h3>Redigera ${pass.name}</h3>
-        <label style="font-size:12px; color:var(--text-light); text-align:left; display:block; margin-left:10px;">NAMN PÅ PASS</label>
+        <label style="font-size:12px; color:var(--text-light); text-align:center; display:block;">NAMN PÅ PASS</label>
         <input type="text" id="edit-pass-name" class="log-input" value="${pass.name}">
 
         <p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin-bottom:10px;">Nuvarande övningar:</p>
