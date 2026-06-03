@@ -1205,7 +1205,7 @@ async function openEditProgramModal(idx) {
         </div>
         <div id="modal-exercise-picker-container"></div>
         <div style="margin-top:15px;">
-            <button class="mode-btn glass-border" style="font-size:13px; padding:10px;" onclick="createNewExForPass(${idx})">+ Skapa helt ny övning till banken</button>
+           <button class="mode-btn glass-border" style="font-size:13px; padding:10px; border: 2px dashed rgba(34, 211, 238, 0.4); color: var(--primary); background: rgba(34, 211, 238, 0.04); font-weight: 700;" onclick="createNewExForPass(${idx})">+ Skapa helt ny övning till banken</button>
         </div>
         <button class="mode-btn blue" style="margin-top:20px;" onclick="saveProgramEdit(${idx})">Spara alla ändringar</button>
         <button class="mode-btn" style="color:var(--danger); background:none; font-size:14px; margin-top:10px;" onclick="deleteEntireProgram(${idx})">Radera pass permanent</button>
@@ -1617,7 +1617,7 @@ function renderActiveWorkout() {
 
     const addBtn = document.createElement("button");
     addBtn.className = "mode-btn glass-border";
-    addBtn.style.marginTop = "10px";
+    addBtn.style.cssText = "margin-top:10px; border: 2px dashed rgba(34, 211, 238, 0.4); color: var(--primary); background: rgba(34, 211, 238, 0.04); font-weight: 700;";
     addBtn.innerHTML = " ➕ Lägg till övning";
     addBtn.onclick = openCustomAddExerciseModal;
     list.appendChild(addBtn);
@@ -1792,7 +1792,7 @@ function renderExercisePicker(category, replaceIndex = null) {
     <button class="mode-btn glass-border"
         style="font-size:13px;"
         onclick="(async () => { await saveDraftState(); openCreateExerciseModal((newEx) => handleInstantExerciseCreated(newEx, ${replaceIndex})); })()">
-        + Skapa ny övning som inte finns
+        + Skapa helt ny övning till banken
     </button>
     `;
 
