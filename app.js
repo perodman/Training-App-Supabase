@@ -1676,30 +1676,27 @@ async function addSetToExercise(exIdx) {
     const newWeight = lastSet ? lastSet.weight : "";
     const newReps = lastSet ? lastSet.reps : "";
     activeDraft.data[exIdx].sets_data.push({ weight: newWeight, reps: newReps });
-
+    window._suppressAutoScroll = true;
     renderActiveWorkout();
     window.scrollTo(0, scrollPos);
-    // Synkar utökningen av set asynkront i bakgrunden
     await persistActiveWorkout();
 }
 
 async function removeSetFromExercise(exIdx, setIdx) {
     const scrollPos = window.scrollY;
     activeDraft.data[exIdx].sets_data.splice(setIdx, 1);
-
+    window._suppressAutoScroll = true;
     renderActiveWorkout();
     window.scrollTo(0, scrollPos);
-    // Synkar borttagningen av set asynkront i bakgrunden
     await persistActiveWorkout();
 }
 
 async function toggleExerciseDone(exIdx) {
     const scrollPos = window.scrollY;
     activeDraft.data[exIdx].isCompleted = !activeDraft.data[exIdx].isCompleted;
-
+    window._suppressAutoScroll = true;
     renderActiveWorkout();
     window.scrollTo(0, scrollPos);
-    // Synkar tillståndet för slutförd övning asynkront i bakgrunden
     await persistActiveWorkout();
 }
 
