@@ -1111,7 +1111,7 @@ function showProgramDetails(idx) {
     `;
 }
 
-function renderExercisePickerForEdit(idx, category = "Ben") {
+Edit(idx, category = "Ben") {
     const container = document.getElementById("modal-exercise-picker-container");
     if (!container) return;
 
@@ -1150,7 +1150,6 @@ function renderExercisePickerForEdit(idx, category = "Ben") {
     }
     
     filtered.forEach(ex => {
-        // Kolla om övningen är markerad i vår batch-array
         const isSelectedInBatch = window.temporarySelectedExercisesForEdit.includes(ex.id);
         const currentBg = isSelectedInBatch ? 'rgba(34, 197, 94, 0.15)' : 'transparent';
         const currentBorder = isSelectedInBatch ? '1px solid #22c55e' : '1px solid rgba(255,255,255,0.08)';
@@ -1165,7 +1164,6 @@ function renderExercisePickerForEdit(idx, category = "Ben") {
     });
     html += `</div>`;
 
-    // Skapar ytan för sammanfattningen (Prelist) precis under listan på samma sätt som i ditt aktiva pass
     html += `<div id="selected-edit-summary-container" style="margin-bottom:15px;">`;
     html += generateSelectedExercisesSummaryHtmlForEdit(idx);
     html += `</div>`;
@@ -1254,11 +1252,22 @@ function confirmAndAddAllSelectedExercisesForEdit(idx) {
         }
     });
 
-    // Töm listan efter importen är klar
     window.temporarySelectedExercisesForEdit = [];
+    localStorage.removeItem('temp_exercise_edit_draft'); // Säkerställ att det är rensat på disken också
 
-    // Rita om hela huvud-modalen för passet så att de nya övningarna syns i listan
     openEditProgramModal(idx);
+}
+
+// NY HJÄLPFUNKTION: Sparar undan de valda övningarna innan vi hoppar iväg till "skapa ny övning"-modalen
+function saveEditDraftStateAndCreateNew(idx) {
+    if (window.temporarySelectedExercisesForEdit.length > 0) {
+        localStorage.setItem('temp_exercise_edit_draft', JSON.stringify(window.temporarySelectedExercisesForEdit));
+    }
+    
+    // Kör din existerande logik för att öppna skapafönstret
+    if (typeof createNewExForPass === 'function') {
+        createNewExForPass(idx);
+    }
 }
 
 // SKICKAR VALD ÖVNING ASYNKRONT IN I PROGRAMRUTINEN
@@ -1284,8 +1293,15 @@ async function openEditProgramModal(idx) {
     const body = document.getElementById("modal-body");
     if (!pass || !body) return;
 
-    // Nollställ batch-listan varje gång vi öppnar ett pass för redigering
-    window.temporarySelectedExercisesForEdit = [];
+    // Kolla om det finns ett sparat utkast i localStorage för denna redigeringssession (så vi inte glömmer bort valda övningar)
+    const savedDraft = localStorage.getItem('temp_exercise_edit_draft');
+    if (savedDraft) {
+        window.temporarySelectedExercisesForEdit = JSON.parse(savedDraft);
+        localStorage.removeItem('temp_exercise_edit_draft'); // Rensa efter återställning
+    } else {
+        // Om det inte var en återgång från "Skapa ny övning", nollställ listan för en ny fräsch session
+        window.temporarySelectedExercisesForEdit = [];
+    }
 
     body.innerHTML = `
         <h3>Redigera ${pass.name}</h3>
@@ -1306,7 +1322,8 @@ async function openEditProgramModal(idx) {
         </div>
         <div id="modal-exercise-picker-container"></div>
         <div style="margin-top:15px;">
-           <button class="mode-btn glass-border" style="font-size:13px; padding:10px; border: 2px dashed rgba(34, 211, 238, 0.4); color: var(--primary); background: rgba(34, 211, 238, 0.04); font-weight: 700;" onclick="createNewExForPass(${idx})">+ Skapa helt ny övning till banken</button>
+           <button class="mode-btn glass-border" style="font-size:13px; padding:10px; border: 2px dashed rgba(34, 211, 238, 0.4); color: var(--primary); background: rgba(34, 211, 238, 0.04); font-weight: 700;" 
+                   onclick="saveEditDraftStateAndCreateNew(${idx})">+ Skapa helt ny övning till banken</button>
         </div>
         <button class="mode-btn blue" style="margin-top:20px;" onclick="saveProgramEdit(${idx})">Spara alla ändringar</button>
         <button class="mode-btn" style="color:var(--danger); background:none; font-size:14px; margin-top:10px;" onclick="deleteEntireProgram(${idx})">Radera pass permanent</button>
