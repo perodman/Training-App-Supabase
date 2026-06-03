@@ -1156,9 +1156,10 @@ function renderProgramView(activeIdx = null) {
             passCard.className = `prog-card ${activeIdx === passIdx ? 'active' : ''}`;
             passCard.style.cssText = "position: relative;";
             passCard.innerHTML = `
-                <div style="font-size:22px;">${icons[passIdx % 4]}</div>
-                <h4 style="font-size: 12px; margin: 4px 0 2px 0;">${pass.name}</h4>
-                <div style="font-size:9px; color:var(--primary); font-weight:800;">${pass.exercises.length} ÖVN</div>
+               passCard.innerHTML = `
+            <div style="font-size:28px;">${icons[passIdx % 4]}</div>
+            <h4 style="font-size: 13px; margin: 6px 0 3px 0; line-height: 1.2;">${pass.name}</h4>
+            <div style="font-size:10px; color:var(--primary); font-weight:800;">${pass.exercises.length} ÖVN</div>
                 <div onclick="event.stopPropagation(); openGroupPickerForPass(${passIdx})"
                     style="position: absolute; top: 6px; right: 6px; font-size: 12px; opacity: 0.5; cursor: pointer; padding: 2px 4px; border-radius: 6px; background: rgba(255,255,255,0.05);">🏷️</div>
             `;
@@ -1238,9 +1239,9 @@ function renderProgramView(activeIdx = null) {
             passCard.className = `prog-card ${activeIdx === passIdx ? 'active' : ''}`;
             passCard.style.cssText = "position: relative;";
             passCard.innerHTML = `
-                <div style="font-size:22px;">${icons[passIdx % 4]}</div>
-                <h4 style="font-size: 12px; margin: 4px 0 2px 0;">${pass.name}</h4>
-                <div style="font-size:9px; color:var(--primary); font-weight:800;">${pass.exercises.length} ÖVN</div>
+            <div style="font-size:28px;">${icons[passIdx % 4]}</div>
+            <h4 style="font-size: 13px; margin: 6px 0 3px 0; line-height: 1.2;">${pass.name}</h4>
+            <div style="font-size:10px; color:var(--primary); font-weight:800;">${pass.exercises.length} ÖVN</div>
                 <div onclick="event.stopPropagation(); openGroupPickerForPass(${passIdx})"
                     style="position: absolute; top: 6px; right: 6px; font-size: 12px; opacity: 0.5; cursor: pointer; padding: 2px 4px; border-radius: 6px; background: rgba(255,255,255,0.05);">🏷️</div>
             `;
@@ -1283,12 +1284,26 @@ function openGroupPickerForPass(passIdx) {
     if (!pass) return;
     if (!Array.isArray(pass.groups)) pass.groups = [];
 
+    // Samla alla egna grupper som finns i programData men inte i PREDEFINED_GROUPS
+    const customGroups = [];
+    programData.routine.forEach(p => {
+        if (Array.isArray(p.groups)) {
+            p.groups.forEach(gId => {
+                if (!PREDEFINED_GROUPS.find(pg => pg.id === gId) && !customGroups.find(cg => cg.id === gId)) {
+                    customGroups.push({ id: gId, name: gId, icon: "📁" });
+                }
+            });
+        }
+    });
+
+    const allGroups = [...PREDEFINED_GROUPS, ...customGroups];
+
     const body = document.getElementById("modal-body");
     body.innerHTML = `
         <h3 style="text-align:center; margin-bottom:8px;">Välj grupp</h3>
         <p style="text-align:center; font-size:12px; color:var(--text-light); margin-bottom:20px;">${pass.name}</p>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;">
-            ${PREDEFINED_GROUPS.map(g => {
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px;">
+            ${allGroups.map(g => {
                 const isSelected = pass.groups.includes(g.id);
                 return `
                 <button onclick="togglePassGroup(${passIdx}, '${g.id}')" id="grouppicker-${g.id}"
@@ -1303,12 +1318,47 @@ function openGroupPickerForPass(passIdx) {
                 </button>`;
             }).join('')}
         </div>
+
+        <div style="display: flex; gap: 8px; margin-bottom: 20px;">
+            <input type="text" id="new-group-input" class="log-input" placeholder="Skapa egen grupp..." 
+                style="margin: 0; flex-grow: 1; font-size: 13px; padding: 10px 14px;">
+            <button onclick="createCustomGroup(${passIdx})"
+                style="padding: 10px 16px; border-radius: 12px; border: 2px dashed rgba(34,211,238,0.4); 
+                background: rgba(34,211,238,0.04); color: var(--primary); font-weight: 700; 
+                font-size: 13px; cursor: pointer; white-space: nowrap;">
+                + Lägg till
+            </button>
+        </div>
+
         <button class="mode-btn glass-border" onclick="closeModal(); renderProgramView();" 
-            style="width:100%; background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.05) 100%); border: 1px solid rgba(255,255,255,0.25); border-top: 1px solid rgba(255,255,255,0.45); box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+            style="width:100%; background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.05) 100%); 
+            border: 1px solid rgba(255,255,255,0.25); border-top: 1px solid rgba(255,255,255,0.45); 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
             Klar
         </button>
     `;
     openModal();
+}
+
+async function createCustomGroup(passIdx) {
+    const input = document.getElementById("new-group-input");
+    const name = input ? input.value.trim() : "";
+    if (!name) return;
+
+    const pass = programData.routine[passIdx];
+    if (!Array.isArray(pass.groups)) pass.groups = [];
+
+    // Använd namnet som id (lowercase, inga mellanslag)
+    const id = name.toLowerCase().replace(/\s+/g, "-");
+
+    if (!pass.groups.includes(id)) {
+        pass.groups.push(id);
+    }
+
+    await saveCustomProgramToSupabase();
+
+    // Öppna pickern igen så den nya gruppen syns
+    openGroupPickerForPass(passIdx);
 }
 
 async function togglePassGroup(passIdx, groupId) {
