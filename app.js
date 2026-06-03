@@ -1199,11 +1199,28 @@ function confirmAndAddAllSelectedExercisesForEdit(idx) {
 }
 
 function saveEditDraftStateAndCreateNew(idx) {
-    if (window.temporarySelectedExercisesForEdit.length > 0) {
-        localStorage.setItem('temp_exercise_edit_draft', JSON.stringify(window.temporarySelectedExercisesForEdit));
-    }
+    // 1. Spara ner de övningar vi redan bockat för till localStorage
+    localStorage.setItem('temp_exercise_edit_draft', JSON.stringify(window.temporarySelectedExercisesForEdit));
     
-    if (typeof createNewExForPass === 'function') {
+    // 2. ÄNDRING: Öppna skapafönstret och skicka med en callback som lägger till den NYA övningen i ditt utkast istället för i passet
+    if (typeof openCreateExerciseModal === 'function') {
+        openCreateExerciseModal((newEx) => {
+            const saved = localStorage.getItem('temp_exercise_edit_draft');
+            let currentDraft = saved ? JSON.parse(saved) : [];
+            
+            // Pusha den nya övningens ID till utkast-listan (prelist)
+            if (newEx && newEx.id) {
+                currentDraft.push(newEx.id);
+            }
+            
+            // Spara det uppdaterade utkastet
+            localStorage.setItem('temp_exercise_edit_draft', JSON.stringify(currentDraft));
+            
+            // Gå tillbaka till redigeringen – nu ligger även den nya övningen i din prelist!
+            openEditProgramModal(idx);
+        });
+    } else if (typeof createNewExForPass === 'function') {
+        // Fallback om ditt projekt använder det gamla funktionsnamnet
         createNewExForPass(idx);
     }
 }
@@ -1229,13 +1246,13 @@ async function openEditProgramModal(idx) {
     const body = document.getElementById("modal-body");
     if (!pass || !body) return;
 
-    // Återställ utkastet om du precis har skapat en ny övning till banken
+    // ÄNDRING: Hämta utkastet (inklusive den nyskapade övningen om du kommer därifrån)
     const savedDraft = localStorage.getItem('temp_exercise_edit_draft');
     if (savedDraft) {
         window.temporarySelectedExercisesForEdit = JSON.parse(savedDraft);
-        localStorage.removeItem('temp_exercise_edit_draft');
+        localStorage.removeItem('temp_exercise_edit_draft'); // Rensa efter återställning
     } else {
-        // Annars, om vi startar en ny redigering, nollställ batch-listan
+        // Om det är en helt ny redigeringssession (inte en återgång från "skapa övning"), nollställ listan
         window.temporarySelectedExercisesForEdit = [];
     }
 
