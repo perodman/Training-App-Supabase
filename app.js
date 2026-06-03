@@ -1115,14 +1115,6 @@ function renderExercisePickerForEdit(idx, category = "Ben") {
     const container = document.getElementById("modal-exercise-picker-container");
     if (!container) return;
 
-    // Spara undan den exakta scroll-positionen i modalen innan vi ritar om
-    const modalContent = document.querySelector('.modal-content');
-    const currentScrollTop = modalContent ? modalContent.scrollTop : 0;
-
-    // Spara undan scroll-positionen för själva övningslistan också så den inte hoppar till toppen mitt i ett val
-    const currentListElement = document.getElementById("exercise-picker-list");
-    const currentListScrollTop = currentListElement ? currentListElement.scrollTop : 0;
-
     const categories = [
         { name: "Ben", icon: " 🦵 " },
         { name: "Bröst", icon: " 🏋️ " },
@@ -1134,42 +1126,22 @@ function renderExercisePickerForEdit(idx, category = "Ben") {
 
     let html = `<div class="separator" style="margin: 25px 0;"></div>`;
     html += `<h3 style="margin: 0 0 15px 0; color: var(--primary); font-size: 1.2rem; text-align: center; text-transform: uppercase; letter-spacing: 1px;">LÄGG TILL ÖVNING</h3>`;
-    
-    // NYTT SEKTION: PRELIST / VARUKORG (Visas bara om man valt minst en övning)
-    if (window.selectedPrelistExercises.length > 0) {
-        html += `
-        <div style="background: rgba(34, 211, 238, 0.08); border: 1px solid rgba(34, 211, 238, 0.3); border-radius: 12px; padding: 12px; margin-bottom: 20px; box-sizing: border-box;">
-            <p style="font-size:11px; text-transform:uppercase; color:var(--primary); font-weight:700; margin: 0 0 8px 0; text-align:center;">Valda övningar att importera (${window.selectedPrelistExercises.length}):</p>
-            <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px; justify-content:center;">
-                ${window.selectedPrelistExercises.map((ex, pIdx) => `
-                    <span style="background:rgba(255,255,255,0.1); padding:5px 10px; border-radius:20px; font-size:12px; font-weight:600; display:inline-flex; align-items:center; gap:6px;">
-                        ${ex.name}
-                        <span onclick="window.togglePrelistExercise(${idx}, ${JSON.stringify(ex).replace(/"/g, '&quot;')}, '${category}')" style="color:var(--danger); cursor:pointer; font-weight:800;">×</span>
-                    </span>
-                `).join('')}
-            </div>
-            <button class="mode-btn green" onclick="window.importPrelistToPass(${idx})" style="width:100%; padding:10px; font-size:13px; font-weight:bold; box-shadow: 0 4px 10px rgba(34, 197, 94, 0.2);">
-                📥 Importera dessa till passet (${window.selectedPrelistExercises.length} st)
-            </button>
-        </div>`;
-    }
-
     html += `<p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin-bottom:10px;">Välj Kategori:</p>`;
+
     html += `<div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; margin-bottom:15px;">`;
-    
     categories.forEach(cat => {
         const isActive = cat.name === category;
         html += `
         <button onclick="renderExercisePickerForEdit(${idx}, '${cat.name}')"
             style="padding:10px 5px; font-size:11px; border-radius:12px; border:1px solid ${isActive ? 'var(--primary)' : 'rgba(255,255,255,0.1)'};
-            background:${isActive ? 'rgba(34, 197, 94, 0.15)' : 'var(--card)'}; color:${isActive ? '#22c55e' : 'white'}; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:4px; font-weight: ${isActive ? 'bold' : 'normal'};">
+            background:${isActive ? 'rgba(34, 211, 238, 0.1)' : 'var(--card)'}; color:${isActive ? 'var(--primary)' : 'white'}; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:4px;">
             <span style="font-size:16px;">${cat.icon}</span> ${cat.name}
         </button>`;
     });
     html += `</div>`;
-    
+
     html += `<p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin-bottom:10px;">Övningar (${category}):</p>`;
-    html += `<div id="exercise-picker-list" style="max-height:400px; overflow-y:auto; padding-right:5px; background:rgba(0,0,0,0.2); border-radius:15px; padding:10px; box-sizing: border-box;">`;
+    html += `<div style="max-height:280px; overflow-y:auto; padding-right:5px; background:rgba(0,0,0,0.2); border-radius:15px; padding:10px; margin-bottom:15px; display:flex; flex-direction:column; gap:8px;">`;
 
     const filtered = masterExercises.filter(ex => category === "Armar" ? (ex.target === "Biceps" || ex.target === "Triceps") : ex.target === category);
 
@@ -1178,76 +1150,116 @@ function renderExercisePickerForEdit(idx, category = "Ben") {
     }
     
     filtered.forEach(ex => {
-        // Kolla om övningen redan ligger i varukorgen
-        const isAddedToPrelist = window.selectedPrelistExercises.some(item => item.id === ex.id);
-        
+        // Kolla om övningen är markerad i vår batch-array
+        const isSelectedInBatch = window.temporarySelectedExercisesForEdit.includes(ex.id);
+        const currentBg = isSelectedInBatch ? 'rgba(34, 197, 94, 0.15)' : 'transparent';
+        const currentBorder = isSelectedInBatch ? '1px solid #22c55e' : '1px solid rgba(255,255,255,0.08)';
+        const currentIcon = isSelectedInBatch ? ' ✅ ' : '+';
+
         html += `
-        <div class="card glass" style="padding:12px; margin-bottom:8px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; border-radius:12px; border: 1px solid ${isAddedToPrelist ? 'rgba(34, 211, 238, 0.4)' : 'rgba(255,255,255,0.05)'}; background: ${isAddedToPrelist ? 'rgba(34, 211, 238, 0.05)' : ''};" 
-             onclick="window.togglePrelistExercise(${idx}, ${JSON.stringify(ex).replace(/"/g, '&quot;')}, '${category}')">
-            <span style="font-size:13px; font-weight:600; color: ${isAddedToPrelist ? 'var(--primary)' : 'white'};">${ex.name}</span>
-            ${isAddedToPrelist ? 
-                `<span style="color:var(--primary); font-weight:800; font-size:14px;">✓</span>` : 
-                `<span style="color:var(--text-light); font-weight:800; font-size:16px;">+</span>`
-            }
+        <div class="card glass" id="picker-edit-ex-${ex.id}" style="padding:12px; margin:0; cursor:pointer; display:flex; justify-content:space-between; align-items:center; border-radius:12px; background: ${currentBg} !important; border: ${currentBorder} !important; transition: all 0.2s;"
+            onclick="toggleSelectExerciseInPickerForEdit(${idx}, ${ex.id}, '${category}')">
+            <span style="font-size:13px; font-weight:600;">${ex.name}</span>
+            <span id="picker-edit-icon-${ex.id}" style="color:${isSelectedInBatch ? '#22c55e' : 'var(--primary)'}; font-size:18px; font-weight:bold;">${currentIcon}</span>
         </div>`;
     });
     html += `</div>`;
-    
-    container.innerHTML = html;
 
-    // Återställ scroll-positionerna exakt där du var
-    setTimeout(() => {
-        const modalContentToScroll = document.querySelector('.modal-content');
-        if (modalContentToScroll) {
-            modalContentToScroll.scrollTop = currentScrollTop;
-        }
-        const listToScroll = document.getElementById("exercise-picker-list");
-        if (listToScroll) {
-            listToScroll.scrollTop = currentListScrollTop;
-        }
-    }, 10);
+    // Skapar ytan för sammanfattningen (Prelist) precis under listan på samma sätt som i ditt aktiva pass
+    html += `<div id="selected-edit-summary-container" style="margin-bottom:15px;">`;
+    html += generateSelectedExercisesSummaryHtmlForEdit(idx);
+    html += `</div>`;
+
+    container.innerHTML = html;
 }
 
-// HJÄLPFUNKTION 1: Lägger till eller tar bort en övning från "Prelist" (varukorgen)
-window.togglePrelistExercise = function(idx, ex, category) {
-    const existingIndex = window.selectedPrelistExercises.findIndex(item => item.id === ex.id);
-    
-    if (existingIndex > -1) {
-        // Om den redan finns, ta bort den (avmarkera)
-        window.selectedPrelistExercises.splice(existingIndex, 1);
-    } else {
-        // Annars lägg till den
-        window.selectedPrelistExercises.push(ex);
-    }
-    
-    // Rita om pickern direkt utan att stänga eller hoppa i scrollen
-    renderExercisePickerForEdit(idx, category);
-};
+// Motsvarar generateSelectedExercisesSummaryHtml
+function generateSelectedExercisesSummaryHtmlForEdit(idx) {
+    const hasChoices = window.temporarySelectedExercisesForEdit.length > 0;
+    if (!hasChoices) return "";
 
-// HJÄLPFUNKTION 2: Importera hela listan på en gång till passet och ladda om huvud-modalen
-window.importPrelistToPass = function(idx) {
-    if (!window.selectedPrelistExercises || window.selectedPrelistExercises.length === 0) return;
+    let summaryHtml = `
+    <p style="font-size:11px; text-transform:uppercase; color:var(--text-light); margin-bottom:8px; font-weight:600; letter-spacing:0.5px;">Valda övningar i detta svep:</p>
+    <div style="display:flex; flex-wrap:wrap; gap:6px; background:rgba(255,255,255,0.03); padding:10px; border-radius:12px; border:1px solid rgba(255,255,255,0.05); max-height:100px; overflow-y:auto; margin-bottom:12px;">
+    `;
+    
+    window.temporarySelectedExercisesForEdit.forEach(exId => {
+        const ex = masterExercises.find(e => e.id == exId);
+        if (ex) {
+            summaryHtml += `
+            <span style="font-size:12px; background:rgba(34, 197, 94, 0.15); color:#22c55e; border:1px solid rgba(34, 197, 94, 0.3); padding:4px 10px; border-radius:20px; display:inline-flex; align-items:center; gap:4px; font-weight:500;">
+                ${ex.name}
+            </span>
+            `;
+        }
+    });
+    summaryHtml += `</div>`;
+    summaryHtml += `
+    <button id="multi-save-edit-exercises-btn" class="mode-btn green" style="width: 100%; padding: 15px; font-weight: bold; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4);" onclick="confirmAndAddAllSelectedExercisesForEdit(${idx})">
+        Lägg till ${window.temporarySelectedExercisesForEdit.length} valda övningar  ➕
+    </button>
+    `;
+    return summaryHtml;
+}
+
+// Motsvarar toggleSelectExerciseInPicker
+function toggleSelectExerciseInPickerForEdit(idx, exId, category) {
+    const index = window.temporarySelectedExercisesForEdit.indexOf(exId);
+    const card = document.getElementById(`picker-edit-ex-${exId}`);
+    const icon = document.getElementById(`picker-edit-icon-${exId}`);
+
+    if (index > -1) {
+        window.temporarySelectedExercisesForEdit.splice(index, 1);
+        if (card) {
+            card.style.setProperty('background', 'transparent', 'important');
+            card.style.setProperty('border', '1px solid rgba(255,255,255,0.08)', 'important');
+        }
+        if (icon) {
+            icon.textContent = "+";
+            icon.style.color = "var(--primary)";
+        }
+    } else {
+        window.temporarySelectedExercisesForEdit.push(exId);
+        if (card) {
+            card.style.setProperty('background', 'rgba(34, 197, 94, 0.15)', 'important');
+            card.style.setProperty('border', '1px solid #22c55e', 'important');
+        }
+        if (icon) {
+            icon.textContent = " ✅ ";
+            icon.style.color = "#22c55e";
+        }
+    }
+
+    const container = document.getElementById("selected-edit-summary-container");
+    if (container) {
+        container.innerHTML = generateSelectedExercisesSummaryHtmlForEdit(idx);
+    }
+}
+
+// Motsvarar confirmAndAddAllSelectedExercises - sparar ner alla valda och laddar om vyn
+function confirmAndAddAllSelectedExercisesForEdit(idx) {
+    if (!window.temporarySelectedExercisesForEdit || window.temporarySelectedExercisesForEdit.length === 0) return;
     
     const pass = programData.routine[idx];
     if (!pass) return;
 
-    // Tryck in alla övningar från vår prelist till passet
-    window.selectedPrelistExercises.forEach(ex => {
-        // Kontrollera om din addExerciseToPassDirectly-funktion kräver ID eller objekt, 
-        // här lägger vi till den direkt i passets övnings-array i enlighet med din map-struktur:
-        pass.exercises.push({
-            id: ex.id,
-            name: ex.name,
-            target: ex.target
-        });
+    window.temporarySelectedExercisesForEdit.forEach(exId => {
+        const ex = masterExercises.find(e => e.id == exId);
+        if (ex) {
+            pass.exercises.push({
+                id: ex.id,
+                name: ex.name,
+                target: ex.target
+            });
+        }
     });
 
-    // Töm varukorgen
-    window.selectedPrelistExercises = [];
+    // Töm listan efter importen är klar
+    window.temporarySelectedExercisesForEdit = [];
 
-    // Rita om hela huvud-modalen så de nya övningarna syns överst i listan
+    // Rita om hela huvud-modalen för passet så att de nya övningarna syns i listan
     openEditProgramModal(idx);
-};
+}
 
 // SKICKAR VALD ÖVNING ASYNKRONT IN I PROGRAMRUTINEN
 async function addExerciseToPassDirectly(pIdx, exId) {
@@ -1272,8 +1284,8 @@ async function openEditProgramModal(idx) {
     const body = document.getElementById("modal-body");
     if (!pass || !body) return;
 
-    // Nollställ varukorgen varje gång vi öppnar ett pass för redigering
-    window.selectedPrelistExercises = [];
+    // Nollställ batch-listan varje gång vi öppnar ett pass för redigering
+    window.temporarySelectedExercisesForEdit = [];
 
     body.innerHTML = `
         <h3>Redigera ${pass.name}</h3>
@@ -1369,9 +1381,9 @@ async function saveProgramEdit(idx) {
     showProgramDetails(idx);
 }
 
-// Initiera en global varukorg för övningarna om den inte redan finns
-if (!window.selectedPrelistExercises) {
-    window.selectedPrelistExercises = [];
+// Global array för att hålla reda på valda övningar i programredigeraren (motsvarar temporarySelectedExercises)
+if (!window.temporarySelectedExercisesForEdit) {
+    window.temporarySelectedExercisesForEdit = [];
 }
 
 function openCreateProgramModal() {
