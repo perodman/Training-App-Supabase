@@ -1483,7 +1483,12 @@ function renderActiveWorkout() {
         }
     }
 
-    if (footer) footer.classList.remove("hidden");
+    if (footer) {
+        footer.classList.remove("hidden");
+        // FIX 1: Ger "Spara utkast" och "Avsluta pass" ett snyggt mellanrum och ser till att de inte krockar
+        footer.style.display = "flex";
+        footer.style.gap = "15px";
+    }
 
     const pauseBtn = document.getElementById("pause-workout-btn");
     if (pauseBtn) {
@@ -1526,6 +1531,7 @@ function renderActiveWorkout() {
             div.className = "card glass" + (isDone ? " exercise-done" : "");
             div.style.padding = "0";
             div.style.overflow = "hidden";
+            div.style.marginBottom = "12px"; /* Ger ett naturligt mellanrum mellan övningskorten */
             div.id = `exercise-card-${i}`;
 
             const completedSets = exerciseData.sets_data ? exerciseData.sets_data.filter(s => s.userConfirmed).length : 0;
@@ -1617,23 +1623,17 @@ function renderActiveWorkout() {
         list.appendChild(emptyNotice);
     }
 
-    // Tvinga listans container att bli en flexbox med min-height så att botten-push fungerar perfekt
-    list.style.display = "flex";
-    list.style.flexDirection = "column";
-    list.style.gap = "12px"; /* Detta ger ett skönt, jämnt mellanrum mellan alla träningskort/knappar */
-    list.style.minHeight = "calc(100vh - 220px)"; /* Ger containern nog med höjd för att trycka ner raderaknappen */
-
     const addBtn = document.createElement("button");
     addBtn.className = "mode-btn glass-border";
-    addBtn.style.cssText = "margin-top:10px; border: 2px dashed rgba(34, 211, 238, 0.4); color: var(--primary); background: rgba(34, 211, 238, 0.04); font-weight: 700;";
+    addBtn.style.cssText = "margin-top:10px; margin-bottom: 40px; border: 2px dashed rgba(34, 211, 238, 0.4); color: var(--primary); background: rgba(34, 211, 238, 0.04); font-weight: 700;";
     addBtn.innerHTML = " ➕ Lägg till övning";
     addBtn.onclick = openCustomAddExerciseModal;
     list.appendChild(addBtn);
 
     const discardBtn = document.createElement("button");
     discardBtn.className = "mode-btn";
-    /* margin-top: auto; trycker ner den till absolut botten, och margin-bottom sätter lite extra luft ner till Stäng-knappen */
-    discardBtn.style.cssText = "background:none; color:var(--danger); font-size:14px; margin-top: auto; margin-bottom: 25px; border:1px solid rgba(239, 68, 68, 0.2);";
+    // FIX 2: Vi sätter en rejäl marginal uppåt (margin-top: 50px) så att den hamnar långt ner, separerad från resten av innehållet
+    discardBtn.style.cssText = "background:none; color:var(--danger); font-size:14px; margin-top: 50px; margin-bottom: 20px; border:1px solid rgba(239, 68, 68, 0.2);";
     discardBtn.innerHTML = "Radera pass  🗑️ ";
     discardBtn.onclick = confirmDiscardActiveWorkout;
     list.appendChild(discardBtn);
