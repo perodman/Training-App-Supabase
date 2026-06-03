@@ -208,13 +208,13 @@ function openCreateExerciseModal(callback = null) {
     body.innerHTML = `
         <h3 style="text-align:center; margin-bottom: 20px;">Skapa Ny Övning</h3>
         <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
-            <div style="width: 100%; max-width: 300px;">
+            <div style="width: 100%; padding: 0 10px; box-sizing: border-box;">
                 <label style="font-size:11px; color:var(--text-light); text-transform: uppercase; letter-spacing: 1px; display:block; margin-bottom: 8px; text-align: center;">Namn på övning</label>
-                <input type="text" id="new-ex-name" class="log-input" placeholder="T.ex. Knäböj" style="text-align: center;">
+                <input type="text" id="new-ex-name" class="log-input" placeholder="T.ex. Knäböj" style="text-align: center; width: 100%; box-sizing: border-box;">
             </div>
             <div style="width: 100%;">
                 <label style="font-size:11px; color:var(--text-light); text-transform: uppercase; letter-spacing: 1px; display:block; margin-bottom: 12px; text-align: center;">Välj Kategori</label>
-                <div id="category-selector-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 0 10px;">
+                <div id="category-selector-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 0 10px; box-sizing: border-box;">
                     ${categories.map(cat => `
                     <div class="cat-select-item ${cat.id === selectedCategory ? 'active' : ''}"
                         onclick="window.selectModalCategory('${cat.id}')"
@@ -226,7 +226,9 @@ function openCreateExerciseModal(callback = null) {
                     `).join('')}
                 </div>
             </div>
-            <button class="mode-btn blue" id="save-new-ex-btn" style="width: 100%; max-width: 300px; margin-top: 10px;">Spara Övning</button>
+            <div style="width: 100%; padding: 0 10px; box-sizing: border-box;">
+                <button class="mode-btn blue" id="save-new-ex-btn" style="width: 100%; margin-top: 10px;">Spara Övning</button>
+            </div>
         </div>
         <style>
             .cat-select-item.active {
