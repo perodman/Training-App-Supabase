@@ -1485,7 +1485,7 @@ function renderActiveWorkout() {
 
     if (footer) {
         footer.classList.remove("hidden");
-        // FIX 1: Ger "Spara utkast" och "Avsluta pass" ett snyggt mellanrum och ser till att de inte krockar
+        // Ger "Spara utkast" och "Avsluta pass" ett snyggt mellanrum
         footer.style.display = "flex";
         footer.style.gap = "15px";
     }
@@ -1531,7 +1531,7 @@ function renderActiveWorkout() {
             div.className = "card glass" + (isDone ? " exercise-done" : "");
             div.style.padding = "0";
             div.style.overflow = "hidden";
-            div.style.marginBottom = "12px"; /* Ger ett naturligt mellanrum mellan övningskorten */
+            div.style.marginBottom = "12px";
             div.id = `exercise-card-${i}`;
 
             const completedSets = exerciseData.sets_data ? exerciseData.sets_data.filter(s => s.userConfirmed).length : 0;
@@ -1625,22 +1625,38 @@ function renderActiveWorkout() {
 
     const addBtn = document.createElement("button");
     addBtn.className = "mode-btn glass-border";
-    addBtn.style.cssText = "margin-top:10px; margin-bottom: 40px; border: 2px dashed rgba(34, 211, 238, 0.4); color: var(--primary); background: rgba(34, 211, 238, 0.04); font-weight: 700;";
+    addBtn.style.cssText = "margin-top:10px; border: 2px dashed rgba(34, 211, 238, 0.4); color: var(--primary); background: rgba(34, 211, 238, 0.04); font-weight: 700; width:100%;";
     addBtn.innerHTML = " ➕ Lägg till övning";
     addBtn.onclick = openCustomAddExerciseModal;
     list.appendChild(addBtn);
 
-    const discardBtn = document.createElement("button");
-    discardBtn.className = "mode-btn";
-    // FIX 2: Vi sätter en rejäl marginal uppåt (margin-top: 50px) så att den hamnar långt ner, separerad från resten av innehållet
-    discardBtn.style.cssText = "background:none; color:var(--danger); font-size:14px; margin-top: 50px; margin-bottom: 20px; border:1px solid rgba(239, 68, 68, 0.2);";
-    discardBtn.innerHTML = "Radera pass  🗑️ ";
-    discardBtn.onclick = confirmDiscardActiveWorkout;
-    list.appendChild(discardBtn);
+    // HÄR LÖSER VI DET: Vi lägger till raderaknappen direkt i huvudvyn istället för i träningslistan
+    const viewContainer = document.getElementById("workout-view");
+    if (viewContainer) {
+        // Ta bort ett eventuellt gammalt raderablock om det redan finns, så det inte blir dubbletter
+        const oldContainer = document.getElementById("discard-button-container");
+        if (oldContainer) oldContainer.remove();
+
+        // Skapa en ny, ren container som vi tvingar att ligga i botten med marginal
+        const discardContainer = document.createElement("div");
+        discardContainer.id = "discard-button-container";
+        discardContainer.style.cssText = "width: 100%; padding: 0 10px; margin-top: 40px; margin-bottom: 20px; box-sizing: border-box;";
+
+        const discardBtn = document.createElement("button");
+        discardBtn.className = "mode-btn";
+        discardBtn.style.cssText = "background:none; color:var(--danger); font-size:14px; border:1px solid rgba(239, 68, 68, 0.2); width:100%;";
+        discardBtn.innerHTML = "Radera pass  🗑️ ";
+        discardBtn.onclick = confirmDiscardActiveWorkout;
+
+        discardContainer.appendChild(discardBtn);
+        
+        // Sätt in den i vyn, precis ovanför footern
+        viewContainer.appendChild(discardContainer);
+    }
 
     showView("workout-view");
 
-    // SCROLL-LOGIK: Scrolla till första expanderade övningen vid återkomst till pågående pass
+    // SCROLL-LOGIK
     if (isReturning && openExercises.length > 0 && !window._suppressAutoScroll) {
         const firstOpenIndex = openExercises.slice().sort((a, b) => a - b)[0];
         setTimeout(() => {
