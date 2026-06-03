@@ -3005,3 +3005,25 @@ async function saveCustomProgramToSupabase() {
     // FIX: Se till att den lokala referensen uppdateras
     if (window.programData) programData = window.programData;
 }
+
+// SCROLL-ÅTERKOMST: Scrollar till rätt övning när användaren återvänder till appen/fliken
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState !== 'visible') return;
+
+    const workoutView = document.getElementById('workout-view');
+    if (!workoutView || workoutView.classList.contains('hidden')) return;
+
+    if (!activeDraft || !activeDraft.ui_state) return;
+
+    const openExercises = activeDraft.ui_state.openExercises;
+    if (!openExercises || openExercises.length === 0) return;
+
+    const firstOpenIndex = openExercises.slice().sort((a, b) => a - b)[0];
+
+    setTimeout(() => {
+        const targetCard = document.getElementById(`exercise-card-${firstOpenIndex}`);
+        if (targetCard) {
+            targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }, 120);
+});
