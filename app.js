@@ -1253,18 +1253,16 @@ function confirmAndAddAllSelectedExercisesForEdit(idx) {
     });
 
     window.temporarySelectedExercisesForEdit = [];
-    localStorage.removeItem('temp_exercise_edit_draft'); // Säkerställ att det är rensat på disken också
+    localStorage.removeItem('temp_exercise_edit_draft');
 
     openEditProgramModal(idx);
 }
 
-// NY HJÄLPFUNKTION: Sparar undan de valda övningarna innan vi hoppar iväg till "skapa ny övning"-modalen
 function saveEditDraftStateAndCreateNew(idx) {
     if (window.temporarySelectedExercisesForEdit.length > 0) {
         localStorage.setItem('temp_exercise_edit_draft', JSON.stringify(window.temporarySelectedExercisesForEdit));
     }
     
-    // Kör din existerande logik för att öppna skapafönstret
     if (typeof createNewExForPass === 'function') {
         createNewExForPass(idx);
     }
@@ -1275,10 +1273,8 @@ async function addExerciseToPassDirectly(pIdx, exId) {
     const ex = masterExercises.find(e => e.id == exId);
     if (!ex) return;
 
-    // Uppdaterar i minnet direkt
     programData.routine[pIdx].exercises.push({ name: ex.name, target: ex.target, defaultSets: 3 });
 
-    // Sparar asynkront till databasen i bakgrunden (Optimistic Update)
     if (typeof saveCustomProgramToSupabase === 'function') {
         saveCustomProgramToSupabase();
     } else {
@@ -1293,13 +1289,13 @@ async function openEditProgramModal(idx) {
     const body = document.getElementById("modal-body");
     if (!pass || !body) return;
 
-    // Kolla om det finns ett sparat utkast i localStorage för denna redigeringssession (så vi inte glömmer bort valda övningar)
+    // Återställ utkastet om du precis har skapat en ny övning till banken
     const savedDraft = localStorage.getItem('temp_exercise_edit_draft');
     if (savedDraft) {
         window.temporarySelectedExercisesForEdit = JSON.parse(savedDraft);
-        localStorage.removeItem('temp_exercise_edit_draft'); // Rensa efter återställning
+        localStorage.removeItem('temp_exercise_edit_draft');
     } else {
-        // Om det inte var en återgång från "Skapa ny övning", nollställ listan för en ny fräsch session
+        // Annars, om vi startar en ny redigering, nollställ batch-listan
         window.temporarySelectedExercisesForEdit = [];
     }
 
@@ -1332,6 +1328,83 @@ async function openEditProgramModal(idx) {
     renderExercisePickerForEdit(idx, "Ben");
     openModal();
 }
+
+function renderExercisePickerForEdit(idx, category = "Ben") {
+    const container = document.getElementById("modal-exercise-picker-container");
+    if (!container) return;
+
+    // LÅS SCROLLEN: Spara var användaren befinner sig just nu
+    const modalContent = document.querySelector('.modal-content');
+    const currentScrollTop = modalContent ? modalContent.scrollTop : 0;
+    const currentListElement = document.getElementById("picker-edit-exercise-scroll-list");
+    const currentListScrollTop = currentListElement ? currentListElement.scrollTop : 0;
+
+    const categories = [
+        { name: "Ben", icon: " 🦵 " },
+        { name: "Bröst", icon: " 🏋️ " },
+        { name: "Rygg", icon: " 🪵 " },
+        { name: "Axlar", icon: " 👐 " },
+        { name: "Armar", icon: " 💪 " },
+        { name: "Bål", icon: " 🧘 " }
+    ];
+
+    let html = `<div class="separator" style="margin: 25px 0;"></div>`;
+    html += `<h3 style="margin: 0 0 15px 0; color: var(--primary); font-size: 1.2rem; text-align: center; text-transform: uppercase; letter-spacing: 1px;">LÄGG TILL ÖVNING</h3>`;
+    html += `<p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin-bottom:10px;">Välj Kategori:</p>`;
+
+    html += `<div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; margin-bottom:15px;">`;
+    categories.forEach(cat => {
+        const isActive = cat.name === category;
+        html += `
+        <button onclick="renderExercisePickerForEdit(${idx}, '${cat.name}')"
+            style="padding:10px 5px; font-size:11px; border-radius:12px; border:1px solid ${isActive ? 'var(--primary)' : 'rgba(255,255,255,0.1)'};
+            background:${isActive ? 'rgba(34, 211, 238, 0.1)' : 'var(--card)'}; color:${isActive ? 'var(--primary)' : 'white'}; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:4px;">
+            <span style="font-size:16px;">${cat.icon}</span> ${cat.name}
+        </button>`;
+    });
+    html += `</div>`;
+
+    html += `<p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin-bottom:10px;">Övningar (${category}):</p>`;
+    html += `<div id="picker-edit-exercise-scroll-list" style="max-height:280px; overflow-y:auto; padding-right:5px; background:rgba(0,0,0,0.2); border-radius:15px; padding:10px; margin-bottom:15px; display:flex; flex-direction:column; gap:8px; box-sizing: border-box;">`;
+
+    const filtered = masterExercises.filter(ex => category === "Armar" ? (ex.target === "Biceps" || ex.target === "Triceps") : ex.target === category);
+
+    if (filtered.length === 0) {
+        html += `<p style="text-align:center; font-size:12px; color:var(--text-light); padding:10px;">Inga övningar hittades.</p>`;
+    }
+    
+    filtered.forEach(ex => {
+        const isSelectedInBatch = window.temporarySelectedExercisesForEdit.includes(ex.id);
+        const currentBg = isSelectedInBatch ? 'rgba(34, 197, 94, 0.15)' : 'transparent';
+        const currentBorder = isSelectedInBatch ? '1px solid #22c55e' : '1px solid rgba(255,255,255,0.08)';
+        const currentIcon = isSelectedInBatch ? ' ✅ ' : '+';
+
+        html += `
+        <div class="card glass" id="picker-edit-ex-${ex.id}" style="padding:12px; margin:0; cursor:pointer; display:flex; justify-content:space-between; align-items:center; border-radius:12px; background: ${currentBg} !important; border: ${currentBorder} !important; transition: all 0.2s;"
+            onclick="toggleSelectExerciseInPickerForEdit(${idx}, ${ex.id}, '${category}')">
+            <span style="font-size:13px; font-weight:600;">${ex.name}</span>
+            <span id="picker-edit-icon-${ex.id}" style="color:${isSelectedInBatch ? '#22c55e' : 'var(--primary)'}; font-size:18px; font-weight:bold;">${currentIcon}</span>
+        </div>`;
+    });
+    html += `</div>`;
+
+    html += `<div id="selected-edit-summary-container" style="margin-bottom:15px;">`;
+    html += generateSelectedExercisesSummaryHtmlForEdit(idx);
+    html += `</div>`;
+
+    container.innerHTML = html;
+
+    // ÅTERSTÄLL SCROLLEN: Sätt tillbaka användaren på exakt samma pixel
+    setTimeout(() => {
+        const modalContentToScroll = document.querySelector('.modal-content');
+        if (modalContentToScroll) modalContentToScroll.scrollTop = currentScrollTop;
+        const listToScroll = document.getElementById("picker-edit-exercise-scroll-list");
+        if (listToScroll) listToScroll.scrollTop = currentListScrollTop;
+    }, 10);
+}
+
+
+
 
 // ==========================================================================
 // DEL 3 AV 4: PROGRAMREDIGERING, HISTORIKHANTERING OCH AKTIVT PASS (DRAFT)
