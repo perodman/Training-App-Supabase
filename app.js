@@ -1492,7 +1492,7 @@ function renderActiveWorkout() {
         // Återställt till bara de två originalknapparna med ett snyggt mellanrum emellan
         footer.innerHTML = `
             <button id="pause-workout-btn" class="mode-btn save-draft-btn" onclick="saveDraftAndGoHome()" style="flex: 1;">Spara utkast  💾 </button>
-            <button class="mode-btn green" onclick="finishWorkout()" style="flex: 1; font-weight: bold;">Avsluta pass</button>
+            <button class="mode-btn green" onclick="finishWorkout()" style="flex: 1; font-weight: bold;">Avsluta pass  ✅</button>
         `;
     }
 
