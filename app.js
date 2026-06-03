@@ -1654,21 +1654,51 @@ function openCustomAddExerciseModal() {
 }
 
 async function toggleExercise(index) {
-    if (!activeDraft.ui_state) activeDraft.ui_state = {};
+    if (!activeDraft) return;
+    
+    if (!activeDraft.ui_state) {
+        activeDraft.ui_state = { openExercises: [], hasInitializedOpen: true };
+    }
     if (!activeDraft.ui_state.openExercises) {
         activeDraft.ui_state.openExercises = [];
     }
-    
-    const openIdx = activeDraft.ui_state.openExercises.indexOf(index);
-    if (openIdx > -1) {
-        activeDraft.ui_state.openExercises.splice(openIdx, 1);
+
+    const idxPosition = activeDraft.ui_state.openExercises.indexOf(index);
+
+    if (idxPosition > -1) {
+        // Om den redan var öppen, ta bort den från arrayen (kollapsa)
+        activeDraft.ui_state.openExercises.splice(idxPosition, 1);
     } else {
-        // Stäng alla andra och öppna bara denna
-        activeDraft.ui_state.openExercises = [index];
+        // Om den var stängd, lägg till den i arrayen (expandera)
+        activeDraft.ui_state.openExercises.push(index);
     }
-    
+
+    // Markera att vi aktivt har initierat eller ändrat vyn
+    activeDraft.ui_state.hasInitializedOpen = true;
+
+    // Spara omedelbart till localStorage för blixtsnabb synk
+    localStorage.setItem("activeWorkoutDraft", JSON.stringify(activeDraft));
+
+    // Rendera om för att applicera CSS-klasser (.open) utan att tappa scroll position
+    const container = document.getElementById("exercise-list");
+    if (container) {
+        const cards = container.getElementsByClassName("exercise-card");
+        if (cards && cards[index]) {
+            const isOpen = activeDraft.ui_state.openExercises.includes(index);
+            if (isOpen) {
+                cards[index].classList.add("open");
+                const arrow = cards[index].querySelector(".arrow-icon");
+                if (arrow) arrow.innerText = "▲";
+            } else {
+                cards[index].classList.remove("open");
+                const arrow = cards[index].querySelector(".arrow-icon");
+                if (arrow) arrow.innerText = "▼";
+            }
+        }
+    }
+
+    // Persistera till Supabase i bakgrunden
     await persistActiveWorkout();
-    renderActiveWorkout();
 }
 
 async function addSetToExercise(exIdx) {
@@ -1695,18 +1725,24 @@ async function removeSetFromExercise(exIdx, setIdx) {
 }
 
 async function toggleExerciseDone(exIdx) {
-    activeDraft.data[exIdx].isCompleted = !activeDraft.data[exIdx].isCompleted;
+    if (!activeDraft) return;
     
-    // Om övningen blev klar, öppna nästa icke-klara övning
-    if (activeDraft.data[exIdx].isCompleted) {
-        const nextIndex = activeDraft.data.findIndex((ex, i) => i > exIdx && !ex.isCompleted);
-        if (nextIndex !== -1) {
-            activeDraft.ui_state.openExercises = [nextIndex];
+    const currentStatus = activeDraft.exercises[exIdx].done || false;
+    activeDraft.exercises[exIdx].done = !currentStatus;
+
+    // Om övningen markeras som KLAR, ta bort den från expanderade övningar så den kollapsar
+    if (activeDraft.exercises[exIdx].done) {
+        if (activeDraft.ui_state && activeDraft.ui_state.openExercises) {
+            const idxPosition = activeDraft.ui_state.openExercises.indexOf(exIdx);
+            if (idxPosition > -1) {
+                activeDraft.ui_state.openExercises.splice(idxPosition, 1);
+            }
         }
     }
 
-    await persistActiveWorkout();
+    localStorage.setItem("activeWorkoutDraft", JSON.stringify(activeDraft));
     renderActiveWorkout();
+    await persistActiveWorkout();
 }
 
 async function actuallyStartWorkout() {
