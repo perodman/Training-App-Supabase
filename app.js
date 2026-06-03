@@ -206,39 +206,52 @@ function openCreateExerciseModal(callback = null) {
         { id: "Bål", icon: " 🧘 " }
     ];
     body.innerHTML = `
-        <h3 style="text-align:center; margin-bottom: 20px;">Skapa Ny Övning</h3>
-        <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
-            <div style="width: 100%; max-width: 300px;">
-                <label style="font-size:11px; color:var(--text-light); text-transform: uppercase; letter-spacing: 1px; display:block; margin-bottom: 8px; text-align: center;">Namn på övning</label>
-                <input type="text" id="new-ex-name" class="log-input" placeholder="T.ex. Knäböj" style="text-align: center;">
-            </div>
-            <div style="width: 100%;">
-                <label style="font-size:11px; color:var(--text-light); text-transform: uppercase; letter-spacing: 1px; display:block; margin-bottom: 12px; text-align: center;">Välj Kategori</label>
-                <div id="category-selector-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 0 10px;">
-                    ${categories.map(cat => `
-                    <div class="cat-select-item ${cat.id === selectedCategory ? 'active' : ''}"
-                        onclick="window.selectModalCategory('${cat.id}')"
-                        id="modal-cat-${cat.id}"
-                        style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 12px 5px; border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.2s ease;">
-                        <div style="font-size: 20px; margin-bottom: 4px;">${cat.icon}</div>
-                        <div style="font-size: 10px; font-weight: 700; color: var(--text-light);">${cat.id}</div>
-                    </div>
-                    `).join('')}
-                </div>
-            </div>
-            <button class="mode-btn blue" id="save-new-ex-btn" style="width: 100%; max-width: 300px; margin-top: 10px;">Spara Övning</button>
+    <h3 style="text-align:center; margin-bottom: 25px; font-weight: 600;">Redigera Övning</h3>
+    
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 15px; width: 100%;">
+        
+        <div style="width: 100%; max-width: 320px;">
+            <label style="font-size:11px; color:var(--text-light); text-transform: uppercase; letter-spacing: 1px; display:block; margin-bottom: 8px; text-align: center;">Namn på övning</label>
+            <input type="text" id="edit-ex-name" class="log-input" value="${ex.name}" style="text-align: center; width: 100%; box-sizing: border-box;">
         </div>
-        <style>
-            .cat-select-item.active {
-                background: rgba(59, 130, 246, 0.2) !important;
-                border-color: var(--primary) !important;
-                box-shadow: 0 0 15px rgba(59, 130, 246, 0.2);
-            }
-            .cat-select-item.active div {
-                color: var(--text) !important;
-            }
-        </style>
-    `;
+        
+        <div style="width: 100%; max-width: 320px;">
+            <label style="font-size:11px; color:var(--text-light); text-transform: uppercase; letter-spacing: 1px; display:block; margin-bottom: 8px; text-align: center;">Välj Kategori</label>
+            <div id="edit-category-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+                ${categories.map(cat => `
+                <div class="cat-select-item ${cat.id === selectedCategory ? 'active' : ''}"
+                    onclick="window.selectEditModalCategory('${cat.id}')"
+                    id="edit-modal-cat-${cat.id}"
+                    style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 12px 5px; border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.2s ease;">
+                    <div style="font-size: 20px; margin-bottom: 4px;">${cat.icon}</div>
+                    <div style="font-size: 10px; font-weight: 700; color: var(--text-light);">${cat.id}</div>
+                </div>
+                `).join('')}
+            </div>
+        </div>
+        
+        <button class="mode-btn blue" style="width: 100%; max-width: 320px; box-sizing: border-box;" id="update-exercise-confirm-btn">Uppdatera</button>
+        
+        <button class="mode-btn" style="width: 100%; max-width: 320px; box-sizing: border-box; background: rgba(255,255,255,0.1); color: var(--text);" onclick="window.closeEditModal?().close()">Stäng</button>
+        
+        <div style="width: 100%; max-width: 320px; margin-top: 25px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 20px;">
+            <button class="mode-btn" style="width: 100%; box-sizing: border-box; color: #fff; background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); padding: 12px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(239, 68, 68, 0.3)'" onmouseout="this.style.background='rgba(239, 68, 68, 0.2)'" onclick="deleteMasterExercise(${id})">
+                Radera övning permanent
+            </button>
+        </div>
+    </div>
+
+    <style>
+        .cat-select-item.active {
+            background: rgba(59, 130, 246, 0.2) !important;
+            border-color: var(--primary) !important;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.2);
+        }
+        .cat-select-item.active div {
+            color: var(--text) !important;
+        }
+    </style>
+`;
 
     window.selectModalCategory = (catId) => {
         selectedCategory = catId;
