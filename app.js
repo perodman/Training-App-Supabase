@@ -3050,109 +3050,121 @@ function renderHome() {
     }
 }
 
-// Det fullständiga, synkroniserade och skyddade sparflödet
-document.getElementById("save-workout-btn").onclick = async function(e) {
-    if (e) {
+// 💥 GLOBAL LYSSNARE: Fångar klick på knapparna oavsett när de renderas på skärmen
+document.addEventListener("click", async function(e) {
+    
+    // --- 1. HANTERA AVSLUTA PASS (#save-workout-btn) ---
+    if (e.target && e.target.id === "save-workout-btn") {
         e.preventDefault();
         e.stopPropagation();
-    }
 
-    // 🔒 AKTIVERA JÄRNRIDÅN: Frys gränssnittet från omvärldens skript direkt
-    window.blockAllSync = true;
+        // 🔒 AKTIVERA JÄRNRIDÅN: Frys gränssnittet från omvärldens skript direkt
+        window.blockAllSync = true;
 
-    console.log("🚀 [SPÅRNING] STEG 1: Spar-knappen klickades. Blockerar standardbeteenden.");
+        console.log("🚀 [SPÅRNING] STEG 1: Spar-knappen klickades. Blockerar standardbeteenden.");
 
-    try {
-        if(!activeDraft || !activeDraft.isStarted) {
-            window.blockAllSync = false; 
-            const body = document.getElementById("modal-body");
-            if (body) {
-                body.innerHTML = `
-                    <h3>Kasta träningspass</h3>
-                    <p style="text-align:center; color:var(--text-light);">You haven't started the workout yet. Do you want to delete the draft?</p>
-                    <button class="mode-btn danger" style="background:var(--danger);" onclick="(async () => { 
-                        localStorage.removeItem('activeWorkoutDraft'); 
-                        if (typeof deleteActiveDraft === 'function') await deleteActiveDraft();
-                        if (currentUser) {
-                            try { await supabaseClient.from('active_draft').delete().eq('user_id', currentUser.id); } catch(e) { console.error(e); }
-                        }
-                        location.reload(); 
-                    })()">Kasta passet</button>
-                    <button class="mode-btn glass-border" onclick="closeModal()">Cancel</button>
-                `;
-                openModal();
+        try {
+            if(!activeDraft || !activeDraft.isStarted) {
+                window.blockAllSync = false; 
+                const body = document.getElementById("modal-body");
+                if (body) {
+                    body.innerHTML = `
+                        <h3>Kasta träningspass</h3>
+                        <p style="text-align:center; color:var(--text-light);">You haven't started the workout yet. Do you want to delete the draft?</p>
+                        <button class="mode-btn danger" style="background:var(--danger);" onclick="(async () => { 
+                            localStorage.removeItem('activeWorkoutDraft'); 
+                            if (typeof deleteActiveDraft === 'function') await deleteActiveDraft();
+                            if (currentUser) {
+                                try { await supabaseClient.from('active_draft').delete().eq('user_id', currentUser.id); } catch(e) { console.error(e); }
+                            }
+                            location.reload(); 
+                        })()">Kasta passet</button>
+                        <button class="mode-btn glass-border" onclick="closeModal()">Cancel</button>
+                    `;
+                    openModal();
+                }
+                return;
             }
-            return;
+
+            console.log("🚀 [SPÅRNING] STEG 2: Stoppar timers och bygger logg-objektet.");
+            if (typeof stopTimer === 'function') stopTimer();
+            if (typeof pauseTimer === 'function') pauseTimer(); 
+            if (typeof saveInterval !== 'undefined' && saveInterval) clearInterval(saveInterval);
+
+            const finalTimeElement = document.getElementById("workout-timer");
+            const finalTime = finalTimeElement ? finalTimeElement.textContent : "00:00";
+            
+            let workoutId = (activeDraft.id && workoutHistory.some(w => w.id === activeDraft.id)) 
+                ? activeDraft.id 
+                : "workout_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
+
+            const log = {
+                id: workoutId,
+                date: activeDraft.date || new Date().toISOString().split('T')[0],
+                programName: activeDraft.programName || activeDraft.workout.name,
+                totalTime: finalTime,
+                exercises: activeDraft.workout.exercises.map((ex, i) => {
+                    return {
+                        name: ex.name,
+                        sets_data: activeDraft.data[i] ? activeDraft.data[i].sets_data : []
+                    };
+                })
+            };
+
+            console.log("🚀 [SPÅRNING] STEG 3: Sparar passet till historiken.");
+            if (typeof saveWorkoutHistory === 'function') {
+                await saveWorkoutHistory(log); 
+            }
+
+            console.log("🚀 [SPÅRNING] STEG 4: Sparning klar. Rensar utkast lokalt.");
+            activeDraft = null;
+            localStorage.removeItem("activeWorkoutDraft");
+            secondsElapsed = 0;
+
+            console.log("🚀 [SPÅRNING] STEG 5: Rensar databasens active_draft.");
+            if (currentUser) {
+                await supabaseClient.from('active_draft').delete().eq('user_id', currentUser.id);
+            }
+
+            console.log("🚀 [SPÅRNING] STEG 6: Stänger modaler och förbereder kalendervyn.");
+            if (typeof closeModal === 'function') closeModal();
+            if (typeof renderCalendar === 'function') renderCalendar(false);
+
+            console.log("🚀 [SPÅRNING] STEG 7: Tvingar fram kalendervyn.");
+            showView("calendar-view");
+            
+            if (typeof window.currentView !== 'undefined') window.currentView = "calendar-view";
+            document.body.setAttribute("data-current-view", "calendar-view");
+            
+            console.log("✅ [SPÅRNING] KLAR. Sparat och klart.");
+
+        } catch (error) {
+            console.error("❌ [SPÅRNING] ETT FEL INTRÄFFADE:", error);
+            showView("calendar-view");
+        } finally {
+            // 🛡️ EFTERSKALVSSKYDD: Vi väntar 250ms med att öppna dörren.
+            setTimeout(() => {
+                window.blockAllSync = false;
+                console.log("🔓 [SPÅRNING] Järnridån helt borttagen. Appen är i normalläge.");
+            }, 250);
         }
-
-        console.log("🚀 [SPÅRNING] STEG 2: Stoppar timers och bygger logg-objektet.");
-        if (typeof stopTimer === 'function') stopTimer();
-        if (typeof pauseTimer === 'function') pauseTimer(); 
-        if (typeof saveInterval !== 'undefined' && saveInterval) clearInterval(saveInterval);
-
-        const finalTimeElement = document.getElementById("workout-timer");
-        const finalTime = finalTimeElement ? finalTimeElement.textContent : "00:00";
-        
-        let workoutId = (activeDraft.id && workoutHistory.some(w => w.id === activeDraft.id)) 
-            ? activeDraft.id 
-            : "workout_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
-
-        const log = {
-            id: workoutId,
-            date: activeDraft.date || new Date().toISOString().split('T')[0],
-            programName: activeDraft.programName || activeDraft.workout.name,
-            totalTime: finalTime,
-            exercises: activeDraft.workout.exercises.map((ex, i) => {
-                return {
-                    name: ex.name,
-                    sets_data: activeDraft.data[i] ? activeDraft.data[i].sets_data : []
-                };
-            })
-        };
-
-        console.log("🚀 [SPÅRNING] STEG 3: Sparar passet till historiken.");
-        if (typeof saveWorkoutHistory === 'function') {
-            await saveWorkoutHistory(log); 
-        }
-
-        console.log("🚀 [SPÅRNING] STEG 4: Sparning klar. Rensar utkast lokalt.");
-        activeDraft = null;
-        localStorage.removeItem("activeWorkoutDraft");
-        secondsElapsed = 0;
-
-        console.log("🚀 [SPÅRNING] STEG 5: Rensar databasens active_draft.");
-        if (currentUser) {
-            await supabaseClient.from('active_draft').delete().eq('user_id', currentUser.id);
-        }
-
-        console.log("🚀 [SPÅRNING] STEG 6: Stänger modaler och förbereder kalendervyn.");
-        if (typeof closeModal === 'function') closeModal();
-        if (typeof renderCalendar === 'function') renderCalendar(false);
-
-        console.log("🚀 [SPÅRNING] STEG 7: Tvingar fram kalendervyn.");
-        showView("calendar-view");
-        
-        if (typeof window.currentView !== 'undefined') window.currentView = "calendar-view";
-        document.body.setAttribute("data-current-view", "calendar-view");
-        
-        console.log("✅ [SPÅRNING] KLAR. Sparat och klart.");
-
-    } catch (error) {
-        console.error("❌ [SPÅRNING] ETT FEL INTRÄFFADE:", error);
-        showView("calendar-view");
-    } finally {
-        // 🛡️ EFTERSKALVSSKYDD: Vi väntar 250ms med att öppna dörren. 
-        // Detta gör att sena mikro-tasks (som loadUserData) hinner köra i bakgrunden utan att kunna störa vårt UI.
-        setTimeout(() => {
-            window.blockAllSync = false;
-            console.log("🔓 [SPÅRNING] Järnridån helt borttagen. Appen är i normalläge.");
-        }, 250);
     }
-};
 
-document.getElementById("pause-workout-btn").onclick = () => { 
-    location.reload(); 
-};
+    // --- 2. HANTERA PAUSA/AVBRYT PASS (#pause-workout-btn) ---
+    if (e.target && e.target.id === "pause-workout-btn") {
+        location.reload();
+    }
+});
+
+// Fallback-funktion om någon gammal HTML-sträng fortfarande anropar onclick="finishWorkout()"
+function finishWorkout() {
+    const btn = document.getElementById("save-workout-btn");
+    if (btn) {
+        btn.click();
+    } else {
+        console.warn("finishWorkout() anropades men #save-workout-btn fanns inte i DOM just nu.");
+    }
+}
 
 function renderStats() {
     const container = document.getElementById("chart-container");
