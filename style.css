@@ -822,3 +822,12 @@ body, html {
     box-shadow: 0 0 30px rgba(34, 211, 238, 0.25) !important;
     background: linear-gradient(135deg, rgba(34, 211, 238, 0.12) 0%, rgba(34, 211, 238, 0.04) 100%) !important;
 }
+
+#program-details-area {
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+#programs-action-btns {
+    transition: margin-top 0.3s ease;
+}
+
