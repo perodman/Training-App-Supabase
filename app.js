@@ -1072,7 +1072,7 @@ function selectMonth(m) {
 // --- PROGRAMVYER & RUTINREDIGERING ---
 // Fördefinierade grupper
 const PREDEFINED_GROUPS = [
-    { id: "fullbody", name: "Full Body", icon: "🏋️" }
+    { id: "fullbody", name: "Full Body", icon: "🏋️" },
     { id: "upperbody", name: "Upper Body", icon: "💪" },
     { id: "lowerbody", name: "Lower Body", icon: "🦵" },
     { id: "superset", name: "Superset", icon: "🔥" }
