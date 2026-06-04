@@ -539,7 +539,7 @@ function openProgramPreviewModal(idx) {
                 ${pass.exercises.map(e => `
                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 4px; border-bottom: 1px solid rgba(255,255,255,0.03);">
                     <span style="font-weight: 600; color: #ffffff; font-size: 14px;">${e.name}</span>
-                    <small style="color: var(--primary); font-weight: 800; text-transform: uppercase; font-size: 10px; background: rgba(59, 130, 246, 0.1); padding: 4px 8px; border-radius: 6px;">${e.target || 'Övning'}</small>
+                    <small style="color: var(--primary); font-weight: 800; text-transform: uppercase; font-size: 10px; background: rgba(59, 130, 246, 0.1); padding: 4px 8px; border-radius: 6px;">${e.target || 'Exercise'}</small>
                 </div>
                 `).join("")}
             </div>
@@ -667,7 +667,7 @@ function openProgramPreviewModal(idx) {
                 ${pass.exercises.map(e => `
                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 4px; border-bottom: 1px solid rgba(255,255,255,0.03);">
                     <span style="font-weight: 600; color: #ffffff; font-size: 14px;">${e.name}</span>
-                    <small style="color: var(--primary); font-weight: 800; text-transform: uppercase; font-size: 10px; background: rgba(59, 130, 246, 0.1); padding: 4px 8px; border-radius: 6px;">${e.target || 'Övning'}</small>
+                    <small style="color: var(--primary); font-weight: 800; text-transform: uppercase; font-size: 10px; background: rgba(59, 130, 246, 0.1); padding: 4px 8px; border-radius: 6px;">${e.target || 'Exercise'}</small>
                 </div>
                 `).join("")}
             </div>
@@ -1284,7 +1284,7 @@ function renderPassesInGroup(groupId) {
             passCard.innerHTML = `
                 <div style="font-size:28px;">${icons[passIdx % 4]}</div>
                 <h4 style="font-size: 14px; margin: 8px 0 4px 0; line-height: 1.3;">${pass.name}</h4>
-                <div style="font-size:10px; color:var(--primary); font-weight:800;">${pass.exercises.length} ÖVN</div>
+                <div style="font-size:10px; color:var(--primary); font-weight:800;">${pass.exercises.length} EXERCISE</div>
                <div onclick="event.stopPropagation(); openGroupPickerForPass(${passIdx})"
     style="position: absolute; top: 6px; right: 6px; font-size: 12px; opacity: 0.6; cursor: pointer; padding: 2px 6px; border-radius: 6px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1);">✏️</div>
             `;
