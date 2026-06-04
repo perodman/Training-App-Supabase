@@ -1072,12 +1072,10 @@ function selectMonth(m) {
 // --- PROGRAMVYER & RUTINREDIGERING ---
 // Fördefinierade grupper
 const PREDEFINED_GROUPS = [
-    { id: "overkropp", name: "Överkropp", icon: "💪" },
-    { id: "underkropp", name: "Underkropp", icon: "🦵" },
+    { id: "upperbody", name: "Upper Body", icon: "💪" },
+    { id: "lowerbody", name: "Lower Body", icon: "🦵" },
     { id: "fullbody", name: "Full Body", icon: "🏋️" },
-    { id: "styrka", name: "Styrka", icon: "🔥" },
-    { id: "kondition", name: "Kondition", icon: "⚡" },
-    { id: "rorlighet", name: "Rörlighet", icon: "🧘" }
+    { id: "superset", name: "Superset", icon: "🔥" }
 ];
 
 function renderGroupsView() {
