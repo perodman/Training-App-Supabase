@@ -556,7 +556,7 @@ function openProgramPreviewModal(idx) {
                 `).join("")}
             </div>
             <button onclick="document.getElementById('preview-modal').style.display='none'" style="width: 100%; margin-top: 20px; padding: 12px; background: var(--primary); color: #0f172a; border: none; border-radius: 12px; font-weight: 700; cursor: pointer;">
-                Stäng översikt
+                Close Overview
             </button>
         </div>
     `;
@@ -684,7 +684,7 @@ function openProgramPreviewModal(idx) {
                 `).join("")}
             </div>
             <button onclick="closePreviewModal()" style="width: 100%; margin-top: 20px; padding: 12px; background: var(--primary); color: #0f172a; border: none; border-radius: 12px; font-weight: 700; cursor: pointer;">
-                Stäng översikt
+                Close Overview
             </button>
         </div>
     `;
@@ -1524,7 +1524,7 @@ function openEditGroupModal(groupId, groupDef) {
 
         <button class="mode-btn glass-border" onclick="closeModal()" 
             style="width:100%; margin-top:10px; background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.05) 100%); border: 1px solid rgba(255,255,255,0.25); border-top: 1px solid rgba(255,255,255,0.45);">
-            Stäng
+            Close
         </button>
     `;
     openModal();
