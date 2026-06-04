@@ -1084,6 +1084,7 @@ function renderProgramView(activeIdx = null) {
     const selector = document.getElementById("pass-selector-list");
     if (!selector) return;
     selector.innerHTML = "";
+    selector.style.cssText = "display: flex; flex-direction: column; gap: 8px;";
 
     // Säkerställ att groups-fältet finns i programData
     if (!programData.groups) {
