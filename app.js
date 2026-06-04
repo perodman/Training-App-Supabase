@@ -1181,47 +1181,43 @@ function renderProgramView(activeIdx = null) {
     const isCurrentlyExpanded = window._expandedGroups.has(groupId);
 
     if (isCurrentlyExpanded) {
+        // Kollapsa denna grupp och återställ alla
         window._expandedGroups.delete(groupId);
         groupContent.style.maxHeight = '0px';
         groupContent.style.opacity = '0';
         if (arrow) arrow.style.transform = 'rotate(0deg)';
-        groupHeader.classList.remove('group-header-focused');
+        groupHeader.style.opacity = '1';
+        groupHeader.style.padding = '14px 18px';
 
-        // Återställ alla till normalläge
+        // Återställ alla wrappers
         document.querySelectorAll('.group-wrapper').forEach(w => {
-            w.classList.remove('is-focused', 'is-dimmed');
-            const innerContent = w.querySelector('.group-dimmed-header');
-            if (innerContent) innerContent.style.padding = '';
-        });
-    } else {
-        // Kollapsa alla andra öppna grupper först
-        window._expandedGroups.forEach(openId => {
-            if (openId !== groupId) {
-                window._expandedGroups.delete(openId);
-                const otherArrow = document.getElementById(`arrow-${openId}`);
-                if (otherArrow) otherArrow.style.transform = 'rotate(0deg)';
-            }
+            w.style.maxHeight = '1000px';
+            w.style.opacity = '1';
+            w.style.marginBottom = '12px';
         });
 
+    } else {
+        // Expandera denna, göm alla andra
         window._expandedGroups.add(groupId);
         groupContent.style.maxHeight = '2000px';
         groupContent.style.opacity = '1';
         if (arrow) arrow.style.transform = 'rotate(180deg)';
         groupHeader.classList.add('group-header-focused');
 
+        // Gå igenom ALLA group-wrappers
         document.querySelectorAll('.group-wrapper').forEach(w => {
             if (w.dataset.groupId === groupId) {
-                w.classList.add('is-focused');
-                w.classList.remove('is-dimmed');
+                // Den valda — full synlighet
+                w.style.maxHeight = '2000px';
+                w.style.opacity = '1';
+                w.style.marginBottom = '12px';
             } else {
-                w.classList.add('is-dimmed');
-                w.classList.remove('is-focused');
-                // Krympa innehållet i dimmade grupper
-                const content = w.querySelector('div:nth-child(2)');
-                if (content) {
-                    content.style.maxHeight = '0px';
-                    content.style.opacity = '0';
-                }
+                // De andra — krympa till bara rubriken (50px) och tona ned
+                w.style.maxHeight = '50px';
+                w.style.opacity = '0.4';
+                w.style.overflow = 'hidden';
+                w.style.marginBottom = '6px';
+                w.style.transition = 'max-height 0.4s ease, opacity 0.4s ease, margin-bottom 0.3s ease';
             }
         });
     }
