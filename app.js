@@ -1093,10 +1093,13 @@ function renderGroupsView() {
         }
     });
 
-    const allGroupIds = [...new Set([...PREDEFINED_GROUPS.map(g => g.id), ...usedGroupIds])];
+    const customGroups = (programData.customGroups || []);
+        const ALL_GROUPS = [...PREDEFINED_GROUPS, ...customGroups];
+        const allGroupIds = [...new Set([...ALL_GROUPS.map(g => g.id), ...usedGroupIds])];
 
     allGroupIds.forEach(groupId => {
-        const groupDef = PREDEFINED_GROUPS.find(g => g.id === groupId) || { id: groupId, name: groupId, icon: "📁" };
+       const ALL_GROUPS_LOCAL = [...PREDEFINED_GROUPS, ...(programData.customGroups || [])];
+    const groupDef = ALL_GROUPS_LOCAL.find(g => g.id === groupId) || { id: groupId, name: groupId, icon: "📁" };
         const passesInGroup = programData.routine.filter(p => Array.isArray(p.groups) && p.groups.includes(groupId));
         if (passesInGroup.length === 0) return;
 
