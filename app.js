@@ -455,7 +455,7 @@ function renderCalendar(isFromStartBtn = false) {
 
     if(isFromStartBtn === true) {
         infoBox.innerHTML = `<div style="background:rgba(34, 211, 238, 0.1); padding:12px; border-radius:12px; margin-bottom:15px; font-size:13px; text-align:center; color:var(--primary); border:1px solid var(--primary);">
-        Välj vilken dag du vill starta eller schemalägga ett pass i kalendern nedan  📅
+        Select the day you want to start or schedule a workout in the calendar below  📅
         </div>`;
     }
     const year = currentViewDate.getFullYear();
@@ -2913,7 +2913,7 @@ async function removeActiveExercise(exIdx) {
         <div style="text-align:center; padding:10px;">
             <div style="font-size:40px; margin-bottom:15px;"> 🗑️ </div>
             <h3 style="color:var(--danger);">Ta bort övningen?</h3>
-            <p style="color:var(--text-light); margin-bottom:25px; font-size:14px;">Är du säker på att du vill ta bort den här övningen från ditt pågående pass?</p>
+            <p style="color:var(--text-light); margin-bottom:25px; font-size:14px;">Are you sure you want to remove this exercise from your current workout?</p>
             <button class="mode-btn" style="background:linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color:white; margin-bottom:12px; font-weight:700;"
                 onclick="(async () => {
                     activeDraft.workout.exercises.splice(${exIdx}, 1);
@@ -2922,9 +2922,9 @@ async function removeActiveExercise(exIdx) {
                     closeModal();
                     renderActiveWorkout();
                 })()">
-                Ja, radera
+                Yes, delete!
             </button>
-            <button class="mode-btn glass-border" onclick="closeModal()">Avbryt</button>
+            <button class="mode-btn glass-border" onclick="closeModal()">Cancel</button>
         </div>
     `;
     openModal();
@@ -3038,7 +3038,7 @@ document.getElementById("save-workout-btn").onclick = async function(e) {
                         }
                         location.reload(); 
                     })()">Kasta passet</button>
-                    <button class="mode-btn glass-border" onclick="closeModal()">Avbryt</button>
+                    <button class="mode-btn glass-border" onclick="closeModal()">Cancel</button>
                 `;
                 openModal();
             }
@@ -3354,7 +3354,7 @@ async function deleteMasterExercise(id) {
                 Ja, radera
             </button>
             <button class="mode-btn glass-border" onclick="hideDefaultCloseButton(false); openEditExerciseModal(${id});">
-                Avbryt
+                Cancel
             </button>
         </div>
     `;
@@ -3416,7 +3416,7 @@ async function deleteEntireProgram(idx) {
                 })()">
                 Ja, radera passet
             </button>
-            <button class="mode-btn glass-border" onclick="closeModal()">Avbryt</button>
+            <button class="mode-btn glass-border" onclick="closeModal()">Cancel</button>
         </div>
     `;
     openModal();
@@ -3438,7 +3438,7 @@ function openConfirmDeleteModal(dateStr, idx) {
             </button>
 
             <button class="mode-btn glass-border" id="cancel-delete-history-btn" style="width:100%; padding:12px; border-radius:12px; background:rgba(255,255,255,0.05); color:var(--text); cursor:pointer;">
-                Avbryt
+                Cancel
             </button>
         </div>
     `;
@@ -3502,12 +3502,12 @@ function confirmDiscardActiveWorkout() {
     const body = document.getElementById("modal-body");
     if (!body) return;
     const isEditingHistorical = (activeDraft && activeDraft.date);
-    const titleText = isEditingHistorical ? "Radera passet?" : "Avbryta träningspasset?";
+    const titleText = isEditingHistorical ? "Delete workout?" : "Cancel workout?";
     const bodyText = isEditingHistorical
         ? "Är du säker på att du vill radera detta sparade träningspass ur din historik? Detta går inte att ångra."
         : "Är du säker på att du vill radera och avsluta detta pågående pass? Inga set kommer att sparas i din historik.";
-    const mainBtnText = isEditingHistorical ? "Ja, radera passet permanent" : "Ja, radera passet";
-    const cancelBtnText = isEditingHistorical ? "Avbryt" : "Nej, fortsätt träna";
+    const mainBtnText = isEditingHistorical ? "Yes, delete workout permanently" : "Yes, delete workout";
+    const cancelBtnText = isEditingHistorical ? "Cancel" : "No, continue training";
     const icon = isEditingHistorical ? " 🗑️ " : " ⚠️ ";
     body.innerHTML = `
         <div style="text-align:center; padding:10px;">
