@@ -386,7 +386,7 @@ function openEditExerciseModal(id) {
             
             <button class="mode-btn blue" style="width: 100%; margin-top: 15px;" id="update-exercise-confirm-btn">Uppdatera</button>
             
-            <button class="mode-btn" style="color:var(--danger); background:none; font-size:14px; margin-top: auto;" onclick="deleteMasterExercise(${id})">Radera övning permanent</button>
+            <button class="mode-btn" style="color:var(--danger); background:none; font-size:14px; margin-top: auto;" onclick="deleteMasterExercise(${id})">Delete workout permanently</button>
         </div>
         <style>
             .cat-select-item.active {
@@ -1771,7 +1771,7 @@ async function openEditProgramModal(idx) {
         </div>
 
         <button class="mode-btn blue" style="margin-top:20px;" onclick="saveProgramEdit(${idx})">Spara alla ändringar</button>
-        <button class="mode-btn" style="color:var(--danger); background:none; font-size:14px; margin-top:10px;" onclick="deleteEntireProgram(${idx})">Radera pass permanent</button>
+        <button class="mode-btn" style="color:var(--danger); background:none; font-size:14px; margin-top:10px;" onclick="deleteEntireProgram(${idx})">Delete workout permanently</button>
     `;
 
     renderExercisePickerForEdit(idx, "Ben");
@@ -2271,7 +2271,7 @@ function renderActiveWorkout() {
         const discardBtn = document.createElement("button");
         discardBtn.className = "mode-btn";
         discardBtn.style.cssText = "background:none; color:var(--danger); font-size:14px; border:1px solid rgba(239, 68, 68, 0.2); width:100%;";
-        discardBtn.innerHTML = "Radera pass  🗑️ ";
+        discardBtn.innerHTML = "Delete Workout  🗑️ ";
         discardBtn.onclick = confirmDiscardActiveWorkout;
 
         discardContainer.appendChild(discardBtn);
@@ -3029,7 +3029,7 @@ document.getElementById("save-workout-btn").onclick = async function(e) {
             if (body) {
                 body.innerHTML = `
                     <h3>Kasta träningspass</h3>
-                    <p style="text-align:center; color:var(--text-light);">Du har inte startat passet än. Vill du radera utkastet?</p>
+                    <p style="text-align:center; color:var(--text-light);">You haven't started the workout yet. Do you want to delete the draft?</p>
                     <button class="mode-btn danger" style="background:var(--danger);" onclick="(async () => { 
                         localStorage.removeItem('activeWorkoutDraft'); 
                         if (typeof deleteActiveDraft === 'function') await deleteActiveDraft();
@@ -3348,10 +3348,10 @@ async function deleteMasterExercise(id) {
     body.innerHTML = `
         <div style="text-align:center; padding:10px;">
             <div style="font-size:40px; margin-bottom:15px;"> 🗑️ </div>
-            <h3 style="color:var(--danger);">Radera övning?</h3>
-            <p style="color:var(--text-light); margin-bottom:25px; font-size:14px;">Vill du radera denna övning permanent?</p>
+            <h3 style="color:var(--danger);">Delete Exercise?</h3>
+            <p style="color:var(--text-light); margin-bottom:25px; font-size:14px;">Do you want to delete this workout permanently?</p>
             <button class="mode-btn" id="confirm-delete-ex-btn" style="background:linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color:white; margin-bottom:12px; font-weight:700;">
-                Ja, radera
+                Yes, delete!
             </button>
             <button class="mode-btn glass-border" onclick="hideDefaultCloseButton(false); openEditExerciseModal(${id});">
                 Cancel
@@ -3384,8 +3384,8 @@ async function deleteEntireProgram(idx) {
     body.innerHTML = `
         <div style="text-align:center; padding:10px;">
             <div style="font-size:40px; margin-bottom:15px;"> 🗑️ </div>
-            <h3 style="color:var(--danger);">Radera permanent?</h3>
-            <p style="color:var(--text-light); margin-bottom:25px; font-size:14px;">Vill du radera hela detta pass permanent? Det här valet går inte att ångra.</p>
+            <h3 style="color:var(--danger);">Delete permanently?</h3>
+            <p style="color:var(--text-light); margin-bottom:25px; font-size:14px;">Do you want to delete this entire workout permanently? This action cannot be undone.</p>
             <button class="mode-btn" style="background:linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color:white; margin-bottom:12px; font-weight:700;"
                 onclick="(async () => {
                     programData.routine.splice(${idx}, 1);
@@ -3414,7 +3414,7 @@ async function deleteEntireProgram(idx) {
                     document.getElementById('program-details-area').classList.add('hidden');
                     renderGroupsView();
                 })()">
-                Ja, radera passet
+                Yes, delete workout
             </button>
             <button class="mode-btn glass-border" onclick="closeModal()">Cancel</button>
         </div>
@@ -3429,12 +3429,12 @@ function openConfirmDeleteModal(dateStr, idx) {
     body.innerHTML = `
         <div style="text-align:center; padding:10px;">
             <div style="font-size:40px; margin-bottom:15px;"> 🗑️ </div>
-            <h3 style="color:var(--danger); margin: 0 0 10px 0; font-size:22px;">Radera pass ur historiken?</h3>
+            <h3 style="color:var(--danger); margin: 0 0 10px 0; font-size:22px;">Delete workout from history?</h3>
             <p style="color:var(--text-light); margin-bottom:25px; font-size:14px; line-height:1.4;">
                 Detta pass kommer att tas bort permanent från din kalender och försvinna från databasen.
             </p>
             <button class="mode-btn" id="confirm-delete-history-btn" style="background:linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color:white; margin-bottom:12px; font-weight:700; width:100%; padding:14px; border-radius:12px; border:none; cursor:pointer;">
-                Ja, radera passet
+                Yes, delete workout
             </button>
 
             <button class="mode-btn glass-border" id="cancel-delete-history-btn" style="width:100%; padding:12px; border-radius:12px; background:rgba(255,255,255,0.05); color:var(--text); cursor:pointer;">
@@ -3504,8 +3504,8 @@ function confirmDiscardActiveWorkout() {
     const isEditingHistorical = (activeDraft && activeDraft.date);
     const titleText = isEditingHistorical ? "Delete workout?" : "Cancel workout?";
     const bodyText = isEditingHistorical
-        ? "Är du säker på att du vill radera detta sparade träningspass ur din historik? Detta går inte att ångra."
-        : "Är du säker på att du vill radera och avsluta detta pågående pass? Inga set kommer att sparas i din historik.";
+        ? "Are you sure you want to delete this saved workout from your history? This cannot be undone."
+        : "Are you sure you want to delete and cancel this ongoing workout? No sets will be saved to your history.";
     const mainBtnText = isEditingHistorical ? "Yes, delete workout permanently" : "Yes, delete workout";
     const cancelBtnText = isEditingHistorical ? "Cancel" : "No, continue training";
     const icon = isEditingHistorical ? " 🗑️ " : " ⚠️ ";
