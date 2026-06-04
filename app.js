@@ -1505,7 +1505,7 @@ function openEditGroupModal(groupId, groupDef) {
 
         <button class="mode-btn" onclick="confirmDeleteGroup('${groupId}')" 
             style="width:100%; color: var(--danger); background: rgba(239,68,68,0.06); border: 1px solid rgba(239,68,68,0.2); font-size:13px; padding:14px;">
-            🗑️ Ta bort grupp
+            🗑️ Delete Group
         </button>
 
         <button class="mode-btn glass-border" onclick="closeModal()" 
@@ -1546,13 +1546,13 @@ async function confirmDeleteGroup(groupId) {
     body.innerHTML = `
         <div style="text-align:center; padding:10px;">
             <div style="font-size:40px; margin-bottom:15px;">🗑️</div>
-            <h3 style="color:var(--danger); margin: 0 0 10px 0;">Ta bort grupp?</h3>
+            <h3 style="color:var(--danger); margin: 0 0 10px 0;">Delete Group?</h3>
             <p style="color:var(--text-light); margin-bottom:25px; font-size:14px; line-height:1.4;">
                 Gruppen tas bort men alla träningspass finns kvar — de hamnar under "Utan grupp".
             </p>
             <button class="mode-btn" onclick="deleteGroup('${groupId}')" 
                 style="width:100%; background:linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color:white; margin-bottom:12px; font-weight:700; padding:14px;">
-                Ja, ta bort gruppen
+                Yes, delete group!
             </button>
             <button class="mode-btn glass-border" onclick="closeModal()" style="width:100%; padding:12px;">
                 Avbryt
@@ -2415,7 +2415,7 @@ function renderExercisePicker(category, replaceIndex = null) {
         { name: "Bål", icon: " 🧘 " }
     ];
 
-    let html = `<h3>${replaceIndex !== null ? 'Byt ut övning' : 'Välj Övningar'}</h3>`;
+    let html = `<h3>${replaceIndex !== null ? 'Change Exercise' : 'Select Exercise'}</h3>`;
     html += `<p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin-bottom:10px;">Select Category:</p>`;
 
     html += `<div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; margin-bottom:15px;">`;
@@ -2430,7 +2430,7 @@ function renderExercisePicker(category, replaceIndex = null) {
     });
     html += `</div>`;
 
-    html += `<p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin-bottom:10px;">Övningar (${category}):</p>`;
+    html += `<p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin-bottom:10px;">Exercises (${category}):</p>`;
     html += `<div style="max-height:280px; overflow-y:auto; padding-right:5px; background:rgba(0,0,0,0.2); border-radius:15px; padding:10px; margin-bottom:15px; display:flex; flex-direction:column; gap:8px;">`;
 
     const filtered = masterExercises.filter(ex => category === "Armar" ? (ex.target === "Biceps" || ex.target === "Triceps") : ex.target === category);
@@ -2938,7 +2938,7 @@ async function removeActiveExercise(exIdx) {
     body.innerHTML = `
         <div style="text-align:center; padding:10px;">
             <div style="font-size:40px; margin-bottom:15px;"> 🗑️ </div>
-            <h3 style="color:var(--danger);">Ta bort övningen?</h3>
+            <h3 style="color:var(--danger);">Delete Exercise?</h3>
             <p style="color:var(--text-light); margin-bottom:25px; font-size:14px;">Are you sure you want to remove this exercise from your current workout?</p>
             <button class="mode-btn" style="background:linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color:white; margin-bottom:12px; font-weight:700;"
                 onclick="(async () => {
