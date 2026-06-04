@@ -1455,7 +1455,7 @@ function openCreateGroupModal() {
                 style="margin: 0; flex-grow: 1; font-size: 13px; padding: 10px 14px;">
         </div>
         <button class="mode-btn blue" onclick="saveCustomGroupFromModal()" style="width:100%; margin-top: 4px;">
-            + Lägg till grupp
+            + Add Group
         </button>
     `;
     openModal();
@@ -1472,7 +1472,7 @@ function openEditGroupModal(groupId, groupDef) {
         <input type="text" id="edit-group-name-input" class="log-input" value="${groupDef.name}" style="text-align:center; margin-bottom:20px;">
         
         <button class="mode-btn blue" onclick="saveGroupNameEdit('${groupId}')" style="width:100%; margin-bottom:10px;">
-            Spara nytt namn
+            Save new name
         </button>
 
         <div style="height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent); margin: 16px 0;"></div>
@@ -1607,7 +1607,7 @@ function generateSelectedExercisesSummaryHtmlForEdit(idx) {
     summaryHtml += `</div>`;
     summaryHtml += `
     <button id="multi-save-edit-exercises-btn" class="mode-btn green" style="width: 100%; padding: 15px; font-weight: bold; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4);" onclick="confirmAndAddAllSelectedExercisesForEdit(${idx})">
-        Lägg till ${window.temporarySelectedExercisesForEdit.length} valda övningar  ➕
+        Add ${window.temporarySelectedExercisesForEdit.length} selected exercises  ➕
     </button>
     `;
     return summaryHtml;
@@ -1792,7 +1792,7 @@ function renderExercisePickerForEdit(idx, category = "Ben") {
     ];
 
     let html = `<div class="separator" style="margin: 25px 0;"></div>`;
-    html += `<h3 style="margin: 0 0 15px 0; color: var(--primary); font-size: 1.2rem; text-align: center; text-transform: uppercase; letter-spacing: 1px;">LÄGG TILL ÖVNING</h3>`;
+    html += `<h3 style="margin: 0 0 15px 0; color: var(--primary); font-size: 1.2rem; text-align: center; text-transform: uppercase; letter-spacing: 1px;">ADD EXERCISE</h3>`;
     html += `<p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin-bottom:10px;">Välj Kategori:</p>`;
 
     html += `<div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; margin-bottom:15px;">`;
@@ -2236,7 +2236,7 @@ function renderActiveWorkout() {
                 </div>
                 <div style="padding: 0 15px 15px 15px; display: ${isOpen ? 'block' : 'none'}; border-top: 1px solid rgba(255,255,255,0.05);">
                     ${setsHtml}
-                    <button class="mode-border glass-border" style="padding:8px; font-size:11px; margin-top:10px; border-style:dashed; width:100%;" onclick="addSetToExercise(${i})" ${isDone ? 'disabled' : ''}>+ Lägg till set</button>
+                    <button class="mode-border glass-border" style="padding:8px; font-size:11px; margin-top:10px; border-style:dashed; width:100%;" onclick="addSetToExercise(${i})" ${isDone ? 'disabled' : ''}>+ Add set</button>
                     <button class="mode-btn ${isDone ? 'blue' : 'green'}" style="padding:12px; font-size:13px; margin-top:15px; width:100%; font-weight:bold;" onclick="toggleExerciseDone(${i})">
                         ${isDone ? 'Ångra Klar  ↩️ ' : 'Markera övning som klar  ✅ '}
                     </button>
@@ -2247,15 +2247,15 @@ function renderActiveWorkout() {
     } else {
         const emptyNotice = document.createElement("p");
         emptyNotice.style.cssText = "color: var(--text-light); text-align: center; padding: 30px 10px; font-size: 14px;";
-        emptyNotice.innerHTML = "Det här passet är tomt. Klicka på knappen nedan för att lägga till dina övningar!  👇 ";
+        emptyNotice.innerHTML = "This workout is empty. Click the button below to add your exercises!  👇 ";
         list.appendChild(emptyNotice);
     }
 
     const addBtn = document.createElement("button");
     addBtn.className = "mode-btn glass-border";
-    // Lagom och snygg marginal under "+ Lägg till övning"
+    // Lagom och snygg marginal under "+ Add Exercise"
     addBtn.style.cssText = "margin-top:10px; margin-bottom: 25px; border: 2px dashed rgba(34, 211, 238, 0.4); color: var(--primary); background: rgba(34, 211, 238, 0.04); font-weight: 700; width:100%;";
-    addBtn.innerHTML = " ➕ Lägg till övning";
+    addBtn.innerHTML = " ➕ Add Exercise";
     addBtn.onclick = openCustomAddExerciseModal;
     list.appendChild(addBtn);
 
@@ -2466,7 +2466,7 @@ function generateSelectedExercisesSummaryHtml() {
     summaryHtml += `</div>`;
     summaryHtml += `
     <button id="multi-save-exercises-btn" class="mode-btn green" style="width: 100%; padding: 15px; font-weight: bold; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4);" onclick="confirmAndAddAllSelectedExercises()">
-        Lägg till ${temporarySelectedExercises.length} valda övningar  ➕
+        Add ${temporarySelectedExercises.length} selected exercises  ➕
     </button>
     `;
     return summaryHtml;
@@ -2822,7 +2822,7 @@ function updateSingleExerciseCard(exIdx) {
         </div>
         <div style="padding: 0 15px 15px 15px; display: ${isOpen ? 'block' : 'none'}; border-top: 1px solid rgba(255,255,255,0.05);">
             ${setsHtml}
-            <button class="mode-border glass-border" style="padding:8px; font-size:11px; margin-top:10px; border-style:dashed; width:100%;" onclick="addSetToExercise(${exIdx})" ${isDone ? 'disabled' : ''}>+ Lägg till set</button>
+            <button class="mode-border glass-border" style="padding:8px; font-size:11px; margin-top:10px; border-style:dashed; width:100%;" onclick="addSetToExercise(${exIdx})" ${isDone ? 'disabled' : ''}>+ Add set</button>
             <button class="mode-btn ${isDone ? 'blue' : 'green'}" style="padding:12px; font-size:13px; margin-top:15px; width:100%; font-weight:bold;" onclick="toggleExerciseDone(${exIdx})">
                 ${isDone ? 'Ångra Klar  ↩️ ' : 'Markera övning som klar  ✅ '}
             </button>
