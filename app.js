@@ -1462,7 +1462,7 @@ function openCreateGroupModal() {
     const body = document.getElementById("modal-body");
     body.innerHTML = `
         <h3 style="text-align:center; margin-bottom:20px;">Create New Group</h3>
-        <p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin-bottom:12px; letter-spacing:1px;">Välj en fördefinierad</p>
+        <p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin-bottom:12px; letter-spacing:1px;">Select a predefined group</p>
         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px;">
             ${PREDEFINED_GROUPS.map(g => `
                 <button onclick="selectPredefinedGroup('${g.id}')" id="predef-${g.id}"
