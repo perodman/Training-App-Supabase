@@ -822,7 +822,7 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
         <div class="modern-status-card day-manager-status-box" style="padding: 30px 15px 30px 15px !important; align-items: stretch !important; margin-top: -10px !important;">
 
             <p id="current-planned-label" class="status-box-text" style="margin: 0 0 8px 0 !important; text-align: center !important; font-size: 16px; font-weight: 600; padding: 0 !important; line-height: 1.2 !important;">
-                ${planned ? ` 📋  <span class="status-highlight-text">${planned.name}</span>` : ' 🧘  Planerad Vila'}
+                ${planned ? ` 📋  <span class="status-highlight-text">${planned.name}</span>` : ' 🧘  Rest Day'}
             </p>
 
             <div id="day-manager-action-btn-container" class="status-btn-container" style="width: 100% !important; display: flex; flex-direction: column; gap: 10px; margin-top: 5px;">`;
@@ -830,7 +830,7 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
         if(planned) {
             html += `
                 <button class="mode-btn premium-action-btn premium-green-btn" onclick="prepareStart('${dateStr}', '${planned.id}')" style="width: 100% !important; margin: 0 !important; padding: 12px !important;">
-                    Starta Träning  🔥
+                    Start Workout  🔥
                 </button>`;
         }
 
@@ -840,7 +840,7 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
             <button class="mode-btn premium-action-btn premium-free-btn"
                 onclick="closeModal(); startFreeWorkoutOnDate('${dateStr}')"
                 style="width: 100% !important; margin: 10px 0 0 0 !important; padding: 10px !important; touch-action: manipulation; -webkit-tap-highlight-color: transparent; cursor: pointer;">
-                ➕  Starta Fritt Pass
+                ➕  Start Free Workout
             </button>
         </div>`;
     }
@@ -851,12 +851,12 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
         <div style="margin-top: 1px; width: 100%;">
             <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
                 <div style="flex-grow: 1; height: 1px; background: rgba(255,255,255,0.08);"></div>
-                <p style="font-size: 12px; text-transform: uppercase; color: var(--text-light); font-weight: 700; letter-spacing: 1px; margin: 0 !important; white-space: nowrap;">Ändra planering</p>
+                <p style="font-size: 12px; text-transform: uppercase; color: var(--text-light); font-weight: 700; letter-spacing: 1px; margin: 0 !important; white-space: nowrap;">Edit Plan</p>
                 <div style="flex-grow: 1; height: 1px; background: rgba(255,255,255,0.08);"></div>
             </div>
 
             <div style="text-align: center; margin-bottom: 12px;">
-                <span style="font-size: 11px; color: var(--text-light); opacity: 0.5; font-weight: 500; letter-spacing: 0.3px;"> 💡  Håll inne ett pass för att se övningar</span>
+                <span style="font-size: 11px; color: var(--text-light); opacity: 0.5; font-weight: 500; letter-spacing: 0.3px;"> 💡  Press and hold a workout to view exercises</span>
             </div>
 
             <div class="plan-override-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; width: 100%;">`;
@@ -908,7 +908,7 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
                 style="margin: 0; padding: 12px; font-size: 13px; border-radius: 12px; font-weight: bold; grid-column: span 2;
                 border-top: 2px solid ${restBorderColor} !important;
                 color: #fde047; background: rgba(253, 224, 71, 0.05);">
-                🧘  Vila
+                🧘  Rest
             </button>
         </div>
         </div>`;
@@ -946,7 +946,7 @@ function setOverrideSilent(dateStr, programId) {
         if (nextPlannedProgram) {
             plannedLabel.innerHTML = `📋 <span class="status-highlight-text">${nextPlannedProgram.name}</span>`;
         } else {
-            plannedLabel.innerHTML = '🧘 Planerad Vila';
+            plannedLabel.innerHTML = '🧘 Rest Day';
         }
     }
 
@@ -2196,7 +2196,7 @@ function renderActiveWorkout() {
                     <small style="text-align:left; padding-left:5px; color:var(--text-light); font-size:9px; font-weight:700;">SET</small>
                     <small style="text-align:center; color:var(--text-light); font-size:9px;">KG</small>
                     <small style="text-align:center; color:var(--text-light); font-size:9px;">REPS</small>
-                    <small style="text-align:center; color:var(--text-light); font-size:9px;">VILA (S)</small>
+                    <small style="text-align:center; color:var(--text-light); font-size:9px;">REST (S)</small>
                     <span></span>
                 </div>`;
 
@@ -2789,7 +2789,7 @@ function updateSingleExerciseCard(exIdx) {
             <small style="text-align:left; padding-left:5px; color:var(--text-light); font-size:9px; font-weight:700;">SET</small>
             <small style="text-align:center; color:var(--text-light); font-size:9px;">KG</small>
             <small style="text-align:center; color:var(--text-light); font-size:9px;">REPS</small>
-            <small style="text-align:center; color:var(--text-light); font-size:9px;">VILA (S)</small>
+            <small style="text-align:center; color:var(--text-light); font-size:9px;">REST (S)</small>
             <span></span>
         </div>`;
     if (exerciseData.sets_data) {
