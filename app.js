@@ -1219,20 +1219,21 @@ function renderProgramView(activeIdx = null) {
     });
 
     // Pass utan grupp
-    const ungroupedPasses = programData.routine.filter(p => !Array.isArray(p.groups) || p.groups.length === 0);
-    if (ungroupedPasses.length > 0) {
-
-        const ungroupedWrapper = document.createElement("div");
-        ungroupedWrapper.className = "group-wrapper";
-        ungroupedWrapper.style.cssText = "margin-bottom: 12px;";
-        ungroupedWrapper.dataset.groupId = "__ungrouped__";
-        ungroupedHeader.style.cssText = `
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 14px 18px; border-radius: 18px; cursor: pointer;
-            background: rgba(255,255,255,0.04);
-            border: 1px dashed rgba(255,255,255,0.1);
-            transition: all 0.2s ease;
-        `;
+        const ungroupedPasses = programData.routine.filter(p => !Array.isArray(p.groups) || p.groups.length === 0);
+        if (ungroupedPasses.length > 0) {
+            const ungroupedWrapper = document.createElement("div");
+            ungroupedWrapper.className = "group-wrapper";
+            ungroupedWrapper.style.cssText = "margin-bottom: 12px;";
+            ungroupedWrapper.dataset.groupId = "__ungrouped__";
+    
+            const ungroupedHeader = document.createElement("div");
+            ungroupedHeader.style.cssText = `
+                display: flex; align-items: center; justify-content: space-between;
+                padding: 14px 18px; border-radius: 18px; cursor: pointer;
+                background: rgba(255,255,255,0.04);
+                border: 1px dashed rgba(255,255,255,0.1);
+                transition: all 0.2s ease;
+            `;
 
         const isUngroupedExpanded = window._expandedGroups.has('__ungrouped__');
         ungroupedHeader.innerHTML = `
