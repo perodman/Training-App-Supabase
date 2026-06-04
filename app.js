@@ -1197,20 +1197,26 @@ function renderPassesInGroup(groupId) {
             padding: 0 0 16px 0; width: 100%;
         `;
         backBtn.innerHTML = `← ${groupDef.icon} ${groupDef.name}`;
-        backBtn.onclick = () => {
-            // Slide-animation tillbaka
-            selector.style.transform = 'translateX(30px)';
+            backBtn.onclick = () => {
+        selector.style.transition = 'transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.35s ease';
+        selector.style.transform = 'translateX(60px)';
+        selector.style.opacity = '0';
+        setTimeout(() => {
+            const detailsArea = document.getElementById("program-details-area");
+            if (detailsArea) detailsArea.classList.add("hidden");
+            backBtn.style.display = 'none';
+            selector.innerHTML = "";
+            selector.style.transition = 'none';
+            selector.style.transform = 'translateX(-60px)';
             selector.style.opacity = '0';
+            renderGroupsView();
             setTimeout(() => {
-                backBtn.style.display = 'none';
-                renderGroupsView();
-                selector.style.transform = 'translateX(-30px)';
-                setTimeout(() => {
-                    selector.style.transform = 'translateX(0)';
-                    selector.style.opacity = '1';
-                }, 50);
-            }, 200);
-        };
+                selector.style.transition = 'transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.35s ease';
+                selector.style.transform = 'translateX(0)';
+                selector.style.opacity = '1';
+            }, 30);
+        }, 300);
+    };
 
         const icons = [' ⚡ ', ' 🔥 ', ' 🏆 ', ' 💎 '];
         passesInGroup.forEach(pass => {
@@ -1365,8 +1371,16 @@ function showProgramDetails(idx) {
     const list = document.getElementById("program-exercise-list");
     if (!pass || !detailsArea || !list) return;
 
-    detailsArea.classList.remove("hidden");
+    // Om samma pass redan är öppet — stäng det
+    if (!detailsArea.classList.contains("hidden") && detailsArea.dataset.openIdx == idx) {
+        detailsArea.classList.add("hidden");
+        detailsArea.dataset.openIdx = "";
+        document.querySelectorAll(".prog-card").forEach(c => c.classList.remove("active"));
+        return;
+    }
 
+    detailsArea.dataset.openIdx = idx;
+    detailsArea.classList.remove("hidden");
     list.innerHTML = `
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; padding-bottom:10px; border-bottom:1px solid var(--glass-border);">
             <h3 style="margin:0; text-align:left; font-size:18px;">${pass.name}</h3>
@@ -1550,7 +1564,7 @@ async function openEditProgramModal(idx) {
                 ${PREDEFINED_GROUPS.map(g => {
                     const isSelected = Array.isArray(pass.groups) && pass.groups.includes(g.id);
                     return `
-                    <button onclick="togglePassGroup(${idx}, '${g.id}'); openEditProgramModal(${idx});"
+                    <button onclick="(async () => { const sp = window.scrollY; await togglePassGroup(${idx}, '${g.id}'); await openEditProgramModal(${idx}); window.scrollTo(0, sp); })()"
                         style="padding: 10px 5px; border-radius: 12px; border: 1px solid ${isSelected ? 'var(--primary)' : 'rgba(255,255,255,0.1)'}; 
                         background: ${isSelected ? 'rgba(34,211,238,0.15)' : 'rgba(255,255,255,0.04)'}; 
                         color: ${isSelected ? 'var(--primary)' : 'var(--text-light)'}; 
@@ -1559,11 +1573,14 @@ async function openEditProgramModal(idx) {
                         ${g.name}
                     </button>`;
                 }).join('')}
-            </div>
+</div>
         </div>
-           <button class="mode-btn glass-border" style="font-size:13px; padding:10px; border: 2px dashed rgba(34, 211, 238, 0.4); color: var(--primary); background: rgba(34, 211, 238, 0.04); font-weight: 700;" 
+
+        <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.06);">
+            <button class="mode-btn glass-border" style="font-size:13px; padding:10px; border: 2px dashed rgba(34, 211, 238, 0.4); color: var(--primary); background: rgba(34, 211, 238, 0.04); font-weight: 700;" 
                    onclick="saveEditDraftStateAndCreateNew(${idx})">+ Skapa helt ny övning till banken</button>
         </div>
+
         <button class="mode-btn blue" style="margin-top:20px;" onclick="saveProgramEdit(${idx})">Spara alla ändringar</button>
         <button class="mode-btn" style="color:var(--danger); background:none; font-size:14px; margin-top:10px;" onclick="deleteEntireProgram(${idx})">Radera pass permanent</button>
     `;
