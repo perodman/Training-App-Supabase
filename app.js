@@ -460,7 +460,7 @@ function renderCalendar(isFromStartBtn = false) {
     }
     const year = currentViewDate.getFullYear();
     const month = currentViewDate.getMonth();
-    const monthText = currentViewDate.toLocaleString('sv-SE', { month: 'long', year: 'numeric' });
+    const monthText = currentViewDate.toLocaleString('en-US', { month: 'long', year: 'numeric' });
     label.textContent = monthText.charAt(0).toUpperCase() + monthText.slice(1);
 
     const firstDay = new Date(year, month, 1).getDay();
