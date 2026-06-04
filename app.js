@@ -1126,7 +1126,7 @@ function renderGroupsView() {
             <div style="font-size: 32px; margin-bottom: 10px; opacity: ${isEmpty ? '0.4' : '1'};">${groupDef.icon}</div>
             <div style="font-weight: 800; font-size: 15px; color: ${isEmpty ? 'var(--text-light)' : 'var(--text)'}; margin-bottom: 4px;">${groupDef.name}</div>
             <div style="font-size: 10px; color: ${isEmpty ? 'var(--text-light)' : 'var(--primary)'}; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; opacity: ${isEmpty ? '0.5' : '1'};">
-                ${isEmpty ? 'Inga pass än' : `${passesInGroup.length} ${passesInGroup.length === 1 ? 'pass' : 'pass'}`}
+                ${isEmpty ? 'No workouts yet' : `${passesInGroup.length} ${passesInGroup.length === 1 ? 'workouts' : 'workouts'}`}
             </div>
         `;
 
@@ -1179,7 +1179,7 @@ function renderGroupsView() {
         `;
         ungroupedCard.innerHTML = `
             <div style="font-size: 32px; margin-bottom: 10px;">📁</div>
-            <div style="font-weight: 800; font-size: 15px; color: var(--text-light); margin-bottom: 4px;">Utan grupp</div>
+            <div style="font-weight: 800; font-size: 15px; color: var(--text-light); margin-bottom: 4px;">No Group</div>
             <div style="font-size: 10px; color: var(--text-light); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; opacity: 0.6;">${ungroupedPasses.length} pass</div>
         `;
         ungroupedCard.onclick = () => renderPassesInGroup('__ungrouped__');
