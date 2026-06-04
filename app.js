@@ -12,6 +12,18 @@ let timerInterval = null;
 let secondsElapsed = 0;
 let isTimerRunning = false;
 
+const CATEGORY_DISPLAY = {
+    "Ben": "Legs",
+    "Bröst": "Chest", 
+    "Rygg": "Back",
+    "Axlar": "Shoulders",
+    "Armar": "Arms",
+    "Bål": "Core",
+    "Biceps": "Biceps",
+    "Triceps": "Triceps",
+    "Ländrygg": "Lower Back"
+};
+
 // --- INIT ---
 async function initApp() {
     // 1. Om vi redan har ett sparat program i localStorage, använd det direkt för snabb start
@@ -221,7 +233,7 @@ function openCreateExerciseModal(callback = null) {
                         id="modal-cat-${cat.id}"
                         style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 12px 5px; border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.2s ease;">
                         <div style="font-size: 20px; margin-bottom: 4px;">${cat.icon}</div>
-                        <div style="font-size: 10px; font-weight: 700; color: var(--text-light);">${cat.id}</div>
+                        <div style="font-size: 10px; font-weight: 700; color: var(--text-light);">${CATEGORY_DISPLAY[cat.id] || cat.id}</div>
                     </div>
                     `).join('')}
                 </div>
@@ -342,7 +354,7 @@ function showExerciseAnimation(id) {
         <h3>${ex.name}</h3>
         ${videoHtml}
         <div style="text-align:left; color:var(--text-light); font-size:14px; padding:10px;">
-            <p><strong>Muskelgrupp:</strong> ${ex.target}</p>
+            <p><strong>Muskelgrupp:</strong> ${CATEGORY_DISPLAY[ex.target] || ex.target}</p>
         </div>
     `;
     openModal();
@@ -378,7 +390,7 @@ function openEditExerciseModal(id) {
                         id="edit-modal-cat-${cat.id}"
                         style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 12px 5px; border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.2s ease;">
                         <div style="font-size: 20px; margin-bottom: 4px;">${cat.icon}</div>
-                        <div style="font-size: 10px; font-weight: 700; color: var(--text-light);">${cat.id}</div>
+                        <div style="font-size: 10px; font-weight: 700; color: var(--text-light);">${CATEGORY_DISPLAY[cat.id] || cat.id}</div>
                     </div>
                     `).join('')}
                 </div>
@@ -1284,7 +1296,7 @@ function renderPassesInGroup(groupId) {
             passCard.innerHTML = `
                 <div style="font-size:28px;">${icons[passIdx % 4]}</div>
                 <h4 style="font-size: 14px; margin: 8px 0 4px 0; line-height: 1.3;">${pass.name}</h4>
-                <div style="font-size:10px; color:var(--primary); font-weight:800;">${pass.exercises.length} EXERCISE</div>
+                <div style="font-size:10px; color:var(--primary); font-weight:800;">${pass.exercises.length} ${pass.exercises.length === 1 ? 'EXERCISE' : 'EXERCISES'}</div>
                <div onclick="event.stopPropagation(); openGroupPickerForPass(${passIdx})"
     style="position: absolute; top: 6px; right: 6px; font-size: 12px; opacity: 0.6; cursor: pointer; padding: 2px 6px; border-radius: 6px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1);">✏️</div>
             `;
