@@ -363,7 +363,7 @@ function openEditExerciseModal(id) {
         { id: "Bål", icon: " 🧘 " }
     ];
    body.innerHTML = `
-        <h3 style="text-align:center; margin-bottom: 20px;">Redigera Övning</h3>
+        <h3 style="text-align:center; margin-bottom: 20px;">Edit Exercise</h3>
         <div style="display: flex; flex-direction: column; align-items: center; gap: 10px; min-height: 400px;">
             <div style="width: 100%; max-width: 300px; margin-bottom: 10px;">
                 <label style="font-size:11px; color:var(--text-light); text-transform: uppercase; letter-spacing: 1px; display:block; margin-bottom: 8px; text-align: center;">Exercise name</label>
@@ -384,7 +384,7 @@ function openEditExerciseModal(id) {
                 </div>
             </div>
             
-            <button class="mode-btn blue" style="width: 100%; margin-top: 15px;" id="update-exercise-confirm-btn">Uppdatera</button>
+            <button class="mode-btn blue" style="width: 100%; margin-top: 15px;" id="update-exercise-confirm-btn">Update</button>
             
             <button class="mode-btn" style="color:var(--danger); background:none; font-size:14px; margin-top: auto;" onclick="deleteMasterExercise(${id})">Delete workout permanently</button>
         </div>
@@ -1413,7 +1413,7 @@ function showProgramDetails(idx) {
     list.innerHTML = `
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; padding-bottom:10px; border-bottom:1px solid var(--glass-border);">
             <h3 style="margin:0; text-align:left; font-size:18px;">${pass.name}</h3>
-            <button class="order-btn" style="background:var(--primary); color:#0f172a; padding:8px 15px; border-radius:10px; font-weight:800; border:none; cursor:pointer; font-size:12px;" onclick="openEditProgramModal(${idx})">Redigera</button>
+            <button class="order-btn" style="background:var(--primary); color:#0f172a; padding:8px 15px; border-radius:10px; font-weight:800; border:none; cursor:pointer; font-size:12px;" onclick="openEditProgramModal(${idx})">Edit</button>
         </div>
         ${pass.exercises.map(e => `
         <div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.03);">
@@ -1466,7 +1466,7 @@ function openEditGroupModal(groupId, groupDef) {
     body.innerHTML = `
         <h3 style="text-align:center; margin-bottom:20px;">
             <span style="font-size:28px; display:block; margin-bottom:8px;">${groupDef.icon}</span>
-            Redigera grupp
+            Edit group
         </h3>
         <label style="font-size:11px; color:var(--text-light); text-transform:uppercase; letter-spacing:1px; display:block; text-align:center; margin-bottom:8px;">Gruppnamn</label>
         <input type="text" id="edit-group-name-input" class="log-input" value="${groupDef.name}" style="text-align:center; margin-bottom:20px;">
@@ -1730,7 +1730,7 @@ async function openEditProgramModal(idx) {
     }
 
     body.innerHTML = `
-        <h3>Redigera ${pass.name}</h3>
+        <h3>Edit ${pass.name}</h3>
         <label style="font-size:12px; color:var(--text-light); text-align:center; display:block;">WORKOUT NAME</label>
         <input type="text" id="edit-pass-name" class="log-input" value="${pass.name}">
 
