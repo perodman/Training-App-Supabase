@@ -731,7 +731,7 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
 
     let html = `
         <div style="text-align: center; margin: 0 !important; padding: 0 !important;">
-            <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: var(--text-light); font-weight: 600; display: block; margin: 0 !important; padding: 0 !important;">Valt datum</span>
+            <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: var(--text-light); font-weight: 600; display: block; margin: 0 !important; padding: 0 !important;">Selected Date</span>
             <h2 class="section-title modern-header" style="margin: 8px 0 0 0 !important; padding: 0 !important; display: inline-block; font-size: 26px; line-height: 1.1 !important;">
                 ${dateStr}
             </h2>
