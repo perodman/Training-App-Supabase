@@ -1371,16 +1371,27 @@ function showProgramDetails(idx) {
     const list = document.getElementById("program-exercise-list");
     if (!pass || !detailsArea || !list) return;
 
-    // Om samma pass redan är öppet — stäng det
+    // Om samma pass redan är öppet — stäng med animation
     if (!detailsArea.classList.contains("hidden") && detailsArea.dataset.openIdx == idx) {
-        detailsArea.classList.add("hidden");
-        detailsArea.dataset.openIdx = "";
-        document.querySelectorAll(".prog-card").forEach(c => c.classList.remove("active"));
+        detailsArea.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+        detailsArea.style.opacity = '0';
+        detailsArea.style.transform = 'translateY(10px)';
+        setTimeout(() => {
+            detailsArea.classList.add("hidden");
+            detailsArea.style.opacity = '';
+            detailsArea.style.transform = '';
+            detailsArea.dataset.openIdx = "";
+            document.querySelectorAll(".prog-card").forEach(c => c.classList.remove("active"));
+        }, 300);
         return;
     }
 
+    // Öppna med animation
     detailsArea.dataset.openIdx = idx;
+    detailsArea.style.opacity = '0';
+    detailsArea.style.transform = 'translateY(10px)';
     detailsArea.classList.remove("hidden");
+
     list.innerHTML = `
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; padding-bottom:10px; border-bottom:1px solid var(--glass-border);">
             <h3 style="margin:0; text-align:left; font-size:18px;">${pass.name}</h3>
@@ -1393,6 +1404,12 @@ function showProgramDetails(idx) {
         </div>
         `).join("")}
     `;
+
+    setTimeout(() => {
+        detailsArea.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+        detailsArea.style.opacity = '1';
+        detailsArea.style.transform = 'translateY(0)';
+    }, 30);
 }
 
 // Motsvarar generateSelectedExercisesSummaryHtml
