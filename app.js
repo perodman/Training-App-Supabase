@@ -2278,7 +2278,7 @@ function renderActiveWorkout() {
                     ${setsHtml}
                     <button class="mode-border glass-border" style="padding:8px; font-size:11px; margin-top:10px; border-style:dashed; width:100%;" onclick="addSetToExercise(${i})" ${isDone ? 'disabled' : ''}>+ Add set</button>
                     <button class="mode-btn ${isDone ? 'blue' : 'green'}" style="padding:12px; font-size:13px; margin-top:15px; width:100%; font-weight:bold;" onclick="toggleExerciseDone(${i})">
-                        ${isDone ? 'Undo  ↩️ ' : 'Mark as complete  ✅ '}
+                        ${isDone ? 'Undo  ↩️ ' : 'Mark as Complete  ✅ '}
                     </button>
                 </div>`;
 
@@ -2864,7 +2864,7 @@ function updateSingleExerciseCard(exIdx) {
             ${setsHtml}
             <button class="mode-border glass-border" style="padding:8px; font-size:11px; margin-top:10px; border-style:dashed; width:100%;" onclick="addSetToExercise(${exIdx})" ${isDone ? 'disabled' : ''}>+ Add set</button>
             <button class="mode-btn ${isDone ? 'blue' : 'green'}" style="padding:12px; font-size:13px; margin-top:15px; width:100%; font-weight:bold;" onclick="toggleExerciseDone(${exIdx})">
-                ${isDone ? 'Undo  ↩️ ' : 'Mark as complete  ✅ '}
+                ${isDone ? 'Undo  ↩️ ' : 'Mark as Complete  ✅ '}
             </button>
         </div>`;
 }
