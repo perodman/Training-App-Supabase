@@ -2092,7 +2092,7 @@ function renderActiveWorkout() {
         if (footer) footer.classList.add("hidden");
         list.innerHTML = `
         <div style="text-align:center; padding:20px 0;">
-            <button class="mode-btn green" style="width:100%; padding:20px; font-size:18px; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);" onclick="actuallyStartWorkout()">STARTA TRÄNINGSPASSET  🔥 </button>
+            <button class="mode-btn green" style="width:100%; padding:20px; font-size:18px; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);" onclick="actuallyStartWorkout()">START WORKOUT  🔥 </button>
         </div>
         <p style="color:var(--text-light); font-size:13px; text-align:center; margin-top:10px;">Klicka på knappen ovan för att starta klockan.</p>
         `;
