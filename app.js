@@ -1496,7 +1496,7 @@ function openEditGroupModal(groupId, groupDef) {
             <span style="font-size:28px; display:block; margin-bottom:8px;">${groupDef.icon}</span>
             Edit Group
         </h3>
-        <label style="font-size:11px; color:var(--text-light); text-transform:uppercase; letter-spacing:1px; display:block; text-align:center; margin-bottom:8px;">Gruppnamn</label>
+        <label style="font-size:11px; color:var(--text-light); text-transform:uppercase; letter-spacing:1px; display:block; text-align:center; margin-bottom:8px;">Group Name</label>
         <input type="text" id="edit-group-name-input" class="log-input" value="${groupDef.name}" style="text-align:center; margin-bottom:20px;">
         
         <button class="mode-btn blue" onclick="saveGroupNameEdit('${groupId}')" style="width:100%; margin-bottom:10px;">
