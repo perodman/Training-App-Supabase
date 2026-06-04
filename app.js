@@ -168,7 +168,7 @@ function startTimer() {
     if (isTimerRunning) return;
     isTimerRunning = true;
     if(activeDraft) activeDraft.wasTimerRunning = true;
-    document.getElementById("timer-toggle-btn").textContent = "Pausa  ⏸️ ";
+    document.getElementById("timer-toggle-btn").textContent = "Pause  ⏸️ ";
     timerInterval = setInterval(() => {
         secondsElapsed++;
         updateTimerDisplay();
@@ -183,7 +183,7 @@ function pauseTimer() {
     isTimerRunning = false;
     if(activeDraft) activeDraft.wasTimerRunning = false;
     clearInterval(timerInterval);
-    document.getElementById("timer-toggle-btn").textContent = "Fortsätt  ▶️ ";
+    document.getElementById("timer-toggle-btn").textContent = "Continue  ▶️ ";
     if(activeDraft && typeof persistActiveWorkout === 'function') persistActiveWorkout();
 }
 
@@ -805,7 +805,7 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
                 <span class="status-highlight-text" style="color: #f59e0b !important; text-shadow: 0 0 25px rgba(245, 158, 11, 0.8) !important; font-size: 20px; font-weight: 800;"> 🔥  Pågående Pass</span>
             </div>
             <button class="premium-green-btn" onclick="showView('workout-view'); startWorkout(activeDraft.workout, activeDraft.data, activeDraft.date); setTimeout(() => closeModal(), 0)" style="border: 2px solid #f59e0b !important; background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%) !important; width: 100% !important;">
-                Fortsätt träningen  ⏱️
+                Continue Workout  ⏱️
             </button>
         </div>`;
     }
@@ -1351,7 +1351,7 @@ function openGroupPickerForPass(passIdx) {
             style="width:100%; background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.05) 100%); 
             border: 1px solid rgba(255,255,255,0.25); border-top: 1px solid rgba(255,255,255,0.45); 
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
-            Klar
+            Done
         </button>
     `;
     openModal();
@@ -2251,7 +2251,7 @@ function renderActiveWorkout() {
                             ${ex.name}
                         </strong>
                         <small style="color: ${isDone ? '#22c55e' : 'var(--primary)'}; font-size: 10px;">
-                            ${isDone ? 'KLAR  ✅ ' : `${completedSets}/${totalSets} set`}
+                            ${isDone ? 'DONE  ✅ ' : `${completedSets}/${totalSets} set`}
                         </small>
                     </div>
                     <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0; margin-left: 10px;">
@@ -2264,7 +2264,7 @@ function renderActiveWorkout() {
                     ${setsHtml}
                     <button class="mode-border glass-border" style="padding:8px; font-size:11px; margin-top:10px; border-style:dashed; width:100%;" onclick="addSetToExercise(${i})" ${isDone ? 'disabled' : ''}>+ Add set</button>
                     <button class="mode-btn ${isDone ? 'blue' : 'green'}" style="padding:12px; font-size:13px; margin-top:15px; width:100%; font-weight:bold;" onclick="toggleExerciseDone(${i})">
-                        ${isDone ? 'Ångra Klar  ↩️ ' : 'Markera övning som klar  ✅ '}
+                        ${isDone ? 'Undo  ↩️ ' : 'Mark as complete  ✅ '}
                     </button>
                 </div>`;
 
@@ -2837,7 +2837,7 @@ function updateSingleExerciseCard(exIdx) {
                     ${ex.name}
                 </strong>
                 <small style="color: ${isDone ? '#22c55e' : 'var(--primary)'}; font-size: 10px;">
-                    ${isDone ? 'KLAR  ✅ ' : `${completedSets}/${totalSets} set`}
+                    ${isDone ? 'DONE  ✅ ' : `${completedSets}/${totalSets} set`}
                 </small>
             </div>
             <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0; margin-left: 10px;">
@@ -2850,7 +2850,7 @@ function updateSingleExerciseCard(exIdx) {
             ${setsHtml}
             <button class="mode-border glass-border" style="padding:8px; font-size:11px; margin-top:10px; border-style:dashed; width:100%;" onclick="addSetToExercise(${exIdx})" ${isDone ? 'disabled' : ''}>+ Add set</button>
             <button class="mode-btn ${isDone ? 'blue' : 'green'}" style="padding:12px; font-size:13px; margin-top:15px; width:100%; font-weight:bold;" onclick="toggleExerciseDone(${exIdx})">
-                ${isDone ? 'Ångra Klar  ↩️ ' : 'Markera övning som klar  ✅ '}
+                ${isDone ? 'Undo  ↩️ ' : 'Mark as complete  ✅ '}
             </button>
         </div>`;
 }
