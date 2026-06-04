@@ -799,8 +799,9 @@ body, html {
 }
 
 .group-wrapper {
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
-                opacity 0.3s ease;
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+                opacity 0.4s ease,
+                max-height 0.4s ease;
     transform-origin: top center;
 }
 
@@ -810,13 +811,14 @@ body, html {
 }
 
 .group-wrapper.is-dimmed {
-    transform: scale(0.97);
-    opacity: 0.4;
+    transform: scale(0.92) translateX(20px);
+    opacity: 0.25;
+    pointer-events: none;
 }
 
 .group-header-focused {
-    border-color: rgba(34, 211, 238, 0.5) !important;
-    border-top-color: rgba(34, 211, 238, 0.8) !important;
-    box-shadow: 0 0 25px rgba(34, 211, 238, 0.15) !important;
-    background: linear-gradient(135deg, rgba(34, 211, 238, 0.1) 0%, rgba(34, 211, 238, 0.03) 100%) !important;
+    border-color: rgba(34, 211, 238, 0.6) !important;
+    border-top-color: rgba(34, 211, 238, 1) !important;
+    box-shadow: 0 0 30px rgba(34, 211, 238, 0.25) !important;
+    background: linear-gradient(135deg, rgba(34, 211, 238, 0.12) 0%, rgba(34, 211, 238, 0.04) 100%) !important;
 }
