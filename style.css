@@ -797,3 +797,26 @@ body, html {
     word-break: break-word !important;
     white-space: normal !important;
 }
+
+.group-wrapper {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+                opacity 0.3s ease;
+    transform-origin: top center;
+}
+
+.group-wrapper.is-focused {
+    transform: scale(1.02);
+    opacity: 1 !important;
+}
+
+.group-wrapper.is-dimmed {
+    transform: scale(0.97);
+    opacity: 0.4;
+}
+
+.group-header-focused {
+    border-color: rgba(34, 211, 238, 0.5) !important;
+    border-top-color: rgba(34, 211, 238, 0.8) !important;
+    box-shadow: 0 0 25px rgba(34, 211, 238, 0.15) !important;
+    background: linear-gradient(135deg, rgba(34, 211, 238, 0.1) 0%, rgba(34, 211, 238, 0.03) 100%) !important;
+}
