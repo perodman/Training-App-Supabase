@@ -1115,9 +1115,9 @@ function renderProgramView(activeIdx = null) {
 
         const groupWrapper = document.createElement("div");
         groupWrapper.className = "group-wrapper";
-        groupWrapper.style.cssText = "margin-bottom: 12px;";
+        groupWrapper.style.cssText = "margin-bottom: 12px; transition: max-height 0.4s ease, opacity 0.4s ease, margin-bottom 0.3s ease; overflow: hidden;";
         groupWrapper.dataset.groupId = groupId;
-
+        
         const groupHeader = document.createElement("div");
         groupHeader.style.cssText = `
             display: flex; align-items: center; justify-content: space-between;
@@ -1231,10 +1231,10 @@ function renderProgramView(activeIdx = null) {
     // Pass utan grupp
         const ungroupedPasses = programData.routine.filter(p => !Array.isArray(p.groups) || p.groups.length === 0);
         if (ungroupedPasses.length > 0) {
-            const ungroupedWrapper = document.createElement("div");
-            ungroupedWrapper.className = "group-wrapper";
-            ungroupedWrapper.style.cssText = "margin-bottom: 12px;";
-            ungroupedWrapper.dataset.groupId = "__ungrouped__";
+        const ungroupedWrapper = document.createElement("div");
+        ungroupedWrapper.className = "group-wrapper";
+        ungroupedWrapper.style.cssText = "margin-bottom: 12px; transition: max-height 0.4s ease, opacity 0.4s ease, margin-bottom 0.3s ease; overflow: hidden;";
+        ungroupedWrapper.dataset.groupId = "__ungrouped__";
     
             const ungroupedHeader = document.createElement("div");
             ungroupedHeader.style.cssText = `
