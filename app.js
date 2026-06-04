@@ -3739,3 +3739,15 @@ document.addEventListener('visibilitychange', () => {
         }
     }, 120);
 });
+
+
+// Denna funktion fungerar som en brygga till din spar-logik
+async function finishWorkout() {
+    const btn = document.getElementById("save-workout-btn");
+    if (btn) {
+        // Detta triggar den onclick-funktion du redan har definierat i din kod
+        btn.click(); 
+    } else {
+        console.error("Kunde inte hitta knappen med ID 'save-workout-btn'");
+    }
+}
