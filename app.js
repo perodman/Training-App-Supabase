@@ -346,14 +346,14 @@ function showExerciseAnimation(id) {
     } else {
         videoHtml = `
         <div style="padding:40px 20px; text-align:center; background:rgba(255,255,255,0.05); border-radius:16px; margin-bottom:15px; color:var(--text-light); font-size:14px;">
-            Ingen videoanimation tillgänglig för denna övning.  🎥
+            No video animation available for this exercise.  🎥
         </div>
         `;
     }
     body.innerHTML = `
         <h3>${ex.name}</h3>
         ${videoHtml}
-        <div style="text-align:left; color:var(--text-light); font-size:14px; padding:10px;">
+        <div style="text-align:center; color:var(--text-light); font-size:14px; padding:10px;">
             <p><strong>Muscle Group:</strong> ${CATEGORY_DISPLAY[ex.target] || ex.target}</p>
         </div>
     `;
