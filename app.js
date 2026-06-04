@@ -1080,18 +1080,14 @@ const PREDEFINED_GROUPS = [
     { id: "rorlighet", name: "Rörlighet", icon: "🧘" }
 ];
 
-function renderProgramView(activeIdx = null) {
+function renderGroupsView() {
     const selector = document.getElementById("pass-selector-list");
     if (!selector) return;
     selector.innerHTML = "";
-    selector.style.cssText = "display: flex; flex-direction: column; gap: 8px;";
+    selector.style.cssText = "display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;";
 
-    // Säkerställ att groups-fältet finns i programData
-    if (!programData.groups) {
-        programData.groups = [];
-    }
+    if (!programData.groups) programData.groups = [];
 
-    // Samla alla grupper som faktiskt används av något pass
     const usedGroupIds = new Set();
     programData.routine.forEach(pass => {
         if (Array.isArray(pass.groups)) {
@@ -1099,185 +1095,133 @@ function renderProgramView(activeIdx = null) {
         }
     });
 
-    // Bygg listan av grupper att visa: används + alla fördefinierade
     const allGroupIds = [...new Set([...PREDEFINED_GROUPS.map(g => g.id), ...usedGroupIds])];
 
-    // Håll koll på vilka grupper som är expanderade
-    if (!window._expandedGroups) window._expandedGroups = new Set();
-
-    // Rendera varje grupp
     allGroupIds.forEach(groupId => {
         const groupDef = PREDEFINED_GROUPS.find(g => g.id === groupId) || { id: groupId, name: groupId, icon: "📁" };
         const passesInGroup = programData.routine.filter(p => Array.isArray(p.groups) && p.groups.includes(groupId));
-        if (passesInGroup.length === 0) return; // Dölj tomma grupper
+        if (passesInGroup.length === 0) return;
 
-        const isExpanded = window._expandedGroups.has(groupId);
-
-        const groupWrapper = document.createElement("div");
-        groupWrapper.className = "group-wrapper";
-        groupWrapper.style.cssText = "margin-bottom: 12px; transition: max-height 0.4s ease, opacity 0.4s ease, margin-bottom 0.3s ease; overflow: hidden;";
-        groupWrapper.dataset.groupId = groupId;
-        
-        const groupHeader = document.createElement("div");
-        groupHeader.style.cssText = `
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 14px 18px; border-radius: 18px; cursor: pointer;
+        const groupCard = document.createElement("div");
+        groupCard.style.cssText = `
             background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%);
             border: 1px solid rgba(255,255,255,0.12);
-            border-top: 1px solid rgba(255,255,255,0.25);
+            border-top: 2px solid rgba(255,255,255,0.3);
+            border-radius: 20px;
+            padding: 20px 15px;
+            text-align: center;
+            cursor: pointer;
             transition: all 0.2s ease;
-            position: relative; overflow: hidden;
-        `;
-        groupHeader.innerHTML = `
-            <div style="display: flex; align-items: center; gap: 12px;">
-                <span style="font-size: 22px;">${groupDef.icon}</span>
-                <div>
-                    <div style="font-weight: 800; font-size: 15px; color: var(--text);">${groupDef.name}</div>
-                    <div style="font-size: 10px; color: var(--primary); font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">${passesInGroup.length} ${passesInGroup.length === 1 ? 'pass' : 'pass'}</div>
-                </div>
-            </div>
-            <span style="color: var(--text-light); font-size: 18px; transition: transform 0.3s ease; transform: ${isExpanded ? 'rotate(180deg)' : 'rotate(0deg)'};" id="arrow-${groupId}">▼</span>
-        `;
-
-        // Innehållscontainer med smooth animation
-        const groupContent = document.createElement("div");
-        groupContent.style.cssText = `
+            position: relative;
             overflow: hidden;
-            max-height: ${isExpanded ? '2000px' : '0px'};
-            transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            opacity: ${isExpanded ? '1' : '0'};
         `;
-
-        // Grid med passen i gruppen
-        const passGrid = document.createElement("div");
-        passGrid.style.cssText = "display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 12px 0 4px 0;";
-
-        passesInGroup.forEach(pass => {
-            const passIdx = programData.routine.indexOf(pass);
-            const icons = [' ⚡ ', ' 🔥 ', ' 🏆 ', ' 💎 '];
-            const passCard = document.createElement("div");
-            passCard.className = `prog-card ${activeIdx === passIdx ? 'active' : ''}`;
-            passCard.style.cssText = "position: relative;";
-            passCard.innerHTML = `
-            <div style="font-size:28px;">${icons[passIdx % 4]}</div>
-            <h4 style="font-size: 13px; margin: 6px 0 3px 0; line-height: 1.2;">${pass.name}</h4>
-            <div style="font-size:10px; color:var(--primary); font-weight:800;">${pass.exercises.length} ÖVN</div>
-                <div onclick="event.stopPropagation(); openGroupPickerForPass(${passIdx})"
-                    style="position: absolute; top: 6px; right: 6px; font-size: 12px; opacity: 0.5; cursor: pointer; padding: 2px 4px; border-radius: 6px; background: rgba(255,255,255,0.05);">🏷️</div>
-            `;
-            passCard.onclick = () => {
-                document.querySelectorAll(".prog-card").forEach(c => c.classList.remove("active"));
-                passCard.classList.add("active");
-                showProgramDetails(passIdx);
-            };
-            passGrid.appendChild(passCard);
+        groupCard.innerHTML = `
+            <div style="font-size: 32px; margin-bottom: 10px;">${groupDef.icon}</div>
+            <div style="font-weight: 800; font-size: 15px; color: var(--text); margin-bottom: 4px;">${groupDef.name}</div>
+            <div style="font-size: 10px; color: var(--primary); font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">${passesInGroup.length} ${passesInGroup.length === 1 ? 'pass' : 'pass'}</div>
+        `;
+        groupCard.onclick = () => renderPassesInGroup(groupId);
+        groupCard.addEventListener('mouseenter', () => {
+            groupCard.style.borderTopColor = 'rgba(34, 211, 238, 0.8)';
+            groupCard.style.background = 'linear-gradient(135deg, rgba(34, 211, 238, 0.1) 0%, rgba(34, 211, 238, 0.03) 100%)';
+            groupCard.style.boxShadow = '0 8px 25px rgba(34, 211, 238, 0.15)';
         });
-
-        groupContent.appendChild(passGrid);
-
-        // Toggle expand/collapse
-        groupHeader.onclick = () => {
-    const arrow = document.getElementById(`arrow-${groupId}`);
-    const isCurrentlyExpanded = window._expandedGroups.has(groupId);
-
-    if (isCurrentlyExpanded) {
-        // Kollapsa denna grupp och återställ alla
-        window._expandedGroups.delete(groupId);
-        groupContent.style.maxHeight = '0px';
-        groupContent.style.opacity = '0';
-        if (arrow) arrow.style.transform = 'rotate(0deg)';
-        groupHeader.style.opacity = '1';
-        groupHeader.style.padding = '14px 18px';
-
-        // Återställ alla wrappers
-        document.querySelectorAll('.group-wrapper').forEach(w => {
-            w.style.maxHeight = '1000px';
-            w.style.opacity = '1';
-            w.style.marginBottom = '12px';
+        groupCard.addEventListener('mouseleave', () => {
+            groupCard.style.borderTopColor = 'rgba(255,255,255,0.3)';
+            groupCard.style.background = 'linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%)';
+            groupCard.style.boxShadow = 'none';
         });
-
-    } else {
-        // Expandera denna, göm alla andra
-        window._expandedGroups.add(groupId);
-        groupContent.style.maxHeight = '2000px';
-        groupContent.style.opacity = '1';
-        if (arrow) arrow.style.transform = 'rotate(180deg)';
-        groupHeader.classList.add('group-header-focused');
-
-        // Gå igenom ALLA group-wrappers
-        document.querySelectorAll('.group-wrapper').forEach(w => {
-            if (w.dataset.groupId === groupId) {
-                // Den valda — full synlighet
-                w.style.maxHeight = '2000px';
-                w.style.opacity = '1';
-                w.style.marginBottom = '12px';
-            } else {
-                // De andra — krympa till bara rubriken (50px) och tona ned
-                w.style.maxHeight = '50px';
-                w.style.opacity = '0.4';
-                w.style.overflow = 'hidden';
-                w.style.marginBottom = '6px';
-                w.style.transition = 'max-height 0.4s ease, opacity 0.4s ease, margin-bottom 0.3s ease';
-            }
-        });
-    }
-};
-
-        groupWrapper.appendChild(groupHeader);
-        groupWrapper.appendChild(groupContent);
-        selector.appendChild(groupWrapper);
+        selector.appendChild(groupCard);
     });
 
-    // Pass utan grupp
-        const ungroupedPasses = programData.routine.filter(p => !Array.isArray(p.groups) || p.groups.length === 0);
-        if (ungroupedPasses.length > 0) {
-        const ungroupedWrapper = document.createElement("div");
-        ungroupedWrapper.className = "group-wrapper";
-        ungroupedWrapper.style.cssText = "margin-bottom: 12px; transition: max-height 0.4s ease, opacity 0.4s ease, margin-bottom 0.3s ease; overflow: hidden;";
-        ungroupedWrapper.dataset.groupId = "__ungrouped__";
-    
-            const ungroupedHeader = document.createElement("div");
-            ungroupedHeader.style.cssText = `
-                display: flex; align-items: center; justify-content: space-between;
-                padding: 14px 18px; border-radius: 18px; cursor: pointer;
-                background: rgba(255,255,255,0.04);
-                border: 1px dashed rgba(255,255,255,0.1);
-                transition: all 0.2s ease;
-            `;
-
-        const isUngroupedExpanded = window._expandedGroups.has('__ungrouped__');
-        ungroupedHeader.innerHTML = `
-            <div style="display: flex; align-items: center; gap: 12px;">
-                <span style="font-size: 22px;">📁</span>
-                <div>
-                    <div style="font-weight: 800; font-size: 15px; color: var(--text-light);">Utan grupp</div>
-                    <div style="font-size: 10px; color: var(--text-light); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; opacity: 0.6;">${ungroupedPasses.length} pass</div>
-                </div>
-            </div>
-            <span style="color: var(--text-light); font-size: 18px; transition: transform 0.3s ease; transform: ${isUngroupedExpanded ? 'rotate(180deg)' : 'rotate(0deg)'};" id="arrow-ungrouped">▼</span>
+    // Utan grupp
+    const ungroupedPasses = programData.routine.filter(p => !Array.isArray(p.groups) || p.groups.length === 0);
+    if (ungroupedPasses.length > 0) {
+        const ungroupedCard = document.createElement("div");
+        ungroupedCard.style.cssText = `
+            background: rgba(255,255,255,0.03);
+            border: 1px dashed rgba(255,255,255,0.15);
+            border-radius: 20px;
+            padding: 20px 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
         `;
-
-        const ungroupedContent = document.createElement("div");
-        ungroupedContent.style.cssText = `
-            overflow: hidden;
-            max-height: ${isUngroupedExpanded ? '2000px' : '0px'};
-            transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            opacity: ${isUngroupedExpanded ? '1' : '0'};
+        ungroupedCard.innerHTML = `
+            <div style="font-size: 32px; margin-bottom: 10px;">📁</div>
+            <div style="font-weight: 800; font-size: 15px; color: var(--text-light); margin-bottom: 4px;">Utan grupp</div>
+            <div style="font-size: 10px; color: var(--text-light); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; opacity: 0.6;">${ungroupedPasses.length} pass</div>
         `;
+        ungroupedCard.onclick = () => renderPassesInGroup('__ungrouped__');
+        selector.appendChild(ungroupedCard);
+    }
 
-        const ungroupedGrid = document.createElement("div");
-        ungroupedGrid.style.cssText = "display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 12px 0 4px 0;";
+    // Dölj tillbaka-knappen och program-details
+    const backBtn = document.getElementById("group-back-btn");
+    if (backBtn) backBtn.style.display = 'none';
+    const detailsArea = document.getElementById("program-details-area");
+    if (detailsArea) detailsArea.classList.add("hidden");
 
-        ungroupedPasses.forEach(pass => {
+    showView("programs-view");
+}
+
+function renderPassesInGroup(groupId) {
+    const selector = document.getElementById("pass-selector-list");
+    if (!selector) return;
+
+    const groupDef = PREDEFINED_GROUPS.find(g => g.id === groupId) || { id: groupId, name: groupId === '__ungrouped__' ? 'Utan grupp' : groupId, icon: groupId === '__ungrouped__' ? '📁' : '📁' };
+    const passesInGroup = groupId === '__ungrouped__'
+        ? programData.routine.filter(p => !Array.isArray(p.groups) || p.groups.length === 0)
+        : programData.routine.filter(p => Array.isArray(p.groups) && p.groups.includes(groupId));
+
+    // Slide-animation ut
+    selector.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+    selector.style.transform = 'translateX(30px)';
+    selector.style.opacity = '0';
+
+    setTimeout(() => {
+        selector.innerHTML = "";
+        selector.style.cssText = "display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; transition: transform 0.3s ease, opacity 0.3s ease; transform: translateX(30px); opacity: 0;";
+
+        // Tillbaka-knapp — lägg till ovanför gridet
+        let backBtn = document.getElementById("group-back-btn");
+        if (!backBtn) {
+            backBtn = document.createElement("button");
+            backBtn.id = "group-back-btn";
+            selector.parentElement.insertBefore(backBtn, selector);
+        }
+        backBtn.style.cssText = `
+            display: flex; align-items: center; gap: 8px;
+            background: none; border: none; color: var(--primary);
+            font-size: 14px; font-weight: 700; cursor: pointer;
+            padding: 0 0 16px 0; width: 100%;
+        `;
+        backBtn.innerHTML = `← ${groupDef.icon} ${groupDef.name}`;
+        backBtn.onclick = () => {
+            // Slide-animation tillbaka
+            selector.style.transform = 'translateX(30px)';
+            selector.style.opacity = '0';
+            setTimeout(() => {
+                backBtn.style.display = 'none';
+                renderGroupsView();
+                selector.style.transform = 'translateX(-30px)';
+                setTimeout(() => {
+                    selector.style.transform = 'translateX(0)';
+                    selector.style.opacity = '1';
+                }, 50);
+            }, 200);
+        };
+
+        const icons = [' ⚡ ', ' 🔥 ', ' 🏆 ', ' 💎 '];
+        passesInGroup.forEach(pass => {
             const passIdx = programData.routine.indexOf(pass);
-            const icons = [' ⚡ ', ' 🔥 ', ' 🏆 ', ' 💎 '];
             const passCard = document.createElement("div");
-            passCard.className = `prog-card ${activeIdx === passIdx ? 'active' : ''}`;
-            passCard.style.cssText = "position: relative;";
+            passCard.className = "prog-card";
+            passCard.style.cssText = "position: relative; min-height: 120px;";
             passCard.innerHTML = `
-            <div style="font-size:28px;">${icons[passIdx % 4]}</div>
-            <h4 style="font-size: 13px; margin: 6px 0 3px 0; line-height: 1.2;">${pass.name}</h4>
-            <div style="font-size:10px; color:var(--primary); font-weight:800;">${pass.exercises.length} ÖVN</div>
+                <div style="font-size:28px;">${icons[passIdx % 4]}</div>
+                <h4 style="font-size: 14px; margin: 8px 0 4px 0; line-height: 1.3;">${pass.name}</h4>
+                <div style="font-size:10px; color:var(--primary); font-weight:800;">${pass.exercises.length} ÖVN</div>
                 <div onclick="event.stopPropagation(); openGroupPickerForPass(${passIdx})"
                     style="position: absolute; top: 6px; right: 6px; font-size: 12px; opacity: 0.5; cursor: pointer; padding: 2px 4px; border-radius: 6px; background: rgba(255,255,255,0.05);">🏷️</div>
             `;
@@ -1286,30 +1230,19 @@ function renderProgramView(activeIdx = null) {
                 passCard.classList.add("active");
                 showProgramDetails(passIdx);
             };
-            ungroupedGrid.appendChild(passCard);
+            selector.appendChild(passCard);
         });
 
-        ungroupedContent.appendChild(ungroupedGrid);
+        // Slide-animation in
+        setTimeout(() => {
+            selector.style.transform = 'translateX(0)';
+            selector.style.opacity = '1';
+        }, 50);
 
-        ungroupedHeader.onclick = () => {
-            const arrow = document.getElementById('arrow-ungrouped');
-            if (window._expandedGroups.has('__ungrouped__')) {
-                window._expandedGroups.delete('__ungrouped__');
-                ungroupedContent.style.maxHeight = '0px';
-                ungroupedContent.style.opacity = '0';
-                if (arrow) arrow.style.transform = 'rotate(0deg)';
-            } else {
-                window._expandedGroups.add('__ungrouped__');
-                ungroupedContent.style.maxHeight = '2000px';
-                ungroupedContent.style.opacity = '1';
-                if (arrow) arrow.style.transform = 'rotate(180deg)';
-            }
-        };
+    }, 200);
 
-        ungroupedWrapper.appendChild(ungroupedHeader);
-        ungroupedWrapper.appendChild(ungroupedContent);
-        selector.appendChild(ungroupedWrapper);
-    }
+    const detailsArea = document.getElementById("program-details-area");
+    if (detailsArea) detailsArea.classList.add("hidden");
 
     showView("programs-view");
 }
@@ -1366,7 +1299,7 @@ function openGroupPickerForPass(passIdx) {
             </button>
         </div>
 
-        <button class="mode-btn glass-border" onclick="closeModal(); renderProgramView();" 
+        <button class="mode-btn glass-border" onclick="closeModal(); renderGroupsView();" 
             style="width:100%; background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.05) 100%); 
             border: 1px solid rgba(255,255,255,0.25); border-top: 1px solid rgba(255,255,255,0.45); 
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
@@ -2804,7 +2737,7 @@ document.getElementById("global-home").addEventListener("click", () => {
 document.getElementById("start-new-btn").onclick = () => renderCalendar(true);
 document.getElementById("calendar-mode").onclick = () => renderCalendar(false);
 document.getElementById("view-exercises-btn").onclick = () => { showView("exercises-view"); filterExercises(currentExerciseCategory); };
-document.getElementById("view-programs-btn").onclick = () => renderProgramView();
+document.getElementById("view-programs-btn").onclick = () => renderGroupsView();
 document.getElementById("stats-mode").onclick = renderStats;
 document.getElementById("add-custom-pass-btn").onclick = openCreateProgramModal;
 
@@ -3272,7 +3205,7 @@ async function deleteEntireProgram(idx) {
 
                     closeModal();
                     document.getElementById('program-details-area').classList.add('hidden');
-                    renderProgramView();
+                    renderGroupsView();
                 })()">
                 Ja, radera passet
             </button>
