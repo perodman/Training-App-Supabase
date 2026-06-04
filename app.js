@@ -1433,7 +1433,7 @@ function showProgramDetails(idx) {
 function openCreateGroupModal() {
     const body = document.getElementById("modal-body");
     body.innerHTML = `
-        <h3 style="text-align:center; margin-bottom:20px;">Skapa Ny Grupp</h3>
+        <h3 style="text-align:center; margin-bottom:20px;">Create New Group</h3>
         <p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin-bottom:12px; letter-spacing:1px;">Välj en fördefinierad</p>
         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px;">
             ${PREDEFINED_GROUPS.map(g => `
@@ -1767,7 +1767,7 @@ async function openEditProgramModal(idx) {
 
         <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.06);">
             <button class="mode-btn glass-border" style="font-size:13px; padding:10px; border: 2px dashed rgba(34, 211, 238, 0.4); color: var(--primary); background: rgba(34, 211, 238, 0.04); font-weight: 700;" 
-                   onclick="saveEditDraftStateAndCreateNew(${idx})">+ Skapa helt ny övning till banken</button>
+                   onclick="saveEditDraftStateAndCreateNew(${idx})">+ Create new exercise to the library</button>
         </div>
 
         <button class="mode-btn blue" style="margin-top:20px;" onclick="saveProgramEdit(${idx})">Spara alla ändringar</button>
@@ -1914,8 +1914,8 @@ if (!window.temporarySelectedExercisesForEdit) {
 function openCreateProgramModal() {
     const body = document.getElementById("modal-body");
     body.innerHTML = `
-        <h3>Skapa Nytt Pass</h3>
-        <label style="font-size:12px; color:var(--text-light); text-align:center; display:block; margin-left:10px;">NAMN PÅ PASS</label>
+        <h3>Create New Workout</h3>
+        <label style="font-size:12px; color:var(--text-light); text-align:center; display:block; margin-left:10px;">WORKOUT NAME</label>
         <input type="text" id="new-pass-name" class="log-input" placeholder="e.g. Upper Body Deluxe">
         <button class="mode-btn blue" onclick="saveNewProgram()">Spara och Redigera</button>
     `;
@@ -2439,7 +2439,7 @@ function renderExercisePicker(category, replaceIndex = null) {
     <button class="mode-btn glass-border"
         style="font-size:13px;"
         onclick="(async () => { await saveDraftState(); openCreateExerciseModal((newEx) => handleInstantExerciseCreated(newEx, ${replaceIndex})); })()">
-        + Skapa helt ny övning till banken
+        + Create new exercise to the library
     </button>
     `;
 
