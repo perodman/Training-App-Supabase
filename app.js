@@ -1453,16 +1453,12 @@ function openCreateGroupModal() {
 }
 
 function selectPredefinedGroup(groupId) {
-    // Markera visuellt att gruppen är vald/tillagd
     const btn = document.getElementById(`predef-${groupId}`);
-    const groupDef = PREDEFINED_GROUPS.find(g => g.id === groupId);
     if (btn) {
         btn.style.border = '1px solid var(--primary)';
         btn.style.background = 'rgba(34, 211, 238, 0.15)';
         btn.style.color = 'var(--primary)';
     }
-    // Gruppen existerar redan som fördefinierad — den visas automatiskt
-    // när ett pass tilldelas den. Stäng modalen.
     setTimeout(() => {
         closeModal();
         renderGroupsView();
@@ -1473,16 +1469,12 @@ async function saveCustomGroupFromModal() {
     const input = document.getElementById("custom-group-name-input");
     const name = input ? input.value.trim() : "";
     if (!name) return;
-
-    // Spara gruppen i programData
     if (!programData.customGroups) programData.customGroups = [];
     const id = name.toLowerCase().replace(/\s+/g, "-");
-
     if (!programData.customGroups.find(g => g.id === id)) {
         programData.customGroups.push({ id, name, icon: "📁" });
         await saveCustomProgramToSupabase();
     }
-
     closeModal();
     renderGroupsView();
 }
