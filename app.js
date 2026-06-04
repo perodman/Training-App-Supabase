@@ -1059,27 +1059,35 @@ function openMonthPicker() {
     const currentYear = currentViewDate.getFullYear();
     const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
     
-    let html = `<h3>Select Month & Year</h3>`;
-    
-    // Dropdown för att välja år (t.ex. 2 år bakåt och 5 år framåt)
-    html += `<select id="year-picker" style="width:100%; margin-bottom:15px; padding:8px;">`;
-    for (let y = currentYear - 2; y <= currentYear + 5; y++) {
-        html += `<option value="${y}" ${y === currentYear ? 'selected' : ''}>${y}</option>`;
-    }
-    html += `</select>`;
+    // Vi skapar en temporär variabel för att hålla koll på valt år i modalen
+    // Vi använder en dold input eller data-attribut för att komma ihåg året
+    let html = `
+        <div style="text-align:center; margin-bottom:20px;">
+            <div class="calendar-nav" style="justify-content:center; gap:20px; margin-bottom:10px;">
+                <button class="nav-arrow" onclick="changePickerYear(-1)">❮</button>
+                <h3 id="picker-year-label" style="margin:0; min-width:60px;">${currentYear}</h3>
+                <button class="nav-arrow" onclick="changePickerYear(1)">❯</button>
+            </div>
+        </div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">`;
 
-    html += `<div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">`;
     months.forEach((m, i) => { 
         html += `<button class="mode-btn glass-border" style="font-size:14px;" onclick="selectMonth(${i})">${m}</button>`; 
     });
+    
     body.innerHTML = html + `</div>`;
     openModal();
 }
 
+function changePickerYear(delta) {
+    const label = document.getElementById("picker-year-label");
+    let year = parseInt(label.innerText) + delta;
+    label.innerText = year;
+}
+
 function selectMonth(m) {
-    const year = document.getElementById("year-picker").value;
+    const year = parseInt(document.getElementById("picker-year-label").innerText);
     
-    // Sätt både år och månad på objektet
     currentViewDate.setFullYear(year);
     currentViewDate.setMonth(m);
     
