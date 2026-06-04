@@ -2842,6 +2842,7 @@ document.getElementById("view-exercises-btn").onclick = () => { showView("exerci
 document.getElementById("view-programs-btn").onclick = () => renderGroupsView();
 document.getElementById("stats-mode").onclick = renderStats;
 document.getElementById("add-custom-pass-btn").onclick = openCreateProgramModal;
+document.getElementById("add-custom-group-btn").onclick = openCreateGroupModal;
 
 // ==========================================================================
 // GRÄNSSNITT & KNAPPHANTERING (HOME & SAVE WORKOUT)
