@@ -1412,6 +1412,82 @@ function showProgramDetails(idx) {
     }, 30);
 }
 
+function openCreateGroupModal() {
+    const body = document.getElementById("modal-body");
+    body.innerHTML = `
+        <h3 style="text-align:center; margin-bottom:20px;">Skapa Ny Grupp</h3>
+        <p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin-bottom:12px; letter-spacing:1px;">Välj en fördefinierad</p>
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px;">
+            ${PREDEFINED_GROUPS.map(g => `
+                <button onclick="selectPredefinedGroup('${g.id}')" id="predef-${g.id}"
+                    style="padding: 14px 10px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.1);
+                    background: rgba(255,255,255,0.04); color: var(--text-light);
+                    font-weight: 700; font-size: 13px; cursor: pointer; transition: all 0.2s ease;
+                    display: flex; flex-direction: column; align-items: center; gap: 6px;">
+                    <span style="font-size: 22px;">${g.icon}</span>
+                    ${g.name}
+                </button>
+            `).join('')}
+        </div>
+        <div style="height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent); margin-bottom: 20px;"></div>
+        <p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin-bottom:12px; letter-spacing:1px;">Eller skapa en egen</p>
+        <div style="display: flex; gap: 8px; margin-bottom: 20px;">
+            <input type="text" id="custom-group-name-input" class="log-input" 
+                placeholder="T.ex. Armar, Bål, Cardio..." 
+                style="margin: 0; flex-grow: 1; font-size: 13px; padding: 10px 14px;">
+            <button onclick="saveCustomGroupFromModal()"
+                style="padding: 10px 16px; border-radius: 12px; border: 2px dashed rgba(34, 211, 238, 0.4);
+                background: rgba(34, 211, 238, 0.04); color: var(--primary); font-weight: 700;
+                font-size: 13px; cursor: pointer; white-space: nowrap;">
+                + Lägg till
+            </button>
+        </div>
+        <button class="mode-btn glass-border" onclick="closeModal(); renderGroupsView();"
+            style="width:100%; background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.05) 100%);
+            border: 1px solid rgba(255,255,255,0.25); border-top: 1px solid rgba(255,255,255,0.45);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+            Klar
+        </button>
+    `;
+    openModal();
+}
+
+function selectPredefinedGroup(groupId) {
+    // Markera visuellt att gruppen är vald/tillagd
+    const btn = document.getElementById(`predef-${groupId}`);
+    const groupDef = PREDEFINED_GROUPS.find(g => g.id === groupId);
+    if (btn) {
+        btn.style.border = '1px solid var(--primary)';
+        btn.style.background = 'rgba(34, 211, 238, 0.15)';
+        btn.style.color = 'var(--primary)';
+    }
+    // Gruppen existerar redan som fördefinierad — den visas automatiskt
+    // när ett pass tilldelas den. Stäng modalen.
+    setTimeout(() => {
+        closeModal();
+        renderGroupsView();
+    }, 400);
+}
+
+async function saveCustomGroupFromModal() {
+    const input = document.getElementById("custom-group-name-input");
+    const name = input ? input.value.trim() : "";
+    if (!name) return;
+
+    // Spara gruppen i programData
+    if (!programData.customGroups) programData.customGroups = [];
+    const id = name.toLowerCase().replace(/\s+/g, "-");
+
+    if (!programData.customGroups.find(g => g.id === id)) {
+        programData.customGroups.push({ id, name, icon: "📁" });
+        await saveCustomProgramToSupabase();
+    }
+
+    closeModal();
+    renderGroupsView();
+}
+
+
 // Motsvarar generateSelectedExercisesSummaryHtml
 function generateSelectedExercisesSummaryHtmlForEdit(idx) {
     const hasChoices = window.temporarySelectedExercisesForEdit.length > 0;
