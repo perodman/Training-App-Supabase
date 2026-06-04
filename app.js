@@ -3751,3 +3751,17 @@ async function finishWorkout() {
         console.error("Kunde inte hitta knappen med ID 'save-workout-btn'");
     }
 }
+
+
+document.addEventListener("click", async function(e) {
+    if (e.target && e.target.id === "save-workout-btn") {
+        console.log("🚀 Spar-knappen klickades via global lyssnare.");
+        
+        // Här anropar vi din EXISTERANDE sparlogik genom att simulera ett klick 
+        // eller genom att flytta in logiken i en funktion
+        
+        // OM du vill behålla din nuvarande kod-struktur, lägg logiken i en funktion 
+        // som du anropar härifrån:
+        await dinBefintligaSparLogik(e); 
+    }
+});
