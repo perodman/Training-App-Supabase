@@ -1113,7 +1113,9 @@ function renderProgramView(activeIdx = null) {
         const isExpanded = window._expandedGroups.has(groupId);
 
         const groupWrapper = document.createElement("div");
+        groupWrapper.className = "group-wrapper";
         groupWrapper.style.cssText = "margin-bottom: 12px;";
+        groupWrapper.dataset.groupId = groupId;
 
         const groupHeader = document.createElement("div");
         groupHeader.style.cssText = `
@@ -1174,19 +1176,41 @@ function renderProgramView(activeIdx = null) {
 
         // Toggle expand/collapse
         groupHeader.onclick = () => {
-            const arrow = document.getElementById(`arrow-${groupId}`);
-            if (window._expandedGroups.has(groupId)) {
-                window._expandedGroups.delete(groupId);
-                groupContent.style.maxHeight = '0px';
-                groupContent.style.opacity = '0';
-                if (arrow) arrow.style.transform = 'rotate(0deg)';
+    const arrow = document.getElementById(`arrow-${groupId}`);
+    const isCurrentlyExpanded = window._expandedGroups.has(groupId);
+
+    if (isCurrentlyExpanded) {
+        // Kollapsa — ta bort fokus från alla
+        window._expandedGroups.delete(groupId);
+        groupContent.style.maxHeight = '0px';
+        groupContent.style.opacity = '0';
+        if (arrow) arrow.style.transform = 'rotate(0deg)';
+        groupHeader.classList.remove('group-header-focused');
+
+        // Ta bort dimning från alla
+        document.querySelectorAll('.group-wrapper').forEach(w => {
+            w.classList.remove('is-focused', 'is-dimmed');
+        });
+    } else {
+        // Expandera — fokusera denna, dimma alla andra
+        window._expandedGroups.add(groupId);
+        groupContent.style.maxHeight = '2000px';
+        groupContent.style.opacity = '1';
+        if (arrow) arrow.style.transform = 'rotate(180deg)';
+        groupHeader.classList.add('group-header-focused');
+
+        // Applicera fokus/dimning
+        document.querySelectorAll('.group-wrapper').forEach(w => {
+            if (w.dataset.groupId === groupId) {
+                w.classList.add('is-focused');
+                w.classList.remove('is-dimmed');
             } else {
-                window._expandedGroups.add(groupId);
-                groupContent.style.maxHeight = '2000px';
-                groupContent.style.opacity = '1';
-                if (arrow) arrow.style.transform = 'rotate(180deg)';
+                w.classList.add('is-dimmed');
+                w.classList.remove('is-focused');
             }
-        };
+        });
+    }
+};
 
         groupWrapper.appendChild(groupHeader);
         groupWrapper.appendChild(groupContent);
@@ -1199,7 +1223,10 @@ function renderProgramView(activeIdx = null) {
         const ungroupedWrapper = document.createElement("div");
         ungroupedWrapper.style.cssText = "margin-bottom: 12px;";
 
-        const ungroupedHeader = document.createElement("div");
+       const ungroupedWrapper = document.createElement("div");
+        ungroupedWrapper.className = "group-wrapper";
+        ungroupedWrapper.style.cssText = "margin-bottom: 12px;";
+        ungroupedWrapper.dataset.groupId = "__ungrouped__";
         ungroupedHeader.style.cssText = `
             display: flex; align-items: center; justify-content: space-between;
             padding: 14px 18px; border-radius: 18px; cursor: pointer;
