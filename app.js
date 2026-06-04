@@ -1094,20 +1094,26 @@ function renderGroupsView() {
     });
 
     const customGroups = (programData.customGroups || []);
-        const ALL_GROUPS = [...PREDEFINED_GROUPS, ...customGroups];
-        const allGroupIds = [...new Set([...ALL_GROUPS.map(g => g.id), ...usedGroupIds])];
+    const ALL_GROUPS = [...PREDEFINED_GROUPS, ...customGroups];
+
+    // Visa alla grupper som antingen har pass ELLER är nyskapade (finns i ALL_GROUPS)
+    const allGroupIds = [...new Set([...ALL_GROUPS.map(g => g.id), ...usedGroupIds])];
 
     allGroupIds.forEach(groupId => {
-       const ALL_GROUPS_LOCAL = [...PREDEFINED_GROUPS, ...(programData.customGroups || [])];
-    const groupDef = ALL_GROUPS_LOCAL.find(g => g.id === groupId) || { id: groupId, name: groupId, icon: "📁" };
+        const groupDef = ALL_GROUPS.find(g => g.id === groupId) || { id: groupId, name: groupId, icon: "⚠️" };
         const passesInGroup = programData.routine.filter(p => Array.isArray(p.groups) && p.groups.includes(groupId));
-        if (passesInGroup.length === 0) return;
+
+        // Visa gruppen om den har pass ELLER om den finns i ALL_GROUPS (nyskapad)
+        const isKnownGroup = ALL_GROUPS.find(g => g.id === groupId);
+        if (passesInGroup.length === 0 && !isKnownGroup) return;
+
+        const isEmpty = passesInGroup.length === 0;
 
         const groupCard = document.createElement("div");
         groupCard.style.cssText = `
-            background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%);
-            border: 1px solid rgba(255,255,255,0.12);
-            border-top: 2px solid rgba(255,255,255,0.3);
+            background: ${isEmpty ? 'rgba(255,255,255,0.02)' : 'linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%)'};
+            border: ${isEmpty ? '1px dashed rgba(255,255,255,0.1)' : '1px solid rgba(255,255,255,0.12)'};
+            border-top: ${isEmpty ? '1px dashed rgba(255,255,255,0.1)' : '2px solid rgba(255,255,255,0.3)'};
             border-radius: 20px;
             padding: 20px 15px;
             text-align: center;
@@ -1117,21 +1123,27 @@ function renderGroupsView() {
             overflow: hidden;
         `;
         groupCard.innerHTML = `
-            <div style="font-size: 32px; margin-bottom: 10px;">${groupDef.icon}</div>
-            <div style="font-weight: 800; font-size: 15px; color: var(--text); margin-bottom: 4px;">${groupDef.name}</div>
-            <div style="font-size: 10px; color: var(--primary); font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">${passesInGroup.length} ${passesInGroup.length === 1 ? 'pass' : 'pass'}</div>
+            <div style="font-size: 32px; margin-bottom: 10px; opacity: ${isEmpty ? '0.4' : '1'};">${groupDef.icon}</div>
+            <div style="font-weight: 800; font-size: 15px; color: ${isEmpty ? 'var(--text-light)' : 'var(--text)'}; margin-bottom: 4px;">${groupDef.name}</div>
+            <div style="font-size: 10px; color: ${isEmpty ? 'var(--text-light)' : 'var(--primary)'}; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; opacity: ${isEmpty ? '0.5' : '1'};">
+                ${isEmpty ? 'Inga pass än' : `${passesInGroup.length} ${passesInGroup.length === 1 ? 'pass' : 'pass'}`}
+            </div>
         `;
-        groupCard.onclick = () => renderPassesInGroup(groupId);
-        groupCard.addEventListener('mouseenter', () => {
-            groupCard.style.borderTopColor = 'rgba(34, 211, 238, 0.8)';
-            groupCard.style.background = 'linear-gradient(135deg, rgba(34, 211, 238, 0.1) 0%, rgba(34, 211, 238, 0.03) 100%)';
-            groupCard.style.boxShadow = '0 8px 25px rgba(34, 211, 238, 0.15)';
-        });
-        groupCard.addEventListener('mouseleave', () => {
-            groupCard.style.borderTopColor = 'rgba(255,255,255,0.3)';
-            groupCard.style.background = 'linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%)';
-            groupCard.style.boxShadow = 'none';
-        });
+
+        if (!isEmpty) {
+            groupCard.onclick = () => renderPassesInGroup(groupId);
+            groupCard.addEventListener('mouseenter', () => {
+                groupCard.style.borderTopColor = 'rgba(34, 211, 238, 0.8)';
+                groupCard.style.background = 'linear-gradient(135deg, rgba(34, 211, 238, 0.1) 0%, rgba(34, 211, 238, 0.03) 100%)';
+                groupCard.style.boxShadow = '0 8px 25px rgba(34, 211, 238, 0.15)';
+            });
+            groupCard.addEventListener('mouseleave', () => {
+                groupCard.style.borderTopColor = 'rgba(255,255,255,0.3)';
+                groupCard.style.background = 'linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%)';
+                groupCard.style.boxShadow = 'none';
+            });
+        }
+
         selector.appendChild(groupCard);
     });
 
@@ -1157,7 +1169,6 @@ function renderGroupsView() {
         selector.appendChild(ungroupedCard);
     }
 
-    // Dölj tillbaka-knappen och program-details
     const backBtn = document.getElementById("group-back-btn");
     if (backBtn) backBtn.style.display = 'none';
     const detailsArea = document.getElementById("program-details-area");
@@ -1260,54 +1271,44 @@ function openGroupPickerForPass(passIdx) {
     if (!pass) return;
     if (!Array.isArray(pass.groups)) pass.groups = [];
 
-    // Samla alla egna grupper som finns i programData men inte i PREDEFINED_GROUPS
-    const customGroups = [];
-    programData.routine.forEach(p => {
-        if (Array.isArray(p.groups)) {
-            p.groups.forEach(gId => {
-                if (!PREDEFINED_GROUPS.find(pg => pg.id === gId) && !customGroups.find(cg => cg.id === gId)) {
-                    customGroups.push({ id: gId, name: gId, icon: "📁" });
-                }
-            });
+    const customGroups = programData.customGroups || [];
+    const ALL_GROUPS = [...PREDEFINED_GROUPS, ...customGroups];
+
+    // Lägg till okända grupper som passet redan tillhör
+    pass.groups.forEach(gId => {
+        if (!ALL_GROUPS.find(g => g.id === gId)) {
+            ALL_GROUPS.push({ id: gId, name: gId, icon: "⚠️" });
         }
     });
-
-    const allGroups = [...PREDEFINED_GROUPS, ...customGroups];
 
     const body = document.getElementById("modal-body");
     body.innerHTML = `
         <h3 style="text-align:center; margin-bottom:8px;">Välj grupp</h3>
         <p style="text-align:center; font-size:12px; color:var(--text-light); margin-bottom:20px;">${pass.name}</p>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px;">
-            ${allGroups.map(g => {
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;">
+            ${ALL_GROUPS.map(g => {
                 const isSelected = pass.groups.includes(g.id);
+                const isUnknown = g.icon === "⚠️";
                 return `
                 <button onclick="togglePassGroup(${passIdx}, '${g.id}')" id="grouppicker-${g.id}"
-                    style="padding: 14px 10px; border-radius: 14px; border: 1px solid ${isSelected ? 'var(--primary)' : 'rgba(255,255,255,0.1)'}; 
-                    background: ${isSelected ? 'rgba(34,211,238,0.15)' : 'rgba(255,255,255,0.04)'}; 
-                    color: ${isSelected ? 'var(--primary)' : 'var(--text-light)'}; 
+                    style="padding: 14px 10px; border-radius: 14px; 
+                    border: 1px solid ${isSelected ? (isUnknown ? 'var(--danger)' : 'var(--primary)') : 'rgba(255,255,255,0.1)'}; 
+                    background: ${isSelected ? (isUnknown ? 'rgba(239,68,68,0.15)' : 'rgba(34,211,238,0.15)') : 'rgba(255,255,255,0.04)'}; 
+                    color: ${isSelected ? (isUnknown ? 'var(--danger)' : 'var(--primary)') : 'var(--text-light)'}; 
                     font-weight: 700; font-size: 13px; cursor: pointer; transition: all 0.2s ease;
                     display: flex; flex-direction: column; align-items: center; gap: 6px;">
                     <span style="font-size: 22px;">${g.icon}</span>
+                    ${isUnknown ? `<span style="font-size:9px; color:var(--danger);">Gammal grupp</span>` : ''}
                     ${g.name}
-                    ${isSelected ? '<span style="font-size:9px; color:var(--primary); font-weight:900; text-transform:uppercase; letter-spacing:1px;">✓ Vald</span>' : ''}
+                    ${isSelected ? '<span style="font-size:9px; font-weight:900; text-transform:uppercase; letter-spacing:1px;">✓ Vald</span>' : ''}
                 </button>`;
             }).join('')}
         </div>
-
-        <div style="display: flex; gap: 8px; margin-bottom: 20px;">
-            <input type="text" id="new-group-input" class="log-input" placeholder="Skapa egen grupp..." 
-                style="margin: 0; flex-grow: 1; font-size: 13px; padding: 10px 14px;">
-            <button onclick="createCustomGroup(${passIdx})"
-                style="padding: 10px 16px; border-radius: 12px; border: 2px dashed rgba(34,211,238,0.4); 
-                background: rgba(34,211,238,0.04); color: var(--primary); font-weight: 700; 
-                font-size: 13px; cursor: pointer; white-space: nowrap;">
-                + Lägg till
-            </button>
-        </div>
-
-        <button class="mode-btn blue" onclick="saveCustomGroupFromModal()" style="width:100%; margin-top: 4px;">
-            + Lägg till grupp
+        <button class="mode-btn glass-border" onclick="closeModal(); renderGroupsView();" 
+            style="width:100%; background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.05) 100%); 
+            border: 1px solid rgba(255,255,255,0.25); border-top: 1px solid rgba(255,255,255,0.45); 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+            Klar
         </button>
     `;
     openModal();
@@ -1433,18 +1434,9 @@ function openCreateGroupModal() {
             <input type="text" id="custom-group-name-input" class="log-input" 
                 placeholder="T.ex. Armar, Bål, Cardio..." 
                 style="margin: 0; flex-grow: 1; font-size: 13px; padding: 10px 14px;">
-            <button onclick="saveCustomGroupFromModal()"
-                style="padding: 10px 16px; border-radius: 12px; border: 2px dashed rgba(34, 211, 238, 0.4);
-                background: rgba(34, 211, 238, 0.04); color: var(--primary); font-weight: 700;
-                font-size: 13px; cursor: pointer; white-space: nowrap;">
-                + Lägg till
-            </button>
         </div>
-        <button class="mode-btn glass-border" onclick="closeModal(); renderGroupsView();"
-            style="width:100%; background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.05) 100%);
-            border: 1px solid rgba(255,255,255,0.25); border-top: 1px solid rgba(255,255,255,0.45);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
-            Klar
+        <button class="mode-btn blue" onclick="saveCustomGroupFromModal()" style="width:100%; margin-top: 4px;">
+            + Lägg till grupp
         </button>
     `;
     openModal();
@@ -1467,11 +1459,11 @@ async function saveCustomGroupFromModal() {
     const input = document.getElementById("custom-group-name-input");
     const name = input ? input.value.trim() : "";
     if (!name) {
-        input.style.border = '1px solid var(--danger)';
+        if (input) input.style.border = '1px solid var(--danger)';
         return;
     }
     if (!programData.customGroups) programData.customGroups = [];
-    const id = name.toLowerCase().replace(/\s+/g, "-");
+    const id = name.toLowerCase().replace(/\s+/g, "-").replace(/[åä]/g, "a").replace(/ö/g, "o");
     if (!programData.customGroups.find(g => g.id === id)) {
         programData.customGroups.push({ id, name, icon: "📁" });
         await saveCustomProgramToSupabase();
