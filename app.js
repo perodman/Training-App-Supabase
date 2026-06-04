@@ -206,11 +206,11 @@ function openCreateExerciseModal(callback = null) {
         { id: "Bål", icon: " 🧘 " }
     ];
     body.innerHTML = `
-        <h3 style="text-align:center; margin-bottom: 20px;">Skapa Ny Övning</h3>
+        <h3 style="text-align:center; margin-bottom: 20px;">Create New Exercise</h3>
         <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
             <div style="width: 100%; padding: 0 10px; box-sizing: border-box;">
                 <label style="font-size:11px; color:var(--text-light); text-transform: uppercase; letter-spacing: 1px; display:block; margin-bottom: 8px; text-align: center;">Namn på övning</label>
-                <input type="text" id="new-ex-name" class="log-input" placeholder="T.ex. Knäböj" style="text-align: center; width: 100%; box-sizing: border-box;">
+                <input type="text" id="new-ex-name" class="log-input" placeholder="e.g. Squat" style="text-align: center; width: 100%; box-sizing: border-box;">
             </div>
             <div style="width: 100%;">
                 <label style="font-size:11px; color:var(--text-light); text-transform: uppercase; letter-spacing: 1px; display:block; margin-bottom: 12px; text-align: center;">Välj Kategori</label>
@@ -1451,7 +1451,7 @@ function openCreateGroupModal() {
         <p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin-bottom:12px; letter-spacing:1px;">Eller skapa en egen</p>
         <div style="display: flex; gap: 8px; margin-bottom: 20px;">
             <input type="text" id="custom-group-name-input" class="log-input" 
-                placeholder="T.ex. Armar, Bål, Cardio..." 
+                placeholder="e.g. Arms, Core, Legs..." 
                 style="margin: 0; flex-grow: 1; font-size: 13px; padding: 10px 14px;">
         </div>
         <button class="mode-btn blue" onclick="saveCustomGroupFromModal()" style="width:100%; margin-top: 4px;">
@@ -1916,7 +1916,7 @@ function openCreateProgramModal() {
     body.innerHTML = `
         <h3>Skapa Nytt Pass</h3>
         <label style="font-size:12px; color:var(--text-light); text-align:center; display:block; margin-left:10px;">NAMN PÅ PASS</label>
-        <input type="text" id="new-pass-name" class="log-input" placeholder="T.ex. Överkropp Deluxe">
+        <input type="text" id="new-pass-name" class="log-input" placeholder="e.g. Upper Body Deluxe">
         <button class="mode-btn blue" onclick="saveNewProgram()">Spara och Redigera</button>
     `;
     openModal();
