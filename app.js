@@ -1132,6 +1132,23 @@ function renderGroupsView() {
 
         if (!isEmpty) {
             groupCard.onclick = () => renderPassesInGroup(groupId);
+                        // Redigeringsknapp på gruppkortet
+            const editBtn = document.createElement("div");
+            editBtn.innerHTML = "⚙️";
+            editBtn.style.cssText = `
+                position: absolute; top: 8px; right: 8px;
+                font-size: 14px; opacity: 0.4; cursor: pointer;
+                padding: 2px 4px; border-radius: 6px;
+                background: rgba(255,255,255,0.05);
+                transition: opacity 0.2s ease;
+            `;
+            editBtn.addEventListener('mouseenter', () => editBtn.style.opacity = '1');
+            editBtn.addEventListener('mouseleave', () => editBtn.style.opacity = '0.4');
+            editBtn.onclick = (e) => {
+                e.stopPropagation();
+                openEditGroupModal(groupId, groupDef);
+            };
+            groupCard.appendChild(editBtn);
             groupCard.addEventListener('mouseenter', () => {
                 groupCard.style.borderTopColor = 'rgba(34, 211, 238, 0.8)';
                 groupCard.style.background = 'linear-gradient(135deg, rgba(34, 211, 238, 0.1) 0%, rgba(34, 211, 238, 0.03) 100%)';
@@ -1240,8 +1257,8 @@ function renderPassesInGroup(groupId) {
                 <div style="font-size:28px;">${icons[passIdx % 4]}</div>
                 <h4 style="font-size: 14px; margin: 8px 0 4px 0; line-height: 1.3;">${pass.name}</h4>
                 <div style="font-size:10px; color:var(--primary); font-weight:800;">${pass.exercises.length} ÖVN</div>
-                <div onclick="event.stopPropagation(); openGroupPickerForPass(${passIdx})"
-                    style="position: absolute; top: 6px; right: 6px; font-size: 12px; opacity: 0.5; cursor: pointer; padding: 2px 4px; border-radius: 6px; background: rgba(255,255,255,0.05);">🏷️</div>
+               <div onclick="event.stopPropagation(); openGroupPickerForPass(${passIdx})"
+    style="position: absolute; top: 6px; right: 6px; font-size: 12px; opacity: 0.6; cursor: pointer; padding: 2px 6px; border-radius: 6px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1);">✏️</div>
             `;
             passCard.onclick = () => {
                 document.querySelectorAll(".prog-card").forEach(c => c.classList.remove("active"));
@@ -1346,11 +1363,10 @@ async function togglePassGroup(passIdx, groupId) {
         pass.groups.push(groupId);
     }
 
-    await saveCustomProgramToSupabase();
-
-    // Uppdatera knappens utseende direkt utan att stänga modalen
+    // Uppdatera knappens utseende DIREKT (innan Supabase-sparning)
     const isSelected = pass.groups.includes(groupId);
-    const groupDef = PREDEFINED_GROUPS.find(g => g.id === groupId);
+    const ALL_GROUPS = [...PREDEFINED_GROUPS, ...(programData.customGroups || [])];
+    const groupDef = ALL_GROUPS.find(g => g.id === groupId) || { id: groupId, name: groupId, icon: "📁" };
     const btn = document.getElementById(`grouppicker-${groupId}`);
     if (btn) {
         btn.style.border = `1px solid ${isSelected ? 'var(--primary)' : 'rgba(255,255,255,0.1)'}`;
@@ -1362,6 +1378,9 @@ async function togglePassGroup(passIdx, groupId) {
             ${isSelected ? '<span style="font-size:9px; color:var(--primary); font-weight:900; text-transform:uppercase; letter-spacing:1px;">✓ Vald</span>' : ''}
         `;
     }
+
+    // Spara till Supabase i bakgrunden utan att blockera UI
+    saveCustomProgramToSupabase();
 }
 
 function showProgramDetails(idx) {
@@ -1440,6 +1459,98 @@ function openCreateGroupModal() {
         </button>
     `;
     openModal();
+}
+
+function openEditGroupModal(groupId, groupDef) {
+    const body = document.getElementById("modal-body");
+    body.innerHTML = `
+        <h3 style="text-align:center; margin-bottom:20px;">
+            <span style="font-size:28px; display:block; margin-bottom:8px;">${groupDef.icon}</span>
+            Redigera grupp
+        </h3>
+        <label style="font-size:11px; color:var(--text-light); text-transform:uppercase; letter-spacing:1px; display:block; text-align:center; margin-bottom:8px;">Gruppnamn</label>
+        <input type="text" id="edit-group-name-input" class="log-input" value="${groupDef.name}" style="text-align:center; margin-bottom:20px;">
+        
+        <button class="mode-btn blue" onclick="saveGroupNameEdit('${groupId}')" style="width:100%; margin-bottom:10px;">
+            Spara nytt namn
+        </button>
+
+        <div style="height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent); margin: 16px 0;"></div>
+
+        <button class="mode-btn" onclick="confirmDeleteGroup('${groupId}')" 
+            style="width:100%; color: var(--danger); background: rgba(239,68,68,0.06); border: 1px solid rgba(239,68,68,0.2); font-size:13px; padding:14px;">
+            🗑️ Ta bort grupp
+        </button>
+
+        <button class="mode-btn glass-border" onclick="closeModal()" 
+            style="width:100%; margin-top:10px; background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.05) 100%); border: 1px solid rgba(255,255,255,0.25); border-top: 1px solid rgba(255,255,255,0.45);">
+            Stäng
+        </button>
+    `;
+    openModal();
+}
+
+async function saveGroupNameEdit(groupId) {
+    const input = document.getElementById("edit-group-name-input");
+    const newName = input ? input.value.trim() : "";
+    if (!newName) {
+        if (input) input.style.border = '1px solid var(--danger)';
+        return;
+    }
+
+    // Uppdatera i customGroups om det är en egen grupp
+    if (programData.customGroups) {
+        const customGroup = programData.customGroups.find(g => g.id === groupId);
+        if (customGroup) {
+            customGroup.name = newName;
+            await saveCustomProgramToSupabase();
+            closeModal();
+            renderGroupsView();
+            return;
+        }
+    }
+
+    // Fördefinierad grupp — kan inte byta ID, men visa feedback
+    closeModal();
+    renderGroupsView();
+}
+
+async function confirmDeleteGroup(groupId) {
+    const body = document.getElementById("modal-body");
+    body.innerHTML = `
+        <div style="text-align:center; padding:10px;">
+            <div style="font-size:40px; margin-bottom:15px;">🗑️</div>
+            <h3 style="color:var(--danger); margin: 0 0 10px 0;">Ta bort grupp?</h3>
+            <p style="color:var(--text-light); margin-bottom:25px; font-size:14px; line-height:1.4;">
+                Gruppen tas bort men alla träningspass finns kvar — de hamnar under "Utan grupp".
+            </p>
+            <button class="mode-btn" onclick="deleteGroup('${groupId}')" 
+                style="width:100%; background:linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color:white; margin-bottom:12px; font-weight:700; padding:14px;">
+                Ja, ta bort gruppen
+            </button>
+            <button class="mode-btn glass-border" onclick="closeModal()" style="width:100%; padding:12px;">
+                Avbryt
+            </button>
+        </div>
+    `;
+}
+
+async function deleteGroup(groupId) {
+    // Ta bort grupptillhörighet från alla pass
+    programData.routine.forEach(pass => {
+        if (Array.isArray(pass.groups)) {
+            pass.groups = pass.groups.filter(g => g !== groupId);
+        }
+    });
+
+    // Ta bort från customGroups om det är en egen grupp
+    if (programData.customGroups) {
+        programData.customGroups = programData.customGroups.filter(g => g.id !== groupId);
+    }
+
+    await saveCustomProgramToSupabase();
+    closeModal();
+    renderGroupsView();
 }
 
 function selectPredefinedGroup(groupId) {
