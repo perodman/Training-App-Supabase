@@ -209,7 +209,7 @@ function openCreateExerciseModal(callback = null) {
         <h3 style="text-align:center; margin-bottom: 20px;">Create New Exercise</h3>
         <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
             <div style="width: 100%; padding: 0 10px; box-sizing: border-box;">
-                <label style="font-size:11px; color:var(--text-light); text-transform: uppercase; letter-spacing: 1px; display:block; margin-bottom: 8px; text-align: center;">Namn på övning</label>
+                <label style="font-size:11px; color:var(--text-light); text-transform: uppercase; letter-spacing: 1px; display:block; margin-bottom: 8px; text-align: center;">Exercise name</label>
                 <input type="text" id="new-ex-name" class="log-input" placeholder="e.g. Squat" style="text-align: center; width: 100%; box-sizing: border-box;">
             </div>
             <div style="width: 100%;">
@@ -366,7 +366,7 @@ function openEditExerciseModal(id) {
         <h3 style="text-align:center; margin-bottom: 20px;">Redigera Övning</h3>
         <div style="display: flex; flex-direction: column; align-items: center; gap: 10px; min-height: 400px;">
             <div style="width: 100%; max-width: 300px; margin-bottom: 10px;">
-                <label style="font-size:11px; color:var(--text-light); text-transform: uppercase; letter-spacing: 1px; display:block; margin-bottom: 8px; text-align: center;">Namn på övning</label>
+                <label style="font-size:11px; color:var(--text-light); text-transform: uppercase; letter-spacing: 1px; display:block; margin-bottom: 8px; text-align: center;">Exercise name</label>
                 <input type="text" id="edit-ex-name" class="log-input" value="${ex.name}" style="text-align: center;">
             </div>
             <div style="width: 100%;">
@@ -1448,7 +1448,7 @@ function openCreateGroupModal() {
             `).join('')}
         </div>
         <div style="height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent); margin-bottom: 20px;"></div>
-        <p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin-bottom:12px; letter-spacing:1px;">Eller skapa en egen</p>
+        <p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin-bottom:12px; letter-spacing:1px;">Or create your own</p>
         <div style="display: flex; gap: 8px; margin-bottom: 20px;">
             <input type="text" id="custom-group-name-input" class="log-input" 
                 placeholder="e.g. Arms, Core, Legs..." 
@@ -1731,7 +1731,7 @@ async function openEditProgramModal(idx) {
 
     body.innerHTML = `
         <h3>Redigera ${pass.name}</h3>
-        <label style="font-size:12px; color:var(--text-light); text-align:center; display:block;">NAMN PÅ PASS</label>
+        <label style="font-size:12px; color:var(--text-light); text-align:center; display:block;">WORKOUT NAME</label>
         <input type="text" id="edit-pass-name" class="log-input" value="${pass.name}">
 
         <p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin-bottom:10px;">Nuvarande övningar:</p>
