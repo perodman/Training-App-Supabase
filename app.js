@@ -213,7 +213,7 @@ function openCreateExerciseModal(callback = null) {
                 <input type="text" id="new-ex-name" class="log-input" placeholder="e.g. Squat" style="text-align: center; width: 100%; box-sizing: border-box;">
             </div>
             <div style="width: 100%;">
-                <label style="font-size:11px; color:var(--text-light); text-transform: uppercase; letter-spacing: 1px; display:block; margin-bottom: 12px; text-align: center;">Välj Kategori</label>
+                <label style="font-size:11px; color:var(--text-light); text-transform: uppercase; letter-spacing: 1px; display:block; margin-bottom: 12px; text-align: center;">Select Category</label>
                 <div id="category-selector-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 0 10px; box-sizing: border-box;">
                     ${categories.map(cat => `
                     <div class="cat-select-item ${cat.id === selectedCategory ? 'active' : ''}"
@@ -227,7 +227,7 @@ function openCreateExerciseModal(callback = null) {
                 </div>
             </div>
             <div style="width: 100%; padding: 0 10px; box-sizing: border-box;">
-                <button class="mode-btn blue" id="save-new-ex-btn" style="width: 100%; margin-top: 10px;">Spara Övning</button>
+                <button class="mode-btn blue" id="save-new-ex-btn" style="width: 100%; margin-top: 10px;">Save Exercise</button>
             </div>
         </div>
         <style>
@@ -370,7 +370,7 @@ function openEditExerciseModal(id) {
                 <input type="text" id="edit-ex-name" class="log-input" value="${ex.name}" style="text-align: center;">
             </div>
             <div style="width: 100%;">
-                <label style="font-size:11px; color:var(--text-light); text-transform: uppercase; letter-spacing: 1px; display:block; margin-bottom: 12px; text-align: center;">Välj Kategori</label>
+                <label style="font-size:11px; color:var(--text-light); text-transform: uppercase; letter-spacing: 1px; display:block; margin-bottom: 12px; text-align: center;">Select Category</label>
                 <div id="edit-category-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 0 10px;">
                     ${categories.map(cat => `
                     <div class="cat-select-item ${cat.id === selectedCategory ? 'active' : ''}"
@@ -1770,7 +1770,7 @@ async function openEditProgramModal(idx) {
                    onclick="saveEditDraftStateAndCreateNew(${idx})">+ Create new exercise to the library</button>
         </div>
 
-        <button class="mode-btn blue" style="margin-top:20px;" onclick="saveProgramEdit(${idx})">Spara alla ändringar</button>
+        <button class="mode-btn blue" style="margin-top:20px;" onclick="saveProgramEdit(${idx})">Save all changes</button>
         <button class="mode-btn" style="color:var(--danger); background:none; font-size:14px; margin-top:10px;" onclick="deleteEntireProgram(${idx})">Delete workout permanently</button>
     `;
 
@@ -1793,7 +1793,7 @@ function renderExercisePickerForEdit(idx, category = "Ben") {
 
     let html = `<div class="separator" style="margin: 25px 0;"></div>`;
     html += `<h3 style="margin: 0 0 15px 0; color: var(--primary); font-size: 1.2rem; text-align: center; text-transform: uppercase; letter-spacing: 1px;">ADD EXERCISE</h3>`;
-    html += `<p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin-bottom:10px;">Välj Kategori:</p>`;
+    html += `<p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin-bottom:10px;">Select Category:</p>`;
 
     html += `<div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; margin-bottom:15px;">`;
     categories.forEach(cat => {
@@ -1917,7 +1917,7 @@ function openCreateProgramModal() {
         <h3>Create New Workout</h3>
         <label style="font-size:12px; color:var(--text-light); text-align:center; display:block; margin-left:10px;">WORKOUT NAME</label>
         <input type="text" id="new-pass-name" class="log-input" placeholder="e.g. Upper Body Deluxe">
-        <button class="mode-btn blue" onclick="saveNewProgram()">Spara och Redigera</button>
+        <button class="mode-btn blue" onclick="saveNewProgram()">Save and Edit</button>
     `;
     openModal();
 }
@@ -2120,7 +2120,7 @@ function renderActiveWorkout() {
         
         // Återställt till bara de två originalknapparna med ett snyggt mellanrum emellan
         footer.innerHTML = `
-            <button id="pause-workout-btn" class="mode-btn save-draft-btn" onclick="saveDraftAndGoHome()" style="flex: 1;">Spara utkast  💾 </button>
+            <button id="pause-workout-btn" class="mode-btn save-draft-btn" onclick="saveDraftAndGoHome()" style="flex: 1;">Save draft  💾 </button>
             <button class="mode-btn green" onclick="finishWorkout()" style="flex: 1; font-weight: bold;">Avsluta pass  ✅</button>
         `;
     }
@@ -2390,7 +2390,7 @@ function renderExercisePicker(category, replaceIndex = null) {
     ];
 
     let html = `<h3>${replaceIndex !== null ? 'Byt ut övning' : 'Välj Övningar'}</h3>`;
-    html += `<p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin-bottom:10px;">Välj Kategori:</p>`;
+    html += `<p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin-bottom:10px;">Select Category:</p>`;
 
     html += `<div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; margin-bottom:15px;">`;
     categories.forEach(cat => {
