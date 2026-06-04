@@ -1181,26 +1181,34 @@ function renderProgramView(activeIdx = null) {
     const isCurrentlyExpanded = window._expandedGroups.has(groupId);
 
     if (isCurrentlyExpanded) {
-        // Kollapsa — ta bort fokus från alla
         window._expandedGroups.delete(groupId);
         groupContent.style.maxHeight = '0px';
         groupContent.style.opacity = '0';
         if (arrow) arrow.style.transform = 'rotate(0deg)';
         groupHeader.classList.remove('group-header-focused');
 
-        // Ta bort dimning från alla
+        // Återställ alla till normalläge
         document.querySelectorAll('.group-wrapper').forEach(w => {
             w.classList.remove('is-focused', 'is-dimmed');
+            const innerContent = w.querySelector('.group-dimmed-header');
+            if (innerContent) innerContent.style.padding = '';
         });
     } else {
-        // Expandera — fokusera denna, dimma alla andra
+        // Kollapsa alla andra öppna grupper först
+        window._expandedGroups.forEach(openId => {
+            if (openId !== groupId) {
+                window._expandedGroups.delete(openId);
+                const otherArrow = document.getElementById(`arrow-${openId}`);
+                if (otherArrow) otherArrow.style.transform = 'rotate(0deg)';
+            }
+        });
+
         window._expandedGroups.add(groupId);
         groupContent.style.maxHeight = '2000px';
         groupContent.style.opacity = '1';
         if (arrow) arrow.style.transform = 'rotate(180deg)';
         groupHeader.classList.add('group-header-focused');
 
-        // Applicera fokus/dimning
         document.querySelectorAll('.group-wrapper').forEach(w => {
             if (w.dataset.groupId === groupId) {
                 w.classList.add('is-focused');
@@ -1208,6 +1216,12 @@ function renderProgramView(activeIdx = null) {
             } else {
                 w.classList.add('is-dimmed');
                 w.classList.remove('is-focused');
+                // Krympa innehållet i dimmade grupper
+                const content = w.querySelector('div:nth-child(2)');
+                if (content) {
+                    content.style.maxHeight = '0px';
+                    content.style.opacity = '0';
+                }
             }
         });
     }
