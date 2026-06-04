@@ -324,7 +324,7 @@ function filterExercises(category) {
                 showExerciseAnimation(ex.id);
             }
         };
-        div.innerHTML = `<div><strong style="font-size:16px;">${ex.name}</strong><br><small style="color:var(--primary); font-weight:800; text-transform:uppercase; font-size:10px;">${ex.target}</small></div>
+        div.innerHTML = `<div><strong style="font-size:16px;">${ex.name}</strong><br><small style="color:var(--primary); font-weight:800; text-transform:uppercase; font-size:10px;">${CATEGORY_DISPLAY[ex.target] || ex.target}</small></div>
         <button style="background:none; border:none; font-size:18px; cursor:pointer;" onclick="openEditExerciseModal(${ex.id})">  ⚙️  </button>`;
         results.appendChild(div);
     });
