@@ -1056,15 +1056,33 @@ function startFreeWorkoutOnDate(date) {
 
 function openMonthPicker() {
     const body = document.getElementById("modal-body");
-    let html = `<h3>Välj månad</h3><div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">`;
-    const months = ["Januari", "Februari", "Mars", "April", "Maj", "Juni", "Juli", "Augusti", "September", "Oktober", "November", "December"];
-    months.forEach((m, i) => { html += `<button class="mode-btn glass-border" style="font-size:14px;" onclick="selectMonth(${i})">${m}</button>`; });
+    const currentYear = currentViewDate.getFullYear();
+    const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    
+    let html = `<h3>Select Month & Year</h3>`;
+    
+    // Dropdown för att välja år (t.ex. 2 år bakåt och 5 år framåt)
+    html += `<select id="year-picker" style="width:100%; margin-bottom:15px; padding:8px;">`;
+    for (let y = currentYear - 2; y <= currentYear + 5; y++) {
+        html += `<option value="${y}" ${y === currentYear ? 'selected' : ''}>${y}</option>`;
+    }
+    html += `</select>`;
+
+    html += `<div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">`;
+    months.forEach((m, i) => { 
+        html += `<button class="mode-btn glass-border" style="font-size:14px;" onclick="selectMonth(${i})">${m}</button>`; 
+    });
     body.innerHTML = html + `</div>`;
     openModal();
 }
 
 function selectMonth(m) {
+    const year = document.getElementById("year-picker").value;
+    
+    // Sätt både år och månad på objektet
+    currentViewDate.setFullYear(year);
     currentViewDate.setMonth(m);
+    
     closeModal();
     renderCalendar();
 }
