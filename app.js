@@ -354,7 +354,7 @@ function showExerciseAnimation(id) {
         <h3>${ex.name}</h3>
         ${videoHtml}
         <div style="text-align:left; color:var(--text-light); font-size:14px; padding:10px;">
-            <p><strong>Muskelgrupp:</strong> ${CATEGORY_DISPLAY[ex.target] || ex.target}</p>
+            <p><strong>Muscle Group:</strong> ${CATEGORY_DISPLAY[ex.target] || ex.target}</p>
         </div>
     `;
     openModal();
@@ -1842,12 +1842,12 @@ function renderExercisePickerForEdit(idx, category = "Ben") {
         <button onclick="renderExercisePickerForEdit(${idx}, '${cat.name}')"
             style="padding:10px 5px; font-size:11px; border-radius:12px; border:1px solid ${isActive ? 'var(--primary)' : 'rgba(255,255,255,0.1)'};
             background:${isActive ? 'rgba(34, 211, 238, 0.1)' : 'var(--card)'}; color:${isActive ? 'var(--primary)' : 'white'}; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:4px;">
-            <span style="font-size:16px;">${cat.icon}</span> ${cat.name}
+           <span style="font-size:16px;">${cat.icon}</span> ${CATEGORY_DISPLAY[cat.name] || cat.name}
         </button>`;
     });
     html += `</div>`;
 
-    html += `<p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin-bottom:10px;">Övningar (${category}):</p>`;
+    html += `<p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin-bottom:10px;">Excercises (${CATEGORY_DISPLAY[category] || category}):</p>`;
     html += `<div style="max-height:280px; overflow-y:auto; padding-right:5px; background:rgba(0,0,0,0.2); border-radius:15px; padding:10px; margin-bottom:15px; display:flex; flex-direction:column; gap:8px;">`;
 
     const filtered = masterExercises.filter(ex => category === "Armar" ? (ex.target === "Biceps" || ex.target === "Triceps") : ex.target === category);
@@ -2439,7 +2439,7 @@ function renderExercisePicker(category, replaceIndex = null) {
         <button onclick="renderExercisePicker('${cat.name}', ${replaceIndex})"
             style="padding:10px 5px; font-size:11px; border-radius:12px; border:1px solid ${isActive ? 'var(--primary)' : 'rgba(255,255,255,0.1)'};
             background:${isActive ? 'rgba(34, 211, 238, 0.1)' : 'var(--card)'}; color:${isActive ? 'var(--primary)' : 'white'}; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:4px;">
-            <span style="font-size:16px;">${cat.icon}</span> ${cat.name}
+            <span style="font-size:16px;">${cat.icon}</span> ${CATEGORY_DISPLAY[cat.name] || cat.name}
         </button>`;
     });
     html += `</div>`;
