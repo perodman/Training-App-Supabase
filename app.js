@@ -7,7 +7,7 @@ let activeDraft = JSON.parse(localStorage.getItem("activeWorkoutDraft") || "null
 let calendarOverrides = JSON.parse(localStorage.getItem("calendarOverrides") || "{}");
 let currentViewDate = new Date();
 let currentExerciseCategory = "Ben";
-// Timer-variabler
+// Timer-variablerf
 let timerInterval = null;
 let secondsElapsed = 0;
 let isTimerRunning = false;
@@ -1152,7 +1152,7 @@ function renderGroupsView() {
             <div style="font-size: 32px; margin-bottom: 10px; opacity: ${isEmpty ? '0.4' : '1'};">${groupDef.icon}</div>
             <div style="font-weight: 800; font-size: 15px; color: ${isEmpty ? 'var(--text-light)' : 'var(--text)'}; margin-bottom: 4px;">${groupDef.name}</div>
             <div style="font-size: 10px; color: ${isEmpty ? 'var(--text-light)' : 'var(--primary)'}; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; opacity: ${isEmpty ? '0.5' : '1'};">
-                ${isEmpty ? 'No workouts yet' : `${passesInGroup.length} ${passesInGroup.length === 1 ? 'workouts' : 'workouts'}`}
+                ${isEmpty ? 'No workouts yet' : `${passesInGroup.length} ${passesInGroup.length === 1 ? 'workout' : 'workouts'}`}
             </div>
         `;
 
@@ -1206,7 +1206,9 @@ function renderGroupsView() {
         ungroupedCard.innerHTML = `
             <div style="font-size: 32px; margin-bottom: 10px;">📁</div>
             <div style="font-weight: 800; font-size: 15px; color: var(--text-light); margin-bottom: 4px;">No Group</div>
-            <div style="font-size: 10px; color: var(--text-light); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; opacity: 0.6;">${ungroupedPasses.length} pass</div>
+            <div style="font-size: 10px; color: var(--text-light); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; opacity: 0.6;">
+        ${ungroupedPasses.length} ${ungroupedPasses.length === 1 ? 'workout' : 'workouts'}
+        </div>
         `;
         ungroupedCard.onclick = () => renderPassesInGroup('__ungrouped__');
         selector.appendChild(ungroupedCard);
