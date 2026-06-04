@@ -1220,10 +1220,8 @@ function renderProgramView(activeIdx = null) {
     // Pass utan grupp
     const ungroupedPasses = programData.routine.filter(p => !Array.isArray(p.groups) || p.groups.length === 0);
     if (ungroupedPasses.length > 0) {
-        const ungroupedWrapper = document.createElement("div");
-        ungroupedWrapper.style.cssText = "margin-bottom: 12px;";
 
-       const ungroupedWrapper = document.createElement("div");
+        const ungroupedWrapper = document.createElement("div");
         ungroupedWrapper.className = "group-wrapper";
         ungroupedWrapper.style.cssText = "margin-bottom: 12px;";
         ungroupedWrapper.dataset.groupId = "__ungrouped__";
