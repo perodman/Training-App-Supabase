@@ -1072,9 +1072,9 @@ function selectMonth(m) {
 // --- PROGRAMVYER & RUTINREDIGERING ---
 // Fördefinierade grupper
 const PREDEFINED_GROUPS = [
+    { id: "fullbody", name: "Full Body", icon: "🏋️" }
     { id: "upperbody", name: "Upper Body", icon: "💪" },
     { id: "lowerbody", name: "Lower Body", icon: "🦵" },
-    { id: "fullbody", name: "Full Body", icon: "🏋️" },
     { id: "superset", name: "Superset", icon: "🔥" }
 ];
 
@@ -1303,11 +1303,8 @@ function openGroupPickerForPass(passIdx) {
             </button>
         </div>
 
-        <button class="mode-btn glass-border" onclick="closeModal(); renderGroupsView();" 
-            style="width:100%; background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.05) 100%); 
-            border: 1px solid rgba(255,255,255,0.25); border-top: 1px solid rgba(255,255,255,0.45); 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
-            Klar
+        <button class="mode-btn blue" onclick="saveCustomGroupFromModal()" style="width:100%; margin-top: 4px;">
+            + Lägg till grupp
         </button>
     `;
     openModal();
@@ -1466,7 +1463,10 @@ function selectPredefinedGroup(groupId) {
 async function saveCustomGroupFromModal() {
     const input = document.getElementById("custom-group-name-input");
     const name = input ? input.value.trim() : "";
-    if (!name) return;
+    if (!name) {
+        input.style.border = '1px solid var(--danger)';
+        return;
+    }
     if (!programData.customGroups) programData.customGroups = [];
     const id = name.toLowerCase().replace(/\s+/g, "-");
     if (!programData.customGroups.find(g => g.id === id)) {
