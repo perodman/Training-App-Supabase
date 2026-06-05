@@ -1238,7 +1238,7 @@ function renderPassesInGroup(groupId) {
     const selector = document.getElementById("pass-selector-list");
     if (!selector) return;
 
-    const groupDef = PREDEFINED_GROUPS.find(g => g.id === groupId) || { id: groupId, name: groupId === '__ungrouped__' ? 'Utan grupp' : groupId, icon: groupId === '__ungrouped__' ? '📁' : '📁' };
+    const groupDef = PREDEFINED_GROUPS.find(g => g.id === groupId) || { id: groupId, name: groupId === '__ungrouped__' ? 'No Group' : groupId, icon: groupId === '__ungrouped__' ? '📁' : '📁' };
     const passesInGroup = groupId === '__ungrouped__'
         ? programData.routine.filter(p => !Array.isArray(p.groups) || p.groups.length === 0)
         : programData.routine.filter(p => Array.isArray(p.groups) && p.groups.includes(groupId));
