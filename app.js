@@ -1781,7 +1781,7 @@ async function openEditProgramModal(idx) {
         ${pass.exercises.length === 0 ? `
             <div style="text-align:center; padding:20px; background:rgba(255,255,255,0.02); border:1px dashed rgba(255,255,255,0.08); border-radius:14px; margin-bottom:10px;">
                 <div style="font-size:24px; margin-bottom:8px; opacity:0.4;">🏋️</div>
-                <div style="font-size:13px; color:var(--text-light); opacity:0.6;">No exercises added yet — use the list below to add some</div>
+                <div style="font-size:13px; color:var(--text-light); opacity:0.6;">No exercises added yet — use the list below</div>
             </div>
         ` : pass.exercises.map((ex, i) => `
             <div class="edit-item-row">
