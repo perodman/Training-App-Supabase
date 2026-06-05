@@ -968,7 +968,7 @@ function setOverrideSilent(dateStr, programId) {
         if (nextPlannedProgram) {
             actionBtnContainer.innerHTML = `
                 <button class="mode-btn premium-action-btn premium-green-btn" onclick="prepareStart('${dateStr}', '${nextPlannedProgram.id}')" style="width: 100% !important; margin: 0 !important; padding: 12px !important;">
-                    Starta Träning 🔥
+                    Start Workout 🔥
                 </button>`;
         } else {
             actionBtnContainer.innerHTML = '';
