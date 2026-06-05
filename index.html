@@ -88,7 +88,7 @@
 
 
                 
-               <button id="start-new-btn" class="mode-btn" style="
+        <button id="start-new-btn" class="mode-btn" style="
     display: flex;
     position: relative;
     grid-column: span 2; 
@@ -97,17 +97,33 @@
     justify-content: space-between; 
     padding: 18px 24px;
     background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-    border: none; /* Vi tar bort standard border */
+    border: none;
     border-left: 4px solid #22d3ee;
     border-radius: 22px;
     box-shadow: 0 8px 20px rgba(0,0,0,0.4);
     width: 100%;
     overflow: hidden;
 ">
+    
+    <!-- HÄR BÖRJAR ÖVRE LINJEN -->
     <div style="
         position: absolute;
         top: 0; left: 0; right: 0; height: 1px;
-        background: linear-gradient(90deg, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0) 120%);
+        background: linear-gradient(90deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 100%);
+    "></div>
+
+    <!-- HÄR BÖRJAR UNDRE LINJEN -->
+    <div style="
+        position: absolute;
+        bottom: 0; left: 0; right: 0; height: 1px;
+        background: linear-gradient(90deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 100%);
+    "></div>
+
+    <!-- HÄR BÖRJAR HÖGRA LINJEN -->
+    <div style="
+        position: absolute;
+        top: 0; right: 0; bottom: 0; width: 1px;
+        background: linear-gradient(180deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 100%);
     "></div>
 
     <div style="display: flex; align-items: center; gap: 14px;">
