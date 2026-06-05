@@ -747,7 +747,7 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
         html += `
         <div style="display: flex; align-items: center; gap: 10px; margin-top: 10px; width: 100%;">
             <div style="flex-grow: 1; height: 1px; background: rgba(255,255,255,0.08);"></div>
-            <span style="font-size: 11px; text-transform: uppercase; color: var(--text-light); font-weight: 700; letter-spacing: 1px; white-space: nowrap;">Historik</span>
+            <span style="font-size: 11px; text-transform: uppercase; color: var(--text-light); font-weight: 700; letter-spacing: 1px; white-space: nowrap;">Workout History</span>
             <div style="flex-grow: 1; height: 1px; background: rgba(255,255,255,0.08);"></div>
         </div>`;
 
@@ -1768,7 +1768,7 @@ async function openEditProgramModal(idx) {
         <label style="font-size:12px; color:var(--text-light); text-align:center; display:block;">WORKOUT NAME</label>
         <input type="text" id="edit-pass-name" class="log-input" value="${pass.name}">
 
-        <p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin-bottom:10px;">Nuvarande övningar:</p>
+        <p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin-bottom:10px;">Current Exercises:</p>
         <div id="edit-pass-exercises">
         ${pass.exercises.map((ex, i) => `
             <div class="edit-item-row">
@@ -1782,7 +1782,7 @@ async function openEditProgramModal(idx) {
         </div>
         <div id="modal-exercise-picker-container"></div>
         <div style="margin-top: 20px;">
-            <p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin-bottom:10px; letter-spacing:1px;">Tillhör grupp</p>
+            <p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin-bottom:10px; letter-spacing:1px;">Belongs to Group</p>
             <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
                 ${PREDEFINED_GROUPS.map(g => {
                     const isSelected = Array.isArray(pass.groups) && pass.groups.includes(g.id);
