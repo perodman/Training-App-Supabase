@@ -1345,7 +1345,7 @@ function openGroupPickerForPass(passIdx) {
                 </button>`;
             }).join('')}
         </div>
-        <button class="mode-btn glass-border" onclick="closeModal(); renderPassesInGroup('${groupId}');" 
+        <button class="mode-btn glass-border" onclick="closeModal(); renderGroupsView();"
             style="width:100%; background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.05) 100%); 
             border: 1px solid rgba(255,255,255,0.25); border-top: 1px solid rgba(255,255,255,0.45); 
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
