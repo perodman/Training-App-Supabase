@@ -88,21 +88,25 @@
 
 
                 
-                          <button id="start-new-btn" class="mode-btn" style="
-    grid-column: span 2; flex-direction: column; align-items: center;
-    justify-content: center; gap: 6px; padding: 22px 10px;
-    background: rgba(255,255,255,0.1);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255,255,255,0.2);
-    border-top: 2px solid rgba(255,255,255,0.5);
+                 <button id="start-new-btn" class="mode-btn" style="
+    grid-column: span 2; flex-direction: row; align-items: center;
+    justify-content: space-between; padding: 18px 24px;
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-left: 4px solid #22d3ee;
     border-radius: 22px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.4);
     width: 100%;
 ">
-    <span style="font-size: 18px; font-weight: 900; color: #fff; text-transform: uppercase; letter-spacing: 2px;">🔥 Start Workout</span>
-    <span style="font-size: 9px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 3px;">Ready when you are</span>
+    <div style="display: flex; align-items: center; gap: 14px;">
+        <div style="width: 44px; height: 44px; border-radius: 14px; background: rgba(34,211,238,0.1); border: 1px solid rgba(34,211,238,0.3); display: flex; align-items: center; justify-content: center; font-size: 22px;">🏋️</div>
+        <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 2px;">
+            <span style="font-size: 16px; font-weight: 900; color: #fff; text-transform: uppercase; letter-spacing: 0.5px;">Start Workout</span>
+            <span style="font-size: 9px; color: var(--primary); text-transform: uppercase; letter-spacing: 2px; font-weight: 700;">Tap to begin</span>
+        </div>
+    </div>
+    <span style="color: rgba(34,211,238,0.6); font-size: 20px;">→</span>
 </button>
-
                 
 
                 <button id="view-exercises-btn" class="mode-btn glass home-card">
