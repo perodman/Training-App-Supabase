@@ -88,21 +88,33 @@
 
 
                 
-                 <button id="start-new-btn" class="mode-btn" style="
-    grid-column: span 2; flex-direction: row; align-items: center;
-    justify-content: space-between; padding: 18px 24px;
+               <button id="start-new-btn" class="mode-btn" style="
+    display: flex;
+    position: relative;
+    grid-column: span 2; 
+    flex-direction: row; 
+    align-items: center;
+    justify-content: space-between; 
+    padding: 18px 24px;
     background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-    border: 1px solid rgba(255,255,255,0.08);
+    border: none; /* Vi tar bort standard border */
     border-left: 4px solid #22d3ee;
     border-radius: 22px;
     box-shadow: 0 8px 20px rgba(0,0,0,0.4);
     width: 100%;
+    overflow: hidden;
 ">
+    <div style="
+        position: absolute;
+        top: 0; left: 0; right: 0; height: 1px;
+        background: linear-gradient(90deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 100%);
+    "></div>
+
     <div style="display: flex; align-items: center; gap: 14px;">
         <div style="width: 44px; height: 44px; border-radius: 14px; background: rgba(34,211,238,0.1); border: 1px solid rgba(34,211,238,0.3); display: flex; align-items: center; justify-content: center; font-size: 22px;">🏋️</div>
         <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 2px;">
             <span style="font-size: 16px; font-weight: 900; color: #fff; text-transform: uppercase; letter-spacing: 0.5px;">Start Workout</span>
-            <span style="font-size: 9px; color: var(--primary); text-transform: uppercase; letter-spacing: 2px; font-weight: 700;">Tap to begin</span>
+            <span style="font-size: 9px; color: #22d3ee; text-transform: uppercase; letter-spacing: 2px; font-weight: 700;">Tap to begin</span>
         </div>
     </div>
     <span style="color: rgba(34,211,238,0.6); font-size: 20px;">→</span>
