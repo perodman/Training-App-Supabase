@@ -1556,14 +1556,14 @@ async function confirmDeleteGroup(groupId) {
             <div style="font-size:40px; margin-bottom:15px;">🗑️</div>
             <h3 style="color:var(--danger); margin: 0 0 10px 0;">Delete Group?</h3>
             <p style="color:var(--text-light); margin-bottom:25px; font-size:14px; line-height:1.4;">
-                Gruppen tas bort men alla träningspass finns kvar — de hamnar under "Utan grupp".
+                Workout Group will be deleted, but all workouts will remain — they will be moved to "No Group".
             </p>
             <button class="mode-btn" onclick="deleteGroup('${groupId}')" 
                 style="width:100%; background:linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color:white; margin-bottom:12px; font-weight:700; padding:14px;">
                 Yes, delete group!
             </button>
             <button class="mode-btn glass-border" onclick="closeModal()" style="width:100%; padding:12px;">
-                Avbryt
+                Cancel
             </button>
         </div>
     `;
@@ -2242,7 +2242,7 @@ function renderActiveWorkout() {
                     if (isCurrent) {
                         setsHtml += `
                         <div style="grid-column: 2 / span 3; margin:-4px 0 8px 0; padding-left:2px; opacity:0.8; font-size:10px; color:var(--primary); font-weight:600; letter-spacing:0.3px;">
-                            💡  Klicka på ${statusContent} för att låsa & gå vidare
+                            💡  Select ${statusContent} to lock & continue
                         </div>`;
                     }
                 });
@@ -2829,7 +2829,7 @@ function updateSingleExerciseCard(exIdx) {
             if (isCurrent) {
                 setsHtml += `
                 <div style="grid-column: 2 / span 3; margin:-4px 0 8px 0; padding-left:2px; opacity:0.8; font-size:10px; color:var(--primary); font-weight:600; letter-spacing:0.3px;">
-                    💡  Klicka på ${statusContent} för att låsa & gå vidare
+                    💡  Select ${statusContent} to lock & continue
                 </div>`;
             }
         });
