@@ -1254,6 +1254,14 @@ function renderPassesInGroup(groupId) {
         `;
         backBtn.innerHTML = `← ${groupDef.icon} ${groupDef.name}`;
         backBtn.onclick = () => {
+            // Fade ut backBtn och actionBtn mjukt samtidigt som selector glider ut
+            backBtn.style.transition = 'opacity 0.25s ease';
+            backBtn.style.opacity = '0';
+            const addPassBtn = document.getElementById("add-custom-pass-btn");
+            if (addPassBtn) {
+                addPassBtn.style.transition = 'opacity 0.25s ease';
+                addPassBtn.style.opacity = '0';
+            }
             selector.style.transition = 'transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.35s ease';
             selector.style.transform = 'translateX(60px)';
             selector.style.opacity = '0';
@@ -1261,6 +1269,8 @@ function renderPassesInGroup(groupId) {
                 const detailsArea = document.getElementById("program-details-area");
                 if (detailsArea) detailsArea.classList.add("hidden");
                 backBtn.style.display = 'none';
+                backBtn.style.opacity = '1';
+                backBtn.style.transition = '';
                 selector.innerHTML = "";
                 selector.style.transition = 'none';
                 selector.style.transform = 'translateX(-60px)';
@@ -1268,6 +1278,10 @@ function renderPassesInGroup(groupId) {
                 // Visa knapparna igen när man går tillbaka
                 const addGroupBtn = document.getElementById("add-custom-group-btn");
                 if (addGroupBtn) addGroupBtn.style.display = 'block';
+                if (addPassBtn) {
+                    addPassBtn.style.opacity = '1';
+                    addPassBtn.style.transition = '';
+                }
                 renderGroupsView();
                 setTimeout(() => {
                     selector.style.transition = 'transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.35s ease';
