@@ -1644,7 +1644,7 @@ function generateSelectedExercisesSummaryHtmlForEdit(idx) {
     if (!hasChoices) return "";
 
     let summaryHtml = `
-    <p style="font-size:11px; text-transform:uppercase; color:var(--text-light); margin-bottom:8px; font-weight:600; letter-spacing:0.5px;">Valda övningar i detta svep:</p>
+    <p style="font-size:11px; text-transform:uppercase; color:var(--text-light); margin-bottom:8px; font-weight:600; letter-spacing:0.5px;">Selected exercises in this set:</p>
     <div style="display:flex; flex-wrap:wrap; gap:6px; background:rgba(255,255,255,0.03); padding:10px; border-radius:12px; border:1px solid rgba(255,255,255,0.05); max-height:100px; overflow-y:auto; margin-bottom:12px;">
     `;
     
@@ -2509,7 +2509,7 @@ function generateSelectedExercisesSummaryHtml() {
     const hasChoices = temporarySelectedExercises.length > 0;
     if (!hasChoices) return "";
     let summaryHtml = `
-    <p style="font-size:11px; text-transform:uppercase; color:var(--text-light); margin-bottom:8px; font-weight:600; letter-spacing:0.5px;">Valda övningar i detta svep:</p>
+    <p style="font-size:11px; text-transform:uppercase; color:var(--text-light); margin-bottom:8px; font-weight:600; letter-spacing:0.5px;">Selected exercises in this set:</p>
     <div style="display:flex; flex-wrap:wrap; gap:6px; background:rgba(255,255,255,0.03); padding:10px; border-radius:12px; border:1px solid rgba(255,255,255,0.05); max-height:100px; overflow-y:auto; margin-bottom:12px;">
     `;
     temporarySelectedExercises.forEach(exId => {
