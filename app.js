@@ -1519,7 +1519,7 @@ function openEditGroupModal(groupId, groupDef) {
 
         <button class="mode-btn" onclick="confirmDeleteGroup('${groupId}')" 
             style="width:100%; color: var(--danger); background: rgba(239,68,68,0.06); border: 1px solid rgba(239,68,68,0.2); font-size:13px; padding:14px;">
-            🗑️ Delete Group
+             Delete Group 🗑️
         </button>
 
         <button class="mode-btn glass-border" onclick="closeModal()" 
