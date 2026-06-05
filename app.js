@@ -398,7 +398,7 @@ function openEditExerciseModal(id) {
             
             <button class="mode-btn blue" style="width: 100%; margin-top: 15px;" id="update-exercise-confirm-btn">Update</button>
             
-            <button class="mode-btn" style="color:var(--danger); background:none; font-size:14px; margin-top: auto;" onclick="deleteMasterExercise(${id})">Delete workout permanently</button>
+            <button class="btn-danger" onclick="deleteMasterExercise(${id})">Delete Exercise Permanently 🗑️</button>
         </div>
         <style>
             .cat-select-item.active {
@@ -1514,10 +1514,7 @@ function openEditGroupModal(groupId, groupDef) {
 
         <div style="height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent); margin: 16px 0;"></div>
 
-        <button class="mode-btn" onclick="confirmDeleteGroup('${groupId}')" 
-            style="width:100%; color: var(--danger); background: rgba(239,68,68,0.06); border: 1px solid rgba(239,68,68,0.2); font-size:13px; padding:14px;">
-             Delete Group 🗑️
-        </button>
+        <button class="btn-danger" onclick="confirmDeleteGroup('${groupId}')">Delete Group 🗑️</button>
 
         <button class="mode-btn glass-border" onclick="closeModal()" 
             style="width:100%; margin-top:10px; background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.05) 100%); border: 1px solid rgba(255,255,255,0.25); border-top: 1px solid rgba(255,255,255,0.45);">
@@ -1808,7 +1805,7 @@ async function openEditProgramModal(idx) {
         </div>
 
         <button class="mode-btn blue" style="margin-top:20px;" onclick="saveProgramEdit(${idx})">Save all changes</button>
-        <button class="mode-btn" style="color:var(--danger); background:none; font-size:14px; margin-top:10px;" onclick="deleteEntireProgram(${idx})">Delete workout permanently</button>
+        <button class="btn-danger" onclick="deleteEntireProgram(${idx})">Delete Workout Permanently 🗑️</button>
     `;
 
     renderExercisePickerForEdit(idx, "Ben");
@@ -2306,9 +2303,9 @@ function renderActiveWorkout() {
         discardContainer.style.cssText = "width: 100%; padding: 0 10px; margin-top: 40px; margin-bottom: 20px; box-sizing: border-box;";
 
         const discardBtn = document.createElement("button");
-        discardBtn.className = "mode-btn";
-        discardBtn.style.cssText = "background:none; color:var(--danger); font-size:14px; border:1px solid rgba(239, 68, 68, 0.2); width:100%;";
-        discardBtn.innerHTML = "Delete Workout  🗑️ ";
+        discardBtn.className = "btn-danger";
+        discardBtn.style.cssText = "margin-top:20px;";
+        discardBtn.innerHTML = "Delete Workout 🗑️";
         discardBtn.onclick = confirmDiscardActiveWorkout;
 
         discardContainer.appendChild(discardBtn);
