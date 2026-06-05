@@ -1985,13 +1985,12 @@ function openCreateProgramModal() {
 
 async function saveNewProgram() {
     const name = document.getElementById("new-pass-name").value.trim();
-    if(!name) return alert("Ange ett namn!");
+    if(!name) return alert("Enter a name!");
     const newPass = { id: "pass-" + Date.now(), name, exercises: [] };
     programData.routine.push(newPass);
-
-    // Sparar det nya passet till localStorage och Supabase
     await saveCustomProgramToSupabase();
     const newIdx = programData.routine.length - 1;
+    renderGroupsView();
     await openEditProgramModal(newIdx);
 }
 
