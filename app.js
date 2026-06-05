@@ -1496,6 +1496,7 @@ function openCreateGroupModal() {
 }
 
 function openEditGroupModal(groupId, groupDef) {
+    if (typeof hideDefaultCloseButton === 'function') hideDefaultCloseButton(true);
     const body = document.getElementById("modal-body");
     body.innerHTML = `
         <h3 style="text-align:center; margin-bottom:20px;">
@@ -1509,10 +1510,6 @@ function openEditGroupModal(groupId, groupDef) {
         </button>
         <div style="height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent); margin: 16px 0;"></div>
         <button class="btn-danger" onclick="confirmDeleteGroup('${groupId}')">🗑️ Delete Group</button>
-        <button class="mode-btn glass-border" onclick="closeModal()" 
-            style="width:100%; margin-top:10px; background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.05) 100%); border: 1px solid rgba(255,255,255,0.25); border-top: 1px solid rgba(255,255,255,0.45);">
-            Close
-        </button>
     `;
     openModal();
 }
@@ -1537,7 +1534,7 @@ async function saveGroupNameEdit(groupId) {
         }
     }
 
-    // Fördefinierad grupp — kan inte byta ID, men visa feedback
+    if (typeof hideDefaultCloseButton === 'function') hideDefaultCloseButton(false);
     closeModal();
     renderGroupsView();
 }
@@ -1576,6 +1573,7 @@ async function deleteGroup(groupId) {
     }
 
     await saveCustomProgramToSupabase();
+    if (typeof hideDefaultCloseButton === 'function') hideDefaultCloseButton(false);
     closeModal();
     renderGroupsView();
 }
