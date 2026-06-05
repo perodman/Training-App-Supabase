@@ -1780,22 +1780,18 @@ async function openEditProgramModal(idx) {
     const pass = programData.routine[idx];
     const body = document.getElementById("modal-body");
     if (!pass || !body) return;
-
-    // ÄNDRING: Hämta utkastet (inklusive den nyskapade övningen om du kommer därifrån)
     const savedDraft = localStorage.getItem('temp_exercise_edit_draft');
     if (savedDraft) {
         window.temporarySelectedExercisesForEdit = JSON.parse(savedDraft);
-        localStorage.removeItem('temp_exercise_edit_draft'); // Rensa efter återställning
+        localStorage.removeItem('temp_exercise_edit_draft');
     } else {
-        // Om det är en helt ny redigeringssession (inte en återgång från "skapa övning"), nollställ listan
         window.temporarySelectedExercisesForEdit = [];
     }
-
+    const ALL_GROUPS = [...PREDEFINED_GROUPS, ...(programData.customGroups || [])];
     body.innerHTML = `
         <h3>Edit ${pass.name}</h3>
         <label style="font-size:12px; color:var(--text-light); text-align:center; display:block;">WORKOUT NAME</label>
         <input type="text" id="edit-pass-name" class="log-input" value="${pass.name}">
-
         <p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin-bottom:10px;">Current Exercises:</p>
         <div id="edit-pass-exercises">
         ${pass.exercises.map((ex, i) => `
@@ -1805,18 +1801,29 @@ async function openEditProgramModal(idx) {
                     <button class="reorder-btn" onclick="moveExercise(${idx}, ${i}, 1)"> ▼ </button>
                 </div>
                 <span style="flex-grow:1; margin-left:15px; font-size:14px; font-weight:600;">${ex.name}</span>
-                <button onclick="removeExFromPass(${idx}, ${i})" style="color:var(--danger); background:none; border:none; font-size:18px;">  ✖  </button>
+                <button onclick="removeExFromPass(${idx}, ${i})" style="color:var(--danger); background:none; border:none; font-size:18px;">✖</button>
             </div>`).join("")}
         </div>
         <div id="modal-exercise-picker-container"></div>
         <div style="margin-top: 20px;">
             <p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin-bottom:10px; letter-spacing:1px;">Belongs to Group</p>
             <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
-                ${PREDEFINED_GROUPS.map(g => {
+                ${ALL_GROUPS.map(g => {
                     const isSelected = Array.isArray(pass.groups) && pass.groups.includes(g.id);
                     return `
-                    <button onclick="(async () => { const modalContent = document.querySelector('.modal-content'); const sp = modalContent ? modalContent.scrollTop : 0; await togglePassGroup(${idx}, '${g.id}'); await openEditProgramModal(${idx}); setTimeout(() => { const mc = document.querySelector('.modal-content'); if(mc) mc.scrollTop = sp; }, 50); })()"
-                        style="padding: 10px 5px; border-radius: 12px; border: 1px solid ${isSelected ? 'var(--primary)' : 'rgba(255,255,255,0.1)'}; 
+                    <button id="editgroup-${g.id}"
+                        onclick="(async () => { 
+                            await togglePassGroup(${idx}, '${g.id}'); 
+                            const isNow = Array.isArray(programData.routine[${idx}].groups) && programData.routine[${idx}].groups.includes('${g.id}'); 
+                            const b = document.getElementById('editgroup-${g.id}'); 
+                            if(b) { 
+                                b.style.border = '1px solid ' + (isNow ? 'var(--primary)' : 'rgba(255,255,255,0.1)'); 
+                                b.style.background = isNow ? 'rgba(34,211,238,0.15)' : 'rgba(255,255,255,0.04)'; 
+                                b.style.color = isNow ? 'var(--primary)' : 'var(--text-light)'; 
+                            } 
+                        })()"
+                        style="padding: 10px 5px; border-radius: 12px; 
+                        border: 1px solid ${isSelected ? 'var(--primary)' : 'rgba(255,255,255,0.1)'}; 
                         background: ${isSelected ? 'rgba(34,211,238,0.15)' : 'rgba(255,255,255,0.04)'}; 
                         color: ${isSelected ? 'var(--primary)' : 'var(--text-light)'}; 
                         font-size: 11px; font-weight: 700; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px;">
@@ -1824,19 +1831,16 @@ async function openEditProgramModal(idx) {
                         ${g.name}
                     </button>`;
                 }).join('')}
-</div>
+            </div>
         </div>
-
         <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.06);">
             <button class="mode-btn glass-border" style="font-size:13px; padding:10px; border: 2px dashed rgba(34, 211, 238, 0.4); color: var(--primary); background: rgba(34, 211, 238, 0.04); font-weight: 700;" 
                    onclick="saveEditDraftStateAndCreateNew(${idx})">+ Create new exercise to the library</button>
         </div>
-
         <button class="mode-btn blue" style="margin-top:20px;" onclick="saveProgramEdit(${idx})">Save all changes</button>
-        <button class="btn-danger" onclick="deleteEntireProgram(${idx})">Delete Workout Permanently 🗑️</button>
+        <button class="btn-danger" onclick="deleteEntireProgram(${idx})">🗑️ Delete Workout Permanently</button>
     `;
-
-    renderExercisePickerForEdit(idx, "Ben");
+    renderExercisePickerForEdit(idx, "Legs");
     openModal();
 }
 
