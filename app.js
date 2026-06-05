@@ -1228,15 +1228,15 @@ function renderPassesInGroup(groupId) {
         ? programData.routine.filter(p => !Array.isArray(p.groups) || p.groups.length === 0)
         : programData.routine.filter(p => Array.isArray(p.groups) && p.groups.includes(groupId));
 
-    // Dölj "Create New Group"-knappen när man är inne i en grupps passlista
-    const addGroupBtn = document.getElementById("add-custom-group-btn");
-    if (addGroupBtn) addGroupBtn.style.display = 'none';
-
     // Slide-animation ut
-    selector.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
-    selector.style.transform = 'translateX(30px)';
-    selector.style.opacity = '0';
-    setTimeout(() => {
+        selector.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+        selector.style.transform = 'translateX(30px)';
+        selector.style.opacity = '0';
+        setTimeout(() => {
+        // Dölj "Create New Group"-knappen inuti timeoutet så den inte blinkar
+        const addGroupBtn = document.getElementById("add-custom-group-btn");
+        if (addGroupBtn) addGroupBtn.style.display = 'none';
+       
         selector.innerHTML = "";
         selector.style.cssText = "display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; transition: transform 0.3s ease, opacity 0.3s ease; transform: translateX(30px); opacity: 0;";
         // Tillbaka-knapp
