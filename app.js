@@ -1227,6 +1227,11 @@ function renderPassesInGroup(groupId) {
     const passesInGroup = groupId === '__ungrouped__'
         ? programData.routine.filter(p => !Array.isArray(p.groups) || p.groups.length === 0)
         : programData.routine.filter(p => Array.isArray(p.groups) && p.groups.includes(groupId));
+
+    // Dölj "Create New Group"-knappen när man är inne i en grupps passlista
+    const actionBtns = document.getElementById("programs-action-btns");
+    if (actionBtns) actionBtns.style.display = 'none';
+
     // Slide-animation ut
     selector.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
     selector.style.transform = 'translateX(30px)';
@@ -1260,6 +1265,9 @@ function renderPassesInGroup(groupId) {
                 selector.style.transition = 'none';
                 selector.style.transform = 'translateX(-60px)';
                 selector.style.opacity = '0';
+                // Visa knapparna igen när man går tillbaka
+                const actionBtns = document.getElementById("programs-action-btns");
+                if (actionBtns) actionBtns.style.display = 'flex';
                 renderGroupsView();
                 setTimeout(() => {
                     selector.style.transition = 'transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.35s ease';
@@ -1302,7 +1310,7 @@ function renderPassesInGroup(groupId) {
             emptyCard.innerHTML = `
                 <div style="font-size: 36px; margin-bottom: 12px; opacity: 0.4;">🏋️</div>
                 <div style="font-size: 14px; font-weight: 700; color: var(--text-light); margin-bottom: 8px;">No workouts yet</div>
-                <div style="font-size: 12px; color: var(--text-light); opacity: 0.6;">Add a workout to this group via the ✏️ icon</div>
+                <div style="font-size: 12px; color: var(--text-light); opacity: 0.6;">Add a workout to this group via the button below 👇</div>
             `;
             selector.appendChild(emptyCard);
         }
