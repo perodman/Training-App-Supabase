@@ -1308,20 +1308,17 @@ function renderPassesInGroup(groupId) {
 
 // Snabbmeny för grupptilldelning direkt från passkortet
 function openGroupPickerForPass(passIdx) {
+    if (typeof hideDefaultCloseButton === 'function') hideDefaultCloseButton(true);
     const pass = programData.routine[passIdx];
     if (!pass) return;
     if (!Array.isArray(pass.groups)) pass.groups = [];
-
     const customGroups = programData.customGroups || [];
     const ALL_GROUPS = [...PREDEFINED_GROUPS, ...customGroups];
-
-    // Lägg till okända grupper som passet redan tillhör
     pass.groups.forEach(gId => {
         if (!ALL_GROUPS.find(g => g.id === gId)) {
             ALL_GROUPS.push({ id: gId, name: gId, icon: "⚠️" });
         }
     });
-
     const body = document.getElementById("modal-body");
     body.innerHTML = `
         <h3 style="text-align:center; margin-bottom:8px;">Select Group</h3>
@@ -1339,13 +1336,13 @@ function openGroupPickerForPass(passIdx) {
                     font-weight: 700; font-size: 13px; cursor: pointer; transition: all 0.2s ease;
                     display: flex; flex-direction: column; align-items: center; gap: 6px;">
                     <span style="font-size: 22px;">${g.icon}</span>
-                    ${isUnknown ? `<span style="font-size:9px; color:var(--danger);">Gammal grupp</span>` : ''}
+                    ${isUnknown ? `<span style="font-size:9px; color:var(--danger);">Old group</span>` : ''}
                     ${g.name}
                     ${isSelected ? '<span style="font-size:9px; font-weight:900; text-transform:uppercase; letter-spacing:1px;">✓ Selected</span>' : ''}
                 </button>`;
             }).join('')}
         </div>
-        <button class="mode-btn glass-border" onclick="closeModal(); renderGroupsView();"
+        <button class="mode-btn glass-border" onclick="hideDefaultCloseButton(false); closeModal(); renderGroupsView();"
             style="width:100%; background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.05) 100%); 
             border: 1px solid rgba(255,255,255,0.25); border-top: 1px solid rgba(255,255,255,0.45); 
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
