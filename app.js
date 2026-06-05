@@ -2474,7 +2474,7 @@ function renderExercisePicker(category, replaceIndex = null) {
     const filtered = masterExercises.filter(ex => category === "Armar" ? (ex.target === "Biceps" || ex.target === "Triceps") : ex.target === category);
 
     if (filtered.length === 0) {
-        html += `<p style="text-align:center; font-size:12px; color:var(--text-light); padding:10px;">Inga övningar hittades.</p>`;
+        html += `<p style="text-align:center; font-size:12px; color:var(--text-light); padding:10px;">Select category to view exercises.</p>`;
     }
     filtered.forEach(ex => {
         const isSelectedInBatch = replaceIndex === null && temporarySelectedExercises.includes(ex.id);
