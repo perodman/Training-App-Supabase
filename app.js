@@ -1324,7 +1324,8 @@ function renderPassesInGroup(groupId) {
             emptyCard.innerHTML = `
                 <div style="font-size: 36px; margin-bottom: 12px; opacity: 0.4;">🏋️</div>
                 <div style="font-size: 14px; font-weight: 700; color: var(--text-light); margin-bottom: 8px;">No workouts yet</div>
-                <div style="font-size: 12px; color: var(--text-light); opacity: 0.6;">Add a workout to this group via the button below 👇</div>
+                <div style="font-size: 12px; color: var(--text-light); opacity: 0.6;">Add a workout to this group via the button below</div>
+                <div style="font-size: 24px; margin-top: 8px;">👇</div>
             `;
             selector.appendChild(emptyCard);
         }
