@@ -7,6 +7,7 @@ let activeDraft = JSON.parse(localStorage.getItem("activeWorkoutDraft") || "null
 let calendarOverrides = JSON.parse(localStorage.getItem("calendarOverrides") || "{}");
 let currentViewDate = new Date();
 let currentExerciseCategory = "Ben";
+let currentViewGroupId = null;
 // Timer-variablerf
 let timerInterval = null;
 let secondsElapsed = 0;
@@ -1230,6 +1231,7 @@ function renderPassesInGroup(groupId) {
     const customGroups = programData.customGroups || [];
     const ALL_GROUPS = [...PREDEFINED_GROUPS, ...customGroups];
     const groupDef = ALL_GROUPS.find(g => g.id === groupId) || { id: groupId, name: groupId === '__ungrouped__' ? 'No Group' : groupId, icon: groupId === '__ungrouped__' ? '📁' : '📁' };
+    currentViewGroupId = groupId;
     const passesInGroup = groupId === '__ungrouped__'
         ? programData.routine.filter(p => !Array.isArray(p.groups) || p.groups.length === 0)
         : programData.routine.filter(p => Array.isArray(p.groups) && p.groups.includes(groupId));
@@ -1285,6 +1287,7 @@ function renderPassesInGroup(groupId) {
                         btn.style.transition = 'opacity 0.35s ease';
                     }
                 });
+                currentViewGroupId = null;
                 renderGroupsView();
                 setTimeout(() => {
                     [addGroupBtn, addPassBtn2].forEach(btn => {
@@ -1952,18 +1955,20 @@ async function removeExFromPass(pIdx, eIdx) {
 }
 
 async function saveProgramEdit(idx) {
+    if (window.programData) programData = window.programData;
     programData.routine[idx].name = document.getElementById("edit-pass-name").value;
-
-    // Sparar det uppdaterade namnet till databasen och lokalt
     await saveCustomProgramToSupabase();
-     closeModal();
+    closeModal();
     const savedGroups = programData.routine[idx].groups;
     if (Array.isArray(savedGroups) && savedGroups.length > 0) {
-        renderPassesInGroup(savedGroups[0]);
+        const groupId = savedGroups[0];
+        renderPassesInGroup(groupId);
+        setTimeout(() => {
+            showProgramDetails(idx);
+        }, 400);
     } else {
         renderGroupsView();
     }
-    
 }
 
 // Global array för att hålla reda på valda övningar i programredigeraren (motsvarar temporarySelectedExercises)
@@ -1986,6 +1991,12 @@ async function saveNewProgram() {
     const name = document.getElementById("new-pass-name").value.trim();
     if(!name) return alert("Enter a name!");
     const newPass = { id: "pass-" + Date.now(), name, exercises: [] };
+    // Tilldela automatiskt till den grupp användaren befinner sig i
+    if (currentViewGroupId && currentViewGroupId !== '__ungrouped__') {
+        newPass.groups = [currentViewGroupId];
+    } else {
+        newPass.groups = [];
+    }
     programData.routine.push(newPass);
     await saveCustomProgramToSupabase();
     const newIdx = programData.routine.length - 1;
