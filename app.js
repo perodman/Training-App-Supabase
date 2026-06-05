@@ -1510,6 +1510,10 @@ function openEditGroupModal(groupId, groupDef) {
         </button>
         <div style="height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent); margin: 16px 0;"></div>
         <button class="btn-danger" onclick="confirmDeleteGroup('${groupId}')">🗑️ Delete Group</button>
+        <button class="mode-btn glass-border" onclick="hideDefaultCloseButton(false); closeModal();" 
+            style="width:100%; margin-top:10px; background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.05) 100%); border: 1px solid rgba(255,255,255,0.25); border-top: 1px solid rgba(255,255,255,0.45);">
+            Close
+        </button>
     `;
     openModal();
 }
