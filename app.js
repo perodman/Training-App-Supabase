@@ -1439,7 +1439,7 @@ async function togglePassGroup(passIdx, groupId) {
         btn.innerHTML = `
             <span style="font-size: 22px;">${groupDef.icon}</span>
             ${groupDef.name}
-            ${isSelected ? '<span style="font-size:9px; color:var(--primary); font-weight:900; text-transform:uppercase; letter-spacing:1px;">✓ Vald</span>' : ''}
+            ${isSelected ? '<span style="font-size:9px; color:var(--primary); font-weight:900; text-transform:uppercase; letter-spacing:1px;">✓ Selected</span>' : ''}
         `;
     }
 
