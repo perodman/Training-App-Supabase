@@ -1345,11 +1345,11 @@ function openGroupPickerForPass(passIdx) {
                 </button>`;
             }).join('')}
         </div>
-        <button class="mode-btn glass-border" onclick="closeModal(); renderGroupsView();" 
+        <button class="mode-btn glass-border" onclick="closeModal(); renderPassesInGroup('${groupId}');" 
             style="width:100%; background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.05) 100%); 
             border: 1px solid rgba(255,255,255,0.25); border-top: 1px solid rgba(255,255,255,0.45); 
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
-            Done
+            Close
         </button>
     `;
     openModal();
@@ -1507,15 +1507,11 @@ function openEditGroupModal(groupId, groupDef) {
         </h3>
         <label style="font-size:11px; color:var(--text-light); text-transform:uppercase; letter-spacing:1px; display:block; text-align:center; margin-bottom:8px;">Group Name</label>
         <input type="text" id="edit-group-name-input" class="log-input" value="${groupDef.name}" style="text-align:center; margin-bottom:20px;">
-        
         <button class="mode-btn blue" onclick="saveGroupNameEdit('${groupId}')" style="width:100%; margin-bottom:10px;">
-            Save new name
+            Save New Name
         </button>
-
         <div style="height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent); margin: 16px 0;"></div>
-
-        <button class="btn-danger" onclick="confirmDeleteGroup('${groupId}')">Delete Group 🗑️</button>
-
+        <button class="btn-danger" onclick="confirmDeleteGroup('${groupId}')">🗑️ Delete Group</button>
         <button class="mode-btn glass-border" onclick="closeModal()" 
             style="width:100%; margin-top:10px; background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.05) 100%); border: 1px solid rgba(255,255,255,0.25); border-top: 1px solid rgba(255,255,255,0.45);">
             Close
