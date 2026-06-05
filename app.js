@@ -1324,7 +1324,7 @@ function openGroupPickerForPass(passIdx) {
 
     const body = document.getElementById("modal-body");
     body.innerHTML = `
-        <h3 style="text-align:center; margin-bottom:8px;">Välj grupp</h3>
+        <h3 style="text-align:center; margin-bottom:8px;">Select Group</h3>
         <p style="text-align:center; font-size:12px; color:var(--text-light); margin-bottom:20px;">${pass.name}</p>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;">
             ${ALL_GROUPS.map(g => {
@@ -1341,7 +1341,7 @@ function openGroupPickerForPass(passIdx) {
                     <span style="font-size: 22px;">${g.icon}</span>
                     ${isUnknown ? `<span style="font-size:9px; color:var(--danger);">Gammal grupp</span>` : ''}
                     ${g.name}
-                    ${isSelected ? '<span style="font-size:9px; font-weight:900; text-transform:uppercase; letter-spacing:1px;">✓ Vald</span>' : ''}
+                    ${isSelected ? '<span style="font-size:9px; font-weight:900; text-transform:uppercase; letter-spacing:1px;">✓ Selected</span>' : ''}
                 </button>`;
             }).join('')}
         </div>
