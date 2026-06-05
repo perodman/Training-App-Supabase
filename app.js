@@ -1121,32 +1121,22 @@ function renderGroupsView() {
     if (!selector) return;
     selector.innerHTML = "";
     selector.style.cssText = "display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;";
-
     if (!programData.groups) programData.groups = [];
-
     const usedGroupIds = new Set();
     programData.routine.forEach(pass => {
         if (Array.isArray(pass.groups)) {
             pass.groups.forEach(g => usedGroupIds.add(g));
         }
     });
-
     const customGroups = (programData.customGroups || []);
     const ALL_GROUPS = [...PREDEFINED_GROUPS, ...customGroups];
-
-    // Visa alla grupper som antingen har pass ELLER är nyskapade (finns i ALL_GROUPS)
     const allGroupIds = [...new Set([...ALL_GROUPS.map(g => g.id), ...usedGroupIds])];
-
     allGroupIds.forEach(groupId => {
         const groupDef = ALL_GROUPS.find(g => g.id === groupId) || { id: groupId, name: groupId, icon: "⚠️" };
         const passesInGroup = programData.routine.filter(p => Array.isArray(p.groups) && p.groups.includes(groupId));
-
-        // Visa gruppen om den har pass ELLER om den finns i ALL_GROUPS (nyskapad)
         const isKnownGroup = ALL_GROUPS.find(g => g.id === groupId);
         if (passesInGroup.length === 0 && !isKnownGroup) return;
-
         const isEmpty = passesInGroup.length === 0;
-
         const groupCard = document.createElement("div");
         groupCard.style.cssText = `
             background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%);
@@ -1167,7 +1157,6 @@ function renderGroupsView() {
                 ${isEmpty ? 'No workouts yet' : `${passesInGroup.length} ${passesInGroup.length === 1 ? 'workout' : 'workouts'}`}
             </div>
         `;
-
         if (!isEmpty) {
             groupCard.onclick = () => renderPassesInGroup(groupId);
             groupCard.addEventListener('mouseenter', () => {
@@ -1181,8 +1170,6 @@ function renderGroupsView() {
                 groupCard.style.boxShadow = 'none';
             });
         }
-
-        // Kugghjul visas ALLTID
         const editBtn = document.createElement("div");
         editBtn.innerHTML = "⚙️";
         editBtn.style.cssText = `
@@ -1200,7 +1187,7 @@ function renderGroupsView() {
         };
         groupCard.appendChild(editBtn);
         selector.appendChild(groupCard);
-
+    });
     // Utan grupp
     const ungroupedPasses = programData.routine.filter(p => !Array.isArray(p.groups) || p.groups.length === 0);
     if (ungroupedPasses.length > 0) {
@@ -1218,18 +1205,16 @@ function renderGroupsView() {
             <div style="font-size: 32px; margin-bottom: 10px;">📁</div>
             <div style="font-weight: 800; font-size: 15px; color: var(--text-light); margin-bottom: 4px;">No Group</div>
             <div style="font-size: 10px; color: var(--text-light); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; opacity: 0.6;">
-        ${ungroupedPasses.length} ${ungroupedPasses.length === 1 ? 'workout' : 'workouts'}
-        </div>
+                ${ungroupedPasses.length} ${ungroupedPasses.length === 1 ? 'workout' : 'workouts'}
+            </div>
         `;
         ungroupedCard.onclick = () => renderPassesInGroup('__ungrouped__');
         selector.appendChild(ungroupedCard);
     }
-
     const backBtn = document.getElementById("group-back-btn");
     if (backBtn) backBtn.style.display = 'none';
     const detailsArea = document.getElementById("program-details-area");
     if (detailsArea) detailsArea.classList.add("hidden");
-
     showView("programs-view");
 }
 
