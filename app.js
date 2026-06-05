@@ -1229,8 +1229,8 @@ function renderPassesInGroup(groupId) {
         : programData.routine.filter(p => Array.isArray(p.groups) && p.groups.includes(groupId));
 
     // Dölj "Create New Group"-knappen när man är inne i en grupps passlista
-    const actionBtns = document.getElementById("programs-action-btns");
-    if (actionBtns) actionBtns.style.display = 'none';
+    const addGroupBtn = document.getElementById("add-custom-group-btn");
+    if (addGroupBtn) addGroupBtn.style.display = 'none';
 
     // Slide-animation ut
     selector.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
@@ -1266,8 +1266,8 @@ function renderPassesInGroup(groupId) {
                 selector.style.transform = 'translateX(-60px)';
                 selector.style.opacity = '0';
                 // Visa knapparna igen när man går tillbaka
-                const actionBtns = document.getElementById("programs-action-btns");
-                if (actionBtns) actionBtns.style.display = 'flex';
+                const addGroupBtn = document.getElementById("add-custom-group-btn");
+                if (addGroupBtn) addGroupBtn.style.display = 'block';
                 renderGroupsView();
                 setTimeout(() => {
                     selector.style.transition = 'transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.35s ease';
