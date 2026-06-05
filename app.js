@@ -1117,8 +1117,8 @@ const PREDEFINED_GROUPS = [
     { id: "fullbody", name: "Full Body", icon: "🏋️" },
     { id: "upperbody", name: "Upper Body", icon: "💪" },
     { id: "lowerbody", name: "Lower Body", icon: "🦵" },
-    { id: "lowerbody", name: "Push", icon: "👐" },
-    { id: "lowerbody", name: "Pull", icon: "🫳" },
+    { id: "pushbody", name: "Push", icon: "👐" },
+    { id: "pullbody", name: "Pull", icon: "🫳" },
     { id: "superset", name: "Superset", icon: "🔥" }
 ];
 
