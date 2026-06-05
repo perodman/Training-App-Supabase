@@ -1411,20 +1411,33 @@ function showProgramDetails(idx) {
     const pass = programData.routine[idx];
     const detailsArea = document.getElementById("program-details-area");
     const list = document.getElementById("program-exercise-list");
+    const actionBtns = document.getElementById("programs-action-btns");
     if (!pass || !detailsArea || !list) return;
 
-    // Om samma pass redan är öppet — stäng med animation
     if (!detailsArea.classList.contains("hidden") && detailsArea.dataset.openIdx == idx) {
-        detailsArea.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+        // Avmarkera passet direkt
+        document.querySelectorAll(".prog-card").forEach(c => c.classList.remove("active"));
+        detailsArea.dataset.openIdx = "";
+
+        // Fade ut mjukt
+        detailsArea.style.transition = 'opacity 0.25s ease, transform 0.25s ease';
         detailsArea.style.opacity = '0';
-        detailsArea.style.transform = 'translateY(10px)';
+        detailsArea.style.transform = 'translateY(8px)';
+
+        // Glid in knapparna mjukt samtidigt
+        if (actionBtns) {
+            actionBtns.style.transition = 'opacity 0.25s ease';
+            actionBtns.style.opacity = '0';
+        }
+
         setTimeout(() => {
             detailsArea.classList.add("hidden");
             detailsArea.style.opacity = '';
             detailsArea.style.transform = '';
-            detailsArea.dataset.openIdx = "";
-            document.querySelectorAll(".prog-card").forEach(c => c.classList.remove("active"));
-        }, 300);
+            if (actionBtns) {
+                actionBtns.style.opacity = '1';
+            }
+        }, 250);
         return;
     }
 
@@ -1442,7 +1455,7 @@ function showProgramDetails(idx) {
         ${pass.exercises.map(e => `
         <div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.03);">
             <span style="font-weight:600;">${e.name}</span>
-            <small style="color:var(--primary); font-weight:800; text-transform:uppercase; font-size:9px;">${e.target}</small>
+            <small style="color:var(--primary); font-weight:800; text-transform:uppercase; font-size:9px;">${CATEGORY_DISPLAY[e.target] || e.target}</small>
         </div>
         `).join("")}
     `;
