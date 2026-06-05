@@ -144,12 +144,16 @@ function closeModal() {
     document.getElementById("workout-modal").classList.add("hidden");
     const video = document.querySelector("#modal-body video");
     if(video) video.pause();
-
-    // SÄKERHETSÅTGÄRD: Se till att den fasta stäng-knappen ALLTID visas igen
     if (typeof hideDefaultCloseButton === 'function') {
         hideDefaultCloseButton(false);
     }
-    // HÄR ÅTERSTÄLLER VI DIN DRAFT
+    // Om vi är mitt i edit-flödet, gå tillbaka till edit-vyn istället för startsidan
+    if (typeof window._returnToEditIdx !== 'undefined' && window._returnToEditIdx !== null) {
+        const idx = window._returnToEditIdx;
+        window._returnToEditIdx = null;
+        openEditProgramModal(idx);
+        return;
+    }
     if (typeof restoreDraftState === 'function') {
         restoreDraftState();
     }
@@ -1735,29 +1739,22 @@ function confirmAndAddAllSelectedExercisesForEdit(idx) {
 }
 
 function saveEditDraftStateAndCreateNew(idx) {
-    // 1. Spara ner de övningar vi redan bockat för till localStorage
-    localStorage.setItem('temp_exercise_edit_draft', JSON.stringify(window.temporarySelectedExercisesForEdit));
+    localStorage.setItem('temp_exercise_edit_draft', JSON.stringify(window.temporarySelectedExercisesForEdit || []));
     
-    // 2. ÄNDRING: Öppna skapafönstret och skicka med en callback som lägger till den NYA övningen i ditt utkast istället för i passet
+    // Sätt en flagga så closeModal vet att den ska gå tillbaka till edit-vyn
+    window._returnToEditIdx = idx;
+    
     if (typeof openCreateExerciseModal === 'function') {
         openCreateExerciseModal((newEx) => {
+            window._returnToEditIdx = null;
             const saved = localStorage.getItem('temp_exercise_edit_draft');
             let currentDraft = saved ? JSON.parse(saved) : [];
-            
-            // Pusha den nya övningens ID till utkast-listan (prelist)
             if (newEx && newEx.id) {
                 currentDraft.push(newEx.id);
             }
-            
-            // Spara det uppdaterade utkastet
             localStorage.setItem('temp_exercise_edit_draft', JSON.stringify(currentDraft));
-            
-            // Gå tillbaka till redigeringen – nu ligger även den nya övningen i din prelist!
             openEditProgramModal(idx);
         });
-    } else if (typeof createNewExForPass === 'function') {
-        // Fallback om ditt projekt använder det gamla funktionsnamnet
-        createNewExForPass(idx);
     }
 }
 
@@ -1816,7 +1813,7 @@ async function openEditProgramModal(idx) {
                 ${PREDEFINED_GROUPS.map(g => {
                     const isSelected = Array.isArray(pass.groups) && pass.groups.includes(g.id);
                     return `
-                    <button onclick="(async () => { const sp = window.scrollY; await togglePassGroup(${idx}, '${g.id}'); await openEditProgramModal(${idx}); window.scrollTo(0, sp); })()"
+                    <button onclick="(async () => { const modalContent = document.querySelector('.modal-content'); const sp = modalContent ? modalContent.scrollTop : 0; await togglePassGroup(${idx}, '${g.id}'); await openEditProgramModal(${idx}); setTimeout(() => { const mc = document.querySelector('.modal-content'); if(mc) mc.scrollTop = sp; }, 50); })()"
                         style="padding: 10px 5px; border-radius: 12px; border: 1px solid ${isSelected ? 'var(--primary)' : 'rgba(255,255,255,0.1)'}; 
                         background: ${isSelected ? 'rgba(34,211,238,0.15)' : 'rgba(255,255,255,0.04)'}; 
                         color: ${isSelected ? 'var(--primary)' : 'var(--text-light)'}; 
