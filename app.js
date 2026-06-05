@@ -1380,11 +1380,13 @@ function openGroupPickerForPass(passIdx) {
                 </button>`;
             }).join('')}
         </div>
+       <div style="height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent); margin: 4px 0 16px 0;"></div>
+        <button class="btn-danger" onclick="confirmDeleteWorkoutFromPicker(${passIdx})">🗑️ Delete Workout Permanently</button>
         <button class="mode-btn glass-border" onclick="hideDefaultCloseButton(false); closeModal(); renderGroupsView();"
-            style="width:100%; background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.05) 100%); 
+            style="width:100%; margin-top:10px; background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.05) 100%); 
             border: 1px solid rgba(255,255,255,0.25); border-top: 1px solid rgba(255,255,255,0.45); 
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
-            Done
+            Close
         </button>
     `;
     openModal();
@@ -1962,8 +1964,7 @@ async function saveProgramEdit(idx) {
     // Sparar det uppdaterade namnet till databasen och lokalt
     await saveCustomProgramToSupabase();
     closeModal();
-    renderProgramView(idx);
-    showProgramDetails(idx);
+    renderGroupsView();
 }
 
 // Global array för att hålla reda på valda övningar i programredigeraren (motsvarar temporarySelectedExercises)
@@ -3708,6 +3709,7 @@ async function saveNewProgram() {
     // Sparar det nya passet till localStorage och Supabase
     await saveCustomProgramToSupabase();
     const newIdx = programData.routine.length - 1;
+    renderGroupsView();
     await openEditProgramModal(newIdx);
 }
 
@@ -3719,7 +3721,7 @@ async function saveProgramEdit(idx) {
     // Sparar det uppdaterade namnet till databasen och lokalt
     await saveCustomProgramToSupabase();
     closeModal();
-    renderProgramView(idx);
+    renderGroupsView();
     showProgramDetails(idx);
 }
 
@@ -3764,3 +3766,32 @@ document.addEventListener('visibilitychange', () => {
         }
     }, 120);
 });
+
+function confirmDeleteWorkoutFromPicker(passIdx) {
+    const pass = programData.routine[passIdx];
+    if (!pass) return;
+    const body = document.getElementById("modal-body");
+    body.innerHTML = `
+        <div style="text-align:center; padding:10px;">
+            <div style="font-size:40px; margin-bottom:15px;">🗑️</div>
+            <h3 style="color:var(--danger); margin: 0 0 10px 0; font-size:22px;">Delete Workout?</h3>
+            <p style="color:var(--text-light); margin-bottom:25px; font-size:14px; line-height:1.4;">
+                <strong style="color:var(--text);">${pass.name}</strong><br>
+                This workout will be permanently deleted.
+            </p>
+            <button class="btn-danger" onclick="(async () => {
+                programData.routine.splice(${passIdx}, 1);
+                localStorage.setItem('myCustomProgram', JSON.stringify(programData));
+                await saveCustomProgramToSupabase();
+                hideDefaultCloseButton(false);
+                closeModal();
+                renderGroupsView();
+            })()">🗑️ Yes, Delete Permanently</button>
+            <button class="mode-btn glass-border" onclick="openGroupPickerForPass(${passIdx})"
+                style="width:100%; margin-top:10px; background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.05) 100%); 
+                border: 1px solid rgba(255,255,255,0.25); border-top: 1px solid rgba(255,255,255,0.45);">
+                Cancel
+            </button>
+        </div>
+    `;
+}
