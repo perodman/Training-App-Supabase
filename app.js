@@ -920,7 +920,7 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
                 style="margin: 0; padding: 12px; font-size: 13px; border-radius: 12px; font-weight: bold; grid-column: span 2;
                 border-top: 2px solid ${restBorderColor} !important;
                 color: #fde047; background: rgba(253, 224, 71, 0.05);">
-                🧘  Rest
+                🧘  Rest Day
             </button>
         </div>
         </div>`;
