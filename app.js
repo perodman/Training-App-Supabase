@@ -1437,7 +1437,7 @@ function showProgramDetails(idx) {
             if (actionBtns) {
                 actionBtns.style.opacity = '1';
             }
-        }, 250);
+        }, 150);
         return;
     }
 
