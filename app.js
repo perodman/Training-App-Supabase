@@ -1797,6 +1797,7 @@ async function openEditProgramModal(idx) {
             </div>`).join("")}
         </div>
         <div id="modal-exercise-picker-container"></div>
+       <div class="separator" style="margin: 25px 0;"></div>
         <div style="margin-top: 20px;">
             <p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin-bottom:10px; letter-spacing:1px;">Select Group to Organize Workout</p>
             <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
@@ -1902,26 +1903,6 @@ function renderExercisePickerForEdit(idx, category = "Ben") {
 // ==========================================================================
 // DEL 3 AV 4: PROGRAMREDIGERING, HISTORIKHANTERING OCH AKTIVT PASS (DRAFT)
 // ==========================================================================
-// Central hjälpfunktion för att asynkront spara hela programrutinen till localStorage och Supabase
-async function saveCustomProgramToSupabase() {
-    console.log("saveCustomProgramToSupabase anropad med aktuell programData:", programData);
-
-    // 1. Säkra att fönstret har tillgång till exakt samma data
-    window.programData = programData;
-
-    // 2. Spara till localStorage direkt för snabb UX
-    localStorage.setItem("myCustomProgram", JSON.stringify(programData));
-
-    // 3. Använd den centrala, säkra sparfunktionen från supabase-data.js
-    if (typeof saveCustomProgram === 'function') {
-        await saveCustomProgram();
-    } else {
-        console.warn("Kunde inte hitta saveCustomProgram i supabase-data.js");
-    }
-    // FIX: Se till att den lokala referensen uppdateras
-    if (window.programData) programData = window.programData;
-}
-
 // Central hjälpfunktion för att spara det aktiva pågående träningspasset (activeDraft)
 async function createNewExForPass(pIdx) {
     await openCreateExerciseModal(async (newEx) => {
@@ -1954,23 +1935,6 @@ async function removeExFromPass(pIdx, eIdx) {
     await openEditProgramModal(pIdx);
 }
 
-async function saveProgramEdit(idx) {
-    if (window.programData) programData = window.programData;
-    programData.routine[idx].name = document.getElementById("edit-pass-name").value;
-    await saveCustomProgramToSupabase();
-    closeModal();
-    const savedGroups = programData.routine[idx].groups;
-    if (Array.isArray(savedGroups) && savedGroups.length > 0) {
-        const groupId = savedGroups[0];
-        renderPassesInGroup(groupId);
-        setTimeout(() => {
-            showProgramDetails(idx);
-        }, 400);
-    } else {
-        renderGroupsView();
-    }
-}
-
 // Global array för att hålla reda på valda övningar i programredigeraren (motsvarar temporarySelectedExercises)
 if (!window.temporarySelectedExercisesForEdit) {
     window.temporarySelectedExercisesForEdit = [];
@@ -1985,23 +1949,6 @@ function openCreateProgramModal() {
         <button class="mode-btn blue" onclick="saveNewProgram()">+ Add Workout</button>
     `;
     openModal();
-}
-
-async function saveNewProgram() {
-    const name = document.getElementById("new-pass-name").value.trim();
-    if(!name) return alert("Enter a name!");
-    const newPass = { id: "pass-" + Date.now(), name, exercises: [] };
-    // Tilldela automatiskt till den grupp användaren befinner sig i
-    if (currentViewGroupId && currentViewGroupId !== '__ungrouped__') {
-        newPass.groups = [currentViewGroupId];
-    } else {
-        newPass.groups = [];
-    }
-    programData.routine.push(newPass);
-    await saveCustomProgramToSupabase();
-    const newIdx = programData.routine.length - 1;
-    renderGroupsView();
-    await openEditProgramModal(newIdx);
 }
 
 async function updateExerciseNameInHistory(oldName, newName) {
@@ -3706,16 +3653,14 @@ function saveAll() {
 // Skapar och sparar ett helt nytt träningspass/program till lokal lagring och databas
 async function saveNewProgram() {
     const name = document.getElementById("new-pass-name").value.trim();
-    if(!name) return alert("Ange ett namn!");
-
-    // Säkra upp att vi utgår från senaste datan innan vi pushar
-    if (window.programData) programData = window.programData;
-    if (!programData) programData = { routine: [] };
-    if (!programData.routine) programData.routine = [];
+    if(!name) return alert("Enter a name!");
     const newPass = { id: "pass-" + Date.now(), name, exercises: [] };
+    if (currentViewGroupId && currentViewGroupId !== '__ungrouped__') {
+        newPass.groups = [currentViewGroupId];
+    } else {
+        newPass.groups = [];
+    }
     programData.routine.push(newPass);
-
-    // Sparar det nya passet till localStorage och Supabase
     await saveCustomProgramToSupabase();
     const newIdx = programData.routine.length - 1;
     renderGroupsView();
@@ -3726,12 +3671,18 @@ async function saveNewProgram() {
 async function saveProgramEdit(idx) {
     if (window.programData) programData = window.programData;
     programData.routine[idx].name = document.getElementById("edit-pass-name").value;
-
-    // Sparar det uppdaterade namnet till databasen och lokalt
     await saveCustomProgramToSupabase();
     closeModal();
-    renderGroupsView();
-    showProgramDetails(idx);
+    const savedGroups = programData.routine[idx].groups;
+    if (Array.isArray(savedGroups) && savedGroups.length > 0) {
+        const groupId = savedGroups[0];
+        renderPassesInGroup(groupId);
+        setTimeout(() => {
+            showProgramDetails(idx);
+        }, 400);
+    } else {
+        renderGroupsView();
+    }
 }
 
 // Central, säker synkronisering av hela programstrukturen (custom_program) till Supabase
