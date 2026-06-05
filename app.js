@@ -1233,19 +1233,14 @@ function renderPassesInGroup(groupId) {
     const passesInGroup = groupId === '__ungrouped__'
         ? programData.routine.filter(p => !Array.isArray(p.groups) || p.groups.length === 0)
         : programData.routine.filter(p => Array.isArray(p.groups) && p.groups.includes(groupId));
-
-    // Slide-animation ut
-        selector.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
-        selector.style.transform = 'translateX(30px)';
-        selector.style.opacity = '0';
-        setTimeout(() => {
-        // Dölj "Create New Group"-knappen inuti timeoutet så den inte blinkar
+    selector.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+    selector.style.transform = 'translateX(30px)';
+    selector.style.opacity = '0';
+    setTimeout(() => {
         const addGroupBtn = document.getElementById("add-custom-group-btn");
         if (addGroupBtn) addGroupBtn.style.display = 'none';
-       
         selector.innerHTML = "";
         selector.style.cssText = "display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; transition: transform 0.3s ease, opacity 0.3s ease; transform: translateX(30px); opacity: 0;";
-        // Tillbaka-knapp
         let backBtn = document.getElementById("group-back-btn");
         if (!backBtn) {
             backBtn = document.createElement("button");
@@ -1260,7 +1255,6 @@ function renderPassesInGroup(groupId) {
         `;
         backBtn.innerHTML = `← ${groupDef.icon} ${groupDef.name}`;
         backBtn.onclick = () => {
-            // Fade ut backBtn och actionBtn mjukt samtidigt som selector glider ut
             backBtn.style.transition = 'opacity 0.25s ease';
             backBtn.style.opacity = '0';
             const addPassBtn = document.getElementById("add-custom-pass-btn");
@@ -1281,15 +1275,21 @@ function renderPassesInGroup(groupId) {
                 selector.style.transition = 'none';
                 selector.style.transform = 'translateX(-60px)';
                 selector.style.opacity = '0';
-                // Visa knapparna igen när man går tillbaka
+                // Visa båda knapparna samtidigt med samma transition
                 const addGroupBtn = document.getElementById("add-custom-group-btn");
-                if (addGroupBtn) addGroupBtn.style.display = 'block';
-                if (addPassBtn) {
-                    addPassBtn.style.opacity = '1';
-                    addPassBtn.style.transition = '';
-                }
+                const addPassBtn2 = document.getElementById("add-custom-pass-btn");
+                [addGroupBtn, addPassBtn2].forEach(btn => {
+                    if (btn) {
+                        btn.style.opacity = '0';
+                        btn.style.display = 'block';
+                        btn.style.transition = 'opacity 0.35s ease';
+                    }
+                });
                 renderGroupsView();
                 setTimeout(() => {
+                    [addGroupBtn, addPassBtn2].forEach(btn => {
+                        if (btn) btn.style.opacity = '1';
+                    });
                     selector.style.transition = 'transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.35s ease';
                     selector.style.transform = 'translateX(0)';
                     selector.style.opacity = '1';
@@ -1316,7 +1316,6 @@ function renderPassesInGroup(groupId) {
             };
             selector.appendChild(passCard);
         });
-        // Tom grupp — visa ett kort som animeras in precis som passen
         if (passesInGroup.length === 0) {
             const emptyCard = document.createElement("div");
             emptyCard.style.cssText = `
@@ -1335,7 +1334,6 @@ function renderPassesInGroup(groupId) {
             `;
             selector.appendChild(emptyCard);
         }
-        // Slide-animation in
         setTimeout(() => {
             selector.style.transform = 'translateX(0)';
             selector.style.opacity = '1';
@@ -1509,28 +1507,13 @@ function showProgramDetails(idx) {
 function openCreateGroupModal() {
     const body = document.getElementById("modal-body");
     body.innerHTML = `
-        <h3 style="text-align:center; margin-bottom:20px;">Create New Group</h3>
-        <p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin-bottom:12px; letter-spacing:1px;">Select a predefined group</p>
-        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px;">
-            ${PREDEFINED_GROUPS.map(g => `
-                <button onclick="selectPredefinedGroup('${g.id}')" id="predef-${g.id}"
-                    style="padding: 14px 10px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.1);
-                    background: rgba(255,255,255,0.04); color: var(--text-light);
-                    font-weight: 700; font-size: 13px; cursor: pointer; transition: all 0.2s ease;
-                    display: flex; flex-direction: column; align-items: center; gap: 6px;">
-                    <span style="font-size: 22px;">${g.icon}</span>
-                    ${g.name}
-                </button>
-            `).join('')}
-        </div>
-        <div style="height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent); margin-bottom: 20px;"></div>
-        <p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin-bottom:12px; letter-spacing:1px;">Or create your own</p>
-        <div style="display: flex; gap: 8px; margin-bottom: 20px;">
-            <input type="text" id="custom-group-name-input" class="log-input" 
-                placeholder="e.g. Arms, Core, Legs..." 
-                style="margin: 0; flex-grow: 1; font-size: 13px; padding: 10px 14px;">
-        </div>
-        <button class="mode-btn blue" onclick="saveCustomGroupFromModal()" style="width:100%; margin-top: 4px;">
+        <h3 style="text-align:center; margin-bottom:8px;">Create Your Own Group</h3>
+        <p style="text-align:center; font-size:12px; color:var(--text-light); margin-bottom:24px;">Give your group a name that makes sense to you</p>
+        <label style="font-size:11px; color:var(--text-light); text-transform:uppercase; letter-spacing:1px; display:block; text-align:center; margin-bottom:8px;">Group Name</label>
+        <input type="text" id="custom-group-name-input" class="log-input" 
+            placeholder="e.g. Arms, Core, Cardio..." 
+            style="text-align:center; margin-bottom:8px;">
+        <button class="mode-btn blue" onclick="saveCustomGroupFromModal()" style="width:100%; margin-top:8px;">
             + Add Group
         </button>
     `;
@@ -1796,7 +1779,12 @@ async function openEditProgramModal(idx) {
         <input type="text" id="edit-pass-name" class="log-input" value="${pass.name}">
         <p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin-bottom:10px;">Current Exercises:</p>
         <div id="edit-pass-exercises">
-        ${pass.exercises.map((ex, i) => `
+        ${pass.exercises.length === 0 ? `
+            <div style="text-align:center; padding:20px; background:rgba(255,255,255,0.02); border:1px dashed rgba(255,255,255,0.08); border-radius:14px; margin-bottom:10px;">
+                <div style="font-size:24px; margin-bottom:8px; opacity:0.4;">🏋️</div>
+                <div style="font-size:13px; color:var(--text-light); opacity:0.6;">No exercises added yet — use the list below to add some</div>
+            </div>
+        ` : pass.exercises.map((ex, i) => `
             <div class="edit-item-row">
                 <div style="display:flex; gap:8px;">
                     <button class="reorder-btn" onclick="moveExercise(${idx}, ${i}, -1)"> ▲ </button>
@@ -1969,8 +1957,14 @@ async function saveProgramEdit(idx) {
 
     // Sparar det uppdaterade namnet till databasen och lokalt
     await saveCustomProgramToSupabase();
-    closeModal();
-    renderGroupsView();
+     closeModal();
+    const savedGroups = programData.routine[idx].groups;
+    if (Array.isArray(savedGroups) && savedGroups.length > 0) {
+        renderPassesInGroup(savedGroups[0]);
+    } else {
+        renderGroupsView();
+    }
+    
 }
 
 // Global array för att hålla reda på valda övningar i programredigeraren (motsvarar temporarySelectedExercises)
