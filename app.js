@@ -1437,7 +1437,7 @@ function showProgramDetails(idx) {
             if (actionBtns) {
                 actionBtns.style.opacity = '1';
             }
-        }, 150);
+        }, 100);
         return;
     }
 
@@ -1951,7 +1951,7 @@ function openCreateProgramModal() {
         <h3>Create New Workout</h3>
         <label style="font-size:12px; color:var(--text-light); text-align:center; display:block; margin-left:10px;">WORKOUT NAME</label>
         <input type="text" id="new-pass-name" class="log-input" placeholder="e.g. Upper Body Deluxe">
-        <button class="mode-btn blue" onclick="saveNewProgram()">Save and Edit</button>
+        <button class="mode-btn blue" onclick="saveNewProgram()">+ Add Workout</button>
     `;
     openModal();
 }
