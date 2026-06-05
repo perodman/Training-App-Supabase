@@ -1221,22 +1221,20 @@ function renderGroupsView() {
 function renderPassesInGroup(groupId) {
     const selector = document.getElementById("pass-selector-list");
     if (!selector) return;
-
-    const groupDef = PREDEFINED_GROUPS.find(g => g.id === groupId) || { id: groupId, name: groupId === '__ungrouped__' ? 'No Group' : groupId, icon: groupId === '__ungrouped__' ? '📁' : '📁' };
+    const customGroups = programData.customGroups || [];
+    const ALL_GROUPS = [...PREDEFINED_GROUPS, ...customGroups];
+    const groupDef = ALL_GROUPS.find(g => g.id === groupId) || { id: groupId, name: groupId === '__ungrouped__' ? 'No Group' : groupId, icon: groupId === '__ungrouped__' ? '📁' : '📁' };
     const passesInGroup = groupId === '__ungrouped__'
         ? programData.routine.filter(p => !Array.isArray(p.groups) || p.groups.length === 0)
         : programData.routine.filter(p => Array.isArray(p.groups) && p.groups.includes(groupId));
-
     // Slide-animation ut
     selector.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
     selector.style.transform = 'translateX(30px)';
     selector.style.opacity = '0';
-
     setTimeout(() => {
         selector.innerHTML = "";
         selector.style.cssText = "display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; transition: transform 0.3s ease, opacity 0.3s ease; transform: translateX(30px); opacity: 0;";
-
-        // Tillbaka-knapp — lägg till ovanför gridet
+        // Tillbaka-knapp
         let backBtn = document.getElementById("group-back-btn");
         if (!backBtn) {
             backBtn = document.createElement("button");
@@ -1250,27 +1248,26 @@ function renderPassesInGroup(groupId) {
             padding: 0 0 16px 0; width: 100%;
         `;
         backBtn.innerHTML = `← ${groupDef.icon} ${groupDef.name}`;
-            backBtn.onclick = () => {
-        selector.style.transition = 'transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.35s ease';
-        selector.style.transform = 'translateX(60px)';
-        selector.style.opacity = '0';
-        setTimeout(() => {
-            const detailsArea = document.getElementById("program-details-area");
-            if (detailsArea) detailsArea.classList.add("hidden");
-            backBtn.style.display = 'none';
-            selector.innerHTML = "";
-            selector.style.transition = 'none';
-            selector.style.transform = 'translateX(-60px)';
+        backBtn.onclick = () => {
+            selector.style.transition = 'transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.35s ease';
+            selector.style.transform = 'translateX(60px)';
             selector.style.opacity = '0';
-            renderGroupsView();
             setTimeout(() => {
-                selector.style.transition = 'transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.35s ease';
-                selector.style.transform = 'translateX(0)';
-                selector.style.opacity = '1';
-            }, 30);
-        }, 300);
-    };
-
+                const detailsArea = document.getElementById("program-details-area");
+                if (detailsArea) detailsArea.classList.add("hidden");
+                backBtn.style.display = 'none';
+                selector.innerHTML = "";
+                selector.style.transition = 'none';
+                selector.style.transform = 'translateX(-60px)';
+                selector.style.opacity = '0';
+                renderGroupsView();
+                setTimeout(() => {
+                    selector.style.transition = 'transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.35s ease';
+                    selector.style.transform = 'translateX(0)';
+                    selector.style.opacity = '1';
+                }, 30);
+            }, 300);
+        };
         const icons = [' ⚡ ', ' 🔥 ', ' 🏆 ', ' 💎 '];
         passesInGroup.forEach(pass => {
             const passIdx = programData.routine.indexOf(pass);
@@ -1281,8 +1278,8 @@ function renderPassesInGroup(groupId) {
                 <div style="font-size:28px;">${icons[passIdx % 4]}</div>
                 <h4 style="font-size: 14px; margin: 8px 0 4px 0; line-height: 1.3;">${pass.name}</h4>
                 <div style="font-size:10px; color:var(--primary); font-weight:800;">${pass.exercises.length} ${pass.exercises.length === 1 ? 'EXERCISE' : 'EXERCISES'}</div>
-               <div onclick="event.stopPropagation(); openGroupPickerForPass(${passIdx})"
-    style="position: absolute; top: 6px; right: 6px; font-size: 12px; opacity: 0.6; cursor: pointer; padding: 2px 6px; border-radius: 6px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1);">✏️</div>
+                <div onclick="event.stopPropagation(); openGroupPickerForPass(${passIdx})"
+                    style="position: absolute; top: 6px; right: 6px; font-size: 12px; opacity: 0.6; cursor: pointer; padding: 2px 6px; border-radius: 6px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1);">✏️</div>
             `;
             passCard.onclick = () => {
                 document.querySelectorAll(".prog-card").forEach(c => c.classList.remove("active"));
@@ -1291,18 +1288,32 @@ function renderPassesInGroup(groupId) {
             };
             selector.appendChild(passCard);
         });
-
+        // Tom grupp — visa ett kort som animeras in precis som passen
+        if (passesInGroup.length === 0) {
+            const emptyCard = document.createElement("div");
+            emptyCard.style.cssText = `
+                grid-column: span 2;
+                padding: 40px 20px;
+                text-align: center;
+                background: rgba(255,255,255,0.03);
+                border: 1px dashed rgba(255,255,255,0.1);
+                border-radius: 20px;
+            `;
+            emptyCard.innerHTML = `
+                <div style="font-size: 36px; margin-bottom: 12px; opacity: 0.4;">🏋️</div>
+                <div style="font-size: 14px; font-weight: 700; color: var(--text-light); margin-bottom: 8px;">No workouts yet</div>
+                <div style="font-size: 12px; color: var(--text-light); opacity: 0.6;">Add a workout to this group via the ✏️ icon</div>
+            `;
+            selector.appendChild(emptyCard);
+        }
         // Slide-animation in
         setTimeout(() => {
             selector.style.transform = 'translateX(0)';
             selector.style.opacity = '1';
         }, 50);
-
     }, 200);
-
     const detailsArea = document.getElementById("program-details-area");
     if (detailsArea) detailsArea.classList.add("hidden");
-
     showView("programs-view");
 }
 
