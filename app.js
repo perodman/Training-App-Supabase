@@ -1149,9 +1149,9 @@ function renderGroupsView() {
 
         const groupCard = document.createElement("div");
         groupCard.style.cssText = `
-            background: ${isEmpty ? 'rgba(255,255,255,0.02)' : 'linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%)'};
-            border: ${isEmpty ? '1px dashed rgba(255,255,255,0.1)' : '1px solid rgba(255,255,255,0.12)'};
-            border-top: ${isEmpty ? '1px dashed rgba(255,255,255,0.1)' : '2px solid rgba(255,255,255,0.3)'};
+            background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-top: 2px solid rgba(255,255,255,0.3);
             border-radius: 20px;
             padding: 20px 15px;
             text-align: center;
@@ -1161,8 +1161,8 @@ function renderGroupsView() {
             overflow: hidden;
         `;
         groupCard.innerHTML = `
-            <div style="font-size: 32px; margin-bottom: 10px; opacity: ${isEmpty ? '0.4' : '1'};">${groupDef.icon}</div>
-            <div style="font-weight: 800; font-size: 15px; color: ${isEmpty ? 'var(--text-light)' : 'var(--text)'}; margin-bottom: 4px;">${groupDef.name}</div>
+            <div style="font-size: 32px; margin-bottom: 10px;">${groupDef.icon}</div>
+            <div style="font-weight: 800; font-size: 15px; color: var(--text); margin-bottom: 4px;">${groupDef.name}</div>
             <div style="font-size: 10px; color: ${isEmpty ? 'var(--text-light)' : 'var(--primary)'}; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; opacity: ${isEmpty ? '0.5' : '1'};">
                 ${isEmpty ? 'No workouts yet' : `${passesInGroup.length} ${passesInGroup.length === 1 ? 'workout' : 'workouts'}`}
             </div>
@@ -1170,23 +1170,6 @@ function renderGroupsView() {
 
         if (!isEmpty) {
             groupCard.onclick = () => renderPassesInGroup(groupId);
-                        // Redigeringsknapp på gruppkortet
-            const editBtn = document.createElement("div");
-            editBtn.innerHTML = "⚙️";
-            editBtn.style.cssText = `
-                position: absolute; top: 8px; right: 8px;
-                font-size: 14px; opacity: 0.4; cursor: pointer;
-                padding: 2px 4px; border-radius: 6px;
-                background: rgba(255,255,255,0.05);
-                transition: opacity 0.2s ease;
-            `;
-            editBtn.addEventListener('mouseenter', () => editBtn.style.opacity = '1');
-            editBtn.addEventListener('mouseleave', () => editBtn.style.opacity = '0.4');
-            editBtn.onclick = (e) => {
-                e.stopPropagation();
-                openEditGroupModal(groupId, groupDef);
-            };
-            groupCard.appendChild(editBtn);
             groupCard.addEventListener('mouseenter', () => {
                 groupCard.style.borderTopColor = 'rgba(34, 211, 238, 0.8)';
                 groupCard.style.background = 'linear-gradient(135deg, rgba(34, 211, 238, 0.1) 0%, rgba(34, 211, 238, 0.03) 100%)';
@@ -1199,8 +1182,24 @@ function renderGroupsView() {
             });
         }
 
+        // Kugghjul visas ALLTID
+        const editBtn = document.createElement("div");
+        editBtn.innerHTML = "⚙️";
+        editBtn.style.cssText = `
+            position: absolute; top: 8px; right: 8px;
+            font-size: 14px; opacity: 0.5; cursor: pointer;
+            padding: 2px 4px; border-radius: 6px;
+            background: rgba(255,255,255,0.05);
+            transition: opacity 0.2s ease;
+        `;
+        editBtn.addEventListener('mouseenter', () => editBtn.style.opacity = '1');
+        editBtn.addEventListener('mouseleave', () => editBtn.style.opacity = '0.5');
+        editBtn.onclick = (e) => {
+            e.stopPropagation();
+            openEditGroupModal(groupId, groupDef);
+        };
+        groupCard.appendChild(editBtn);
         selector.appendChild(groupCard);
-    });
 
     // Utan grupp
     const ungroupedPasses = programData.routine.filter(p => !Array.isArray(p.groups) || p.groups.length === 0);
