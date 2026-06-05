@@ -1157,19 +1157,19 @@ function renderGroupsView() {
                 ${isEmpty ? 'No workouts yet' : `${passesInGroup.length} ${passesInGroup.length === 1 ? 'workout' : 'workouts'}`}
             </div>
         `;
-        if (!isEmpty) {
-            groupCard.onclick = () => renderPassesInGroup(groupId);
-            groupCard.addEventListener('mouseenter', () => {
-                groupCard.style.borderTopColor = 'rgba(34, 211, 238, 0.8)';
-                groupCard.style.background = 'linear-gradient(135deg, rgba(34, 211, 238, 0.1) 0%, rgba(34, 211, 238, 0.03) 100%)';
-                groupCard.style.boxShadow = '0 8px 25px rgba(34, 211, 238, 0.15)';
-            });
-            groupCard.addEventListener('mouseleave', () => {
-                groupCard.style.borderTopColor = 'rgba(255,255,255,0.3)';
-                groupCard.style.background = 'linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%)';
-                groupCard.style.boxShadow = 'none';
-            });
-        }
+        
+        groupCard.onclick = () => renderPassesInGroup(groupId);
+        groupCard.addEventListener('mouseenter', () => {
+            groupCard.style.borderTopColor = 'rgba(34, 211, 238, 0.8)';
+            groupCard.style.background = 'linear-gradient(135deg, rgba(34, 211, 238, 0.1) 0%, rgba(34, 211, 238, 0.03) 100%)';
+            groupCard.style.boxShadow = '0 8px 25px rgba(34, 211, 238, 0.15)';
+        });
+        groupCard.addEventListener('mouseleave', () => {
+            groupCard.style.borderTopColor = 'rgba(255,255,255,0.3)';
+            groupCard.style.background = 'linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%)';
+            groupCard.style.boxShadow = 'none';
+        });
+        
         const editBtn = document.createElement("div");
         editBtn.innerHTML = "⚙️";
         editBtn.style.cssText = `
