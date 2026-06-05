@@ -831,3 +831,22 @@ body, html {
     transition: margin-top 0.3s ease;
 }
 
+.btn-danger {
+    width: 100%;
+    color: var(--danger);
+    background: rgba(239, 68, 68, 0.06);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    font-size: 13px;
+    padding: 14px;
+    border-radius: 22px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 10px;
+    box-sizing: border-box;
+    transition: all 0.2s ease;
+}
+.btn-danger:active {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.4);
+}
+
