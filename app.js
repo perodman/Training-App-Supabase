@@ -1806,7 +1806,7 @@ async function openEditProgramModal(idx) {
         </div>
         <div id="modal-exercise-picker-container"></div>
         <div style="margin-top: 20px;">
-            <p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin-bottom:10px; letter-spacing:1px;">Select Group to Organize Workouts</p>
+            <p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin-bottom:10px; letter-spacing:1px;">Select Group to Organize Workout</p>
             <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
                 ${ALL_GROUPS.map(g => {
                     const isSelected = Array.isArray(pass.groups) && pass.groups.includes(g.id);
