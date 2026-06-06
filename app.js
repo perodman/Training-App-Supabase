@@ -172,7 +172,6 @@ function openModal(preventScroll = false) {
     const modal = document.getElementById("workout-modal");
     if (modal) modal.classList.remove("hidden");
     
-    // Förhindra scroll endast om flaggan är satt
     if (!preventScroll) {
         setTimeout(() => {
             const modalContent = document.querySelector('.modal-content');
