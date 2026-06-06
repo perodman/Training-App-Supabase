@@ -886,12 +886,12 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
             <span style="font-size: 10px; text-transform: uppercase; color: var(--text-light); font-weight: 700; letter-spacing: 1px; white-space: nowrap;">Status</span>
             <div style="flex-grow: 1; height: 1px; background: rgba(255,255,255,0.08);"></div>
         </div>
-        <div style="
+       <div style="
             position: relative; overflow: hidden;
-            background: linear-gradient(135deg, rgba(16,44,30,0.9) 0%, rgba(10,26,18,0.95) 100%);
-            border: none; border-left: 4px solid ${isRest ? '#fde047' : '#22c55e'};
+            background: linear-gradient(135deg, rgba(15,40,55,0.95) 0%, rgba(10,20,35,0.98) 100%);
+            border: none; border-left: 4px solid ${isRest ? '#fde047' : '#22d3ee'};
             border-radius: 22px; padding: 18px 20px;
-            box-shadow: 0 8px 25px rgba(34,197,94,0.12);
+            box-shadow: 0 8px 25px rgba(34,211,238,0.12), inset 0 0 60px rgba(34,211,238,0.03);
         ">
             <div style="position:absolute; top:0; left:0; right:0; height:1px; background: linear-gradient(90deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 100%);"></div>
             <div style="position:absolute; bottom:0; left:0; right:0; height:1px; background: linear-gradient(90deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 100%);"></div>
