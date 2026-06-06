@@ -1514,14 +1514,22 @@ function showProgramDetails(idx) {
 function openCreateGroupModal() {
     const body = document.getElementById("modal-body");
     body.innerHTML = `
-        <h3 style="text-align:center; margin-bottom:8px;">Create your own Group</h3>
-        <p style="text-align:center; font-size:12px; color:var(--text-light); margin-bottom:24px;">Give your group a name that makes sense to you</p>
-        <label style="font-size:11px; color:var(--text-light); text-transform:uppercase; letter-spacing:1px; display:block; text-align:center; margin-bottom:8px;">Group Name</label>
-        <input type="text" id="custom-group-name-input" class="log-input" 
-            placeholder="e.g. Arms, Core, Cardio..." 
-            style="text-align:center; margin-bottom:8px;">
-        <button class="mode-btn blue" onclick="saveCustomGroupFromModal()" style="width:100%; margin-top:8px;">
-            + Add Group
+        <div style="text-align:center; margin-bottom: 24px;">
+            <div style="width: 56px; height: 56px; border-radius: 16px; background: rgba(34,211,238,0.1); border: 1px solid rgba(34,211,238,0.3); display: flex; align-items: center; justify-content: center; font-size: 26px; margin: 0 auto 14px auto;">📁</div>
+            <h3 style="margin: 0 0 6px 0; font-size: 20px; font-weight: 900; color: #fff;">Create Your Own Group</h3>
+            <p style="margin: 0; font-size: 12px; color: var(--text-light);">Give your group a name that makes sense to you</p>
+        </div>
+
+        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 16px; margin-bottom: 16px;">
+            <label style="font-size:10px; color:var(--primary); text-transform:uppercase; letter-spacing:2px; display:block; text-align:center; margin-bottom:10px; font-weight:700;">Group Name</label>
+            <input type="text" id="custom-group-name-input" class="log-input" 
+                placeholder="e.g. Arms, Core, Cardio..." 
+                style="text-align:center; margin:0; background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1);">
+        </div>
+
+        <button class="mode-btn blue" onclick="saveCustomGroupFromModal()" style="width:100%; flex-direction: row; gap: 10px; padding: 16px;">
+            <span style="font-size: 18px;">✚</span>
+            <span style="font-size: 15px; font-weight: 900; letter-spacing: 0.5px;">Add Group</span>
         </button>
     `;
     openModal();
