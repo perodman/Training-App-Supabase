@@ -1514,7 +1514,7 @@ function showProgramDetails(idx) {
 function openCreateGroupModal() {
     const body = document.getElementById("modal-body");
     body.innerHTML = `
-        <h3 style="text-align:center; margin-bottom:8px;">Create Your Own Group</h3>
+        <h3 style="text-align:center; margin-bottom:8px;">Create your own Group</h3>
         <p style="text-align:center; font-size:12px; color:var(--text-light); margin-bottom:24px;">Give your group a name that makes sense to you</p>
         <label style="font-size:11px; color:var(--text-light); text-transform:uppercase; letter-spacing:1px; display:block; text-align:center; margin-bottom:8px;">Group Name</label>
         <input type="text" id="custom-group-name-input" class="log-input" 
