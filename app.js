@@ -1793,6 +1793,12 @@ async function addExerciseToPassDirectly(pIdx, exId) {
 }
 
 async function openEditProgramModal(idx) {
+        // Spara namn från inputfältet om det redan finns (förhindrar att det skrivs över)
+    const existingNameInput = document.getElementById("edit-pass-name");
+    if (existingNameInput && existingNameInput.value.trim()) {
+        programData.routine[idx].name = existingNameInput.value.trim();
+    }
+    const pass = programData.routine[idx];
     const pass = programData.routine[idx];
     const body = document.getElementById("modal-body");
     if (!pass || !body) return;
@@ -3745,11 +3751,30 @@ async function saveProgramEdit(idx) {
     const oldName = programData.routine[idx].name;
     const newName = document.getElementById("edit-pass-name").value.trim();
     if (!newName) {
-        alert("Please enter a workout name!");
+        const input = document.getElementById("edit-pass-name");
+        if (input) {
+            input.style.border = '1px solid var(--danger)';
+            const existing = document.getElementById("name-warning");
+            if (!existing) {
+                const warning = document.createElement("div");
+                warning.id = "name-warning";
+                warning.style.cssText = `
+                    display: flex; align-items: center; gap: 8px;
+                    background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);
+                    border-radius: 12px; padding: 10px 14px; margin-top: 8px;
+                    font-size: 13px; color: var(--danger); font-weight: 600;
+                `;
+                warning.innerHTML = `<span style="font-size:16px;">ℹ️</span> Please enter a name for your workout`;
+                input.parentElement.appendChild(warning);
+                setTimeout(() => {
+                    if (warning.parentElement) warning.parentElement.removeChild(warning);
+                    input.style.border = '';
+                }, 3000);
+            }
+        }
         return;
     }
     programData.routine[idx].name = newName;
-    // Ta bort temp-flaggan
     delete programData.routine[idx]._isTemp;
     if (oldName !== newName && typeof updateWorkoutNameInHistory === 'function') {
         await updateWorkoutNameInHistory(oldName, newName);
@@ -3767,6 +3792,7 @@ async function saveProgramEdit(idx) {
         renderGroupsView();
     }
 }
+
 
 // Central, säker synkronisering av hela programstrukturen (custom_program) till Supabase
 async function saveCustomProgramToSupabase() {
@@ -3828,7 +3854,11 @@ function confirmDeleteWorkoutFromPicker(passIdx) {
                 await saveCustomProgramToSupabase();
                 hideDefaultCloseButton(false);
                 closeModal();
-                renderGroupsView();
+                if (currentViewGroupId) {
+                    renderPassesInGroup(currentViewGroupId);
+                } else {
+                    renderGroupsView();
+                }
             })()">🗑️ Yes, Delete Permanently</button>
             <button class="mode-btn glass-border" onclick="openGroupPickerForPass(${passIdx})"
                 style="width:100%; margin-top:10px; background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.05) 100%); 
