@@ -1516,7 +1516,7 @@ function openCreateGroupModal() {
     body.innerHTML = `
         <div style="text-align:center; margin-bottom: 24px;">
             <div style="width: 56px; height: 56px; border-radius: 16px; background: rgba(34,211,238,0.1); border: 1px solid rgba(34,211,238,0.3); display: flex; align-items: center; justify-content: center; font-size: 26px; margin: 0 auto 14px auto;">📁</div>
-            <h3 style="margin: 0 0 6px 0; font-size: 20px; font-weight: 900; color: #fff;">Create Your Own Group</h3>
+            <h3 style="margin: 0 0 6px 0; font-size: 20px; font-weight: 900; color: #fff;">Create your own Group</h3>
             <p style="margin: 0; font-size: 12px; color: var(--text-light);">Give your group a name that makes sense to you</p>
         </div>
 
@@ -1527,14 +1527,14 @@ function openCreateGroupModal() {
                 style="text-align:center; margin:0; background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1);">
         </div>
 
-        <button class="mode-btn blue" onclick="saveCustomGroupFromModal()" style="
+                <button class="mode-btn blue" onclick="saveCustomGroupFromModal()" style="
             width:100%; flex-direction: row; gap: 10px; padding: 16px;
             position: relative; overflow: hidden;
             border-left: 4px solid rgba(34,211,238,0.8);
             border-radius: 16px;
         ">
-            <div style="position:absolute; top:0; left:0; right:0; height:1px; background: linear-gradient(90deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.2) 100%);"></div>
-            <div style="position:absolute; bottom:0; left:0; right:0; height:1px; background: linear-gradient(90deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.05) 100%);"></div>
+            <div style="position:absolute; top:0; left:0; right:0; height:2px; background: linear-gradient(90deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.3) 100%);"></div>
+            <div style="position:absolute; bottom:0; left:0; right:0; height:1px; background: linear-gradient(90deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.1) 100%);"></div>
             <div style="position:absolute; top:0; right:0; bottom:0; width:1px; background: linear-gradient(180deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 100%);"></div>
             <span style="font-size: 18px;">✚</span>
             <span style="font-size: 15px; font-weight: 400; letter-spacing: 0.5px;">Add Group</span>
