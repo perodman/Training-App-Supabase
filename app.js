@@ -1793,7 +1793,6 @@ async function addExerciseToPassDirectly(pIdx, exId) {
 }
 
 async function openEditProgramModal(idx) {
-        // Spara namn från inputfältet om det redan finns (förhindrar att det skrivs över)
     const existingNameInput = document.getElementById("edit-pass-name");
     if (existingNameInput && existingNameInput.value.trim()) {
         programData.routine[idx].name = existingNameInput.value.trim();
@@ -1811,13 +1810,17 @@ async function openEditProgramModal(idx) {
     const ALL_GROUPS = [...PREDEFINED_GROUPS, ...(programData.customGroups || [])];
     body.innerHTML = `
         <h3>Workout Name</h3>
-       <input type="text" id="edit-pass-name" class="log-input" placeholder="e.g. Upper Body A, Leg Day..." value="${pass.name === 'New Workout' ? '' : pass.name}" style="text-align: center;">
+        <input type="text" id="edit-pass-name" class="log-input" placeholder="e.g. Upper Body A, Leg Day..." value="${pass.name === 'New Workout' ? '' : pass.name}" style="text-align: center;">
+
+        <div id="modal-exercise-picker-container"></div>
+
+        <div class="separator" style="margin: 25px 0;"></div>
         <p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin-bottom:10px;">Current Exercises</p>
         <div id="edit-pass-exercises">
         ${pass.exercises.length === 0 ? `
             <div style="text-align:center; padding:20px; background:rgba(255,255,255,0.02); border:1px dashed rgba(255,255,255,0.08); border-radius:14px; margin-bottom:10px;">
                 <div style="font-size:24px; margin-bottom:8px; opacity:0.4;">🏋️</div>
-                <div style="font-size:13px; color:var(--text-light); opacity:0.6;">No exercises added yet — use the section below</div>
+                <div style="font-size:13px; color:var(--text-light); opacity:0.6;">No exercises added yet — use the section above</div>
             </div>
         ` : pass.exercises.map((ex, i) => `
             <div class="edit-item-row">
@@ -1829,9 +1832,9 @@ async function openEditProgramModal(idx) {
                 <button onclick="removeExFromPass(${idx}, ${i})" style="color:var(--danger); background:none; border:none; font-size:18px;">✖</button>
             </div>`).join("")}
         </div>
-        <div id="modal-exercise-picker-container"></div>
-       <div class="separator" style="margin: 25px 0;"></div>
-        <div style="margin-top: 20px;">
+
+        <div class="separator" style="margin: 25px 0;"></div>
+        <div>
             <p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin-bottom:10px; letter-spacing:1px;">Select Group to Organize Workout</p>
             <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
                 ${ALL_GROUPS.map(g => {
@@ -1859,6 +1862,7 @@ async function openEditProgramModal(idx) {
                 }).join('')}
             </div>
         </div>
+
         <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.06);">
             <button class="mode-btn glass-border" style="font-size:13px; padding:10px; border: 2px dashed rgba(34, 211, 238, 0.4); color: var(--primary); background: rgba(34, 211, 238, 0.04); font-weight: 700;" 
                    onclick="saveEditDraftStateAndCreateNew(${idx})">+ Create new exercise to the library</button>
@@ -3688,29 +3692,38 @@ async function saveProgramEdit(idx) {
     const oldName = programData.routine[idx].name;
     const newName = document.getElementById("edit-pass-name").value.trim();
     if (!newName) {
-        const input = document.getElementById("edit-pass-name");
-        if (input) {
-            input.style.border = '1px solid var(--danger)';
-            const existing = document.getElementById("name-warning");
-            if (!existing) {
-                const warning = document.createElement("div");
-                warning.id = "name-warning";
-                warning.style.cssText = `
-                    display: flex; align-items: center; gap: 8px;
-                    background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);
-                    border-radius: 12px; padding: 10px 14px; margin-top: 8px;
-                    font-size: 13px; color: var(--danger); font-weight: 600;
-                `;
-                warning.innerHTML = `<span style="font-size:16px;">ℹ️</span> Please enter a name for your workout`;
-                input.parentElement.appendChild(warning);
-                setTimeout(() => {
-                    if (warning.parentElement) warning.parentElement.removeChild(warning);
-                    input.style.border = '';
-                }, 3000);
-            }
-        }
+        const body = document.getElementById("modal-body");
+        const existingWarning = document.getElementById("name-warning-modal");
+        if (existingWarning) return;
+        const warning = document.createElement("div");
+        warning.id = "name-warning-modal";
+        warning.style.cssText = `
+            position: fixed; inset: 0; background: rgba(0,0,0,0.6); 
+            backdrop-filter: blur(6px); display: flex; align-items: center; 
+            justify-content: center; z-index: 99999; padding: 20px;
+        `;
+        warning.innerHTML = `
+            <div style="background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%); 
+                border: 1px solid var(--glass-border); border-top: 2px solid rgba(255,255,255,0.25);
+                border-radius: 24px; padding: 30px 24px; max-width: 340px; width: 100%; text-align: center;
+                box-shadow: 0 20px 50px rgba(0,0,0,0.6);">
+                <div style="width: 56px; height: 56px; border-radius: 16px; background: rgba(34,211,238,0.1); 
+                    border: 1px solid rgba(34,211,238,0.3); display: flex; align-items: center; 
+                    justify-content: center; font-size: 26px; margin: 0 auto 16px auto;">ℹ️</div>
+                <h3 style="margin: 0 0 10px 0; font-size: 18px; font-weight: 900; color: #fff;">Workout Name Required</h3>
+                <p style="color: var(--text-light); font-size: 14px; line-height: 1.5; margin-bottom: 24px;">
+                    Please enter a name for your workout before saving.
+                </p>
+                <button class="mode-btn blue" onclick="document.getElementById('name-warning-modal').remove(); document.getElementById('edit-pass-name').focus();"
+                    style="width: 100%; flex-direction: row; gap: 8px; padding: 14px;">
+                    OK, got it
+                </button>
+            </div>
+        `;
+        document.body.appendChild(warning);
         return;
     }
+    
     programData.routine[idx].name = newName;
     delete programData.routine[idx]._isTemp;
     if (oldName !== newName && typeof updateWorkoutNameInHistory === 'function') {
