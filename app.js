@@ -1782,7 +1782,7 @@ async function openEditProgramModal(idx) {
     const ALL_GROUPS = [...PREDEFINED_GROUPS, ...(programData.customGroups || [])];
     body.innerHTML = `
         <h3>Workout Name</h3>
-       <input type="text" id="edit-pass-name" class="log-input" placeholder="e.g. Upper Body, Leg Day..." value="${pass.name === 'New Workout' ? '' : pass.name}" style="text-align: center;">
+       <input type="text" id="edit-pass-name" class="log-input" placeholder="e.g. Upper Body A, Leg Day..." value="${pass.name === 'New Workout' ? '' : pass.name}" style="text-align: center;">
         <p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin-bottom:10px;">Current Exercises:</p>
         <div id="edit-pass-exercises">
         ${pass.exercises.length === 0 ? `
