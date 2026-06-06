@@ -961,27 +961,45 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
         const renderGroupSection = (g, passes, isUngrouped = false) => {
             const sectionId = `dm-group-${g.id}`;
             return `
-            <div style="border-radius: 14px; overflow: hidden; border: 1px solid ${isUngrouped ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.08)'}; ${isUngrouped ? 'border-style: dashed;' : ''}">
+            <div style="
+                border-radius: 16px; overflow: hidden;
+                position: relative;
+                background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+                border: none;
+                border-left: 4px solid ${isUngrouped ? 'rgba(255,255,255,0.1)' : 'rgba(34,211,238,0.4)'};
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            ">
+                <div style="position:absolute; top:0; left:0; right:0; height:1px; background: linear-gradient(90deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 100%);"></div>
+                <div style="position:absolute; bottom:0; left:0; right:0; height:1px; background: linear-gradient(90deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%);"></div>
+                <div style="position:absolute; top:0; right:0; bottom:0; width:1px; background: linear-gradient(180deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 100%);"></div>
+
                 <div onclick="toggleDayManagerGroup('${g.id}')" style="
                     display: flex; align-items: center; justify-content: space-between;
-                    padding: 12px 14px; cursor: pointer;
-                    background: rgba(255,255,255,0.04);
-                    transition: background 0.2s ease;
+                    padding: 13px 16px; cursor: pointer;
+                    position: relative; z-index: 1;
                 ">
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <span style="font-size:18px;">${g.icon}</span>
-                        <span style="font-weight:700; font-size:13px; color:${isUngrouped ? 'var(--text-light)' : 'var(--text)'};">${g.name}</span>
-                        <span style="font-size:10px; color:${isUngrouped ? 'var(--text-light)' : 'var(--primary)'}; font-weight:700; opacity:${isUngrouped ? '0.6' : '1'};">${passes.length} workout${passes.length !== 1 ? 's' : ''}</span>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <div style="width:36px; height:36px; border-radius:10px; 
+                            background:${isUngrouped ? 'rgba(255,255,255,0.05)' : 'rgba(34,211,238,0.08)'}; 
+                            border:1px solid ${isUngrouped ? 'rgba(255,255,255,0.1)' : 'rgba(34,211,238,0.25)'}; 
+                            display:flex; align-items:center; justify-content:center; font-size:16px;">
+                            ${g.icon}
+                        </div>
+                        <div style="display:flex; flex-direction:column; gap:2px;">
+                            <span style="font-weight:800; font-size:13px; color:${isUngrouped ? 'var(--text-light)' : 'var(--text)'};">${g.name}</span>
+                            <span style="font-size:9px; color:${isUngrouped ? 'var(--text-light)' : 'var(--primary)'}; font-weight:700; text-transform:uppercase; letter-spacing:1px; opacity:${isUngrouped ? '0.5' : '1'};">${passes.length} workout${passes.length !== 1 ? 's' : ''}</span>
+                        </div>
                     </div>
-                    <span id="dm-arrow-${g.id}" style="color:var(--text-light); font-size:12px; transition: transform 0.3s ease;">▼</span>
+                    <span id="dm-arrow-${g.id}" style="color:${isUngrouped ? 'rgba(255,255,255,0.2)' : 'rgba(34,211,238,0.5)'}; font-size:12px; transition: transform 0.3s ease;">▼</span>
                 </div>
+
                 <div id="${sectionId}" style="
                     max-height: 0; overflow: hidden;
                     transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
                     opacity: 0;
                 ">
-                    <div style="padding: 8px; background: rgba(0,0,0,0.15); display:flex; flex-direction:column; gap:6px;">
-                        <div style="font-size:10px; color:var(--text-light); opacity:0.5; text-align:center; padding: 4px 0 2px 0; font-weight:600; letter-spacing:0.3px;">
+                    <div style="padding: 6px 10px 10px 10px; background: rgba(0,0,0,0.2); display:flex; flex-direction:column; gap:6px;">
+                        <div style="font-size:10px; color:var(--text-light); opacity:0.4; text-align:center; padding: 4px 0 6px 0; font-weight:600; letter-spacing:0.3px;">
                             💡 Hold to preview exercises
                         </div>
                         ${passes.map(p => {
@@ -998,9 +1016,9 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
                                 ontouchmove="handleTouchMove(event)"
                                 style="margin:0; padding:12px 14px; font-size:13px; border-radius:10px; font-weight:600;
                                 text-overflow:ellipsis; overflow:hidden; white-space:nowrap; width:100%; text-align:left;
-                                background: ${isSelected ? 'rgba(34,211,238,0.15)' : 'rgba(255,255,255,0.04)'} !important;
-                                border: 1px solid ${isSelected ? 'rgba(34,211,238,0.5)' : 'rgba(255,255,255,0.08)'} !important;
-                                border-top: 2px solid ${isSelected ? 'rgba(34,211,238,0.8)' : 'rgba(255,255,255,0.15)'} !important;
+                                background: ${isSelected ? 'rgba(34,211,238,0.12)' : 'rgba(255,255,255,0.04)'} !important;
+                                border: 1px solid ${isSelected ? 'rgba(34,211,238,0.4)' : 'rgba(255,255,255,0.06)'} !important;
+                                border-top: 1px solid ${isSelected ? 'rgba(34,211,238,0.6)' : 'rgba(255,255,255,0.12)'} !important;
                                 color: ${isSelected ? 'var(--primary)' : 'var(--text)'} !important;
                                 user-select:none; -webkit-user-select:none;">
                                 ${isSelected ? '✓ ' : ''}${p.name}
