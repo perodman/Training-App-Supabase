@@ -924,7 +924,7 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
                     style="width:100%; padding:11px; border-radius:14px;
                     border: 1px dashed rgba(34,211,238,0.4); color:var(--primary);
                     background: rgba(34,211,238,0.03); font-weight:700; font-size:13px; cursor:pointer;">
-                    ➕ Start Free Workout
+                    + Start Free Workout
                 </button>
             </div>
         </div>`;
@@ -1133,7 +1133,7 @@ function setOverrideSilent(dateStr, programId) {
                     style="width:100%; padding:11px; border-radius:14px;
                     border: 1px dashed rgba(34,211,238,0.4); color:var(--primary);
                     background: rgba(34,211,238,0.03); font-weight:700; font-size:13px; cursor:pointer;">
-                    ➕ Start Free Workout
+                    + Start Free Workout
                 </button>`;
         } else {
             actionBtnContainer.innerHTML = `
@@ -1141,7 +1141,7 @@ function setOverrideSilent(dateStr, programId) {
                     style="width:100%; padding:11px; border-radius:14px;
                     border: 1px dashed rgba(34,211,238,0.4); color:var(--primary);
                     background: rgba(34,211,238,0.03); font-weight:700; font-size:13px; cursor:pointer;">
-                    ➕ Start Free Workout
+                    + Start Free Workout
                 </button>`;
         }
     }
