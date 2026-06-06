@@ -1720,6 +1720,7 @@ function toggleSelectExerciseInPickerForEdit(idx, exId, category) {
             card.style.setProperty('border', '1px solid #22c55e', 'important');
         }
         if (icon) {
+            
             icon.textContent = " ✅ ";
             icon.style.color = "#22c55e";
         }
@@ -1752,7 +1753,31 @@ function confirmAndAddAllSelectedExercisesForEdit(idx) {
     window.temporarySelectedExercisesForEdit = [];
     localStorage.removeItem('temp_exercise_edit_draft');
 
-    openEditProgramModal(idx);
+    // Uppdatera BARA exercise-listan utan att rita om hela modalen
+    const exercisesDiv = document.getElementById("edit-pass-exercises");
+    if (exercisesDiv) {
+        exercisesDiv.innerHTML = pass.exercises.length === 0 ? `
+            <div style="text-align:center; padding:20px; background:rgba(255,255,255,0.02); border:1px dashed rgba(255,255,255,0.08); border-radius:14px; margin-bottom:10px;">
+                <div style="font-size:24px; margin-bottom:8px; opacity:0.4;">🏋️</div>
+                <div style="font-size:13px; color:var(--text-light); opacity:0.6;">No exercises added yet — use the section above</div>
+            </div>
+        ` : pass.exercises.map((ex, i) => `
+            <div class="edit-item-row">
+                <div style="display:flex; gap:8px;">
+                    <button class="reorder-btn" onclick="moveExercise(${idx}, ${i}, -1)"> ▲ </button>
+                    <button class="reorder-btn" onclick="moveExercise(${idx}, ${i}, 1)"> ▼ </button>
+                </div>
+                <span style="flex-grow:1; margin-left:15px; font-size:14px; font-weight:600;">${ex.name}</span>
+                <button onclick="removeExFromPass(${idx}, ${i})" style="color:var(--danger); background:none; border:none; font-size:18px;">✖</button>
+            </div>`).join("");
+    }
+
+    // Uppdatera också summary-containern och nollställ picker-vyn
+    const summaryContainer = document.getElementById("selected-edit-summary-container");
+    if (summaryContainer) summaryContainer.innerHTML = "";
+
+    // Spara till Supabase i bakgrunden
+    saveCustomProgramToSupabase();
 }
 
 function saveEditDraftStateAndCreateNew(idx) {
