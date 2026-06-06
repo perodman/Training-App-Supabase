@@ -3712,7 +3712,14 @@ async function saveNewProgram() {
 // Sparar ändringar av ett befintligt programnamn till lokal lagring och databas
 async function saveProgramEdit(idx) {
     if (window.programData) programData = window.programData;
-    programData.routine[idx].name = document.getElementById("edit-pass-name").value;
+    const oldName = programData.routine[idx].name;
+    const newName = document.getElementById("edit-pass-name").value;
+    console.log("saveProgramEdit: oldName =", oldName, "newName =", newName);
+    programData.routine[idx].name = newName;
+    if (oldName !== newName && typeof updateWorkoutNameInHistory === 'function') {
+        console.log("Anropar updateWorkoutNameInHistory...");
+        await updateWorkoutNameInHistory(oldName, newName);
+    }
     await saveCustomProgramToSupabase();
     closeModal();
     const savedGroups = programData.routine[idx].groups;
