@@ -149,11 +149,13 @@ function closeModal() {
         hideDefaultCloseButton(false);
     }
 
-    // Rensa temporära pass som inte sparats
-    if (typeof programData !== 'undefined' && programData && programData.routine) {
-        const tempIdx = programData.routine.findIndex(p => p._isTemp);
-        if (tempIdx !== -1) {
-            programData.routine.splice(tempIdx, 1);
+    // Rensa temporära pass som inte sparats — men bara om vi INTE återvänder till edit-vyn
+    if (typeof window._returnToEditIdx === 'undefined' || window._returnToEditIdx === null) {
+        if (typeof programData !== 'undefined' && programData && programData.routine) {
+            const tempIdx = programData.routine.findIndex(p => p._isTemp);
+            if (tempIdx !== -1) {
+                programData.routine.splice(tempIdx, 1);
+            }
         }
     }
 
@@ -163,6 +165,7 @@ function closeModal() {
         openEditProgramModal(idx);
         return;
     }
+
     if (typeof restoreDraftState === 'function') {
         restoreDraftState();
     }
@@ -1994,15 +1997,26 @@ async function moveExercise(pIdx, eIdx, dir) {
 
 async function removeExFromPass(pIdx, eIdx) {
     programData.routine[pIdx].exercises.splice(eIdx, 1);
+    saveCustomProgramToSupabase();
 
-    // Sparar efter borttagning av övning från passet
-    await saveCustomProgramToSupabase();
-    await openEditProgramModal(pIdx);
-}
-
-// Global array för att hålla reda på valda övningar i programredigeraren (motsvarar temporarySelectedExercises)
-if (!window.temporarySelectedExercisesForEdit) {
-    window.temporarySelectedExercisesForEdit = [];
+    const pass = programData.routine[pIdx];
+    const exercisesDiv = document.getElementById("edit-pass-exercises");
+    if (exercisesDiv) {
+        exercisesDiv.innerHTML = pass.exercises.length === 0 ? `
+            <div style="text-align:center; padding:20px; background:rgba(255,255,255,0.02); border:1px dashed rgba(255,255,255,0.08); border-radius:14px; margin-bottom:10px;">
+                <div style="font-size:24px; margin-bottom:8px; opacity:0.4;">🏋️</div>
+                <div style="font-size:13px; color:var(--text-light); opacity:0.6;">No exercises added yet — use the section above</div>
+            </div>
+        ` : pass.exercises.map((ex, i) => `
+            <div class="edit-item-row">
+                <div style="display:flex; gap:8px;">
+                    <button class="reorder-btn" onclick="moveExercise(${pIdx}, ${i}, -1)"> ▲ </button>
+                    <button class="reorder-btn" onclick="moveExercise(${pIdx}, ${i}, 1)"> ▼ </button>
+                </div>
+                <span style="flex-grow:1; margin-left:15px; font-size:14px; font-weight:600;">${ex.name}</span>
+                <button onclick="removeExFromPass(${pIdx}, ${i})" style="color:var(--danger); background:none; border:none; font-size:18px;">✖</button>
+            </div>`).join("");
+    }
 }
 
 function openCreateProgramModal() {
