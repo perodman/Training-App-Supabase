@@ -2480,12 +2480,31 @@ function renderActiveWorkout() {
             const isDone = exerciseData.isCompleted;
             const isOpen = openExercises.includes(i);
 
-            const div = document.createElement("div");
-            div.className = "card glass" + (isDone ? " exercise-done" : "");
-            div.style.padding = "0";
-            div.style.overflow = "hidden";
-            div.style.marginBottom = "12px";
+const div = document.createElement("div");
+            div.className = (isDone ? "exercise-done" : "");
+            div.style.cssText = `
+                position: relative;
+                overflow: hidden;
+                margin-bottom: 12px;
+                padding: 0;
+                border-radius: 16px;
+                background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+                border: none;
+                border-left: 4px solid ${isDone ? '#22c55e' : isOpen ? '#22d3ee' : 'rgba(255,255,255,0.1)'};
+                box-shadow: ${isDone ? '0 4px 12px rgba(34,197,94,0.08)' : isOpen ? '0 4px 12px rgba(34,211,238,0.08)' : '0 4px 12px rgba(0,0,0,0.3)'};
+            `;
             div.id = `exercise-card-${i}`;
+
+            // Kantlinjer
+            const topLine = document.createElement("div");
+            topLine.style.cssText = `position:absolute; top:0; left:0; right:0; height:1px; background: linear-gradient(90deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 100%); pointer-events:none; z-index:1;`;
+            const bottomLine = document.createElement("div");
+            bottomLine.style.cssText = `position:absolute; bottom:0; left:0; right:0; height:1px; background: linear-gradient(90deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%); pointer-events:none; z-index:1;`;
+            const rightLine = document.createElement("div");
+            rightLine.style.cssText = `position:absolute; top:0; right:0; bottom:0; width:1px; background: linear-gradient(180deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 100%); pointer-events:none; z-index:1;`;
+            div.appendChild(topLine);
+            div.appendChild(bottomLine);
+            div.appendChild(rightLine);
 
             const completedSets = exerciseData.sets_data ? exerciseData.sets_data.filter(s => s.userConfirmed).length : 0;
             const totalSets = exerciseData.sets_data ? exerciseData.sets_data.length : 0;
