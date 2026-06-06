@@ -902,7 +902,7 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
                     <div style="width:44px; height:44px; border-radius:14px; background:${isRest ? 'rgba(253,224,71,0.1)' : 'rgba(34,211,238,0.1)'}; border:1px solid ${isRest ? 'rgba(253,224,71,0.3)' : 'rgba(34,211,238,0.3)'}; display:flex; align-items:center; justify-content:center; font-size:22px;">${isRest ? '🧘' : '📋'}</div>
                     <div style="display:flex; flex-direction:column; gap:2px;">
                         <span style="font-size:15px; font-weight:900; color:#fff; text-transform:uppercase; letter-spacing:0.5px;">${planned ? planned.name : 'Rest Day'}</span>
-                        <span style="font-size:9px; color:${isRest ? '#fde047' : '#22d3ee'}; text-transform:uppercase; letter-spacing:2px; font-weight:700;">${isRest ? 'Recovery day' : 'Planned workout'}</span>
+                        <span style="font-size:9px; color:${isRest ? '#fde047' : '#22d3ee'}; text-transform:uppercase; letter-spacing:2px; font-weight:700;">${isRest ? 'Recovery' : 'Planned workout'}</span>
                     </div>
                 </div>
             </div>
