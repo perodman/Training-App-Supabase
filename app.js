@@ -2490,7 +2490,7 @@ const div = document.createElement("div");
                 border-radius: 16px;
                 background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
                 border: none;
-                border-left: 4px solid ${isDone ? '#22c55e' : isOpen ? '#22d3ee' : 'rgba(255,255,255,0.1)'};
+                border-left: 4px solid ${isDone ? '#22c55e' : isOpen ? '#22d3ee' : 'rgba(250,204,21,0.3)'};
                 box-shadow: ${isDone ? '0 4px 12px rgba(34,197,94,0.08)' : isOpen ? '0 4px 12px rgba(34,211,238,0.08)' : '0 4px 12px rgba(0,0,0,0.3)'};
             `;
             div.id = `exercise-card-${i}`;
@@ -3094,7 +3094,7 @@ function updateSingleExerciseCard(exIdx) {
     if (!targetCard) return;
 
     // Uppdatera kortets kantlinjefärg
-    targetCard.style.borderLeft = `4px solid ${isDone ? '#22c55e' : isOpen ? '#22d3ee' : 'rgba(255,255,255,0.1)'}`;
+    targetCard.style.borderLeft = `4px solid ${isDone ? '#22c55e' : isOpen ? '#22d3ee' : 'rgba(250,204,21,0.3)'}`;
     targetCard.style.boxShadow = isDone ? '0 4px 12px rgba(34,197,94,0.08)' : isOpen ? '0 4px 12px rgba(34,211,238,0.08)' : '0 4px 12px rgba(0,0,0,0.3)';
 
     const completedSets = exerciseData.sets_data ? exerciseData.sets_data.filter(s => s.userConfirmed).length : 0;
