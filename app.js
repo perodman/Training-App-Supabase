@@ -1527,9 +1527,17 @@ function openCreateGroupModal() {
                 style="text-align:center; margin:0; background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1);">
         </div>
 
-        <button class="mode-btn blue" onclick="saveCustomGroupFromModal()" style="width:100%; flex-direction: row; gap: 10px; padding: 16px;">
+        <button class="mode-btn blue" onclick="saveCustomGroupFromModal()" style="
+            width:100%; flex-direction: row; gap: 10px; padding: 16px;
+            position: relative; overflow: hidden;
+            border-left: 4px solid rgba(34,211,238,0.8);
+            border-radius: 16px;
+        ">
+            <div style="position:absolute; top:0; left:0; right:0; height:1px; background: linear-gradient(90deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 100%);"></div>
+            <div style="position:absolute; bottom:0; left:0; right:0; height:1px; background: linear-gradient(90deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 100%);"></div>
+            <div style="position:absolute; top:0; right:0; bottom:0; width:1px; background: linear-gradient(180deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 100%);"></div>
             <span style="font-size: 18px;">✚</span>
-            <span style="font-size: 15px; font-weight: 900; letter-spacing: 0.5px;">Add Group</span>
+            <span style="font-size: 15px; font-weight: 400; letter-spacing: 0.5px;">Add Group</span>
         </button>
     `;
     openModal();
