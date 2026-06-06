@@ -1146,28 +1146,36 @@ function setOverrideSilent(dateStr, programId) {
         }
     }
 
-    // Uppdatera aktiva knappar visuellt
+    // Nollställ alla pass-knappar visuellt inklusive ✓
     document.querySelectorAll('.plan-override-btn').forEach(btn => {
         btn.classList.remove('active-choice');
-        const btnBg = btn.style.background;
         if (!btn.classList.contains('override-rest-btn')) {
-            btn.style.setProperty('background', btnBg.replace('rgba(255,255,255,0.1)', 'rgba(255,255,255,0.04)').replace(/0\.\d+\)/, '0.04)'), 'important');
-            btn.style.color = 'var(--text-light)';
+            btn.style.setProperty('background', 'rgba(255,255,255,0.04)', 'important');
+            btn.style.setProperty('border', '1px solid rgba(255,255,255,0.06)', 'important');
+            btn.style.setProperty('border-top', '1px solid rgba(255,255,255,0.12)', 'important');
+            btn.style.color = 'var(--text)';
+            // Ta bort ✓ från texten
+            if (btn.textContent.startsWith('✓ ')) {
+                btn.textContent = btn.textContent.slice(2);
+            }
         }
     });
-
     // Markera den valda knappen
     if (programId === "none") {
         const restBtn = document.getElementById("btn-ovr-none");
-        if (restBtn) {
-            restBtn.classList.add('active-choice');
-        }
+        if (restBtn) restBtn.classList.add('active-choice');
     } else {
         const selectedBtn = document.getElementById(`btn-ovr-${programId}`);
         if (selectedBtn) {
             selectedBtn.classList.add('active-choice');
-            selectedBtn.style.setProperty('background', 'rgba(255,255,255,0.1)', 'important');
-            selectedBtn.style.color = '#ffffff';
+            selectedBtn.style.setProperty('background', 'rgba(34,211,238,0.12)', 'important');
+            selectedBtn.style.setProperty('border', '1px solid rgba(34,211,238,0.4)', 'important');
+            selectedBtn.style.setProperty('border-top', '1px solid rgba(34,211,238,0.6)', 'important');
+            selectedBtn.style.color = 'var(--primary)';
+            // Lägg till ✓ om den inte redan finns
+            if (!selectedBtn.textContent.startsWith('✓ ')) {
+                selectedBtn.textContent = '✓ ' + selectedBtn.textContent;
+            }
         }
     }
 
