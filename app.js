@@ -1039,6 +1039,7 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
 
         const isRestSelected = !planned;
         html += `
+        <div class="separator" style="margin: 10px 0;"></div>
             <button class="mode-btn plan-override-btn override-rest-btn ${isRestSelected ? 'active-choice' : ''}"
                 id="btn-ovr-none"
                 onclick="setOverrideSilent('${dateStr}', 'none')"
