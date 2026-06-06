@@ -1118,11 +1118,31 @@ function setOverrideSilent(dateStr, programId) {
     if (actionBtnContainer) {
         if (nextPlannedProgram) {
             actionBtnContainer.innerHTML = `
-                <button class="mode-btn premium-action-btn premium-green-btn" onclick="prepareStart('${dateStr}', '${nextPlannedProgram.id}')" style="width: 100% !important; margin: 0 !important; padding: 12px !important;">
+                <button onclick="prepareStart('${dateStr}', '${nextPlannedProgram.id}')"
+                    style="width:100%; padding:14px; border-radius:14px; border:none;
+                    background: linear-gradient(135deg, #15803d 0%, #22c55e 100%);
+                    color:#fff; font-weight:900; font-size:14px; cursor:pointer;
+                    text-transform:uppercase; letter-spacing:0.5px;
+                    box-shadow: 0 4px 15px rgba(34,197,94,0.3);
+                    transition: filter 0.3s ease;"
+                    onmouseenter="this.style.filter='brightness(1.15)'"
+                    onmouseleave="this.style.filter='brightness(1)'">
                     Start Workout 🔥
+                </button>
+                <button onclick="closeModal(); startFreeWorkoutOnDate('${dateStr}')"
+                    style="width:100%; padding:11px; border-radius:14px;
+                    border: 1px dashed rgba(34,211,238,0.4); color:var(--primary);
+                    background: rgba(34,211,238,0.03); font-weight:700; font-size:13px; cursor:pointer;">
+                    ➕ Start Free Workout
                 </button>`;
         } else {
-            actionBtnContainer.innerHTML = '';
+            actionBtnContainer.innerHTML = `
+                <button onclick="closeModal(); startFreeWorkoutOnDate('${dateStr}')"
+                    style="width:100%; padding:11px; border-radius:14px;
+                    border: 1px dashed rgba(34,211,238,0.4); color:var(--primary);
+                    background: rgba(34,211,238,0.03); font-weight:700; font-size:13px; cursor:pointer;">
+                    ➕ Start Free Workout
+                </button>`;
         }
     }
 
