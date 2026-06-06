@@ -148,7 +148,15 @@ function closeModal() {
     if (typeof hideDefaultCloseButton === 'function') {
         hideDefaultCloseButton(false);
     }
-    // Om vi är mitt i edit-flödet, gå tillbaka till edit-vyn istället för startsidan
+
+    // Rensa temporära pass som inte sparats
+    if (typeof programData !== 'undefined' && programData && programData.routine) {
+        const tempIdx = programData.routine.findIndex(p => p._isTemp);
+        if (tempIdx !== -1) {
+            programData.routine.splice(tempIdx, 1);
+        }
+    }
+
     if (typeof window._returnToEditIdx !== 'undefined' && window._returnToEditIdx !== null) {
         const idx = window._returnToEditIdx;
         window._returnToEditIdx = null;
@@ -1961,11 +1969,17 @@ if (!window.temporarySelectedExercisesForEdit) {
 }
 
 function openCreateProgramModal() {
-    const newPass = { id: "pass-" + Date.now(), name: "New Workout", exercises: [], groups: currentViewGroupId && currentViewGroupId !== '__ungrouped__' ? [currentViewGroupId] : [] };
-    programData.routine.push(newPass);
-    saveCustomProgramToSupabase();
-    const newIdx = programData.routine.length - 1;
-    openEditProgramModal(newIdx);
+    // Skapa ett temporärt pass i minnet men spara det INTE än
+    const tempPass = { 
+        id: "pass-" + Date.now(), 
+        name: "", 
+        exercises: [], 
+        groups: currentViewGroupId && currentViewGroupId !== '__ungrouped__' ? [currentViewGroupId] : [],
+        _isTemp: true  // Flagga för att markera att det är temporärt
+    };
+    programData.routine.push(tempPass);
+    const tempIdx = programData.routine.length - 1;
+    openEditProgramModal(tempIdx);
 }
 
 async function updateExerciseNameInHistory(oldName, newName) {
@@ -3729,11 +3743,15 @@ async function saveNewProgram() {
 async function saveProgramEdit(idx) {
     if (window.programData) programData = window.programData;
     const oldName = programData.routine[idx].name;
-    const newName = document.getElementById("edit-pass-name").value;
-    console.log("saveProgramEdit: oldName =", oldName, "newName =", newName);
+    const newName = document.getElementById("edit-pass-name").value.trim();
+    if (!newName) {
+        alert("Please enter a workout name!");
+        return;
+    }
     programData.routine[idx].name = newName;
+    // Ta bort temp-flaggan
+    delete programData.routine[idx]._isTemp;
     if (oldName !== newName && typeof updateWorkoutNameInHistory === 'function') {
-        console.log("Anropar updateWorkoutNameInHistory...");
         await updateWorkoutNameInHistory(oldName, newName);
     }
     await saveCustomProgramToSupabase();
