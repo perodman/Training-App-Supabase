@@ -1007,6 +1007,7 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
                             return `
                             <button class="mode-btn plan-override-btn ${isSelected ? 'active-choice' : ''}"
                                 id="btn-ovr-${p.id}"
+                                data-name="${p.name}"
                                 onclick="if(!isLongPress) { setOverrideSilent('${dateStr}', '${p.id}'); cancelPress(); }"
                                 onmousedown="startPress(${programData.routine.indexOf(p)}, event)"
                                 onmouseup="if(!isLongPress && !hasScrolled) setOverrideSilent('${dateStr}', '${p.id}'); cancelPress();"
@@ -1146,7 +1147,7 @@ function setOverrideSilent(dateStr, programId) {
         }
     }
 
-    // Nollställ alla pass-knappar visuellt inklusive ✓
+    // Nollställ alla pass-knappar — återställ till originalnamnet via data-name
     document.querySelectorAll('.plan-override-btn').forEach(btn => {
         btn.classList.remove('active-choice');
         if (!btn.classList.contains('override-rest-btn')) {
@@ -1154,9 +1155,9 @@ function setOverrideSilent(dateStr, programId) {
             btn.style.setProperty('border', '1px solid rgba(255,255,255,0.06)', 'important');
             btn.style.setProperty('border-top', '1px solid rgba(255,255,255,0.12)', 'important');
             btn.style.color = 'var(--text)';
-            // Ta bort ✓ från texten
-            if (btn.textContent.startsWith('✓ ')) {
-                btn.textContent = btn.textContent.slice(2);
+            // Återställ alltid till originalnamnet
+            if (btn.dataset.name) {
+                btn.textContent = btn.dataset.name;
             }
         }
     });
@@ -1165,16 +1166,16 @@ function setOverrideSilent(dateStr, programId) {
         const restBtn = document.getElementById("btn-ovr-none");
         if (restBtn) restBtn.classList.add('active-choice');
     } else {
-        const selectedBtn = document.getElementById(`btn-ovr-${programId}`);
-        if (selectedBtn) {
-            selectedBtn.classList.add('active-choice');
-            selectedBtn.style.setProperty('background', 'rgba(34,211,238,0.12)', 'important');
-            selectedBtn.style.setProperty('border', '1px solid rgba(34,211,238,0.4)', 'important');
-            selectedBtn.style.setProperty('border-top', '1px solid rgba(34,211,238,0.6)', 'important');
-            selectedBtn.style.color = 'var(--primary)';
-            // Lägg till ✓ om den inte redan finns
-            if (!selectedBtn.textContent.startsWith('✓ ')) {
-                selectedBtn.textContent = '✓ ' + selectedBtn.textContent;
+            const selectedBtn = document.getElementById(`btn-ovr-${programId}`);
+            if (selectedBtn) {
+                selectedBtn.classList.add('active-choice');
+                selectedBtn.style.setProperty('background', 'rgba(34,211,238,0.12)', 'important');
+                selectedBtn.style.setProperty('border', '1px solid rgba(34,211,238,0.4)', 'important');
+                selectedBtn.style.setProperty('border-top', '1px solid rgba(34,211,238,0.6)', 'important');
+                selectedBtn.style.color = 'var(--primary)';
+                // Sätt alltid ✓ + originalnamnet
+                const name = selectedBtn.dataset.name || selectedBtn.textContent.trim();
+                selectedBtn.textContent = '✓ ' + name;
             }
         }
     }
