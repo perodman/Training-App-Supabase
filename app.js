@@ -1869,7 +1869,7 @@ async function openEditProgramModal(idx) {
         <button class="mode-btn blue" style="margin-top:20px;" onclick="saveProgramEdit(${idx})">Save all changes</button>
         <button class="btn-danger" onclick="deleteEntireProgram(${idx})">🗑️ Delete Workout Permanently</button>
     `;
-        openModal();
+         openModal(true);
     setTimeout(() => {
         if (typeof renderExercisePickerForEdit === 'function') {
             renderExercisePickerForEdit(idx, "Legs");
