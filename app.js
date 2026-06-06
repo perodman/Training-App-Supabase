@@ -2002,6 +2002,14 @@ async function openEditProgramModal(idx) {
     const pass = programData.routine[idx];
     const body = document.getElementById("modal-body");
     if (!pass || !body) return;
+
+    // Återställ body-stilar som openDayManager kan ha satt
+    body.style.display = "";
+    body.style.flexDirection = "";
+    body.style.justifyContent = "";
+    body.style.alignItems = "";
+    body.style.gap = "";
+
     const savedDraft = localStorage.getItem('temp_exercise_edit_draft');
     if (savedDraft) {
         window.temporarySelectedExercisesForEdit = JSON.parse(savedDraft);
@@ -2013,9 +2021,7 @@ async function openEditProgramModal(idx) {
     body.innerHTML = `
         <h3>Workout Name</h3>
         <input type="text" id="edit-pass-name" class="log-input" placeholder="e.g. Upper Body A, Leg Day..." value="${pass.name === 'New Workout' ? '' : pass.name}" style="text-align: center;">
-
         <div id="modal-exercise-picker-container"></div>
-
         <div class="separator" style="margin: 25px 0;"></div>
         <p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin-bottom:10px;">Current Exercises</p>
         <div id="edit-pass-exercises">
@@ -2034,7 +2040,6 @@ async function openEditProgramModal(idx) {
                 <button onclick="removeExFromPass(${idx}, ${i})" style="color:var(--danger); background:none; border:none; font-size:18px;">✖</button>
             </div>`).join("")}
         </div>
-
         <div class="separator" style="margin: 25px 0;"></div>
         <div>
             <p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin-bottom:10px; letter-spacing:1px;">Select Group to Organize Workout</p>
@@ -2064,22 +2069,19 @@ async function openEditProgramModal(idx) {
                 }).join('')}
             </div>
         </div>
-
         <div class="separator" style="margin: 25px 0;"></div>
         <div>
             <button class="mode-btn glass-border" style="font-size:13px; padding:10px; border: 2px dashed rgba(34, 211, 238, 0.4); color: var(--primary); background: rgba(34, 211, 238, 0.04); font-weight: 700;" 
                    onclick="saveEditDraftStateAndCreateNew(${idx})">+ Create new exercise to the library</button>
-                   </div>
         </div>
         <button class="mode-btn blue" style="margin-top:20px;" onclick="saveProgramEdit(${idx})">Save all changes</button>
         <button class="btn-danger" onclick="deleteEntireProgram(${idx})">🗑️ Delete Workout Permanently</button>
     `;
-            openModal(true);
+    openModal(true);
     setTimeout(() => {
         if (typeof renderExercisePickerForEdit === 'function') {
             renderExercisePickerForEdit(idx, "Legs");
         }
-        // Återställ scrollpositionen om vi kommer tillbaka från create-exercise
         if (typeof window._savedEditScrollPos !== 'undefined' && window._savedEditScrollPos > 0) {
             const mc = document.querySelector('.modal-content');
             if (mc) mc.scrollTop = window._savedEditScrollPos;
