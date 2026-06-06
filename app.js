@@ -1786,6 +1786,16 @@ function confirmAndAddAllSelectedExercisesForEdit(idx) {
 function saveEditDraftStateAndCreateNew(idx) {
     localStorage.setItem('temp_exercise_edit_draft', JSON.stringify(window.temporarySelectedExercisesForEdit || []));
     
+    // Spara workout-namnet innan vi lämnar vyn
+    const nameInput = document.getElementById("edit-pass-name");
+    if (nameInput && nameInput.value.trim()) {
+        programData.routine[idx].name = nameInput.value.trim();
+    }
+
+    // Spara scrollpositionen
+    const modalContent = document.querySelector('.modal-content');
+    window._savedEditScrollPos = modalContent ? modalContent.scrollTop : 0;
+
     // Sätt en flagga så closeModal vet att den ska gå tillbaka till edit-vyn
     window._returnToEditIdx = idx;
     
@@ -1897,12 +1907,18 @@ async function openEditProgramModal(idx) {
         <button class="mode-btn blue" style="margin-top:20px;" onclick="saveProgramEdit(${idx})">Save all changes</button>
         <button class="btn-danger" onclick="deleteEntireProgram(${idx})">🗑️ Delete Workout Permanently</button>
     `;
-         openModal(true);
+            openModal(true);
     setTimeout(() => {
         if (typeof renderExercisePickerForEdit === 'function') {
             renderExercisePickerForEdit(idx, "Legs");
         }
-    }, 0);
+        // Återställ scrollpositionen om vi kommer tillbaka från create-exercise
+        if (typeof window._savedEditScrollPos !== 'undefined' && window._savedEditScrollPos > 0) {
+            const mc = document.querySelector('.modal-content');
+            if (mc) mc.scrollTop = window._savedEditScrollPos;
+            window._savedEditScrollPos = 0;
+        }
+    }, 50);
 }
 
 function renderExercisePickerForEdit(idx, category = "Ben") {
@@ -3820,7 +3836,7 @@ async function saveProgramEdit(idx) {
                 </p>
                 <button class="mode-btn blue" onclick="document.getElementById('name-warning-modal').remove(); document.getElementById('edit-pass-name').focus();"
                     style="width: 100%; flex-direction: row; gap: 8px; padding: 14px;">
-                    OK, got it
+                    OK, got it!
                 </button>
             </div>
         `;
