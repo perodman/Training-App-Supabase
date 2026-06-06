@@ -786,14 +786,16 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
         body.style.gap = "16px";
     }
 
-    // Formatera datumet snyggt
     const dateObj = new Date(dateStr + 'T00:00:00');
     const formattedDate = dateObj.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 
+    // Problem 3 — datum i modern-header-stil
     let html = `
-        <div style="text-align: center; padding-bottom: 4px;">
-            <span style="font-size: 10px; text-transform: uppercase; letter-spacing: 3px; color: var(--text-light); font-weight: 700; display: block; margin-bottom: 4px;">Selected Date</span>
-            <span style="font-size: 20px; font-weight: 900; color: var(--text); display: block;">${formattedDate}</span>
+        <div style="text-align: center; margin: 0 !important; padding: 0 !important;">
+            <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: var(--text-light); font-weight: 600; display: block; margin: 0 !important; padding: 0 !important;">Selected Date</span>
+            <h2 class="section-title modern-header" style="margin: 8px 0 0 0 !important; padding: 0 !important; display: inline-block; font-size: 22px; line-height: 1.1 !important;">
+                ${formattedDate}
+            </h2>
         </div>
     `;
 
@@ -854,75 +856,79 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
         html += `
         <div style="
             position: relative; overflow: hidden;
-            background: linear-gradient(135deg, rgba(245,158,11,0.12) 0%, rgba(217,119,6,0.06) 100%);
-            border: 1px solid rgba(245,158,11,0.3);
-            border-top: 2px solid rgba(245,158,11,0.7);
-            border-radius: 20px; padding: 20px;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: none; border-left: 4px solid #f59e0b;
+            border-radius: 22px; padding: 18px 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+            display: flex; align-items: center; justify-content: space-between;
         ">
-            <div style="position:absolute; top:-40px; left:50%; transform:translateX(-50%); width:120px; height:80px; background:rgba(245,158,11,0.2); filter:blur(25px); border-radius:50%; pointer-events:none;"></div>
-            <div style="text-align:center; margin-bottom:14px; position:relative; z-index:1;">
-                <span style="font-size: 18px; font-weight: 900; color: #f59e0b;">🔥 Ongoing Workout</span>
+            <div style="position:absolute; top:0; left:0; right:0; height:1px; background: linear-gradient(90deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 100%);"></div>
+            <div style="position:absolute; bottom:0; left:0; right:0; height:1px; background: linear-gradient(90deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 100%);"></div>
+            <div style="position:absolute; top:0; right:0; bottom:0; width:1px; background: linear-gradient(180deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 100%);"></div>
+            <div style="display:flex; align-items:center; gap:14px;">
+                <div style="width:44px; height:44px; border-radius:14px; background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.3); display:flex; align-items:center; justify-content:center; font-size:22px;">🔥</div>
+                <div style="display:flex; flex-direction:column; gap:2px;">
+                    <span style="font-size:15px; font-weight:900; color:#fff; text-transform:uppercase; letter-spacing:0.5px;">Ongoing Workout</span>
+                    <span style="font-size:9px; color:#f59e0b; text-transform:uppercase; letter-spacing:2px; font-weight:700;">Tap to continue</span>
+                </div>
             </div>
             <button onclick="showView('workout-view'); startWorkout(activeDraft.workout, activeDraft.data, activeDraft.date); setTimeout(() => closeModal(), 0)"
-                style="width:100%; padding:16px; border-radius:14px; border: 2px solid #f59e0b;
-                background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);
-                color: #0f172a; font-weight: 900; font-size: 15px; cursor: pointer;
-                text-transform: uppercase; letter-spacing: 0.5px; position:relative; z-index:1;">
-                Continue Workout ⏱️
-            </button>
+                style="background:none; border:none; cursor:pointer; color:rgba(245,158,11,0.7); font-size:22px; padding:0;">→</button>
         </div>`;
     }
 
-    // 3. Status box — planned or rest
+    // 3. Status + Start Workout — Problem 4: samma stil som startsidan
     if (!isOngoing && !hasCompleted) {
         const isRest = !planned;
         html += `
         <div style="
             position: relative; overflow: hidden;
-            background: linear-gradient(180deg, rgba(30,41,59,0.8) 0%, rgba(15,23,42,0.95) 100%);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-top: 2px solid ${isRest ? 'rgba(253,224,71,0.5)' : 'rgba(34,211,238,0.6)'};
-            border-radius: 20px; padding: 20px;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: none; border-left: 4px solid ${isRest ? '#fde047' : '#22d3ee'};
+            border-radius: 22px; padding: 18px 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
         ">
-            <div style="position:absolute; top:-40px; left:50%; transform:translateX(-50%); width:140px; height:90px; 
-                background:${isRest ? 'rgba(253,224,71,0.15)' : 'rgba(34,211,238,0.15)'}; 
-                filter:blur(30px); border-radius:50%; pointer-events:none;"></div>
-            
-            <p id="current-planned-label" style="text-align:center; font-size:17px; font-weight:800; color:#fff; margin:0 0 16px 0; position:relative; z-index:1;">
-                ${planned 
-                    ? `📋 <span style="color:#22d3ee; text-shadow: 0 0 20px rgba(34,211,238,0.6);">${planned.name}</span>` 
-                    : '🧘 Rest Day'}
-            </p>
+            <div style="position:absolute; top:0; left:0; right:0; height:1px; background: linear-gradient(90deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 100%);"></div>
+            <div style="position:absolute; bottom:0; left:0; right:0; height:1px; background: linear-gradient(90deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 100%);"></div>
+            <div style="position:absolute; top:0; right:0; bottom:0; width:1px; background: linear-gradient(180deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 100%);"></div>
 
-            <div id="day-manager-action-btn-container" style="display:flex; flex-direction:column; gap:10px; position:relative; z-index:1;">
+            <div id="current-planned-label" style="display:flex; align-items:center; justify-content:space-between; margin-bottom: ${planned ? '16px' : '0'};">
+                <div style="display:flex; align-items:center; gap:14px;">
+                    <div style="width:44px; height:44px; border-radius:14px; background:${isRest ? 'rgba(253,224,71,0.1)' : 'rgba(34,211,238,0.1)'}; border:1px solid ${isRest ? 'rgba(253,224,71,0.3)' : 'rgba(34,211,238,0.3)'}; display:flex; align-items:center; justify-content:center; font-size:22px;">${isRest ? '🧘' : '📋'}</div>
+                    <div style="display:flex; flex-direction:column; gap:2px;">
+                        <span style="font-size:15px; font-weight:900; color:#fff; text-transform:uppercase; letter-spacing:0.5px;">${planned ? planned.name : 'Rest Day'}</span>
+                        <span style="font-size:9px; color:${isRest ? '#fde047' : '#22d3ee'}; text-transform:uppercase; letter-spacing:2px; font-weight:700;">${isRest ? 'Recovery day' : 'Planned workout'}</span>
+                    </div>
+                </div>
+                ${planned ? `<span style="color:rgba(34,211,238,0.6); font-size:22px;">→</span>` : ''}
+            </div>
+
+            <div id="day-manager-action-btn-container" style="display:flex; flex-direction:column; gap:8px;">
                 ${planned ? `
                 <button onclick="prepareStart('${dateStr}', '${planned.id}')"
-                    style="width:100%; padding:16px; border-radius:14px; border:none;
+                    style="width:100%; padding:14px; border-radius:14px; border:none;
                     background: linear-gradient(135deg, #15803d 0%, #22c55e 100%);
-                    color:#fff; font-weight:900; font-size:15px; cursor:pointer;
+                    color:#fff; font-weight:900; font-size:14px; cursor:pointer;
                     text-transform:uppercase; letter-spacing:0.5px;
-                    box-shadow: 0 6px 20px rgba(34,197,94,0.3);
+                    box-shadow: 0 4px 15px rgba(34,197,94,0.3);
                     animation: buttonPulse 2s infinite alternate;">
                     Start Workout 🔥
                 </button>` : ''}
+                <button onclick="closeModal(); startFreeWorkoutOnDate('${dateStr}')"
+                    style="width:100%; padding:11px; border-radius:14px;
+                    border: 1px dashed rgba(34,211,238,0.4); color:var(--primary);
+                    background: rgba(34,211,238,0.03); font-weight:700; font-size:13px; cursor:pointer;">
+                    ➕ Start Free Workout
+                </button>
             </div>
-
-            <button onclick="closeModal(); startFreeWorkoutOnDate('${dateStr}')"
-                style="width:100%; margin-top:10px; padding:12px; border-radius:14px;
-                border: 1px dashed rgba(34,211,238,0.4); color:var(--primary);
-                background: rgba(34,211,238,0.04); font-weight:700; font-size:13px;
-                cursor:pointer; position:relative; z-index:1;">
-                ➕ Start Free Workout
-            </button>
         </div>`;
     }
 
-    // 4. Edit Plan — gruppbaserad
+    // 4. Edit Plan — gruppbaserad med animationer
     if (!isOngoing && !hasCompleted) {
         const customGroups = programData.customGroups || [];
         const ALL_GROUPS = [...PREDEFINED_GROUPS, ...customGroups];
 
-        // Bygg en map: groupId -> [pass]
         const groupMap = {};
         ALL_GROUPS.forEach(g => { groupMap[g.id] = []; });
         programData.routine.forEach(p => {
@@ -934,7 +940,6 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
             }
         });
 
-        // Filtrera bort tomma grupper
         const groupsWithPasses = ALL_GROUPS.filter(g => groupMap[g.id] && groupMap[g.id].length > 0);
         const ungrouped = programData.routine.filter(p => !Array.isArray(p.groups) || p.groups.length === 0);
 
@@ -944,98 +949,70 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
             <span style="font-size: 10px; text-transform: uppercase; color: var(--text-light); font-weight: 700; letter-spacing: 1px; white-space: nowrap;">Edit Plan</span>
             <div style="flex-grow: 1; height: 1px; background: rgba(255,255,255,0.08);"></div>
         </div>
-        <span style="font-size: 11px; color: var(--text-light); opacity: 0.5; text-align:center; display:block; margin-top:-8px;">💡 Hold to preview exercises</span>
+
         <div id="day-manager-group-container" style="display: flex; flex-direction: column; gap: 8px;">`;
 
-        // Rendera grupper med kollapsbara sektioner
-        groupsWithPasses.forEach((g, gIdx) => {
-            const passes = groupMap[g.id];
+        const renderGroupSection = (g, passes, isUngrouped = false) => {
             const sectionId = `dm-group-${g.id}`;
-            html += `
-            <div style="border-radius: 14px; overflow: hidden; border: 1px solid rgba(255,255,255,0.08);">
+            return `
+            <div style="border-radius: 14px; overflow: hidden; border: 1px solid ${isUngrouped ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.08)'}; ${isUngrouped ? 'border-style: dashed;' : ''}">
                 <div onclick="toggleDayManagerGroup('${g.id}')" style="
                     display: flex; align-items: center; justify-content: space-between;
                     padding: 12px 14px; cursor: pointer;
                     background: rgba(255,255,255,0.04);
+                    transition: background 0.2s ease;
                 ">
                     <div style="display:flex; align-items:center; gap:8px;">
                         <span style="font-size:18px;">${g.icon}</span>
-                        <span style="font-weight:700; font-size:13px; color:var(--text);">${g.name}</span>
-                        <span style="font-size:10px; color:var(--primary); font-weight:700;">${passes.length} workout${passes.length !== 1 ? 's' : ''}</span>
+                        <span style="font-weight:700; font-size:13px; color:${isUngrouped ? 'var(--text-light)' : 'var(--text)'};">${g.name}</span>
+                        <span style="font-size:10px; color:${isUngrouped ? 'var(--text-light)' : 'var(--primary)'}; font-weight:700; opacity:${isUngrouped ? '0.6' : '1'};">${passes.length} workout${passes.length !== 1 ? 's' : ''}</span>
                     </div>
-                    <span id="dm-arrow-${g.id}" style="color:var(--text-light); font-size:12px; transition: transform 0.3s;">▼</span>
+                    <span id="dm-arrow-${g.id}" style="color:var(--text-light); font-size:12px; transition: transform 0.3s ease;">▼</span>
                 </div>
-                <div id="${sectionId}" style="display:none; padding: 8px; background: rgba(0,0,0,0.15); display:flex; flex-direction:column; gap:6px;">
-                    ${passes.map(p => {
-                        const isSelected = planned && p.id === planned.id;
-                        return `
-                        <button class="mode-btn plan-override-btn ${isSelected ? 'active-choice' : ''}"
-                            id="btn-ovr-${p.id}"
-                            onclick="if(!isLongPress) { setOverrideSilent('${dateStr}', '${p.id}'); cancelPress(); }"
-                            onmousedown="startPress(${programData.routine.indexOf(p)}, event)"
-                            onmouseup="if(!isLongPress && !hasScrolled) setOverrideSilent('${dateStr}', '${p.id}'); cancelPress();"
-                            onmouseleave="cancelPress();"
-                            ontouchstart="startPress(${programData.routine.indexOf(p)}, event)"
-                            ontouchend="handleTouchEnd(${programData.routine.indexOf(p)}, '${dateStr}', '${p.id}', event)"
-                            ontouchmove="handleTouchMove(event)"
-                            style="margin:0; padding:12px 14px; font-size:13px; border-radius:10px; font-weight:600;
-                            text-overflow:ellipsis; overflow:hidden; white-space:nowrap; width:100%; text-align:left;
-                            background: ${isSelected ? 'rgba(34,211,238,0.15)' : 'rgba(255,255,255,0.04)'} !important;
-                            border: 1px solid ${isSelected ? 'rgba(34,211,238,0.5)' : 'rgba(255,255,255,0.08)'} !important;
-                            border-top: 2px solid ${isSelected ? 'rgba(34,211,238,0.8)' : 'rgba(255,255,255,0.15)'} !important;
-                            color: ${isSelected ? 'var(--primary)' : 'var(--text)'} !important;
-                            user-select:none; -webkit-user-select:none;">
-                            ${isSelected ? '✓ ' : ''}${p.name}
-                        </button>`;
-                    }).join('')}
+                <div id="${sectionId}" style="
+                    max-height: 0; overflow: hidden;
+                    transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+                    opacity: 0;
+                ">
+                    <div style="padding: 8px; background: rgba(0,0,0,0.15); display:flex; flex-direction:column; gap:6px;">
+                        <div style="font-size:10px; color:var(--text-light); opacity:0.5; text-align:center; padding: 4px 0 2px 0; font-weight:600; letter-spacing:0.3px;">
+                            💡 Hold to preview exercises
+                        </div>
+                        ${passes.map(p => {
+                            const isSelected = planned && p.id === planned.id;
+                            return `
+                            <button class="mode-btn plan-override-btn ${isSelected ? 'active-choice' : ''}"
+                                id="btn-ovr-${p.id}"
+                                onclick="if(!isLongPress) { setOverrideSilent('${dateStr}', '${p.id}'); cancelPress(); }"
+                                onmousedown="startPress(${programData.routine.indexOf(p)}, event)"
+                                onmouseup="if(!isLongPress && !hasScrolled) setOverrideSilent('${dateStr}', '${p.id}'); cancelPress();"
+                                onmouseleave="cancelPress();"
+                                ontouchstart="startPress(${programData.routine.indexOf(p)}, event)"
+                                ontouchend="handleTouchEnd(${programData.routine.indexOf(p)}, '${dateStr}', '${p.id}', event)"
+                                ontouchmove="handleTouchMove(event)"
+                                style="margin:0; padding:12px 14px; font-size:13px; border-radius:10px; font-weight:600;
+                                text-overflow:ellipsis; overflow:hidden; white-space:nowrap; width:100%; text-align:left;
+                                background: ${isSelected ? 'rgba(34,211,238,0.15)' : 'rgba(255,255,255,0.04)'} !important;
+                                border: 1px solid ${isSelected ? 'rgba(34,211,238,0.5)' : 'rgba(255,255,255,0.08)'} !important;
+                                border-top: 2px solid ${isSelected ? 'rgba(34,211,238,0.8)' : 'rgba(255,255,255,0.15)'} !important;
+                                color: ${isSelected ? 'var(--primary)' : 'var(--text)'} !important;
+                                user-select:none; -webkit-user-select:none;">
+                                ${isSelected ? '✓ ' : ''}${p.name}
+                            </button>`;
+                        }).join('')}
+                    </div>
                 </div>
             </div>`;
+        };
+
+        groupsWithPasses.forEach(g => {
+            html += renderGroupSection(g, groupMap[g.id]);
         });
 
-        // Ungrouped om det finns
         if (ungrouped.length > 0) {
-            html += `
-            <div style="border-radius: 14px; overflow: hidden; border: 1px dashed rgba(255,255,255,0.1);">
-                <div onclick="toggleDayManagerGroup('__other__')" style="
-                    display: flex; align-items: center; justify-content: space-between;
-                    padding: 12px 14px; cursor: pointer;
-                    background: rgba(255,255,255,0.02);
-                ">
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <span style="font-size:18px;">📁</span>
-                        <span style="font-weight:700; font-size:13px; color:var(--text-light);">Other</span>
-                        <span style="font-size:10px; color:var(--text-light); opacity:0.6; font-weight:700;">${ungrouped.length} workout${ungrouped.length !== 1 ? 's' : ''}</span>
-                    </div>
-                    <span id="dm-arrow-__other__" style="color:var(--text-light); font-size:12px; transition: transform 0.3s;">▼</span>
-                </div>
-                <div id="dm-group-__other__" style="display:none; padding: 8px; background: rgba(0,0,0,0.15); flex-direction:column; gap:6px;">
-                    ${ungrouped.map(p => {
-                        const isSelected = planned && p.id === planned.id;
-                        return `
-                        <button class="mode-btn plan-override-btn ${isSelected ? 'active-choice' : ''}"
-                            id="btn-ovr-${p.id}"
-                            onclick="if(!isLongPress) { setOverrideSilent('${dateStr}', '${p.id}'); cancelPress(); }"
-                            onmousedown="startPress(${programData.routine.indexOf(p)}, event)"
-                            onmouseup="if(!isLongPress && !hasScrolled) setOverrideSilent('${dateStr}', '${p.id}'); cancelPress();"
-                            onmouseleave="cancelPress();"
-                            ontouchstart="startPress(${programData.routine.indexOf(p)}, event)"
-                            ontouchend="handleTouchEnd(${programData.routine.indexOf(p)}, '${dateStr}', '${p.id}', event)"
-                            ontouchmove="handleTouchMove(event)"
-                            style="margin:0; padding:12px 14px; font-size:13px; border-radius:10px; font-weight:600;
-                            text-overflow:ellipsis; overflow:hidden; white-space:nowrap; width:100%; text-align:left;
-                            background: ${isSelected ? 'rgba(34,211,238,0.15)' : 'rgba(255,255,255,0.04)'} !important;
-                            border: 1px solid ${isSelected ? 'rgba(34,211,238,0.5)' : 'rgba(255,255,255,0.08)'} !important;
-                            border-top: 2px solid ${isSelected ? 'rgba(34,211,238,0.8)' : 'rgba(255,255,255,0.15)'} !important;
-                            color: ${isSelected ? 'var(--primary)' : 'var(--text)'} !important;
-                            user-select:none; -webkit-user-select:none;">
-                            ${isSelected ? '✓ ' : ''}${p.name}
-                        </button>`;
-                    }).join('')}
-                </div>
-            </div>`;
+            html += renderGroupSection({ id: '__other__', name: 'Other', icon: '📁' }, ungrouped, true);
         }
 
-        // Rest Day-knapp
         const isRestSelected = !planned;
         html += `
             <button class="mode-btn plan-override-btn override-rest-btn ${isRestSelected ? 'active-choice' : ''}"
@@ -1051,13 +1028,11 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
 
     body.innerHTML = html;
 
-    // Öppna den grupp som innehåller det valda passet automatiskt
+    // Öppna gruppen med det valda passet automatiskt
     if (!isOngoing && !hasCompleted && planned) {
-        const customGroups = programData.customGroups || [];
-        const ALL_GROUPS = [...PREDEFINED_GROUPS, ...customGroups];
         const plannedPass = programData.routine.find(p => p.id === planned.id);
         if (plannedPass && Array.isArray(plannedPass.groups) && plannedPass.groups.length > 0) {
-            toggleDayManagerGroup(plannedPass.groups[0]);
+            setTimeout(() => toggleDayManagerGroup(plannedPass.groups[0]), 50);
         }
     }
 
@@ -1068,12 +1043,14 @@ function toggleDayManagerGroup(groupId) {
     const section = document.getElementById(`dm-group-${groupId}`);
     const arrow = document.getElementById(`dm-arrow-${groupId}`);
     if (!section) return;
-    const isOpen = section.style.display === 'flex';
+    const isOpen = section.style.maxHeight !== '0px' && section.style.maxHeight !== '';
     if (isOpen) {
-        section.style.display = 'none';
+        section.style.maxHeight = '0px';
+        section.style.opacity = '0';
         if (arrow) arrow.style.transform = 'rotate(0deg)';
     } else {
-        section.style.display = 'flex';
+        section.style.maxHeight = '1000px';
+        section.style.opacity = '1';
         if (arrow) arrow.style.transform = 'rotate(180deg)';
     }
 }
