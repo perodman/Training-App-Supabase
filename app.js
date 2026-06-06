@@ -1870,19 +1870,12 @@ async function openEditProgramModal(idx) {
         <button class="mode-btn blue" style="margin-top:20px;" onclick="saveProgramEdit(${idx})">Save all changes</button>
         <button class="btn-danger" onclick="deleteEntireProgram(${idx})">🗑️ Delete Workout Permanently</button>
     `;
-    openModal();
+        openModal();
     setTimeout(() => {
         if (typeof renderExercisePickerForEdit === 'function') {
             renderExercisePickerForEdit(idx, "Legs");
         }
-        // Scrolla till övningslistan om det finns övningar
-        if (pass.exercises.length > 0) {
-            const exercisesSection = document.getElementById("edit-pass-exercises");
-            if (exercisesSection) {
-                exercisesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-        }
-    }, 50);
+    }, 0);
 }
 
 function renderExercisePickerForEdit(idx, category = "Ben") {
