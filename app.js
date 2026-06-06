@@ -1110,7 +1110,7 @@ function setOverrideSilent(dateStr, programId) {
         // Uppdatera också kantlinjens färg
         const statusBox = plannedLabel.closest('div[style*="border-left"]');
         if (statusBox) {
-            statusBox.style.borderLeft = `4px solid ${isRest ? '#fde047' : '#22d3ee'}`;
+            statusBox.style.borderLeft = `4px solid ${isRest ? '#fde047' : '#22c55e'}`;
         }
     }
 
