@@ -881,7 +881,7 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
        if (!isOngoing && !hasCompleted) {
         const isRest = !planned;
         html += `
-        <div style="display: flex; align-items: center; gap: 10px; margin-top: 12px;">
+        <div style="display: flex; align-items: center; gap: 10px; margin-top: 4px;">
             <div style="flex-grow: 1; height: 1px; background: rgba(255,255,255,0.08);"></div>
             <span style="font-size: 10px; text-transform: uppercase; color: var(--text-light); font-weight: 700; letter-spacing: 1px; white-space: nowrap;">Status</span>
             <div style="flex-grow: 1; height: 1px; background: rgba(255,255,255,0.08);"></div>
