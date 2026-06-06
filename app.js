@@ -2019,7 +2019,7 @@ async function openEditProgramModal(idx) {
     }
     const ALL_GROUPS = [...PREDEFINED_GROUPS, ...(programData.customGroups || [])];
     body.innerHTML = `
-        <h3>Workout Name</h3>
+        <h3 style="margin-bottom: 8px;">Workout Name</h3>
         <input type="text" id="edit-pass-name" class="log-input" placeholder="e.g. Upper Body A, Leg Day..." value="${pass.name === 'New Workout' ? '' : pass.name}" style="text-align: center;">
         <div id="modal-exercise-picker-container"></div>
         <div class="separator" style="margin: 25px 0;"></div>
@@ -2103,7 +2103,7 @@ function renderExercisePickerForEdit(idx, category = "Ben") {
         { name: "Bål", icon: " 🧘 " }
     ];
 
-    let html = `<div class="separator" style="margin: 25px 0;"></div>`;
+    let html = `<div class="separator" style="margin: 12px 0 18px 0;"></div>`;
     html += `<h3 style="margin: 0 0 15px 0; color: var(--primary); font-size: 1.2rem; text-align: center; text-transform: uppercase; letter-spacing: 1px;">ADD EXERCISES</h3>`;
     html += `<p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin-bottom:10px;">Select Category</p>`;
 
@@ -2119,7 +2119,7 @@ function renderExercisePickerForEdit(idx, category = "Ben") {
     });
     html += `</div>`;
 
-    html += `<p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin-bottom:10px;">Excercises</p>`;
+    html += `<p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin-bottom:10px; margin-top: 18px;">Exercises</p>`;
     html += `<div style="max-height:280px; overflow-y:auto; padding-right:5px; background:rgba(0,0,0,0.2); border-radius:15px; padding:10px; margin-bottom:15px; display:flex; flex-direction:column; gap:8px;">`;
 
     const filtered = masterExercises.filter(ex => category === "Armar" ? (ex.target === "Biceps" || ex.target === "Triceps") : ex.target === category);
