@@ -1799,7 +1799,6 @@ async function openEditProgramModal(idx) {
         programData.routine[idx].name = existingNameInput.value.trim();
     }
     const pass = programData.routine[idx];
-    const pass = programData.routine[idx];
     const body = document.getElementById("modal-body");
     if (!pass || !body) return;
     const savedDraft = localStorage.getItem('temp_exercise_edit_draft');
