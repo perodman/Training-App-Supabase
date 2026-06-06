@@ -888,10 +888,10 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
         </div>
         <div style="
             position: relative; overflow: hidden;
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-            border: none; border-left: 4px solid ${isRest ? '#fde047' : '#22d3ee'};
+            background: linear-gradient(135deg, rgba(16,44,30,0.9) 0%, rgba(10,26,18,0.95) 100%);
+            border: none; border-left: 4px solid ${isRest ? '#fde047' : '#22c55e'};
             border-radius: 22px; padding: 18px 20px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+            box-shadow: 0 8px 25px rgba(34,197,94,0.12);
         ">
             <div style="position:absolute; top:0; left:0; right:0; height:1px; background: linear-gradient(90deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 100%);"></div>
             <div style="position:absolute; bottom:0; left:0; right:0; height:1px; background: linear-gradient(90deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 100%);"></div>
