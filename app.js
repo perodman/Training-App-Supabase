@@ -1875,7 +1875,14 @@ async function openEditProgramModal(idx) {
         if (typeof renderExercisePickerForEdit === 'function') {
             renderExercisePickerForEdit(idx, "Legs");
         }
-    }, 0);
+        // Scrolla till övningslistan om det finns övningar
+        if (pass.exercises.length > 0) {
+            const exercisesSection = document.getElementById("edit-pass-exercises");
+            if (exercisesSection) {
+                exercisesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+    }, 50);
 }
 
 function renderExercisePickerForEdit(idx, category = "Ben") {
