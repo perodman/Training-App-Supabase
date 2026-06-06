@@ -900,7 +900,6 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
                         <span style="font-size:9px; color:${isRest ? '#fde047' : '#22d3ee'}; text-transform:uppercase; letter-spacing:2px; font-weight:700;">${isRest ? 'Recovery day' : 'Planned workout'}</span>
                     </div>
                 </div>
-                ${planned ? `<span style="color:rgba(34,211,238,0.6); font-size:22px;">→</span>` : ''}
             </div>
 
             <div id="day-manager-action-btn-container" style="display:flex; flex-direction:column; gap:8px;">
@@ -911,7 +910,9 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
                     color:#fff; font-weight:900; font-size:14px; cursor:pointer;
                     text-transform:uppercase; letter-spacing:0.5px;
                     box-shadow: 0 4px 15px rgba(34,197,94,0.3);
-                    animation: buttonPulse 2s infinite alternate;">
+                    transition: filter 0.3s ease;"
+                    onmouseenter="this.style.filter='brightness(1.15)'"
+                    onmouseleave="this.style.filter='brightness(1)'">
                     Start Workout 🔥
                 </button>` : ''}
                 <button onclick="closeModal(); startFreeWorkoutOnDate('${dateStr}')"
@@ -1027,15 +1028,6 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
     }
 
     body.innerHTML = html;
-
-    // Öppna gruppen med det valda passet automatiskt
-    if (!isOngoing && !hasCompleted && planned) {
-        const plannedPass = programData.routine.find(p => p.id === planned.id);
-        if (plannedPass && Array.isArray(plannedPass.groups) && plannedPass.groups.length > 0) {
-            setTimeout(() => toggleDayManagerGroup(plannedPass.groups[0]), 50);
-        }
-    }
-
     openModal();
 }
 
@@ -1080,10 +1072,20 @@ function setOverrideSilent(dateStr, programId) {
     // Uppdatera texten för planerad status
     const plannedLabel = document.getElementById("current-planned-label");
     if (plannedLabel) {
-        if (nextPlannedProgram) {
-            plannedLabel.innerHTML = `📋 <span class="status-highlight-text">${nextPlannedProgram.name}</span>`;
-        } else {
-            plannedLabel.innerHTML = '🧘 Rest Day';
+        const isRest = !nextPlannedProgram;
+        plannedLabel.innerHTML = `
+            <div style="display:flex; align-items:center; gap:14px;">
+                <div style="width:44px; height:44px; border-radius:14px; background:${isRest ? 'rgba(253,224,71,0.1)' : 'rgba(34,211,238,0.1)'}; border:1px solid ${isRest ? 'rgba(253,224,71,0.3)' : 'rgba(34,211,238,0.3)'}; display:flex; align-items:center; justify-content:center; font-size:22px;">${isRest ? '🧘' : '📋'}</div>
+                <div style="display:flex; flex-direction:column; gap:2px;">
+                    <span style="font-size:15px; font-weight:900; color:#fff; text-transform:uppercase; letter-spacing:0.5px;">${isRest ? 'Rest Day' : nextPlannedProgram.name}</span>
+                    <span style="font-size:9px; color:${isRest ? '#fde047' : '#22d3ee'}; text-transform:uppercase; letter-spacing:2px; font-weight:700;">${isRest ? 'Recovery day' : 'Planned workout'}</span>
+                </div>
+            </div>
+        `;
+        // Uppdatera också kantlinjens färg
+        const statusBox = plannedLabel.closest('div[style*="border-left"]');
+        if (statusBox) {
+            statusBox.style.borderLeft = `4px solid ${isRest ? '#fde047' : '#22d3ee'}`;
         }
     }
 
