@@ -432,7 +432,7 @@ function openEditExerciseModal(id) {
             // AUTOMATISERING: Spara det gamla namnet innan det skrivs över, och uppdatera historiken
             const oldName = masterExercises[exIndex].name;
             if (typeof updateExerciseNameInHistory === 'function') {
-                updateExerciseNameInHistory(oldName, nameInput);
+                await updateExerciseNameInHistory(oldName, nameInput);
             }
             // Din befintliga sparlogik
             masterExercises[exIndex].name = nameInput;
