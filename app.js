@@ -1210,7 +1210,7 @@ function renderGroupsView() {
         `;
         ungroupedCard.innerHTML = `
             <div style="font-size: 32px; margin-bottom: 10px;">📁</div>
-            <div style="font-weight: 800; font-size: 15px; color: var(--text-light); margin-bottom: 4px;">No Group</div>
+            <div style="font-weight: 800; font-size: 15px; color: var(--text-light); margin-bottom: 4px;">Other</div>
             <div style="font-size: 10px; color: var(--text-light); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; opacity: 0.6;">
                 ${ungroupedPasses.length} ${ungroupedPasses.length === 1 ? 'workout' : 'workouts'}
             </div>
@@ -1218,10 +1218,14 @@ function renderGroupsView() {
         ungroupedCard.onclick = () => renderPassesInGroup('__ungrouped__');
         selector.appendChild(ungroupedCard);
     }
-    const backBtn = document.getElementById("group-back-btn");
+   const backBtn = document.getElementById("group-back-btn");
     if (backBtn) backBtn.style.display = 'none';
     const detailsArea = document.getElementById("program-details-area");
     if (detailsArea) detailsArea.classList.add("hidden");
+    const addGroupBtn = document.getElementById("add-custom-group-btn");
+    if (addGroupBtn) addGroupBtn.style.display = 'block';
+    const addPassBtn = document.getElementById("add-custom-pass-btn");
+    if (addPassBtn) addPassBtn.style.display = 'block';
     showView("programs-view");
 }
 
@@ -1230,7 +1234,7 @@ function renderPassesInGroup(groupId) {
     if (!selector) return;
     const customGroups = programData.customGroups || [];
     const ALL_GROUPS = [...PREDEFINED_GROUPS, ...customGroups];
-    const groupDef = ALL_GROUPS.find(g => g.id === groupId) || { id: groupId, name: groupId === '__ungrouped__' ? 'No Group' : groupId, icon: groupId === '__ungrouped__' ? '📁' : '📁' };
+    const groupDef = ALL_GROUPS.find(g => g.id === groupId) || { id: groupId, name: groupId === '__ungrouped__' ? 'Other' : groupId, icon: groupId === '__ungrouped__' ? '📁' : '📁' };
     currentViewGroupId = groupId;
     const passesInGroup = groupId === '__ungrouped__'
         ? programData.routine.filter(p => !Array.isArray(p.groups) || p.groups.length === 0)
@@ -1309,7 +1313,7 @@ function renderPassesInGroup(groupId) {
                 <div style="font-size:28px;">${icons[passIdx % 4]}</div>
                 <h4 style="font-size: 14px; margin: 8px 0 4px 0; line-height: 1.3;">${pass.name}</h4>
                 <div style="font-size:10px; color:var(--primary); font-weight:800;">${pass.exercises.length} ${pass.exercises.length === 1 ? 'EXERCISE' : 'EXERCISES'}</div>
-                <div onclick="event.stopPropagation(); openGroupPickerForPass(${passIdx})"
+              <div onclick="event.stopPropagation(); openEditProgramModal(${passIdx})"
                     style="position: absolute; top: 6px; right: 6px; font-size: 12px; opacity: 0.6; cursor: pointer; padding: 2px 6px; border-radius: 6px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1);">✏️</div>
             `;
             passCard.onclick = () => {
@@ -1578,7 +1582,7 @@ async function confirmDeleteGroup(groupId) {
             <div style="font-size:40px; margin-bottom:15px;">🗑️</div>
             <h3 style="color:var(--danger); margin: 0 0 10px 0;">Delete Group?</h3>
             <p style="color:var(--text-light); margin-bottom:25px; font-size:14px; line-height:1.4;">
-                Workout Group will be deleted, but all workouts will remain — they will be moved to "No Group".
+                Workout Group will be deleted, but all workouts will remain — they will be moved to "Other".
             </p>
             <button class="mode-btn" onclick="deleteGroup('${groupId}')" 
                 style="width:100%; background:linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color:white; margin-bottom:12px; font-weight:700; padding:14px;">
@@ -1941,14 +1945,11 @@ if (!window.temporarySelectedExercisesForEdit) {
 }
 
 function openCreateProgramModal() {
-    const body = document.getElementById("modal-body");
-    body.innerHTML = `
-        <h3>Create New Workout</h3>
-        <label style="font-size:12px; color:var(--text-light); text-align:center; display:block; margin-left:10px;">WORKOUT NAME</label>
-        <input type="text" id="new-pass-name" class="log-input" placeholder="e.g. Upper Body Deluxe">
-        <button class="mode-btn blue" onclick="saveNewProgram()">+ Add Workout</button>
-    `;
-    openModal();
+    const newPass = { id: "pass-" + Date.now(), name: "New Workout", exercises: [], groups: currentViewGroupId && currentViewGroupId !== '__ungrouped__' ? [currentViewGroupId] : [] };
+    programData.routine.push(newPass);
+    saveCustomProgramToSupabase();
+    const newIdx = programData.routine.length - 1;
+    openEditProgramModal(newIdx);
 }
 
 async function updateExerciseNameInHistory(oldName, newName) {
@@ -2000,6 +2001,47 @@ async function updateExerciseNameInHistory(oldName, newName) {
         }
     } catch (error) {
         console.error('Error updating exercise name in history:', error);
+    }
+}
+
+async function updateWorkoutNameInHistory(oldName, newName) {
+    if (!oldName || !newName || oldName === newName) return;
+    try {
+        const { data: historyData, error: fetchError } = await supabaseClient
+            .from('workout_history')
+            .select('*')
+            .eq('user_id', currentUser.id);
+        if (fetchError) throw fetchError;
+        let updatedCount = 0;
+        const updatedWorkouts = [];
+        historyData.forEach(workout => {
+            if (workout.workout_data && workout.workout_data.programName === oldName) {
+                workout.workout_data.programName = newName;
+                updatedWorkouts.push(workout);
+                updatedCount++;
+            }
+        });
+        for (const workout of updatedWorkouts) {
+            const { error: updateError } = await supabaseClient
+                .from('workout_history')
+                .update({ workout_data: workout.workout_data })
+                .eq('id', workout.id)
+                .eq('user_id', currentUser.id);
+            if (updateError) throw updateError;
+        }
+        if (updatedCount > 0) {
+            workoutHistory = historyData.map(w => ({
+                id: w.id,
+                date: w.workout_date,
+                programName: w.workout_data.programName,
+                totalTime: w.workout_data.totalTime,
+                exercises: w.workout_data.exercises || []
+            }));
+            localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
+            console.log(`Historiken uppdaterad: Ändrade "${oldName}" till "${newName}" på ${updatedCount} pass.`);
+        }
+    } catch (error) {
+        console.error('Error updating workout name in history:', error);
     }
 }
 
