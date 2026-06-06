@@ -878,9 +878,14 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
     }
 
     // 3. Status + Start Workout — Problem 4: samma stil som startsidan
-    if (!isOngoing && !hasCompleted) {
+       if (!isOngoing && !hasCompleted) {
         const isRest = !planned;
         html += `
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="flex-grow: 1; height: 1px; background: rgba(255,255,255,0.08);"></div>
+            <span style="font-size: 10px; text-transform: uppercase; color: var(--text-light); font-weight: 700; letter-spacing: 1px; white-space: nowrap;">Status</span>
+            <div style="flex-grow: 1; height: 1px; background: rgba(255,255,255,0.08);"></div>
+        </div>
         <div style="
             position: relative; overflow: hidden;
             background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
@@ -945,7 +950,7 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
         const ungrouped = programData.routine.filter(p => !Array.isArray(p.groups) || p.groups.length === 0);
 
         html += `
-        <div style="display: flex; align-items: center; gap: 10px;">
+        <div style="display: flex; align-items: center; gap: 10px; margin-top: 8px;">
             <div style="flex-grow: 1; height: 1px; background: rgba(255,255,255,0.08);"></div>
             <span style="font-size: 10px; text-transform: uppercase; color: var(--text-light); font-weight: 700; letter-spacing: 1px; white-space: nowrap;">Edit Plan</span>
             <div style="flex-grow: 1; height: 1px; background: rgba(255,255,255,0.08);"></div>
