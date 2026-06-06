@@ -1178,7 +1178,7 @@ function setOverrideSilent(dateStr, programId) {
                 selectedBtn.textContent = '✓ ' + name;
             }
         }
-    }
+    
 
     // 4. KÖR SUPABASE-SYNK I BAKGRUNDEN
     setTimeout(async () => {
