@@ -157,9 +157,10 @@ function closeModal() {
             const hasContent = (tempPass.exercises && tempPass.exercises.length > 0) || 
                                (tempPass.name && tempPass.name !== '' && tempPass.name !== 'New Workout');
 
-            if (hasContent) {
+                    if (hasContent) {
                 // Visa bekräftelsedialog
                 document.getElementById("workout-modal").classList.remove("hidden");
+                if (typeof hideDefaultCloseButton === 'function') hideDefaultCloseButton(true);
                 const body = document.getElementById("modal-body");
                 body.innerHTML = `
                     <div style="text-align:center; padding:10px;">
@@ -168,7 +169,7 @@ function closeModal() {
                             justify-content: center; font-size: 26px; margin: 0 auto 16px auto;">💾</div>
                         <h3 style="margin: 0 0 10px 0; font-size: 20px; font-weight: 900; color: #fff;">Save your workout?</h3>
                         <p style="color: var(--text-light); font-size: 14px; line-height: 1.5; margin-bottom: 24px;">
-                            You have unsaved changes. What would you like to do?
+                            Unsaved changes. What would you like to do?
                         </p>
                         <button class="mode-btn blue" onclick="saveProgramEdit(${tempIdx})" 
                             style="width:100%; flex-direction: row; gap: 8px; padding: 14px; margin-bottom: 10px;">
@@ -181,6 +182,7 @@ function closeModal() {
                         </button>
                         <button class="btn-danger" onclick="
                             programData.routine.splice(${tempIdx}, 1);
+                            if (typeof hideDefaultCloseButton === 'function') hideDefaultCloseButton(false);
                             document.getElementById('workout-modal').classList.add('hidden');
                             if (typeof restoreDraftState === 'function') restoreDraftState();
                             if (currentViewGroupId) {
