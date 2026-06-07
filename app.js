@@ -148,17 +148,12 @@ function closeModal() {
     if (typeof hideDefaultCloseButton === 'function') {
         hideDefaultCloseButton(false);
     }
-
-    // PRIORITET 1: Om vi är på väg tillbaka till edit-vyn, gör det direkt
-    // utan att kontrollera _isTemp eller restoreDraftState
     if (typeof window._returnToEditIdx !== 'undefined' && window._returnToEditIdx !== null) {
         const idx = window._returnToEditIdx;
         window._returnToEditIdx = null;
         openEditProgramModal(idx);
         return;
     }
-
-    // PRIORITET 2: Kontrollera temporära pass först efter att _returnToEditIdx är hanterat
     if (typeof programData !== 'undefined' && programData && programData.routine) {
         const tempIdx = programData.routine.findIndex(p => p._isTemp);
         if (tempIdx !== -1) {
@@ -208,7 +203,6 @@ function closeModal() {
             }
         }
     }
-
     if (typeof restoreDraftState === 'function') {
         restoreDraftState();
     }
