@@ -862,31 +862,32 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
         });
     }
 
-    // 2. Ongoing workout
-    if (isOngoing && typeof activeDraft !== 'undefined' && activeDraft) {
-        html += `
-        <div style="
-            position: relative; overflow: hidden;
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-            border: none; border-left: 4px solid #f59e0b;
-            border-radius: 22px; padding: 18px 20px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
-            display: flex; align-items: center; justify-content: space-between;
-        ">
-            <div style="position:absolute; top:0; left:0; right:0; height:1px; background: linear-gradient(90deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 100%);"></div>
-            <div style="position:absolute; bottom:0; left:0; right:0; height:1px; background: linear-gradient(90deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 100%);"></div>
-            <div style="position:absolute; top:0; right:0; bottom:0; width:1px; background: linear-gradient(180deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 100%);"></div>
-            <div style="display:flex; align-items:center; gap:14px;">
-                <div style="width:44px; height:44px; border-radius:14px; background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.3); display:flex; align-items:center; justify-content:center; font-size:22px;">🔥</div>
-                <div style="display:flex; flex-direction:column; gap:2px;">
-                    <span style="font-size:15px; font-weight:900; color:#fff; text-transform:uppercase; letter-spacing:0.5px;">Ongoing Workout</span>
-                    <span style="font-size:9px; color:#f59e0b; text-transform:uppercase; letter-spacing:2px; font-weight:700;">Tap to continue</span>
-                </div>
+   // 2. Ongoing workout
+if (isOngoing && typeof activeDraft !== 'undefined' && activeDraft) {
+    html += `
+    <div onclick="showView('workout-view'); startWorkout(activeDraft.workout, activeDraft.data, activeDraft.date); setTimeout(() => closeModal(), 0)"
+        style="
+        position: relative; overflow: hidden;
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        border: none; border-left: 4px solid #f59e0b;
+        border-radius: 22px; padding: 18px 20px;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+        display: flex; align-items: center; justify-content: space-between;
+        cursor: pointer;
+    ">
+        <div style="position:absolute; top:0; left:0; right:0; height:1px; background: linear-gradient(90deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 100%);"></div>
+        <div style="position:absolute; bottom:0; left:0; right:0; height:1px; background: linear-gradient(90deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 100%);"></div>
+        <div style="position:absolute; top:0; right:0; bottom:0; width:1px; background: linear-gradient(180deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 100%);"></div>
+        <div style="display:flex; align-items:center; gap:14px;">
+            <div style="width:44px; height:44px; border-radius:14px; background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.3); display:flex; align-items:center; justify-content:center; font-size:22px;">🔥</div>
+            <div style="display:flex; flex-direction:column; gap:2px;">
+                <span style="font-size:15px; font-weight:900; color:#fff; text-transform:uppercase; letter-spacing:0.5px;">Ongoing Workout</span>
+                <span style="font-size:9px; color:#f59e0b; text-transform:uppercase; letter-spacing:2px; font-weight:700;">Tap to continue</span>
             </div>
-            <button onclick="showView('workout-view'); startWorkout(activeDraft.workout, activeDraft.data, activeDraft.date); setTimeout(() => closeModal(), 0)"
-                style="background:none; border:none; cursor:pointer; color:rgba(245,158,11,0.7); font-size:22px; padding:0;">→</button>
-        </div>`;
-    }
+        </div>
+        <span style="color:rgba(245,158,11,0.6); font-size:22px;">→</span>
+    </div>`;
+}
 
     // 3. Status + Start Workout — Problem 4: samma stil som startsidan
        if (!isOngoing && !hasCompleted) {
