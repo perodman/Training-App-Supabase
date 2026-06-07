@@ -144,49 +144,50 @@ function showView(id) {
 function closeModal() {
     document.getElementById("workout-modal").classList.add("hidden");
     const video = document.querySelector("#modal-body video");
-    if(video) video.pause();
+    if (video) video.pause();
     if (typeof hideDefaultCloseButton === 'function') {
         hideDefaultCloseButton(false);
     }
+
     if (typeof window._returnToEditIdx !== 'undefined' && window._returnToEditIdx !== null) {
         const idx = window._returnToEditIdx;
         window._returnToEditIdx = null;
         openEditProgramModal(idx);
         return;
     }
+
     if (typeof programData !== 'undefined' && programData && programData.routine) {
         const tempIdx = programData.routine.findIndex(p => p._isTemp);
         if (tempIdx !== -1) {
             const tempPass = programData.routine[tempIdx];
-            const hasContent = (tempPass.exercises && tempPass.exercises.length > 0) || 
-                               (tempPass.name && tempPass.name !== '' && tempPass.name !== 'New Workout');
+            const hasContent = (tempPass.exercises && tempPass.exercises.length > 0) ||
+                (tempPass.name && tempPass.name !== '' && tempPass.name !== 'New Workout');
             if (hasContent) {
                 document.getElementById("workout-modal").classList.remove("hidden");
                 if (typeof hideDefaultCloseButton === 'function') hideDefaultCloseButton(true);
                 const body = document.getElementById("modal-body");
                 body.innerHTML = `
                     <div style="text-align:center; padding:10px;">
-                        <div style="width: 56px; height: 56px; border-radius: 16px; background: rgba(34,211,238,0.1); 
-                            border: 1px solid rgba(34,211,238,0.3); display: flex; align-items: center; 
-                            justify-content: center; font-size: 26px; margin: 0 auto 16px auto;">💾</div>
-                        <h3 style="margin: 0 0 10px 0; font-size: 20px; font-weight: 900; color: #fff;">Save your workout?</h3>
-                        <p style="color: var(--text-light); font-size: 14px; line-height: 1.5; margin-bottom: 24px;">
+                        <div style="width:56px; height:56px; border-radius:16px; background:rgba(34,211,238,0.1); 
+                            border:1px solid rgba(34,211,238,0.3); display:flex; align-items:center; 
+                            justify-content:center; font-size:26px; margin:0 auto 16px auto;">💾</div>
+                        <h3 style="margin:0 0 10px 0; font-size:20px; font-weight:900; color:#fff;">Save your workout?</h3>
+                        <p style="color:var(--text-light); font-size:14px; line-height:1.5; margin-bottom:24px;">
                             Unsaved changes. What would you like to do?
                         </p>
-                        <button class="mode-btn blue" onclick="saveProgramEdit(${tempIdx})" 
-                            style="width:100%; flex-direction: row; gap: 8px; padding: 14px; margin-bottom: 10px;">
+                        <button class="mode-btn blue" onclick="saveProgramEdit(${tempIdx})"
+                            style="width:100%; flex-direction:row; gap:8px; padding:14px; margin-bottom:10px;">
                             💾 Save Workout
                         </button>
                         <button class="mode-btn glass-border" onclick="openEditProgramModal(${tempIdx})"
-                            style="width:100%; margin-bottom: 10px; background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.05) 100%); 
-                            border: 1px solid rgba(255,255,255,0.25); border-top: 1px solid rgba(255,255,255,0.45);">
+                            style="width:100%; margin-bottom:10px; background:linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.05) 100%); 
+                            border:1px solid rgba(255,255,255,0.25); border-top:1px solid rgba(255,255,255,0.45);">
                             Continue Editing
                         </button>
                         <button class="btn-danger" onclick="
                             programData.routine.splice(${tempIdx}, 1);
                             if (typeof hideDefaultCloseButton === 'function') hideDefaultCloseButton(false);
                             document.getElementById('workout-modal').classList.add('hidden');
-                            if (typeof restoreDraftState === 'function') restoreDraftState();
                             if (currentViewGroupId) {
                                 renderPassesInGroup(currentViewGroupId);
                             } else {
@@ -202,17 +203,6 @@ function closeModal() {
                 programData.routine.splice(tempIdx, 1);
             }
         }
-    }
-    if (typeof restoreDraftState === 'function') {
-        restoreDraftState();
-    }
-}
-
-    if (typeof window._returnToEditIdx !== 'undefined' && window._returnToEditIdx !== null) {
-        const idx = window._returnToEditIdx;
-        window._returnToEditIdx = null;
-        openEditProgramModal(idx);
-        return;
     }
 
     if (typeof restoreDraftState === 'function') {
