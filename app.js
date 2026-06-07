@@ -2750,11 +2750,17 @@ function initDragAndDrop() {
                    await persistActiveWorkout();
                     setTimeout(() => {
                         const list = document.getElementById("exercise-list");
-                        if (list) list.style.visibility = 'hidden';
+                        if (list) {
+                            list.style.opacity = '0';
+                            list.style.transition = 'none';
+                        }
                         renderActiveWorkout();
                         requestAnimationFrame(() => {
                             requestAnimationFrame(() => {
-                                if (list) list.style.visibility = 'visible';
+                                if (list) {
+                                    list.style.transition = 'opacity 0.15s ease';
+                                    list.style.opacity = '1';
+                                }
                                 initDragAndDrop();
                             });
                         });
