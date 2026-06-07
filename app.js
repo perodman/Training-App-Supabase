@@ -2728,6 +2728,24 @@ function initDragAndDrop() {
                 setTimeout(() => { window._isDragging = false; }, 300);
 
                 if (newIdx !== draggedIdx) {
+                    // Uppdatera data FÖRST, synkront
+                    const exArr = activeDraft.workout.exercises;
+                    const dataArr = activeDraft.data;
+                    const [movedEx] = exArr.splice(draggedIdx, 1);
+                    const [movedData] = dataArr.splice(draggedIdx, 1);
+                    exArr.splice(newIdx, 0, movedEx);
+                    dataArr.splice(newIdx, 0, movedData);
+
+                    if (activeDraft.ui_state && activeDraft.ui_state.openExercises) {
+                        activeDraft.ui_state.openExercises = activeDraft.ui_state.openExercises.map(idx => {
+                            if (idx === draggedIdx) return newIdx;
+                            if (draggedIdx < newIdx && idx > draggedIdx && idx <= newIdx) return idx - 1;
+                            if (draggedIdx > newIdx && idx < draggedIdx && idx >= newIdx) return idx + 1;
+                            return idx;
+                        });
+                    }
+
+                    // Sedan DOM-flytt
                     await new Promise(resolve => requestAnimationFrame(resolve));
 
                     if (newIdx > draggedIdx) {
@@ -2739,13 +2757,6 @@ function initDragAndDrop() {
                     Array.from(list.querySelectorAll("[id^='exercise-card-']")).forEach((c, idx) => {
                         c.id = `exercise-card-${idx}`;
                     });
-
-                    const exArr = activeDraft.workout.exercises;
-                    const dataArr = activeDraft.data;
-                    const [movedEx] = exArr.splice(draggedIdx, 1);
-                    const [movedData] = dataArr.splice(draggedIdx, 1);
-                    exArr.splice(newIdx, 0, movedEx);
-                    dataArr.splice(newIdx, 0, movedData);
 
                     if (activeDraft.ui_state && activeDraft.ui_state.openExercises) {
                         activeDraft.ui_state.openExercises = activeDraft.ui_state.openExercises.map(idx => {
