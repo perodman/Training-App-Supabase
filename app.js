@@ -2575,10 +2575,7 @@ const div = document.createElement("div");
                 <div style="position:absolute; bottom:0; left:0; right:0; height:1px; background: linear-gradient(90deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.03) 100%); pointer-events:none; z-index:2;"></div>
                 <div style="position:absolute; top:0; right:0; bottom:0; width:1px; background: linear-gradient(180deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0) 100%); pointer-events:none; z-index:2;"></div>
                 <div onclick="toggleExercise(${i})" style="padding: 12px 15px; display: flex; align-items: center; cursor: pointer; background: ${isOpen ? 'rgba(250, 204, 21, 0.05)' : 'transparent'}">
-                    <div style="display: flex; gap: 4px; margin-right: 12px; flex-shrink: 0;">
-                        <button class="reorder-btn" onclick="event.stopPropagation(); moveActiveExercise(${i}, -1)" ${isDone ? 'disabled' : ''} style="padding: 4px 6px; font-size: 10px;"> ▲ </button>
-                        <button class="reorder-btn" onclick="event.stopPropagation(); moveActiveExercise(${i}, 1)" ${isDone ? 'disabled' : ''} style="padding: 4px 6px; font-size: 10px;"> ▼ </button>
-                    </div>
+                <div style="width: 8px; flex-shrink: 0;"></div>
                     <div style="display: flex; flex-direction: column; min-width:0; flex-grow:1;">
                         <strong style="font-size: 14px; color: ${isDone ? 'var(--text-light)' : 'var(--text)'}; text-decoration: ${isDone ? 'line-through' : 'none'}; white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">
                             ${ex.name}
@@ -3300,10 +3297,7 @@ function updateSingleExerciseCard(exIdx) {
         <div style="position:absolute; bottom:0; left:0; right:0; height:1px; background: linear-gradient(90deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.03) 100%); pointer-events:none; z-index:2;"></div>
         <div style="position:absolute; top:0; right:0; bottom:0; width:1px; background: linear-gradient(180deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0) 100%); pointer-events:none; z-index:2;"></div>
         <div onclick="toggleExercise(${exIdx})" style="padding: 12px 15px; display: flex; align-items: center; cursor: pointer; background: ${isOpen ? 'rgba(250, 204, 21, 0.05)' : 'transparent'}">
-            <div style="display: flex; gap: 4px; margin-right: 12px; flex-shrink: 0;">
-                <button class="reorder-btn" onclick="event.stopPropagation(); moveActiveExercise(${exIdx}, -1)" ${isDone ? 'disabled' : ''} style="padding: 4px 6px; font-size: 10px;"> ▲ </button>
-                <button class="reorder-btn" onclick="event.stopPropagation(); moveActiveExercise(${exIdx}, 1)" ${isDone ? 'disabled' : ''} style="padding: 4px 6px; font-size: 10px;"> ▼ </button>
-            </div>
+        <div style="width: 8px; flex-shrink: 0;"></div>
             <div style="display: flex; flex-direction: column; min-width:0; flex-grow:1;">
                 <strong style="font-size: 14px; color: ${isDone ? 'var(--text-light)' : 'var(--text)'}; text-decoration: ${isDone ? 'line-through' : 'none'}; white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">
                     ${ex.name}
