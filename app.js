@@ -2050,11 +2050,13 @@ async function openEditProgramModal(idx) {
                 <div style="font-size:13px; color:var(--text-light); opacity:0.6;">No exercises added yet — use the section above</div>
             </div>
         ` : pass.exercises.map((ex, i) => `
-            <div class="edit-item-row">
-                <div style="display:flex; gap:8px;">
-                    <button class="reorder-btn" onclick="moveExercise(${idx}, ${i}, -1)"> ▲ </button>
-                    <button class="reorder-btn" onclick="moveExercise(${idx}, ${i}, 1)"> ▼ </button>
-                </div>
+            <div class="edit-item-row" id="edit-ex-row-${i}" style="cursor: default;">
+                <div class="edit-drag-handle" style="
+                    width: 28px; height: 28px; border-radius: 8px;
+                    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+                    display: flex; align-items: center; justify-content: center;
+                    cursor: grab; font-size: 14px; color: rgba(255,255,255,0.4);
+                    flex-shrink: 0;">⠿</div>
                 <span style="flex-grow:1; margin-left:15px; font-size:14px; font-weight:600;">${ex.name}</span>
                 <button onclick="removeExFromPass(${idx}, ${i})" style="color:var(--danger); background:none; border:none; font-size:18px;">✖</button>
             </div>`).join("")}
@@ -2101,6 +2103,8 @@ async function openEditProgramModal(idx) {
         if (typeof renderExercisePickerForEdit === 'function') {
             renderExercisePickerForEdit(idx, "Legs");
         }
+        // Initiera drag-and-drop för Current Exercises
+        initEditExerciseDragAndDrop(idx);
         if (typeof window._savedEditScrollPos !== 'undefined' && window._savedEditScrollPos > 0) {
             const mc = document.querySelector('.modal-content');
             if (mc) mc.scrollTop = window._savedEditScrollPos;
@@ -2670,7 +2674,7 @@ function initDragAndDrop() {
         const header = card.querySelector('div[onclick^="toggleExercise"]');
         if (header) {
             header.style.position = "relative";
-            header.appendChild(handle);
+            header.insertBefore(handle, header.firstChild);
         }
         let currentOrder = [...cards];
         const cardHeight = () => card.offsetHeight + 12;
@@ -4272,4 +4276,83 @@ function confirmDeleteWorkoutFromPicker(passIdx) {
             </button>
         </div>
     `;
+}
+
+function initEditExerciseDragAndDrop(passIdx) {
+    const container = document.getElementById("edit-pass-exercises");
+    if (!container || typeof gsap === 'undefined' || typeof Draggable === 'undefined') return;
+
+    const rows = Array.from(container.querySelectorAll("[id^='edit-ex-row-']"));
+    if (rows.length === 0) return;
+
+    rows.forEach((row) => {
+        const handle = row.querySelector('.edit-drag-handle');
+        if (!handle) return;
+
+        let currentOrder = [...rows];
+        const rowHeight = () => row.offsetHeight + 10;
+
+        Draggable.create(row, {
+            type: "y",
+            trigger: handle,
+            bounds: container,
+            zIndexBoost: false,
+            onDragStart: function() {
+                currentOrder = Array.from(container.querySelectorAll("[id^='edit-ex-row-']"));
+                gsap.to(row, { scale: 1.02, boxShadow: "0 10px 30px rgba(0,0,0,0.5)", duration: 0.2 });
+                gsap.set(row, { zIndex: 100 });
+            },
+            onDrag: function() {
+                const draggedIdx = currentOrder.indexOf(row);
+                const movedSteps = Math.round(this.y / rowHeight());
+                currentOrder.forEach((otherRow, otherIdx) => {
+                    if (otherRow === row) return;
+                    const diff = otherIdx - draggedIdx;
+                    if (movedSteps > 0 && diff > 0 && diff <= movedSteps) {
+                        gsap.to(otherRow, { y: -rowHeight(), duration: 0.2, ease: "power2.out" });
+                    } else if (movedSteps < 0 && diff < 0 && diff >= movedSteps) {
+                        gsap.to(otherRow, { y: rowHeight(), duration: 0.2, ease: "power2.out" });
+                    } else {
+                        gsap.to(otherRow, { y: 0, duration: 0.2, ease: "power2.out" });
+                    }
+                });
+            },
+            onDragEnd: async function() {
+                const draggedIdx = currentOrder.indexOf(row);
+                const movedSteps = Math.round(this.y / rowHeight());
+                let newIdx = Math.max(0, Math.min(currentOrder.length - 1, draggedIdx + movedSteps));
+
+                gsap.killTweensOf(row);
+                currentOrder.forEach(r => {
+                    gsap.killTweensOf(r);
+                    gsap.set(r, { clearProps: "transform,zIndex,scale,boxShadow,opacity" });
+                });
+
+                if (newIdx !== draggedIdx) {
+                    // Uppdatera data synkront först
+                    const exercises = programData.routine[passIdx].exercises;
+                    const [moved] = exercises.splice(draggedIdx, 1);
+                    exercises.splice(newIdx, 0, moved);
+
+                    // DOM-flytt
+                    await new Promise(resolve => requestAnimationFrame(resolve));
+
+                    if (newIdx > draggedIdx) {
+                        container.insertBefore(row, currentOrder[newIdx].nextSibling);
+                    } else {
+                        container.insertBefore(row, currentOrder[newIdx]);
+                    }
+
+                    // Uppdatera id och onclick
+                    Array.from(container.querySelectorAll("[id^='edit-ex-row-']")).forEach((r, i) => {
+                        r.id = `edit-ex-row-${i}`;
+                        const removeBtn = r.querySelector('button[onclick*="removeExFromPass"]');
+                        if (removeBtn) removeBtn.setAttribute('onclick', `removeExFromPass(${passIdx}, ${i})`);
+                    });
+
+                    saveCustomProgramToSupabase();
+                }
+            }
+        });
+    });
 }
