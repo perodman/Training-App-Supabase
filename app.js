@@ -2660,75 +2660,76 @@ function initDragAndDrop() {
     const cards = Array.from(list.querySelectorAll("[id^='exercise-card-']"));
     if (cards.length === 0) return;
 
+    // Ta bort gamla handtag
+    list.querySelectorAll('.drag-handle').forEach(h => h.remove());
+
     cards.forEach((card, i) => {
-        // Lägg till drag-handtag
         const handle = document.createElement("div");
         handle.style.cssText = `
-            position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
             width: 28px; height: 28px; border-radius: 8px;
             background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
             display: flex; align-items: center; justify-content: center;
-            cursor: grab; z-index: 10; font-size: 12px; color: rgba(255,255,255,0.3);
+            cursor: grab; z-index: 10; font-size: 14px; color: rgba(255,255,255,0.4);
+            flex-shrink: 0;
         `;
         handle.innerHTML = "⠿";
         handle.className = "drag-handle";
-        card.style.position = "relative";
-        card.appendChild(handle);
+
+        // Lägg handtaget i header-raden istället för absolut
+        const header = card.querySelector('div[onclick^="toggleExercise"]');
+        if (header) {
+            header.style.position = "relative";
+            header.appendChild(handle);
+        }
+
+        let startY = 0;
+        let currentOrder = [...cards];
+        const cardHeight = () => card.offsetHeight + 12;
 
         Draggable.create(card, {
             type: "y",
             trigger: handle,
             bounds: list,
+            zIndexBoost: false,
             onDragStart: function() {
+                startY = this.y;
+                currentOrder = Array.from(list.querySelectorAll("[id^='exercise-card-']"));
                 gsap.to(card, {
-                    scale: 1.03,
-                    boxShadow: "0 16px 40px rgba(0,0,0,0.5)",
+                    scale: 1.02,
+                    boxShadow: "0 20px 50px rgba(0,0,0,0.6)",
                     duration: 0.2,
                     ease: "power2.out"
                 });
-                card.style.zIndex = 100;
-                card.style.position = "relative";
+                gsap.set(card, { zIndex: 100 });
             },
             onDrag: function() {
-                const draggedIdx = cards.indexOf(card);
-                const cardHeight = card.offsetHeight + 12; // 12 = gap
-                const dragY = this.y;
+                const draggedIdx = currentOrder.indexOf(card);
+                const movedSteps = Math.round(this.y / cardHeight());
 
-                cards.forEach((otherCard, otherIdx) => {
+                currentOrder.forEach((otherCard, otherIdx) => {
                     if (otherCard === card) return;
                     const diff = otherIdx - draggedIdx;
-                    const threshold = cardHeight * 0.5;
-
-                    if (diff > 0 && dragY > threshold * diff) {
-                        gsap.to(otherCard, { y: -cardHeight, duration: 0.2, ease: "power2.out" });
-                    } else if (diff < 0 && dragY < threshold * diff) {
-                        gsap.to(otherCard, { y: cardHeight, duration: 0.2, ease: "power2.out" });
+                    
+                    if (movedSteps > 0 && diff > 0 && diff <= movedSteps) {
+                        gsap.to(otherCard, { y: -cardHeight(), duration: 0.2, ease: "power2.out" });
+                    } else if (movedSteps < 0 && diff < 0 && diff >= movedSteps) {
+                        gsap.to(otherCard, { y: cardHeight(), duration: 0.2, ease: "power2.out" });
                     } else {
                         gsap.to(otherCard, { y: 0, duration: 0.2, ease: "power2.out" });
                     }
                 });
             },
             onDragEnd: async function() {
-                const draggedIdx = cards.indexOf(card);
-                const cardHeight = card.offsetHeight + 12;
-                const dragY = this.y;
-                let newIdx = draggedIdx + Math.round(dragY / cardHeight);
-                newIdx = Math.max(0, Math.min(cards.length - 1, newIdx));
+                const draggedIdx = currentOrder.indexOf(card);
+                const movedSteps = Math.round(this.y / cardHeight());
+                let newIdx = Math.max(0, Math.min(currentOrder.length - 1, draggedIdx + movedSteps));
 
-                // Återställ visuellt
-                gsap.to(card, {
-                    scale: 1,
-                    boxShadow: "none",
-                    y: 0,
-                    duration: 0.25,
-                    ease: "power2.out"
-                });
-                cards.forEach(c => gsap.to(c, { y: 0, duration: 0.25 }));
-                card.style.zIndex = "";
+                // Återställ alla visuella transforms direkt
+                gsap.set(card, { zIndex: "", scale: 1, boxShadow: "none", y: 0 });
+                currentOrder.forEach(c => gsap.set(c, { y: 0 }));
 
-                // Uppdatera data om positionen ändrats
                 if (newIdx !== draggedIdx) {
-                    // Flytta i activeDraft
+                    // Uppdatera data
                     const exArr = activeDraft.workout.exercises;
                     const dataArr = activeDraft.data;
                     const [movedEx] = exArr.splice(draggedIdx, 1);
@@ -2747,15 +2748,16 @@ function initDragAndDrop() {
                     }
 
                     await persistActiveWorkout();
-                    renderActiveWorkout();
-                    // Återinitiera drag efter omritning
-                    setTimeout(() => initDragAndDrop(), 100);
+                    // Liten fördröjning så gsap.set hinner appliceras innan omritning
+                    setTimeout(() => {
+                        renderActiveWorkout();
+                        setTimeout(() => initDragAndDrop(), 80);
+                    }, 50);
                 }
             }
         });
     });
 }
-
 
 
 function openCustomAddExerciseModal() {
