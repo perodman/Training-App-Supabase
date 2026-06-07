@@ -2688,6 +2688,7 @@ function initDragAndDrop() {
             bounds: list,
             zIndexBoost: false,
             onDragStart: function() {
+                window._isDragging = true;
                 currentOrder = Array.from(list.querySelectorAll("[id^='exercise-card-']"));
                 gsap.to(card, {
                     scale: 1.02,
@@ -2717,30 +2718,28 @@ function initDragAndDrop() {
                 const movedSteps = Math.round(this.y / cardHeight());
                 let newIdx = Math.max(0, Math.min(currentOrder.length - 1, draggedIdx + movedSteps));
 
-               // Stoppa alla animationer och rensa transforms INNAN DOM-flytt
                 gsap.killTweensOf(card);
                 currentOrder.forEach(c => {
                     gsap.killTweensOf(c);
                     gsap.set(c, { clearProps: "transform,zIndex,scale,boxShadow,opacity" });
                 });
 
+                // Fördröj återställning av _isDragging så klick-eventet hinner passera
+                setTimeout(() => { window._isDragging = false; }, 300);
+
                 if (newIdx !== draggedIdx) {
-                    // Vänta en frame så clearProps hinner appliceras
                     await new Promise(resolve => requestAnimationFrame(resolve));
 
-                    // DOM-flytt
                     if (newIdx > draggedIdx) {
                         list.insertBefore(card, currentOrder[newIdx].nextSibling);
                     } else {
                         list.insertBefore(card, currentOrder[newIdx]);
                     }
 
-                    // Uppdatera id
                     Array.from(list.querySelectorAll("[id^='exercise-card-']")).forEach((c, idx) => {
                         c.id = `exercise-card-${idx}`;
                     });
 
-                    // Uppdatera data
                     const exArr = activeDraft.workout.exercises;
                     const dataArr = activeDraft.data;
                     const [movedEx] = exArr.splice(draggedIdx, 1);
@@ -2772,8 +2771,8 @@ function openCustomAddExerciseModal() {
 }
 
 async function toggleExercise(index) {
+    if (window._isDragging) return;
     const scrollPos = window.scrollY;
-    console.log("toggleExercise - data before:", JSON.stringify(activeDraft.data.map(d => d.sets_data)));
     if (!activeDraft.ui_state) activeDraft.ui_state = {};
     if (!activeDraft.ui_state.openExercises) {
         activeDraft.ui_state.openExercises = [];
