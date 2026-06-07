@@ -2785,7 +2785,29 @@ async function toggleExercise(index) {
     }
     window._suppressAutoScroll = true;
     await persistActiveWorkout();
-    renderActiveWorkout();
+    // Uppdatera bara det berörda kortet istället för hela listan
+    updateSingleExerciseCard(index);
+    // Återlägg drag-handtaget på just detta kort
+    const card = document.getElementById(`exercise-card-${index}`);
+    if (card && typeof Draggable !== 'undefined') {
+        const existingHandle = card.querySelector('.drag-handle');
+        if (!existingHandle) {
+            const header = card.querySelector('div[onclick^="toggleExercise"]');
+            if (header) {
+                const handle = document.createElement("div");
+                handle.style.cssText = `
+                    width: 28px; height: 28px; border-radius: 8px;
+                    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+                    display: flex; align-items: center; justify-content: center;
+                    cursor: grab; z-index: 10; font-size: 14px; color: rgba(255,255,255,0.4);
+                    flex-shrink: 0;
+                `;
+                handle.innerHTML = "⠿";
+                handle.className = "drag-handle";
+                header.appendChild(handle);
+            }
+        }
+    }
     window.scrollTo(0, scrollPos);
 }
 
