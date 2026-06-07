@@ -2749,8 +2749,13 @@ function initDragAndDrop() {
                         list.insertBefore(card, currentOrder[newIdx]);
                     }
 
-                    Array.from(list.querySelectorAll("[id^='exercise-card-']")).forEach((c, idx) => {
+                   Array.from(list.querySelectorAll("[id^='exercise-card-']")).forEach((c, idx) => {
                         c.id = `exercise-card-${idx}`;
+                        // Uppdatera onclick-index på header
+                        const header = c.querySelector('div[onclick^="toggleExercise"]');
+                        if (header) {
+                            header.setAttribute('onclick', `toggleExercise(${idx})`);
+                        }
                     });
 
                     await persistActiveWorkout();
