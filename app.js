@@ -2717,29 +2717,30 @@ function initDragAndDrop() {
                 const movedSteps = Math.round(this.y / cardHeight());
                 let newIdx = Math.max(0, Math.min(currentOrder.length - 1, draggedIdx + movedSteps));
 
-                // Återställ det dragna kortet direkt
-                gsap.set(card, { zIndex: "", scale: 1, boxShadow: "none", y: 0 });
-                
-                // Återställ ALLA andra korts y-position till 0 SYNKRONT innan DOM-flytt
+                // Stoppa alla animationer och rensa transforms INNAN DOM-flytt
+                gsap.killTweensOf(card);
                 currentOrder.forEach(c => {
                     gsap.killTweensOf(c);
-                    gsap.set(c, { y: 0, clearProps: "transform" });
+                    gsap.set(c, { clearProps: "all" });
                 });
 
                 if (newIdx !== draggedIdx) {
-                    // Liten paus så att clearProps hinner appliceras
-                    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+                    // Vänta en frame så clearProps hinner appliceras
+                    await new Promise(resolve => requestAnimationFrame(resolve));
 
+                    // DOM-flytt
                     if (newIdx > draggedIdx) {
                         list.insertBefore(card, currentOrder[newIdx].nextSibling);
                     } else {
                         list.insertBefore(card, currentOrder[newIdx]);
                     }
 
+                    // Uppdatera id
                     Array.from(list.querySelectorAll("[id^='exercise-card-']")).forEach((c, idx) => {
                         c.id = `exercise-card-${idx}`;
                     });
 
+                    // Uppdatera data
                     const exArr = activeDraft.workout.exercises;
                     const dataArr = activeDraft.data;
                     const [movedEx] = exArr.splice(draggedIdx, 1);
