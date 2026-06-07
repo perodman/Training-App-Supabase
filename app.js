@@ -2717,24 +2717,29 @@ function initDragAndDrop() {
                 const movedSteps = Math.round(this.y / cardHeight());
                 let newIdx = Math.max(0, Math.min(currentOrder.length - 1, draggedIdx + movedSteps));
 
+                // Återställ det dragna kortet direkt
                 gsap.set(card, { zIndex: "", scale: 1, boxShadow: "none", y: 0 });
-                currentOrder.forEach(c => gsap.set(c, { y: 0 }));
+                
+                // Återställ ALLA andra korts y-position till 0 SYNKRONT innan DOM-flytt
+                currentOrder.forEach(c => {
+                    gsap.killTweensOf(c);
+                    gsap.set(c, { y: 0, clearProps: "transform" });
+                });
 
                 if (newIdx !== draggedIdx) {
-                    // Flytta DOM-element direkt utan att rita om hela listan
+                    // Liten paus så att clearProps hinner appliceras
+                    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+
                     if (newIdx > draggedIdx) {
-                        const referenceNode = currentOrder[newIdx].nextSibling;
-                        list.insertBefore(card, referenceNode);
+                        list.insertBefore(card, currentOrder[newIdx].nextSibling);
                     } else {
                         list.insertBefore(card, currentOrder[newIdx]);
                     }
 
-                    // Uppdatera id på korten så de matchar ny ordning
                     Array.from(list.querySelectorAll("[id^='exercise-card-']")).forEach((c, idx) => {
                         c.id = `exercise-card-${idx}`;
                     });
 
-                    // Uppdatera data i activeDraft
                     const exArr = activeDraft.workout.exercises;
                     const dataArr = activeDraft.data;
                     const [movedEx] = exArr.splice(draggedIdx, 1);
@@ -2742,7 +2747,6 @@ function initDragAndDrop() {
                     exArr.splice(newIdx, 0, movedEx);
                     dataArr.splice(newIdx, 0, movedData);
 
-                    // Uppdatera openExercises-index
                     if (activeDraft.ui_state && activeDraft.ui_state.openExercises) {
                         activeDraft.ui_state.openExercises = activeDraft.ui_state.openExercises.map(idx => {
                             if (idx === draggedIdx) return newIdx;
