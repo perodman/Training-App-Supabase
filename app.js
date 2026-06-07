@@ -1057,30 +1057,33 @@ function toggleDayManagerGroup(groupId) {
     if (!section) return;
     const isOpen = section.classList.contains('is-open');
     if (isOpen) {
-        // Stäng: sätt exakt nuvarande höjd först, sedan 0
-        section.style.height = section.scrollHeight + 'px';
-        section.offsetHeight; // Tvinga reflow
-        section.style.transition = 'height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease';
-        section.style.height = '0px';
-        section.style.opacity = '0';
-        section.classList.remove('is-open');
-        if (arrow) arrow.style.transform = 'rotate(0deg)';
+        gsap.to(section, {
+            height: 0,
+            opacity: 0,
+            duration: 0.3,
+            ease: 'power2.inOut',
+            onComplete: () => {
+                section.style.display = 'none';
+                section.classList.remove('is-open');
+            }
+        });
+        if (arrow) gsap.to(arrow, { rotation: 0, duration: 0.3 });
     } else {
-        // Öppna: mät scrollHeight och animera dit
-        section.style.height = '0px';
         section.style.display = 'flex';
-        section.offsetHeight; // Tvinga reflow
-        section.style.transition = 'height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease';
-        section.style.height = section.scrollHeight + 'px';
-        section.style.opacity = '1';
+        section.style.height = 'auto';
+        const targetHeight = section.scrollHeight;
+        section.style.height = '0px';
         section.classList.add('is-open');
-        if (arrow) arrow.style.transform = 'rotate(180deg)';
-        // Ta bort height-begränsningen när animation är klar
-        section.addEventListener('transitionend', () => {
-            if (section.classList.contains('is-open')) {
+        gsap.to(section, {
+            height: targetHeight,
+            opacity: 1,
+            duration: 0.3,
+            ease: 'power2.inOut',
+            onComplete: () => {
                 section.style.height = 'auto';
             }
-        }, { once: true });
+        });
+        if (arrow) gsap.to(arrow, { rotation: 180, duration: 0.3 });
     }
 }
 
