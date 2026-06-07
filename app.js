@@ -2717,11 +2717,11 @@ function initDragAndDrop() {
                 const movedSteps = Math.round(this.y / cardHeight());
                 let newIdx = Math.max(0, Math.min(currentOrder.length - 1, draggedIdx + movedSteps));
 
-                // Stoppa alla animationer och rensa transforms INNAN DOM-flytt
+               // Stoppa alla animationer och rensa transforms INNAN DOM-flytt
                 gsap.killTweensOf(card);
                 currentOrder.forEach(c => {
                     gsap.killTweensOf(c);
-                    gsap.set(c, { clearProps: "all" });
+                    gsap.set(c, { clearProps: "transform,zIndex,scale,boxShadow,opacity" });
                 });
 
                 if (newIdx !== draggedIdx) {
