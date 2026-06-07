@@ -869,7 +869,6 @@ if (isOngoing && typeof activeDraft !== 'undefined' && activeDraft) {
                 <span style="font-size:9px; color:#f59e0b; text-transform:uppercase; letter-spacing:2px; font-weight:700;">Tap to continue</span>
             </div>
         </div>
-        <span style="color:rgba(245,158,11,0.6); font-size:22px;">→</span>
     </div>`;
 }
 
