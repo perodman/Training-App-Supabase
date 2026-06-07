@@ -2656,11 +2656,9 @@ const div = document.createElement("div");
 function initDragAndDrop() {
     const list = document.getElementById("exercise-list");
     if (!list || typeof gsap === 'undefined' || typeof Draggable === 'undefined') return;
-
     const cards = Array.from(list.querySelectorAll("[id^='exercise-card-']"));
     if (cards.length === 0) return;
 
-    // Ta bort gamla handtag
     list.querySelectorAll('.drag-handle').forEach(h => h.remove());
 
     cards.forEach((card, i) => {
@@ -2675,14 +2673,12 @@ function initDragAndDrop() {
         handle.innerHTML = "⠿";
         handle.className = "drag-handle";
 
-        // Lägg handtaget i header-raden istället för absolut
         const header = card.querySelector('div[onclick^="toggleExercise"]');
         if (header) {
             header.style.position = "relative";
             header.appendChild(handle);
         }
 
-        let startY = 0;
         let currentOrder = [...cards];
         const cardHeight = () => card.offsetHeight + 12;
 
@@ -2692,7 +2688,6 @@ function initDragAndDrop() {
             bounds: list,
             zIndexBoost: false,
             onDragStart: function() {
-                startY = this.y;
                 currentOrder = Array.from(list.querySelectorAll("[id^='exercise-card-']"));
                 gsap.to(card, {
                     scale: 1.02,
@@ -2705,11 +2700,9 @@ function initDragAndDrop() {
             onDrag: function() {
                 const draggedIdx = currentOrder.indexOf(card);
                 const movedSteps = Math.round(this.y / cardHeight());
-
                 currentOrder.forEach((otherCard, otherIdx) => {
                     if (otherCard === card) return;
                     const diff = otherIdx - draggedIdx;
-                    
                     if (movedSteps > 0 && diff > 0 && diff <= movedSteps) {
                         gsap.to(otherCard, { y: -cardHeight(), duration: 0.2, ease: "power2.out" });
                     } else if (movedSteps < 0 && diff < 0 && diff >= movedSteps) {
@@ -2724,12 +2717,24 @@ function initDragAndDrop() {
                 const movedSteps = Math.round(this.y / cardHeight());
                 let newIdx = Math.max(0, Math.min(currentOrder.length - 1, draggedIdx + movedSteps));
 
-                // Återställ alla visuella transforms direkt
                 gsap.set(card, { zIndex: "", scale: 1, boxShadow: "none", y: 0 });
                 currentOrder.forEach(c => gsap.set(c, { y: 0 }));
 
                 if (newIdx !== draggedIdx) {
-                    // Uppdatera data
+                    // Flytta DOM-element direkt utan att rita om hela listan
+                    if (newIdx > draggedIdx) {
+                        const referenceNode = currentOrder[newIdx].nextSibling;
+                        list.insertBefore(card, referenceNode);
+                    } else {
+                        list.insertBefore(card, currentOrder[newIdx]);
+                    }
+
+                    // Uppdatera id på korten så de matchar ny ordning
+                    Array.from(list.querySelectorAll("[id^='exercise-card-']")).forEach((c, idx) => {
+                        c.id = `exercise-card-${idx}`;
+                    });
+
+                    // Uppdatera data i activeDraft
                     const exArr = activeDraft.workout.exercises;
                     const dataArr = activeDraft.data;
                     const [movedEx] = exArr.splice(draggedIdx, 1);
@@ -2747,24 +2752,8 @@ function initDragAndDrop() {
                         });
                     }
 
-                   await persistActiveWorkout();
-                    setTimeout(() => {
-                        const list = document.getElementById("exercise-list");
-                        if (list) {
-                            list.style.opacity = '0';
-                            list.style.transition = 'none';
-                        }
-                        renderActiveWorkout();
-                        requestAnimationFrame(() => {
-                            requestAnimationFrame(() => {
-                                if (list) {
-                                    list.style.transition = 'opacity 0.15s ease';
-                                    list.style.opacity = '1';
-                                }
-                                initDragAndDrop();
-                            });
-                        });
-                    }, 50);
+                    await persistActiveWorkout();
+                    setTimeout(() => initDragAndDrop(), 50);
                 }
             }
         });
