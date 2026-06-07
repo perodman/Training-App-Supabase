@@ -2747,11 +2747,17 @@ function initDragAndDrop() {
                         });
                     }
 
-                    await persistActiveWorkout();
-                    // Liten fördröjning så gsap.set hinner appliceras innan omritning
+                   await persistActiveWorkout();
                     setTimeout(() => {
+                        const list = document.getElementById("exercise-list");
+                        if (list) list.style.visibility = 'hidden';
                         renderActiveWorkout();
-                        setTimeout(() => initDragAndDrop(), 80);
+                        requestAnimationFrame(() => {
+                            requestAnimationFrame(() => {
+                                if (list) list.style.visibility = 'visible';
+                                initDragAndDrop();
+                            });
+                        });
                     }, 50);
                 }
             }
