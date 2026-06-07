@@ -988,10 +988,10 @@ if (isOngoing && typeof activeDraft !== 'undefined' && activeDraft) {
                     <span id="dm-arrow-${g.id}" style="color:${isUngrouped ? 'rgba(255,255,255,0.2)' : 'rgba(34,211,238,0.5)'}; font-size:12px; transition: transform 0.3s ease;">▼</span>
                 </div>
 
-                <div id="${sectionId}" style="
-                    max-height: 0; overflow: hidden;
-                    transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
-                    opacity: 0;
+            <div id="${sectionId}" style="
+                                height: 0; overflow: hidden;
+                                opacity: 0;
+                                display: none;
                 ">
                     <div style="padding: 6px 10px 10px 10px; background: rgba(0,0,0,0.2); display:flex; flex-direction:column; gap:6px;">
                         <div style="font-size:10px; color:var(--text-light); opacity:0.4; text-align:center; padding: 4px 0 6px 0; font-weight:600; letter-spacing:0.3px;">
@@ -1070,9 +1070,9 @@ function toggleDayManagerGroup(groupId) {
         });
         if (arrow) gsap.to(arrow, { rotation: 0, duration: 0.3 });
     } else {
-        // Visa elementet tillfälligt för att mäta höjden
         section.style.visibility = 'hidden';
         section.style.display = 'flex';
+        section.style.flexDirection = 'column';
         section.style.height = 'auto';
         const targetHeight = section.scrollHeight;
         section.style.height = '0px';
