@@ -2387,10 +2387,14 @@ function renderActiveWorkout() {
         return;
     }
 
-    if (activeDraft.data) {
+   if (activeDraft.data) {
         activeDraft.data.forEach((exerciseData, i) => {
             if (!exerciseData.isCompleted && exerciseData.sets_data) {
-                const isBrandNewAndGhostChecked = exerciseData.sets_data.every(s => s.userConfirmed === true) && !activeDraft.ui_state?.openExercises?.includes(i);
+                const allConfirmed = exerciseData.sets_data.every(s => s.userConfirmed === true);
+                const isOpen = activeDraft.ui_state?.openExercises?.includes(i);
+                const hasWeightOrReps = exerciseData.sets_data.some(s => s.weight || s.reps);
+                // Nollställ bara om alla är bekräftade OCH övningen aldrig öppnats OCH ingen data finns
+                const isBrandNewAndGhostChecked = allConfirmed && !isOpen && !hasWeightOrReps;
                 if (isBrandNewAndGhostChecked && exerciseData.sets_data.length > 0) {
                     exerciseData.sets_data.forEach(set => {
                         set.userConfirmed = false;
@@ -2631,6 +2635,7 @@ function openCustomAddExerciseModal() {
 
 async function toggleExercise(index) {
     const scrollPos = window.scrollY;
+    console.log("toggleExercise - data before:", JSON.stringify(activeDraft.data.map(d => d.sets_data)));
     if (!activeDraft.ui_state) activeDraft.ui_state = {};
     if (!activeDraft.ui_state.openExercises) {
         activeDraft.ui_state.openExercises = [];
@@ -3724,7 +3729,7 @@ async function deleteEntireProgram(idx) {
     const body = document.getElementById("modal-body");
     body.innerHTML = `
         <div style="text-align:center; padding:10px;">
-            <div style="font-size:40px; margin-bottom:15px;"> 🗑️ </div>
+            <div style="font-size:40px; margin-bottom:15px;">🗑️</div>
             <h3 style="color:var(--danger);">Delete permanently?</h3>
             <p style="color:var(--text-light); margin-bottom:25px; font-size:14px;">Do you want to delete this entire workout permanently? This action cannot be undone.</p>
             <button class="mode-btn" style="background:linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color:white; margin-bottom:12px; font-weight:700;"
@@ -3732,7 +3737,6 @@ async function deleteEntireProgram(idx) {
                     programData.routine.splice(${idx}, 1);
                     localStorage.setItem('myCustomProgram', JSON.stringify(programData));
                     await saveAll();
-
                     if (currentUser) {
                         try {
                             const { data: existing } = await supabaseClient
@@ -3750,14 +3754,14 @@ async function deleteEntireProgram(idx) {
                             console.error('Error updating custom_program in Supabase:', err);
                         }
                     }
-
+                    hideDefaultCloseButton(false);
                     closeModal();
                     document.getElementById('program-details-area').classList.add('hidden');
                     renderGroupsView();
                 })()">
                 Yes, delete workout
             </button>
-            <button class="mode-btn glass-border" onclick="closeModal()">Cancel</button>
+            <button class="mode-btn glass-border" onclick="hideDefaultCloseButton(false); openEditProgramModal(${idx});">Cancel</button>
         </div>
     `;
     openModal();
