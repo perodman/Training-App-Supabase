@@ -2658,9 +2658,7 @@ function initDragAndDrop() {
     if (!list || typeof gsap === 'undefined' || typeof Draggable === 'undefined') return;
     const cards = Array.from(list.querySelectorAll("[id^='exercise-card-']"));
     if (cards.length === 0) return;
-
     list.querySelectorAll('.drag-handle').forEach(h => h.remove());
-
     cards.forEach((card, i) => {
         const handle = document.createElement("div");
         handle.style.cssText = `
@@ -2672,16 +2670,13 @@ function initDragAndDrop() {
         `;
         handle.innerHTML = "⠿";
         handle.className = "drag-handle";
-
         const header = card.querySelector('div[onclick^="toggleExercise"]');
         if (header) {
             header.style.position = "relative";
             header.appendChild(handle);
         }
-
         let currentOrder = [...cards];
         const cardHeight = () => card.offsetHeight + 12;
-
         Draggable.create(card, {
             type: "y",
             trigger: handle,
@@ -2724,11 +2719,10 @@ function initDragAndDrop() {
                     gsap.set(c, { clearProps: "transform,zIndex,scale,boxShadow,opacity" });
                 });
 
-                // Fördröj återställning av _isDragging så klick-eventet hinner passera
                 setTimeout(() => { window._isDragging = false; }, 300);
 
                 if (newIdx !== draggedIdx) {
-                    // Uppdatera data FÖRST, synkront
+                    // Uppdatera data synkront FÖRST
                     const exArr = activeDraft.workout.exercises;
                     const dataArr = activeDraft.data;
                     const [movedEx] = exArr.splice(draggedIdx, 1);
@@ -2736,6 +2730,7 @@ function initDragAndDrop() {
                     exArr.splice(newIdx, 0, movedEx);
                     dataArr.splice(newIdx, 0, movedData);
 
+                    // Uppdatera openExercises-index EN gång
                     if (activeDraft.ui_state && activeDraft.ui_state.openExercises) {
                         activeDraft.ui_state.openExercises = activeDraft.ui_state.openExercises.map(idx => {
                             if (idx === draggedIdx) return newIdx;
@@ -2757,15 +2752,6 @@ function initDragAndDrop() {
                     Array.from(list.querySelectorAll("[id^='exercise-card-']")).forEach((c, idx) => {
                         c.id = `exercise-card-${idx}`;
                     });
-
-                    if (activeDraft.ui_state && activeDraft.ui_state.openExercises) {
-                        activeDraft.ui_state.openExercises = activeDraft.ui_state.openExercises.map(idx => {
-                            if (idx === draggedIdx) return newIdx;
-                            if (draggedIdx < newIdx && idx > draggedIdx && idx <= newIdx) return idx - 1;
-                            if (draggedIdx > newIdx && idx < draggedIdx && idx >= newIdx) return idx + 1;
-                            return idx;
-                        });
-                    }
 
                     await persistActiveWorkout();
                     setTimeout(() => initDragAndDrop(), 50);
