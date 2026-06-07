@@ -149,16 +149,23 @@ function closeModal() {
         hideDefaultCloseButton(false);
     }
 
-    // Kolla om det finns ett temporärt pass med innehåll
+    // PRIORITET 1: Om vi är på väg tillbaka till edit-vyn, gör det direkt
+    // utan att kontrollera _isTemp eller restoreDraftState
+    if (typeof window._returnToEditIdx !== 'undefined' && window._returnToEditIdx !== null) {
+        const idx = window._returnToEditIdx;
+        window._returnToEditIdx = null;
+        openEditProgramModal(idx);
+        return;
+    }
+
+    // PRIORITET 2: Kontrollera temporära pass först efter att _returnToEditIdx är hanterat
     if (typeof programData !== 'undefined' && programData && programData.routine) {
         const tempIdx = programData.routine.findIndex(p => p._isTemp);
         if (tempIdx !== -1) {
             const tempPass = programData.routine[tempIdx];
             const hasContent = (tempPass.exercises && tempPass.exercises.length > 0) || 
                                (tempPass.name && tempPass.name !== '' && tempPass.name !== 'New Workout');
-
-                    if (hasContent) {
-                // Visa bekräftelsedialog
+            if (hasContent) {
                 document.getElementById("workout-modal").classList.remove("hidden");
                 if (typeof hideDefaultCloseButton === 'function') hideDefaultCloseButton(true);
                 const body = document.getElementById("modal-body");
@@ -197,11 +204,15 @@ function closeModal() {
                 `;
                 return;
             } else {
-                // Tomt pass — radera direkt utan att fråga
                 programData.routine.splice(tempIdx, 1);
             }
         }
     }
+
+    if (typeof restoreDraftState === 'function') {
+        restoreDraftState();
+    }
+}
 
     if (typeof window._returnToEditIdx !== 'undefined' && window._returnToEditIdx !== null) {
         const idx = window._returnToEditIdx;
@@ -1951,17 +1962,13 @@ function confirmAndAddAllSelectedExercisesForEdit(idx) {
 function saveEditDraftStateAndCreateNew(idx) {
     localStorage.setItem('temp_exercise_edit_draft', JSON.stringify(window.temporarySelectedExercisesForEdit || []));
     
-    // Spara workout-namnet innan vi lämnar vyn
     const nameInput = document.getElementById("edit-pass-name");
     if (nameInput && nameInput.value.trim()) {
         programData.routine[idx].name = nameInput.value.trim();
     }
 
-    // Spara scrollpositionen
     const modalContent = document.querySelector('.modal-content');
     window._savedEditScrollPos = modalContent ? modalContent.scrollTop : 0;
-
-    // Sätt en flagga så closeModal vet att den ska gå tillbaka till edit-vyn
     window._returnToEditIdx = idx;
     
     if (typeof openCreateExerciseModal === 'function') {
@@ -1976,6 +1983,8 @@ function saveEditDraftStateAndCreateNew(idx) {
             openEditProgramModal(idx);
         });
     }
+    // Säkerställ att Close-knappen alltid är synlig i create exercise-vyn
+    if (typeof hideDefaultCloseButton === 'function') hideDefaultCloseButton(false);
 }
 
 // SKICKAR VALD ÖVNING ASYNKRONT IN I PROGRAMRUTINEN
@@ -2647,8 +2656,8 @@ async function toggleExercise(index) {
     } else {
         activeDraft.ui_state.openExercises.push(index);
     }
-    await persistActiveWorkout();
     window._suppressAutoScroll = true;
+    await persistActiveWorkout();
     renderActiveWorkout();
     window.scrollTo(0, scrollPos);
 }
