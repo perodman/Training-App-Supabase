@@ -1055,15 +1055,32 @@ function toggleDayManagerGroup(groupId) {
     const section = document.getElementById(`dm-group-${groupId}`);
     const arrow = document.getElementById(`dm-arrow-${groupId}`);
     if (!section) return;
-    const isOpen = section.style.maxHeight !== '0px' && section.style.maxHeight !== '';
+    const isOpen = section.classList.contains('is-open');
     if (isOpen) {
-        section.style.maxHeight = '0px';
+        // Stäng: sätt exakt nuvarande höjd först, sedan 0
+        section.style.height = section.scrollHeight + 'px';
+        section.offsetHeight; // Tvinga reflow
+        section.style.transition = 'height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease';
+        section.style.height = '0px';
         section.style.opacity = '0';
+        section.classList.remove('is-open');
         if (arrow) arrow.style.transform = 'rotate(0deg)';
     } else {
-        section.style.maxHeight = '1000px';
+        // Öppna: mät scrollHeight och animera dit
+        section.style.height = '0px';
+        section.style.display = 'flex';
+        section.offsetHeight; // Tvinga reflow
+        section.style.transition = 'height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease';
+        section.style.height = section.scrollHeight + 'px';
         section.style.opacity = '1';
+        section.classList.add('is-open');
         if (arrow) arrow.style.transform = 'rotate(180deg)';
+        // Ta bort height-begränsningen när animation är klar
+        section.addEventListener('transitionend', () => {
+            if (section.classList.contains('is-open')) {
+                section.style.height = 'auto';
+            }
+        }, { once: true });
     }
 }
 
