@@ -2751,11 +2751,28 @@ function initDragAndDrop() {
 
                    Array.from(list.querySelectorAll("[id^='exercise-card-']")).forEach((c, idx) => {
                         c.id = `exercise-card-${idx}`;
-                        // Uppdatera onclick-index på header
+                        
+                        // Uppdatera toggleExercise
                         const header = c.querySelector('div[onclick^="toggleExercise"]');
-                        if (header) {
-                            header.setAttribute('onclick', `toggleExercise(${idx})`);
-                        }
+                        if (header) header.setAttribute('onclick', `toggleExercise(${idx})`);
+
+                        // Uppdatera moveActiveExercise-knappar
+                        const moveUpBtn = c.querySelector('button[onclick*="moveActiveExercise"][onclick*="-1"]');
+                        if (moveUpBtn) moveUpBtn.setAttribute('onclick', `event.stopPropagation(); moveActiveExercise(${idx}, -1)`);
+                        const moveDownBtn = c.querySelector('button[onclick*="moveActiveExercise"][onclick*="1"]');
+                        if (moveDownBtn) moveDownBtn.setAttribute('onclick', `event.stopPropagation(); moveActiveExercise(${idx}, 1)`);
+
+                        // Uppdatera replace och remove
+                        const replaceBtn = c.querySelector('button[onclick*="openReplaceExerciseModal"]');
+                        if (replaceBtn) replaceBtn.setAttribute('onclick', `event.stopPropagation(); openReplaceExerciseModal(${idx})`);
+                        const removeBtn = c.querySelector('button[onclick*="removeActiveExercise"]');
+                        if (removeBtn) removeBtn.setAttribute('onclick', `event.stopPropagation(); removeActiveExercise(${idx})`);
+
+                        // Uppdatera addSetToExercise och toggleExerciseDone
+                        const addSetBtn = c.querySelector('button[onclick*="addSetToExercise"]');
+                        if (addSetBtn) addSetBtn.setAttribute('onclick', `addSetToExercise(${idx})`);
+                        const doneBtn = c.querySelector('button[onclick*="toggleExerciseDone"]');
+                        if (doneBtn) doneBtn.setAttribute('onclick', `toggleExerciseDone(${idx})`);
                     });
 
                     await persistActiveWorkout();
