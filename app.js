@@ -2638,7 +2638,7 @@ const div = document.createElement("div");
     }
 
     showView("workout-view");
-
+    setTimeout(() => initDragAndDrop(), 50);
     if (isReturning && openExercises.length > 0 && !window._suppressAutoScroll) {
         const firstOpenIndex = openExercises.slice().sort((a, b) => a - b)[0];
         setTimeout(() => {
@@ -2652,6 +2652,111 @@ const div = document.createElement("div");
         window._suppressAutoScroll = false;
     }
 }
+
+function initDragAndDrop() {
+    const list = document.getElementById("exercise-list");
+    if (!list || typeof gsap === 'undefined' || typeof Draggable === 'undefined') return;
+
+    const cards = Array.from(list.querySelectorAll("[id^='exercise-card-']"));
+    if (cards.length === 0) return;
+
+    cards.forEach((card, i) => {
+        // Lägg till drag-handtag
+        const handle = document.createElement("div");
+        handle.style.cssText = `
+            position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+            width: 28px; height: 28px; border-radius: 8px;
+            background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+            display: flex; align-items: center; justify-content: center;
+            cursor: grab; z-index: 10; font-size: 12px; color: rgba(255,255,255,0.3);
+        `;
+        handle.innerHTML = "⠿";
+        handle.className = "drag-handle";
+        card.style.position = "relative";
+        card.appendChild(handle);
+
+        Draggable.create(card, {
+            type: "y",
+            trigger: handle,
+            bounds: list,
+            onDragStart: function() {
+                gsap.to(card, {
+                    scale: 1.03,
+                    boxShadow: "0 16px 40px rgba(0,0,0,0.5)",
+                    duration: 0.2,
+                    ease: "power2.out"
+                });
+                card.style.zIndex = 100;
+                card.style.position = "relative";
+            },
+            onDrag: function() {
+                const draggedIdx = cards.indexOf(card);
+                const cardHeight = card.offsetHeight + 12; // 12 = gap
+                const dragY = this.y;
+
+                cards.forEach((otherCard, otherIdx) => {
+                    if (otherCard === card) return;
+                    const diff = otherIdx - draggedIdx;
+                    const threshold = cardHeight * 0.5;
+
+                    if (diff > 0 && dragY > threshold * diff) {
+                        gsap.to(otherCard, { y: -cardHeight, duration: 0.2, ease: "power2.out" });
+                    } else if (diff < 0 && dragY < threshold * diff) {
+                        gsap.to(otherCard, { y: cardHeight, duration: 0.2, ease: "power2.out" });
+                    } else {
+                        gsap.to(otherCard, { y: 0, duration: 0.2, ease: "power2.out" });
+                    }
+                });
+            },
+            onDragEnd: async function() {
+                const draggedIdx = cards.indexOf(card);
+                const cardHeight = card.offsetHeight + 12;
+                const dragY = this.y;
+                let newIdx = draggedIdx + Math.round(dragY / cardHeight);
+                newIdx = Math.max(0, Math.min(cards.length - 1, newIdx));
+
+                // Återställ visuellt
+                gsap.to(card, {
+                    scale: 1,
+                    boxShadow: "none",
+                    y: 0,
+                    duration: 0.25,
+                    ease: "power2.out"
+                });
+                cards.forEach(c => gsap.to(c, { y: 0, duration: 0.25 }));
+                card.style.zIndex = "";
+
+                // Uppdatera data om positionen ändrats
+                if (newIdx !== draggedIdx) {
+                    // Flytta i activeDraft
+                    const exArr = activeDraft.workout.exercises;
+                    const dataArr = activeDraft.data;
+                    const [movedEx] = exArr.splice(draggedIdx, 1);
+                    const [movedData] = dataArr.splice(draggedIdx, 1);
+                    exArr.splice(newIdx, 0, movedEx);
+                    dataArr.splice(newIdx, 0, movedData);
+
+                    // Uppdatera openExercises-index
+                    if (activeDraft.ui_state && activeDraft.ui_state.openExercises) {
+                        activeDraft.ui_state.openExercises = activeDraft.ui_state.openExercises.map(idx => {
+                            if (idx === draggedIdx) return newIdx;
+                            if (draggedIdx < newIdx && idx > draggedIdx && idx <= newIdx) return idx - 1;
+                            if (draggedIdx > newIdx && idx < draggedIdx && idx >= newIdx) return idx + 1;
+                            return idx;
+                        });
+                    }
+
+                    await persistActiveWorkout();
+                    renderActiveWorkout();
+                    // Återinitiera drag efter omritning
+                    setTimeout(() => initDragAndDrop(), 100);
+                }
+            }
+        });
+    });
+}
+
+
 
 function openCustomAddExerciseModal() {
     temporarySelectedExercises = [];
