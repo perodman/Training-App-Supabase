@@ -1056,6 +1056,7 @@ function toggleDayManagerGroup(groupId) {
     const arrow = document.getElementById(`dm-arrow-${groupId}`);
     if (!section) return;
     const isOpen = section.classList.contains('is-open');
+
     if (isOpen) {
         gsap.to(section, {
             height: 0,
@@ -1069,11 +1070,16 @@ function toggleDayManagerGroup(groupId) {
         });
         if (arrow) gsap.to(arrow, { rotation: 0, duration: 0.3 });
     } else {
+        // Visa elementet tillfälligt för att mäta höjden
+        section.style.visibility = 'hidden';
         section.style.display = 'flex';
         section.style.height = 'auto';
         const targetHeight = section.scrollHeight;
         section.style.height = '0px';
+        section.style.opacity = '0';
+        section.style.visibility = 'visible';
         section.classList.add('is-open');
+
         gsap.to(section, {
             height: targetHeight,
             opacity: 1,
