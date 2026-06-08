@@ -1963,18 +1963,15 @@ function confirmAndAddAllSelectedExercisesForEdit(idx) {
     const summaryContainer = document.getElementById("selected-edit-summary-container");
     if (summaryContainer) summaryContainer.innerHTML = "";
     saveCustomProgramToSupabase();
-    setTimeout(() => initEditExerciseDragAndDrop(idx), 50);
-    // Scrolla till Current Exercises-sektionen
     setTimeout(() => {
+        initEditExerciseDragAndDrop(idx);
         const exercisesDiv = document.getElementById("edit-pass-exercises");
-        if (exercisesDiv) {
-            const modalContent = document.querySelector('.modal-content');
-            if (modalContent) {
-                modalContent.scrollTo({
-                    top: exercisesDiv.offsetTop - 20,
-                    behavior: 'smooth'
-                });
-            }
+        const modalContent = document.querySelector('.modal-content');
+        if (exercisesDiv && modalContent) {
+            const divRect = exercisesDiv.getBoundingClientRect();
+            const modalRect = modalContent.getBoundingClientRect();
+            const scrollTarget = modalContent.scrollTop + divRect.top - modalRect.top - 20;
+            modalContent.scrollTo({ top: scrollTarget, behavior: 'smooth' });
         }
     }, 100);
 }
