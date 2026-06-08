@@ -4354,6 +4354,7 @@ function initExerciseLibraryDragAndDrop() {
         const handle = row.querySelector('.ex-lib-drag-handle');
         if (!handle) return;
         handle.style.touchAction = "none";
+        handle.setAttribute('style', handle.getAttribute('style') + '; touch-action: none !important;');
         let currentOrder = [...rows];
         const rowHeight = () => row.offsetHeight + 10;
         row.style.touchAction = "none";
