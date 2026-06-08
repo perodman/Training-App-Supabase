@@ -1968,10 +1968,13 @@ function confirmAndAddAllSelectedExercisesForEdit(idx) {
         const exercisesDiv = document.getElementById("edit-pass-exercises");
         const modalContent = document.querySelector('.modal-content');
         if (exercisesDiv && modalContent) {
-            const divRect = exercisesDiv.getBoundingClientRect();
-            const modalRect = modalContent.getBoundingClientRect();
-            const scrollTarget = modalContent.scrollTop + divRect.top - modalRect.top - 20;
-            modalContent.scrollTo({ top: scrollTarget, behavior: 'smooth' });
+            const lastRow = exercisesDiv.lastElementChild;
+            if (lastRow) {
+                const rowRect = lastRow.getBoundingClientRect();
+                const modalRect = modalContent.getBoundingClientRect();
+                const scrollTarget = modalContent.scrollTop + rowRect.bottom - modalRect.bottom + 20;
+                modalContent.scrollTo({ top: scrollTarget, behavior: 'smooth' });
+            }
         }
     }, 100);
 }
