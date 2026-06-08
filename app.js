@@ -3326,11 +3326,9 @@ function updateSingleExerciseCard(exIdx) {
     const openExercises = activeDraft.ui_state.openExercises || [];
     const isOpen = openExercises.includes(exIdx);
 
-    // Hitta kortet via id istället för klass
     const targetCard = document.getElementById(`exercise-card-${exIdx}`);
     if (!targetCard) return;
 
-    // Uppdatera kortets kantlinjefärg
     targetCard.style.borderLeft = `4px solid ${isDone ? '#22c55e' : isOpen ? '#22d3ee' : 'rgba(250,204,21,0.3)'}`;
     targetCard.style.boxShadow = isDone ? '0 4px 12px rgba(34,197,94,0.08)' : isOpen ? '0 4px 12px rgba(34,211,238,0.08)' : '0 4px 12px rgba(0,0,0,0.3)';
 
@@ -3381,7 +3379,6 @@ function updateSingleExerciseCard(exIdx) {
         <div style="position:absolute; bottom:0; left:0; right:0; height:1px; background: linear-gradient(90deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.03) 100%); pointer-events:none; z-index:2;"></div>
         <div style="position:absolute; top:0; right:0; bottom:0; width:1px; background: linear-gradient(180deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0) 100%); pointer-events:none; z-index:2;"></div>
         <div onclick="toggleExercise(${exIdx})" style="padding: 12px 15px; display: flex; align-items: center; cursor: pointer; background: ${isOpen ? 'rgba(250, 204, 21, 0.05)' : 'transparent'}">
-        <div style="width: 8px; flex-shrink: 0;"></div>
             <div style="display: flex; flex-direction: column; min-width:0; flex-grow:1;">
                 <strong style="font-size: 14px; color: ${isDone ? 'var(--text-light)' : 'var(--text)'}; text-decoration: ${isDone ? 'line-through' : 'none'}; white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">
                     ${ex.name}
@@ -3403,6 +3400,22 @@ function updateSingleExerciseCard(exIdx) {
                 ${isDone ? 'Undo ↩️' : 'Mark as Complete ✅'}
             </button>
         </div>`;
+
+    // Återlägg drag-handtaget efter omritning
+    const updatedHeader = targetCard.querySelector('div[onclick^="toggleExercise"]');
+    if (updatedHeader && !updatedHeader.querySelector('.drag-handle')) {
+        const handle = document.createElement("div");
+        handle.style.cssText = `
+            width: 28px; height: 28px; border-radius: 8px;
+            background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+            display: flex; align-items: center; justify-content: center;
+            cursor: grab; z-index: 10; font-size: 14px; color: rgba(255,255,255,0.4);
+            flex-shrink: 0;
+        `;
+        handle.innerHTML = "⠿";
+        handle.className = "drag-handle";
+        updatedHeader.insertBefore(handle, updatedHeader.firstChild);
+    }
 }
 
 // Vi skapar en global flagga längst upp (utanför funktionen)
