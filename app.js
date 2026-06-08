@@ -4379,19 +4379,21 @@ function initExerciseLibraryDragAndDrop() {
             },
             onDrag: function() {
                 const dragY = this.y;
-                const draggedIdx = currentOrder.indexOf(row);
+                const liveOrder = Array.from(container.querySelectorAll("[id^='ex-lib-row-']"));
+                const draggedIdx = liveOrder.indexOf(row);
                 const movedSteps = Math.round(dragY / rowHeight());
-                currentOrder.forEach((otherRow, otherIdx) => {
-                    if (otherRow === row) return;
-                    const diff = otherIdx - draggedIdx;
-                    if (movedSteps > 0 && diff > 0 && diff <= movedSteps) {
-                        console.log('animating row', otherIdx, 'up');
-                        gsap.to(otherRow, { y: -rowHeight(), duration: 0.2, ease: "power2.out" });
-                    } else if (movedSteps < 0 && diff < 0 && diff >= movedSteps) {
-                        gsap.to(otherRow, { y: rowHeight(), duration: 0.2, ease: "power2.out" });
-                    } else {
-                        gsap.to(otherRow, { y: 0, duration: 0.2, ease: "power2.out" });
-                    }
+                requestAnimationFrame(() => {
+                    liveOrder.forEach((otherRow, otherIdx) => {
+                        if (otherRow === row) return;
+                        const diff = otherIdx - draggedIdx;
+                        if (movedSteps > 0 && diff > 0 && diff <= movedSteps) {
+                            gsap.set(otherRow, { y: -rowHeight() });
+                        } else if (movedSteps < 0 && diff < 0 && diff >= movedSteps) {
+                            gsap.set(otherRow, { y: rowHeight() });
+                        } else {
+                            gsap.set(otherRow, { y: 0 });
+                        }
+                    });
                 });
             },
             onDragEnd: async function() {
