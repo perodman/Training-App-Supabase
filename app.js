@@ -4562,7 +4562,7 @@ function closeEditProgramModal(idx) {
                     justify-content:center; font-size:26px; margin:0 auto 16px auto;">💾</div>
                 <h3 style="margin:0 0 10px 0; font-size:20px; font-weight:900; color:#fff;">Save changes?</h3>
                 <p style="color:var(--text-light); font-size:14px; line-height:1.5; margin-bottom:24px;">
-                    You have unsaved changes. What would you like to do?
+                    Unsaved changes. What would you like to do?
                 </p>
                 <button class="mode-btn glass-border" onclick="openEditProgramModal(${idx})"
                     style="width:100%; margin-bottom:10px; background:linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.05) 100%); 
