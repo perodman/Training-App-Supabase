@@ -4379,11 +4379,11 @@ function initExerciseLibraryDragAndDrop() {
                 const dragY = this.y;
                 const draggedIdx = currentOrder.indexOf(row);
                 const movedSteps = Math.round(dragY / rowHeight());
-                console.log('onDrag y:', dragY, 'steps:', movedSteps);
                 currentOrder.forEach((otherRow, otherIdx) => {
                     if (otherRow === row) return;
                     const diff = otherIdx - draggedIdx;
                     if (movedSteps > 0 && diff > 0 && diff <= movedSteps) {
+                        console.log('animating row', otherIdx, 'up');
                         gsap.to(otherRow, { y: -rowHeight(), duration: 0.2, ease: "power2.out" });
                     } else if (movedSteps < 0 && diff < 0 && diff >= movedSteps) {
                         gsap.to(otherRow, { y: rowHeight(), duration: 0.2, ease: "power2.out" });
