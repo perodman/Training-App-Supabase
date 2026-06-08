@@ -1870,7 +1870,7 @@ function generateSelectedExercisesSummaryHtmlForEdit(idx) {
     if (!hasChoices) return "";
 
     let summaryHtml = `
-    <p style="font-size:11px; text-transform:uppercase; color:var(--text-light); margin-bottom:8px; font-weight:600; letter-spacing:0.5px;">Selected exercises in this set:</p>
+    <p style="font-size:11px; text-transform:uppercase; color:var(--text-light); margin-bottom:8px; text-align:center; font-weight:600; letter-spacing:0.5px;">Selected exercises in this set</p>
     <div style="display:flex; flex-wrap:wrap; gap:6px; background:rgba(255,255,255,0.03); padding:10px; border-radius:12px; border:1px solid rgba(255,255,255,0.05); max-height:100px; overflow-y:auto; margin-bottom:12px;">
     `;
     
@@ -1964,6 +1964,19 @@ function confirmAndAddAllSelectedExercisesForEdit(idx) {
     if (summaryContainer) summaryContainer.innerHTML = "";
     saveCustomProgramToSupabase();
     setTimeout(() => initEditExerciseDragAndDrop(idx), 50);
+    // Scrolla till Current Exercises-sektionen
+    setTimeout(() => {
+        const exercisesDiv = document.getElementById("edit-pass-exercises");
+        if (exercisesDiv) {
+            const modalContent = document.querySelector('.modal-content');
+            if (modalContent) {
+                modalContent.scrollTo({
+                    top: exercisesDiv.offsetTop - 20,
+                    behavior: 'smooth'
+                });
+            }
+        }
+    }, 100);
 }
 
 function saveEditDraftStateAndCreateNew(idx) {
