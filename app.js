@@ -373,7 +373,7 @@ function filterExercises(category) {
         div.className = "card glass";
         div.id = `ex-lib-row-${filtered.indexOf(ex)}`;
         div.dataset.exId = ex.id;
-        div.style.cssText = "padding:15px; display:flex; align-items:center; gap:10px; margin-bottom:10px;";
+        div.style.cssText = "padding:15px; display:flex; align-items:center; gap:10px; margin-bottom:10px; overflow: visible;";
         div.innerHTML = `
             <div class="ex-lib-drag-handle" style="
                 width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0;
@@ -4348,6 +4348,7 @@ function initEditExerciseDragAndDrop(passIdx) {
 function initExerciseLibraryDragAndDrop() {
     const container = document.getElementById("exercise-results");
     if (!container || typeof gsap === 'undefined' || typeof Draggable === 'undefined') return;
+    container.style.overflow = "visible";
     const rows = Array.from(container.querySelectorAll("[id^='ex-lib-row-']"));
     if (rows.length === 0) return;
     rows.forEach((row) => {
