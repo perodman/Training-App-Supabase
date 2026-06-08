@@ -4253,9 +4253,12 @@ async function saveNewProgram() {
 async function saveProgramEdit(idx) {
     if (window.programData) programData = window.programData;
     const oldName = programData.routine[idx].name;
-    const newName = document.getElementById("edit-pass-name").value.trim();
+    
+    // Försök läsa från inputfältet om det finns, annars använd det redan sparade namnet
+    const nameInput = document.getElementById("edit-pass-name");
+    const newName = nameInput ? nameInput.value.trim() : programData.routine[idx].name;
+    
     if (!newName) {
-        const body = document.getElementById("modal-body");
         const existingWarning = document.getElementById("name-warning-modal");
         if (existingWarning) return;
         const warning = document.createElement("div");
@@ -4277,7 +4280,7 @@ async function saveProgramEdit(idx) {
                 <p style="color: var(--text-light); font-size: 14px; line-height: 1.5; margin-bottom: 24px;">
                     Please enter a name for your workout before saving.
                 </p>
-                <button class="mode-btn blue" onclick="document.getElementById('name-warning-modal').remove(); document.getElementById('edit-pass-name').focus();"
+                <button class="mode-btn blue" onclick="document.getElementById('name-warning-modal').remove(); openEditProgramModal(${idx});"
                     style="width: 100%; flex-direction: row; gap: 8px; padding: 14px;">
                     OK, got it!
                 </button>
@@ -4289,10 +4292,13 @@ async function saveProgramEdit(idx) {
     
     programData.routine[idx].name = newName;
     delete programData.routine[idx]._isTemp;
+    window._editPassOriginalState = null;
+    
     if (oldName !== newName && typeof updateWorkoutNameInHistory === 'function') {
         await updateWorkoutNameInHistory(oldName, newName);
     }
     await saveCustomProgramToSupabase();
+    hideDefaultCloseButton(false);
     closeModal();
     const savedGroups = programData.routine[idx].groups;
     if (Array.isArray(savedGroups) && savedGroups.length > 0) {
