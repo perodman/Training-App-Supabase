@@ -1257,7 +1257,7 @@ function startFreeWorkoutOnDate(date) {
 
     const freePass = {
         id: "free-" + Date.now(),
-        name: "Fritt Pass",
+        name: "Free Workout",
         exercises: []
     };
 
@@ -2531,7 +2531,7 @@ function renderActiveWorkout() {
         activeDraft.ui_state.openExercises = [];
     }
 
-    const isFrittPass = activeDraft.workout.name === "Fritt Pass";
+    const isFrittPass = activeDraft.workout.name === "Free Workout";
 
     // Håll koll på om detta är en återkomst (hasInitializedOpen är redan true)
     const isReturning = activeDraft.ui_state.hasOwnProperty('hasInitializedOpen');
@@ -3071,7 +3071,7 @@ function toggleSelectExerciseInPicker(exId, category) {
 async function confirmAndAddAllSelectedExercises() {
     if (temporarySelectedExercises.length === 0) return;
 
-    const isFrittPass = activeDraft.workout.name === "Fritt Pass";
+    const isFrittPass = activeDraft.workout.name === "Free Workout";
     const startIdx = activeDraft.workout.exercises.length;
     temporarySelectedExercises.forEach((exId, loopIdx) => {
         const ex = masterExercises.find(e => e.id == exId);
@@ -3156,7 +3156,7 @@ async function confirmAddExerciseToActive(exId, replaceIndex = null) {
         activeDraft.data.push(newDataEntry);
 
         const newIdx = activeDraft.workout.exercises.length - 1;
-        if (activeDraft.workout.name === "Fritt Pass" && !activeDraft.ui_state.openExercises.includes(newIdx)) {
+        if (activeDraft.workout.name === "Free Workout" && !activeDraft.ui_state.openExercises.includes(newIdx)) {
             activeDraft.ui_state.openExercises.push(newIdx);
         }
     }
