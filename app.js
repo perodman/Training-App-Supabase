@@ -371,17 +371,23 @@ function filterExercises(category) {
     filtered.forEach(ex => {
         const div = document.createElement("div");
         div.className = "card glass";
-        div.style.cssText = "padding:15px; display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; cursor:pointer;";
-
-        div.onclick = (e) => {
-            if(e.target.tagName !== 'BUTTON') {
-                showExerciseAnimation(ex.id);
-            }
-        };
-        div.innerHTML = `<div><strong style="font-size:16px;">${ex.name}</strong><br><small style="color:var(--primary); font-weight:800; text-transform:uppercase; font-size:10px;">${CATEGORY_DISPLAY[ex.target] || ex.target}</small></div>
-        <button style="background:none; border:none; font-size:18px; cursor:pointer;" onclick="openEditExerciseModal(${ex.id})">  ⚙️  </button>`;
+        div.id = `ex-lib-row-${filtered.indexOf(ex)}`;
+        div.dataset.exId = ex.id;
+        div.style.cssText = "padding:15px; display:flex; align-items:center; gap:10px; margin-bottom:10px;";
+        div.innerHTML = `
+            <div class="ex-lib-drag-handle" style="
+                width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0;
+                background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+                display: flex; align-items: center; justify-content: center;
+                cursor: grab; font-size: 14px; color: rgba(255,255,255,0.4);">⠿</div>
+            <div style="flex-grow:1; cursor:pointer;" onclick="showExerciseAnimation(${ex.id})">
+                <strong style="font-size:16px;">${ex.name}</strong><br>
+                <small style="color:var(--primary); font-weight:800; text-transform:uppercase; font-size:10px;">${CATEGORY_DISPLAY[ex.target] || ex.target}</small>
+            </div>
+            <button style="background:none; border:none; font-size:18px; cursor:pointer;" onclick="openEditExerciseModal(${ex.id})">⚙️</button>`;
         results.appendChild(div);
     });
+    setTimeout(() => initExerciseLibraryDragAndDrop(), 50);
 }
 
 function showExerciseAnimation(id) {
@@ -1964,9 +1970,8 @@ function confirmAndAddAllSelectedExercisesForEdit(idx) {
     // Uppdatera också summary-containern och nollställ picker-vyn
     const summaryContainer = document.getElementById("selected-edit-summary-container");
     if (summaryContainer) summaryContainer.innerHTML = "";
-
-    // Spara till Supabase i bakgrunden
     saveCustomProgramToSupabase();
+    setTimeout(() => initEditExerciseDragAndDrop(idx), 50);
 }
 
 function saveEditDraftStateAndCreateNew(idx) {
@@ -2224,7 +2229,10 @@ async function removeExFromPass(pIdx, eIdx) {
                 <span style="flex-grow:1; margin-left:15px; font-size:14px; font-weight:600;">${ex.name}</span>
                 <button onclick="removeExFromPass(${pIdx}, ${i})" style="color:var(--danger); background:none; border:none; font-size:18px;">✖</button>
             </div>`).join("");
-    }
+   }
+    // Hämta passindex från exercise-listan
+    const passIdx = pIdx;
+    setTimeout(() => initEditExerciseDragAndDrop(passIdx), 50);
 }
 
 function openCreateProgramModal() {
@@ -4351,6 +4359,87 @@ function initEditExerciseDragAndDrop(passIdx) {
                     });
 
                     saveCustomProgramToSupabase();
+                }
+            }
+        });
+    });
+}
+
+function initExerciseLibraryDragAndDrop() {
+    const container = document.getElementById("exercise-results");
+    if (!container || typeof gsap === 'undefined' || typeof Draggable === 'undefined') return;
+
+    const rows = Array.from(container.querySelectorAll("[id^='ex-lib-row-']"));
+    if (rows.length === 0) return;
+
+    rows.forEach((row) => {
+        const handle = row.querySelector('.ex-lib-drag-handle');
+        if (!handle) return;
+
+        let currentOrder = [...rows];
+        const rowHeight = () => row.offsetHeight + 10;
+
+        Draggable.create(row, {
+            type: "y",
+            trigger: handle,
+            bounds: container,
+            zIndexBoost: false,
+            onDragStart: function() {
+                currentOrder = Array.from(container.querySelectorAll("[id^='ex-lib-row-']"));
+                gsap.to(row, { scale: 1.02, boxShadow: "0 10px 30px rgba(0,0,0,0.5)", duration: 0.2 });
+                gsap.set(row, { zIndex: 100 });
+            },
+            onDrag: function() {
+                const draggedIdx = currentOrder.indexOf(row);
+                const movedSteps = Math.round(this.y / rowHeight());
+                currentOrder.forEach((otherRow, otherIdx) => {
+                    if (otherRow === row) return;
+                    const diff = otherIdx - draggedIdx;
+                    if (movedSteps > 0 && diff > 0 && diff <= movedSteps) {
+                        gsap.to(otherRow, { y: -rowHeight(), duration: 0.2, ease: "power2.out" });
+                    } else if (movedSteps < 0 && diff < 0 && diff >= movedSteps) {
+                        gsap.to(otherRow, { y: rowHeight(), duration: 0.2, ease: "power2.out" });
+                    } else {
+                        gsap.to(otherRow, { y: 0, duration: 0.2, ease: "power2.out" });
+                    }
+                });
+            },
+            onDragEnd: async function() {
+                const draggedIdx = currentOrder.indexOf(row);
+                const movedSteps = Math.round(this.y / rowHeight());
+                let newIdx = Math.max(0, Math.min(currentOrder.length - 1, draggedIdx + movedSteps));
+
+                gsap.killTweensOf(row);
+                currentOrder.forEach(r => {
+                    gsap.killTweensOf(r);
+                    gsap.set(r, { clearProps: "transform,zIndex,scale,boxShadow,opacity" });
+                });
+
+                if (newIdx !== draggedIdx) {
+                    // Hitta globalt index i masterExercises via data-id
+                    const draggedId = parseInt(row.dataset.exId);
+                    const targetId = parseInt(currentOrder[newIdx].dataset.exId);
+                    const globalDraggedIdx = masterExercises.findIndex(e => e.id == draggedId);
+                    const globalTargetIdx = masterExercises.findIndex(e => e.id == targetId);
+
+                    // Uppdatera masterExercises
+                    const [moved] = masterExercises.splice(globalDraggedIdx, 1);
+                    masterExercises.splice(globalTargetIdx, 0, moved);
+
+                    // DOM-flytt
+                    await new Promise(resolve => requestAnimationFrame(resolve));
+
+                    if (newIdx > draggedIdx) {
+                        container.insertBefore(row, currentOrder[newIdx].nextSibling);
+                    } else {
+                        container.insertBefore(row, currentOrder[newIdx]);
+                    }
+
+                    Array.from(container.querySelectorAll("[id^='ex-lib-row-']")).forEach((r, i) => {
+                        r.id = `ex-lib-row-${i}`;
+                    });
+
+                    saveAll();
                 }
             }
         });
