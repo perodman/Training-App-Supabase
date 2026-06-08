@@ -379,7 +379,8 @@ function filterExercises(category) {
                 width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0;
                 background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
                 display: flex; align-items: center; justify-content: center;
-                cursor: grab; font-size: 14px; color: rgba(255,255,255,0.4);">⠿</div>
+                cursor: grab; font-size: 14px; color: rgba(255,255,255,0.4);
+                touch-action: none !important;">⠿</div>
             <div style="flex-grow:1; cursor:pointer;" onclick="showExerciseAnimation(${ex.id})">
                 <strong style="font-size:16px;">${ex.name}</strong><br>
                 <small style="color:var(--primary); font-weight:800; text-transform:uppercase; font-size:10px;">${CATEGORY_DISPLAY[ex.target] || ex.target}</small>
