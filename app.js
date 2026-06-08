@@ -3616,9 +3616,18 @@ async function finishWorkout(e) {
             programName: activeDraft.programName || activeDraft.workout.name,
             totalTime: finalTime,
             exercises: activeDraft.workout.exercises.map((ex, i) => {
+                const setsData = activeDraft.data[i] ? activeDraft.data[i].sets_data : [];
+                // Hämta vila från vila-inputs direkt från DOM innan de försvinner
+                const setsWithRest = setsData.map((set, sIdx) => {
+                    const vInp = document.getElementById(`v-${i}-${sIdx}`);
+                    return {
+                        ...set,
+                        rest: vInp ? vInp.value : (set.rest || null)
+                    };
+                });
                 return {
                     name: ex.name,
-                    sets_data: activeDraft.data[i] ? activeDraft.data[i].sets_data : []
+                    sets_data: setsWithRest
                 };
             })
         };
