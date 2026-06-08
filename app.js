@@ -2062,23 +2062,21 @@ async function addExerciseToPassDirectly(pIdx, exId) {
 }
 
 async function openEditProgramModal(idx) {
-    // Spara befintligt namn från programData om det redan finns (t.ex. vid Continue Editing)
     const pass = programData.routine[idx];
-    if (!pass) return;
-    const existingNameInput = document.getElementById("edit-pass-name");
-    if (existingNameInput && existingNameInput.value.trim()) {
-        programData.routine[idx].name = existingNameInput.value.trim();
-    }
     const body = document.getElementById("modal-body");
     if (!pass || !body) return;
-
-    // Återställ body-stilar som openDayManager kan ha satt
+    
+    // Spara originalstate för att kunna detektera ändringar
+    window._editPassOriginalState = JSON.stringify({
+        name: pass.name,
+        exercises: pass.exercises
+    });
+    
     body.style.display = "";
     body.style.flexDirection = "";
     body.style.justifyContent = "";
     body.style.alignItems = "";
     body.style.gap = "";
-
     const savedDraft = localStorage.getItem('temp_exercise_edit_draft');
     if (savedDraft) {
         window.temporarySelectedExercisesForEdit = JSON.parse(savedDraft);
@@ -2147,8 +2145,11 @@ async function openEditProgramModal(idx) {
         </div>
         <button class="mode-btn blue" style="margin-top:20px;" onclick="saveProgramEdit(${idx})">Save all changes</button>
         <button class="btn-danger" onclick="deleteEntireProgram(${idx})">🗑️ Delete Workout Permanently</button>
+        <button onclick="closeEditProgramModal(${idx})" style="margin-top: 15px; width:100%; padding:14px; border-radius:16px; border:1px solid rgba(255,255,255,0.25); border-top:1px solid rgba(255,255,255,0.45); background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.05) 100%); color:white; font-weight:700; cursor:pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">Close</button>
     `;
     openModal(true);
+    // Dölj den globala Close-knappen så bara vår egna syns
+    hideDefaultCloseButton(true);
     setTimeout(() => {
         if (typeof renderExercisePickerForEdit === 'function') {
             renderExercisePickerForEdit(idx, "Legs");
@@ -2158,8 +2159,7 @@ async function openEditProgramModal(idx) {
             if (mc) mc.scrollTop = window._savedEditScrollPos;
             window._savedEditScrollPos = 0;
         }
-        // Om vi kommer tillbaka från create-exercise, scrolla till Current Exercises
-if (window._scrollToExercises) {
+        if (window._scrollToExercises) {
             window._scrollToExercises = false;
             setTimeout(() => {
                 const summaryContainer = document.getElementById("selected-edit-summary-container");
@@ -4528,4 +4528,73 @@ function initExerciseLibraryDragAndDrop() {
             }
         });
     });
+}
+
+function closeEditProgramModal(idx) {
+    const pass = programData.routine[idx];
+    if (!pass) return;
+    
+    const nameInput = document.getElementById("edit-pass-name");
+    const currentName = nameInput ? nameInput.value.trim() : "";
+    const original = window._editPassOriginalState ? JSON.parse(window._editPassOriginalState) : null;
+    
+    const nameChanged = original && currentName !== original.name && currentName !== '';
+    const exercisesChanged = original && JSON.stringify(pass.exercises) !== JSON.stringify(original.exercises);
+    
+    if (nameChanged || exercisesChanged) {
+        const body = document.getElementById("modal-body");
+        body.innerHTML = `
+            <div style="text-align:center; padding:10px;">
+                <div style="width:56px; height:56px; border-radius:16px; background:rgba(34,211,238,0.1); 
+                    border:1px solid rgba(34,211,238,0.3); display:flex; align-items:center; 
+                    justify-content:center; font-size:26px; margin:0 auto 16px auto;">💾</div>
+                <h3 style="margin:0 0 10px 0; font-size:20px; font-weight:900; color:#fff;">Save changes?</h3>
+                <p style="color:var(--text-light); font-size:14px; line-height:1.5; margin-bottom:24px;">
+                    You have unsaved changes. What would you like to do?
+                </p>
+                <button class="mode-btn glass-border" onclick="openEditProgramModal(${idx})"
+                    style="width:100%; margin-bottom:10px; background:linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.05) 100%); 
+                    border: 1px solid rgba(255,255,255,0.25); border-top: 1px solid rgba(255,255,255,0.45);">
+                    ← Continue Editing
+                </button>
+                <button class="mode-btn blue" onclick="saveProgramEdit(${idx})"
+                    style="width:100%; flex-direction:row; gap:8px; padding:14px; margin-bottom:10px;">
+                    💾 Save Changes
+                </button>
+                <button class="btn-danger" onclick="
+                    if (window._editPassOriginalState) {
+                        const original = JSON.parse(window._editPassOriginalState);
+                        programData.routine[${idx}].exercises = original.exercises;
+                        programData.routine[${idx}].name = original.name;
+                        window._editPassOriginalState = null;
+                    }
+                    if (programData.routine[${idx}]._isTemp) {
+                        programData.routine.splice(${idx}, 1);
+                    }
+                    hideDefaultCloseButton(false);
+                    document.getElementById('workout-modal').classList.add('hidden');
+                    if (currentViewGroupId) {
+                        renderPassesInGroup(currentViewGroupId);
+                    } else {
+                        renderGroupsView();
+                    }
+                ">
+                    🗑️ Discard Changes
+                </button>
+            </div>
+        `;
+    } else {
+        // Inga ändringar — stäng direkt
+        if (pass._isTemp) {
+            programData.routine.splice(idx, 1);
+        }
+        window._editPassOriginalState = null;
+        hideDefaultCloseButton(false);
+        document.getElementById('workout-modal').classList.add('hidden');
+        if (currentViewGroupId) {
+            renderPassesInGroup(currentViewGroupId);
+        } else {
+            renderGroupsView();
+        }
+    }
 }
