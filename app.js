@@ -4301,7 +4301,7 @@ function initEditExerciseDragAndDrop(passIdx) {
             },
             onDrag: function() {
                 const dragY = this.y;
-                const liveOrder = Array.from(container.querySelectorAll("[id^='ex-lib-row-']"));
+                const liveOrder = Array.from(container.querySelectorAll("[id^='edit-ex-row-']"));
                 const draggedIdx = liveOrder.indexOf(row);
                 const movedSteps = Math.round(dragY / rowHeight());
                 liveOrder.forEach((otherRow, otherIdx) => {
@@ -4357,7 +4357,6 @@ function initExerciseLibraryDragAndDrop() {
         const handle = row.querySelector('.ex-lib-drag-handle');
         if (!handle) return;
         handle.style.touchAction = "none";
-        handle.setAttribute('style', handle.getAttribute('style') + '; touch-action: none !important;');
         let currentOrder = [...rows];
         const rowHeight = () => row.offsetHeight + 10;
         row.style.touchAction = "none";
@@ -4382,18 +4381,16 @@ function initExerciseLibraryDragAndDrop() {
                 const liveOrder = Array.from(container.querySelectorAll("[id^='ex-lib-row-']"));
                 const draggedIdx = liveOrder.indexOf(row);
                 const movedSteps = Math.round(dragY / rowHeight());
-                requestAnimationFrame(() => {
-                    liveOrder.forEach((otherRow, otherIdx) => {
-                        if (otherRow === row) return;
-                        const diff = otherIdx - draggedIdx;
-                        if (movedSteps > 0 && diff > 0 && diff <= movedSteps) {
-                            gsap.set(otherRow, { y: -rowHeight() });
-                        } else if (movedSteps < 0 && diff < 0 && diff >= movedSteps) {
-                            gsap.set(otherRow, { y: rowHeight() });
-                        } else {
-                            gsap.set(otherRow, { y: 0 });
-                        }
-                    });
+                liveOrder.forEach((otherRow, otherIdx) => {
+                    if (otherRow === row) return;
+                    const diff = otherIdx - draggedIdx;
+                    if (movedSteps > 0 && diff > 0 && diff <= movedSteps) {
+                        gsap.to(otherRow, { y: -rowHeight(), duration: 0.2, ease: "power2.out" });
+                    } else if (movedSteps < 0 && diff < 0 && diff >= movedSteps) {
+                        gsap.to(otherRow, { y: rowHeight(), duration: 0.2, ease: "power2.out" });
+                    } else {
+                        gsap.to(otherRow, { y: 0, duration: 0.2, ease: "power2.out" });
+                    }
                 });
             },
             onDragEnd: async function() {
