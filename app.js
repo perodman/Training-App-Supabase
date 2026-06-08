@@ -4375,8 +4375,10 @@ function initExerciseLibraryDragAndDrop() {
                 gsap.set(row, { zIndex: 100, position: "relative" });
             },
             onDrag: function() {
+                const dragY = this.y;
                 const draggedIdx = currentOrder.indexOf(row);
-                const movedSteps = Math.round(this.y / rowHeight());
+                const movedSteps = Math.round(dragY / rowHeight());
+                console.log('onDrag y:', dragY, 'steps:', movedSteps);
                 currentOrder.forEach((otherRow, otherIdx) => {
                     if (otherRow === row) return;
                     const diff = otherIdx - draggedIdx;
