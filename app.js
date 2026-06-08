@@ -805,7 +805,7 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
     const hasCompleted = safeCompleted.length > 0;
 
  // 1. Workout History
-    if (hasCompleted) {
+   if (hasCompleted) {
         html += `
         <div style="display: flex; align-items: center; gap: 10px;">
             <div style="flex-grow: 1; height: 1px; background: rgba(255,255,255,0.08);"></div>
@@ -829,7 +829,6 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
                 <div style="display: flex; flex-direction: column; gap: 12px;">`;
             if (Array.isArray(w.exercises)) {
                 w.exercises.forEach((ex, exIdx) => {
-                    const isLastEx = exIdx === w.exercises.length - 1;
                     html += `
                     <div style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 10px;">
                         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
@@ -841,10 +840,11 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
                     if (ex.sets_data) {
                         const hasRest = ex.sets_data.some((s, i) => s.rest && i < ex.sets_data.length - 1);
                         html += `<div style="display: flex; flex-direction: column; gap: 6px;">`;
-                       if (hasRest) {
-                            html += `<div style="display: flex; justify-content: space-between; padding: 0 4px; margin-bottom: 2px;">
-                                <span style="font-size: 8px; color: rgba(34,211,238,0.5); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Set</span>
-                                <span style="font-size: 8px; color: rgba(245,158,11,0.5); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Rest</span>
+                        if (hasRest) {
+                            html += `
+                            <div style="display: flex; align-items: center; gap: 12px; padding: 0 4px; margin-bottom: 2px;">
+                                <span style="font-size: 10px; color: rgba(34,211,238,0.6); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Set</span>
+                                <span style="font-size: 10px; color: rgba(245,158,11,0.6); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Rest</span>
                             </div>`;
                         }
                         ex.sets_data.forEach((s, sIdx) => {
@@ -853,15 +853,14 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
                             const restVal = s.rest || null;
                             const isLastSet = sIdx === ex.sets_data.length - 1;
                             html += `
-                            <div style="background: rgba(34,211,238,0.06); border: 1px solid rgba(34,211,238,0.2); padding: 6px 10px; border-radius: 10px; display: inline-flex; align-items: center; gap: 10px;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="background: rgba(34,211,238,0.06); border: 1px solid rgba(34,211,238,0.2); padding: 6px 10px; border-radius: 10px; display: inline-flex; align-items: center; gap: 10px;">
                                     <span style="color: rgba(255,255,255,0.5); font-size: 10px; font-weight: 800;">#${sIdx+1}</span>
                                     <span style="color: rgba(255,255,255,0.2); font-size: 10px;">|</span>
                                     <span style="color: #fff; font-size: 11px; font-weight: 600;">${wVal} kg × ${rVal} reps</span>
                                 </div>
                                 ${!isLastSet && restVal ? `
-                                <div style="display: flex; align-items: center; gap: 4px; margin-left: 8px;">
-                                    <span style="font-size: 11px; color: #f59e0b; font-weight: 700;">⏱️ ${restVal}s</span>
-                                </div>` : '<div></div>'}
+                                <span style="font-size: 11px; color: #f59e0b; font-weight: 700;">⏱️ ${restVal}s</span>` : ''}
                             </div>`;
                         });
                         html += `</div>`;
