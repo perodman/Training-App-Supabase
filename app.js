@@ -1930,25 +1930,16 @@ function toggleSelectExerciseInPickerForEdit(idx, exId, category) {
 // Motsvarar confirmAndAddAllSelectedExercises - sparar ner alla valda och laddar om vyn
 function confirmAndAddAllSelectedExercisesForEdit(idx) {
     if (!window.temporarySelectedExercisesForEdit || window.temporarySelectedExercisesForEdit.length === 0) return;
-    
     const pass = programData.routine[idx];
     if (!pass) return;
-
     window.temporarySelectedExercisesForEdit.forEach(exId => {
         const ex = masterExercises.find(e => e.id == exId);
         if (ex) {
-            pass.exercises.push({
-                id: ex.id,
-                name: ex.name,
-                target: ex.target
-            });
+            pass.exercises.push({ id: ex.id, name: ex.name, target: ex.target });
         }
     });
-
     window.temporarySelectedExercisesForEdit = [];
     localStorage.removeItem('temp_exercise_edit_draft');
-
-    // Uppdatera BARA exercise-listan utan att rita om hela modalen
     const exercisesDiv = document.getElementById("edit-pass-exercises");
     if (exercisesDiv) {
         exercisesDiv.innerHTML = pass.exercises.length === 0 ? `
@@ -1957,17 +1948,17 @@ function confirmAndAddAllSelectedExercisesForEdit(idx) {
                 <div style="font-size:13px; color:var(--text-light); opacity:0.6;">No exercises added yet — use the section above</div>
             </div>
         ` : pass.exercises.map((ex, i) => `
-            <div class="edit-item-row">
-                <div style="display:flex; gap:8px;">
-                    <button class="reorder-btn" onclick="moveExercise(${idx}, ${i}, -1)"> ▲ </button>
-                    <button class="reorder-btn" onclick="moveExercise(${idx}, ${i}, 1)"> ▼ </button>
-                </div>
+            <div class="edit-item-row" id="edit-ex-row-${i}" style="cursor: default;">
+                <div class="edit-drag-handle" style="
+                    width: 28px; height: 28px; border-radius: 8px;
+                    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+                    display: flex; align-items: center; justify-content: center;
+                    cursor: grab; font-size: 14px; color: rgba(255,255,255,0.4);
+                    flex-shrink: 0;">⠿</div>
                 <span style="flex-grow:1; margin-left:15px; font-size:14px; font-weight:600;">${ex.name}</span>
                 <button onclick="removeExFromPass(${idx}, ${i})" style="color:var(--danger); background:none; border:none; font-size:18px;">✖</button>
             </div>`).join("");
     }
-
-    // Uppdatera också summary-containern och nollställ picker-vyn
     const summaryContainer = document.getElementById("selected-edit-summary-container");
     if (summaryContainer) summaryContainer.innerHTML = "";
     saveCustomProgramToSupabase();
@@ -4364,6 +4355,7 @@ function initExerciseLibraryDragAndDrop() {
         handle.style.touchAction = "none";
         let currentOrder = [...rows];
         const rowHeight = () => row.offsetHeight + 10;
+        row.style.touchAction = "none";
         Draggable.create(row, {
             type: "y",
             trigger: handle,
