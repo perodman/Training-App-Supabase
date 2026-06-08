@@ -2142,7 +2142,7 @@ if (window._scrollToExercises) {
                     });
                 }
             }
-        }
+        
         initEditExerciseDragAndDrop(idx);
     }, 50);
 }
