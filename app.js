@@ -2211,7 +2211,6 @@ async function moveExercise(pIdx, eIdx, dir) {
 async function removeExFromPass(pIdx, eIdx) {
     programData.routine[pIdx].exercises.splice(eIdx, 1);
     saveCustomProgramToSupabase();
-
     const pass = programData.routine[pIdx];
     const exercisesDiv = document.getElementById("edit-pass-exercises");
     if (exercisesDiv) {
@@ -2221,18 +2220,18 @@ async function removeExFromPass(pIdx, eIdx) {
                 <div style="font-size:13px; color:var(--text-light); opacity:0.6;">No exercises added yet — use the section above</div>
             </div>
         ` : pass.exercises.map((ex, i) => `
-            <div class="edit-item-row">
-                <div style="display:flex; gap:8px;">
-                    <button class="reorder-btn" onclick="moveExercise(${pIdx}, ${i}, -1)"> ▲ </button>
-                    <button class="reorder-btn" onclick="moveExercise(${pIdx}, ${i}, 1)"> ▼ </button>
-                </div>
+            <div class="edit-item-row" id="edit-ex-row-${i}" style="cursor: default;">
+                <div class="edit-drag-handle" style="
+                    width: 28px; height: 28px; border-radius: 8px;
+                    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+                    display: flex; align-items: center; justify-content: center;
+                    cursor: grab; font-size: 14px; color: rgba(255,255,255,0.4);
+                    flex-shrink: 0;">⠿</div>
                 <span style="flex-grow:1; margin-left:15px; font-size:14px; font-weight:600;">${ex.name}</span>
                 <button onclick="removeExFromPass(${pIdx}, ${i})" style="color:var(--danger); background:none; border:none; font-size:18px;">✖</button>
             </div>`).join("");
-   }
-    // Hämta passindex från exercise-listan
-    const passIdx = pIdx;
-    setTimeout(() => initEditExerciseDragAndDrop(passIdx), 50);
+    }
+    setTimeout(() => initEditExerciseDragAndDrop(pIdx), 50);
 }
 
 function openCreateProgramModal() {
@@ -4382,12 +4381,16 @@ function initExerciseLibraryDragAndDrop() {
         Draggable.create(row, {
             type: "y",
             trigger: handle,
-            bounds: container,
             zIndexBoost: false,
             onDragStart: function() {
                 currentOrder = Array.from(container.querySelectorAll("[id^='ex-lib-row-']"));
-                gsap.to(row, { scale: 1.02, boxShadow: "0 10px 30px rgba(0,0,0,0.5)", duration: 0.2 });
-                gsap.set(row, { zIndex: 100 });
+                gsap.to(row, { 
+                    scale: 1.02, 
+                    boxShadow: "0 10px 30px rgba(0,0,0,0.5)", 
+                    duration: 0.2,
+                    ease: "power2.out"
+                });
+                gsap.set(row, { zIndex: 100, position: "relative" });
             },
             onDrag: function() {
                 const draggedIdx = currentOrder.indexOf(row);
@@ -4412,21 +4415,18 @@ function initExerciseLibraryDragAndDrop() {
                 gsap.killTweensOf(row);
                 currentOrder.forEach(r => {
                     gsap.killTweensOf(r);
-                    gsap.set(r, { clearProps: "transform,zIndex,scale,boxShadow,opacity" });
+                    gsap.set(r, { clearProps: "transform,zIndex,scale,boxShadow,opacity,position" });
                 });
 
                 if (newIdx !== draggedIdx) {
-                    // Hitta globalt index i masterExercises via data-id
                     const draggedId = parseInt(row.dataset.exId);
                     const targetId = parseInt(currentOrder[newIdx].dataset.exId);
                     const globalDraggedIdx = masterExercises.findIndex(e => e.id == draggedId);
                     const globalTargetIdx = masterExercises.findIndex(e => e.id == targetId);
 
-                    // Uppdatera masterExercises
                     const [moved] = masterExercises.splice(globalDraggedIdx, 1);
                     masterExercises.splice(globalTargetIdx, 0, moved);
 
-                    // DOM-flytt
                     await new Promise(resolve => requestAnimationFrame(resolve));
 
                     if (newIdx > draggedIdx) {
