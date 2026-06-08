@@ -280,9 +280,14 @@ async function saveWorkoutHistory(workoutInput) {
                 sets_data: (activeDraft.data[i]?.sets_data || []).map(s => ({
                     weight: s.weight || 0,
                     reps: s.reps || 0,
+                    rest: s.rest || null,
                     userConfirmed: s.userConfirmed || false
                 }))
             })),
+            date: workoutInput.date,
+            totalTime: workoutInput.totalTime
+        }
+        : workoutInput;
             date: workoutInput.date,
             totalTime: workoutInput.totalTime
         }
