@@ -179,9 +179,14 @@ function closeModal() {
                             style="width:100%; flex-direction:row; gap:8px; padding:14px; margin-bottom:10px;">
                             💾 Save Workout
                         </button>
-                        <button class="mode-btn glass-border" onclick="openEditProgramModal(${tempIdx})"
-                            style="width:100%; margin-bottom:10px; background:linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.05) 100%); 
-                            border:1px solid rgba(255,255,255,0.25); border-top:1px solid rgba(255,255,255,0.45);">
+                        <button class="mode-btn glass-border" onclick="
+                            const nameInput = document.getElementById('edit-pass-name');
+                            if (nameInput && nameInput.value.trim()) {
+                                programData.routine[${tempIdx}].name = nameInput.value.trim();
+                            }
+                            openEditProgramModal(${tempIdx});
+                        " style="width:100%; margin-bottom:10px; background:linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.05) 100%); 
+                            border: 1px solid rgba(255,255,255,0.25); border-top: 1px solid rgba(255,255,255,0.45);">
                             Continue Editing
                         </button>
                         <button class="btn-danger" onclick="
