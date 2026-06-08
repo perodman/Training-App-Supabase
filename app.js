@@ -4288,22 +4288,20 @@ function confirmDeleteWorkoutFromPicker(passIdx) {
 function initEditExerciseDragAndDrop(passIdx) {
     const container = document.getElementById("edit-pass-exercises");
     if (!container || typeof gsap === 'undefined' || typeof Draggable === 'undefined') return;
-
     const rows = Array.from(container.querySelectorAll("[id^='edit-ex-row-']"));
     if (rows.length === 0) return;
-
     rows.forEach((row) => {
         const handle = row.querySelector('.edit-drag-handle');
         if (!handle) return;
-
+        handle.style.touchAction = "none";
         let currentOrder = [...rows];
         const rowHeight = () => row.offsetHeight + 10;
-
         Draggable.create(row, {
             type: "y",
             trigger: handle,
-            bounds: container,
             zIndexBoost: false,
+            allowEventDefault: true,
+            lockAxis: true,
             onDragStart: function() {
                 currentOrder = Array.from(container.querySelectorAll("[id^='edit-ex-row-']"));
                 gsap.to(row, { scale: 1.02, boxShadow: "0 10px 30px rgba(0,0,0,0.5)", duration: 0.2 });
@@ -4328,35 +4326,26 @@ function initEditExerciseDragAndDrop(passIdx) {
                 const draggedIdx = currentOrder.indexOf(row);
                 const movedSteps = Math.round(this.y / rowHeight());
                 let newIdx = Math.max(0, Math.min(currentOrder.length - 1, draggedIdx + movedSteps));
-
                 gsap.killTweensOf(row);
                 currentOrder.forEach(r => {
                     gsap.killTweensOf(r);
                     gsap.set(r, { clearProps: "transform,zIndex,scale,boxShadow,opacity" });
                 });
-
                 if (newIdx !== draggedIdx) {
-                    // Uppdatera data synkront först
                     const exercises = programData.routine[passIdx].exercises;
                     const [moved] = exercises.splice(draggedIdx, 1);
                     exercises.splice(newIdx, 0, moved);
-
-                    // DOM-flytt
                     await new Promise(resolve => requestAnimationFrame(resolve));
-
                     if (newIdx > draggedIdx) {
                         container.insertBefore(row, currentOrder[newIdx].nextSibling);
                     } else {
                         container.insertBefore(row, currentOrder[newIdx]);
                     }
-
-                    // Uppdatera id och onclick
                     Array.from(container.querySelectorAll("[id^='edit-ex-row-']")).forEach((r, i) => {
                         r.id = `edit-ex-row-${i}`;
                         const removeBtn = r.querySelector('button[onclick*="removeExFromPass"]');
                         if (removeBtn) removeBtn.setAttribute('onclick', `removeExFromPass(${passIdx}, ${i})`);
                     });
-
                     saveCustomProgramToSupabase();
                 }
             }
@@ -4367,26 +4356,25 @@ function initEditExerciseDragAndDrop(passIdx) {
 function initExerciseLibraryDragAndDrop() {
     const container = document.getElementById("exercise-results");
     if (!container || typeof gsap === 'undefined' || typeof Draggable === 'undefined') return;
-
     const rows = Array.from(container.querySelectorAll("[id^='ex-lib-row-']"));
     if (rows.length === 0) return;
-
     rows.forEach((row) => {
         const handle = row.querySelector('.ex-lib-drag-handle');
         if (!handle) return;
-
+        handle.style.touchAction = "none";
         let currentOrder = [...rows];
         const rowHeight = () => row.offsetHeight + 10;
-
         Draggable.create(row, {
             type: "y",
             trigger: handle,
             zIndexBoost: false,
+            allowEventDefault: true,
+            lockAxis: true,
             onDragStart: function() {
                 currentOrder = Array.from(container.querySelectorAll("[id^='ex-lib-row-']"));
-                gsap.to(row, { 
-                    scale: 1.02, 
-                    boxShadow: "0 10px 30px rgba(0,0,0,0.5)", 
+                gsap.to(row, {
+                    scale: 1.02,
+                    boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
                     duration: 0.2,
                     ease: "power2.out"
                 });
@@ -4411,34 +4399,27 @@ function initExerciseLibraryDragAndDrop() {
                 const draggedIdx = currentOrder.indexOf(row);
                 const movedSteps = Math.round(this.y / rowHeight());
                 let newIdx = Math.max(0, Math.min(currentOrder.length - 1, draggedIdx + movedSteps));
-
                 gsap.killTweensOf(row);
                 currentOrder.forEach(r => {
                     gsap.killTweensOf(r);
                     gsap.set(r, { clearProps: "transform,zIndex,scale,boxShadow,opacity,position" });
                 });
-
                 if (newIdx !== draggedIdx) {
                     const draggedId = parseInt(row.dataset.exId);
                     const targetId = parseInt(currentOrder[newIdx].dataset.exId);
                     const globalDraggedIdx = masterExercises.findIndex(e => e.id == draggedId);
                     const globalTargetIdx = masterExercises.findIndex(e => e.id == targetId);
-
                     const [moved] = masterExercises.splice(globalDraggedIdx, 1);
                     masterExercises.splice(globalTargetIdx, 0, moved);
-
                     await new Promise(resolve => requestAnimationFrame(resolve));
-
                     if (newIdx > draggedIdx) {
                         container.insertBefore(row, currentOrder[newIdx].nextSibling);
                     } else {
                         container.insertBefore(row, currentOrder[newIdx]);
                     }
-
                     Array.from(container.querySelectorAll("[id^='ex-lib-row-']")).forEach((r, i) => {
                         r.id = `ex-lib-row-${i}`;
                     });
-
                     saveAll();
                 }
             }
