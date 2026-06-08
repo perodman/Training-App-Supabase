@@ -2593,14 +2593,8 @@ const div = document.createElement("div");
 
             if (exerciseData.sets_data) {
                 exerciseData.sets_data.forEach((set, sIdx) => {
-                    let isLocked = false;
-                    let isCurrent = false;
-                    if (sIdx > 0 && !isDone) {
-                        const prevSet = exerciseData.sets_data[sIdx - 1];
-                        if (!prevSet.userConfirmed) isLocked = true;
-                    }
-                    if (isDone) isLocked = true;
-                    if (!set.userConfirmed && !isLocked && !isDone) isCurrent = true;
+                    const isLocked = isDone;
+                    const isCurrent = !set.userConfirmed && !isDone;
                     const showSuccess = set.userConfirmed || isDone;
                     let circleColor = showSuccess ? '#22c55e' : (isCurrent ? '#facc15' : '#f59e0b');
                     const statusContent = showSuccess ? ' ✅ ' : `#${sIdx + 1}`;
@@ -3363,14 +3357,8 @@ function updateSingleExerciseCard(exIdx) {
         </div>`;
     if (exerciseData.sets_data) {
         exerciseData.sets_data.forEach((set, sIdx) => {
-            let isLocked = false;
-            let isCurrent = false;
-            if (sIdx > 0 && !isDone) {
-                const prevSet = exerciseData.sets_data[sIdx - 1];
-                if (!prevSet.userConfirmed) isLocked = true;
-            }
-            if (isDone) isLocked = true;
-            if (!set.userConfirmed && !isLocked && !isDone) isCurrent = true;
+            const isLocked = isDone;
+                    const isCurrent = !set.userConfirmed && !isDone;
             const showSuccess = set.userConfirmed || isDone;
             let circleColor = showSuccess ? '#22c55e' : (isCurrent ? '#facc15' : '#f59e0b');
             const statusContent = showSuccess ? ' ✅ ' : `#${sIdx + 1}`;
