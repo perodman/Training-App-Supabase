@@ -148,14 +148,12 @@ function closeModal() {
     if (typeof hideDefaultCloseButton === 'function') {
         hideDefaultCloseButton(false);
     }
-
     if (typeof window._returnToEditIdx !== 'undefined' && window._returnToEditIdx !== null) {
         const idx = window._returnToEditIdx;
         window._returnToEditIdx = null;
         openEditProgramModal(idx);
         return;
     }
-
     if (typeof programData !== 'undefined' && programData && programData.routine) {
         const tempIdx = programData.routine.findIndex(p => p._isTemp);
         if (tempIdx !== -1) {
@@ -175,10 +173,6 @@ function closeModal() {
                         <p style="color:var(--text-light); font-size:14px; line-height:1.5; margin-bottom:24px;">
                             Unsaved changes. What would you like to do?
                         </p>
-                        <button class="mode-btn blue" onclick="saveProgramEdit(${tempIdx})"
-                            style="width:100%; flex-direction:row; gap:8px; padding:14px; margin-bottom:10px;">
-                            💾 Save Workout
-                        </button>
                         <button class="mode-btn glass-border" onclick="
                             const nameInput = document.getElementById('edit-pass-name');
                             if (nameInput && nameInput.value.trim()) {
@@ -187,7 +181,11 @@ function closeModal() {
                             openEditProgramModal(${tempIdx});
                         " style="width:100%; margin-bottom:10px; background:linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.05) 100%); 
                             border: 1px solid rgba(255,255,255,0.25); border-top: 1px solid rgba(255,255,255,0.45);">
-                            Continue Editing
+                            ← Continue Editing
+                        </button>
+                        <button class="mode-btn blue" onclick="saveProgramEdit(${tempIdx})"
+                            style="width:100%; flex-direction:row; gap:8px; padding:14px; margin-bottom:10px;">
+                            💾 Save Workout
                         </button>
                         <button class="btn-danger" onclick="
                             programData.routine.splice(${tempIdx}, 1);
@@ -209,7 +207,6 @@ function closeModal() {
             }
         }
     }
-
     if (typeof restoreDraftState === 'function') {
         restoreDraftState();
     }
@@ -4360,7 +4357,7 @@ function confirmDeleteWorkoutFromPicker(passIdx) {
                     renderGroupsView();
                 }
             })()">🗑️ Yes, Delete Permanently</button>
-            <button class="mode-btn glass-border" onclick="openGroupPickerForPass(${passIdx})"
+           <button class="mode-btn glass-border" onclick="hideDefaultCloseButton(false); openGroupPickerForPass(${passIdx})"
                 style="width:100%; margin-top:10px; background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.05) 100%); 
                 border: 1px solid rgba(255,255,255,0.25); border-top: 1px solid rgba(255,255,255,0.45);">
                 Cancel
