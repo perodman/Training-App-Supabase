@@ -2069,7 +2069,6 @@ async function openEditProgramModal(idx) {
     if (existingNameInput && existingNameInput.value.trim()) {
         programData.routine[idx].name = existingNameInput.value.trim();
     }
-    const pass = programData.routine[idx];
     const body = document.getElementById("modal-body");
     if (!pass || !body) return;
 
