@@ -2066,11 +2066,13 @@ async function openEditProgramModal(idx) {
     const body = document.getElementById("modal-body");
     if (!pass || !body) return;
     
-    // Spara originalstate för att kunna detektera ändringar
-    window._editPassOriginalState = JSON.stringify({
-        name: pass.name,
-        exercises: pass.exercises
-    });
+    // Spara originalstate bara om det inte redan finns ett (bevara genom Continue Editing)
+    if (!window._editPassOriginalState) {
+        window._editPassOriginalState = JSON.stringify({
+            name: pass.name,
+            exercises: pass.exercises
+        });
+    }
     
     body.style.display = "";
     body.style.flexDirection = "";
