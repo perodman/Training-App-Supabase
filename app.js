@@ -2120,9 +2120,19 @@ async function openEditProgramModal(idx) {
             window._savedEditScrollPos = 0;
         }
         // Om vi kommer tillbaka från create-exercise, scrolla till Current Exercises
-        if (window._scrollToExercises) {
+if (window._scrollToExercises) {
             window._scrollToExercises = false;
-            const exercisesDiv = document.getElementById("edit-pass-exercises");
+            setTimeout(() => {
+                const summaryContainer = document.getElementById("selected-edit-summary-container");
+                const modalContent = document.querySelector('.modal-content');
+                if (summaryContainer && modalContent) {
+                    const rect = summaryContainer.getBoundingClientRect();
+                    const modalRect = modalContent.getBoundingClientRect();
+                    const scrollTarget = modalContent.scrollTop + rect.top - modalRect.top - 20;
+                    modalContent.scrollTo({ top: scrollTarget, behavior: 'smooth' });
+                }
+            }, 100);
+        }
             if (exercisesDiv) {
                 const mc = document.querySelector('.modal-content');
                 if (mc) {
