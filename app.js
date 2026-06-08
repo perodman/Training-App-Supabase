@@ -2914,8 +2914,21 @@ async function removeSetFromExercise(exIdx, setIdx) {
 async function toggleExerciseDone(exIdx) {
     const scrollPos = window.scrollY;
     activeDraft.data[exIdx].isCompleted = !activeDraft.data[exIdx].isCompleted;
-    window._suppressAutoScroll = true;
-    renderActiveWorkout();
+
+    // Spara handtaget innan omritning
+    const targetCard = document.getElementById(`exercise-card-${exIdx}`);
+    const existingHandle = targetCard ? targetCard.querySelector('.drag-handle') : null;
+
+    updateSingleExerciseCard(exIdx);
+
+    // Återlägg handtaget direkt
+    if (existingHandle) {
+        const updatedHeader = targetCard.querySelector('div[onclick^="toggleExercise"]');
+        if (updatedHeader && !updatedHeader.querySelector('.drag-handle')) {
+            updatedHeader.insertBefore(existingHandle, updatedHeader.firstChild);
+        }
+    }
+
     window.scrollTo(0, scrollPos);
     await persistActiveWorkout();
 }
