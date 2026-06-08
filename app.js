@@ -839,7 +839,14 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
                             <span style="color: var(--primary); font-weight: 700; font-size: 13px;">${ex.name}</span>
                         </div>`;
                     if (ex.sets_data) {
+                        const hasRest = ex.sets_data.some((s, i) => s.rest && i < ex.sets_data.length - 1);
                         html += `<div style="display: flex; flex-direction: column; gap: 6px;">`;
+                        if (hasRest) {
+                            html += `<div style="display: flex; justify-content: space-between; padding: 0 4px; margin-bottom: 2px;">
+                                <span style="font-size: 8px; color: rgba(34,211,238,0.5); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Set</span>
+                                <span style="font-size: 8px; color: rgba(245,158,11,0.5); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Rest</span>
+                            </div>`;
+                        }
                         ex.sets_data.forEach((s, sIdx) => {
                             const wVal = s.weight || 0;
                             const rVal = s.reps || 0;
@@ -853,8 +860,7 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
                                     <span style="color: #fff; font-size: 11px; font-weight: 600;">${wVal} kg × ${rVal} reps</span>
                                 </div>
                                 ${!isLastSet && restVal ? `
-                                <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 1px;">
-                                    <span style="font-size: 8px; color: rgba(245,158,11,0.6); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Rest</span>
+                                <div style="display: flex; align-items: center; gap: 4px; margin-left: 8px;">
                                     <span style="font-size: 11px; color: #f59e0b; font-weight: 700;">⏱️ ${restVal}s</span>
                                 </div>` : '<div></div>'}
                             </div>`;
