@@ -830,8 +830,13 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
             if (Array.isArray(w.exercises)) {
                 w.exercises.forEach((ex, exIdx) => {
                     const isLast = exIdx === w.exercises.length - 1;
-                    html += `<div style="margin-bottom: 4px;">
-                        <span style="color: var(--primary); font-weight: 700; font-size: 13px; display: block; margin-bottom: 6px;">${ex.name}</span>
+                   html += `<div style="margin-bottom: 4px;">
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                            <div style="width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid rgba(34,211,238,0.4); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                <span style="color: var(--primary); font-size: 10px; font-weight: 800;">${exIdx + 1}</span>
+                            </div>
+                            <span style="color: var(--primary); font-weight: 700; font-size: 13px;">${ex.name}</span>
+                        </div>
                         <div style="display: flex; flex-direction: column; gap: 6px;">`;
                     if (ex.sets_data) {
                         ex.sets_data.forEach((s, sIdx) => {
