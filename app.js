@@ -2616,10 +2616,11 @@ const div = document.createElement("div");
                        <button onclick="removeSetFromExercise(${i}, ${sIdx})" style="background:none; border:none; color:var(--danger); font-size:16px; opacity: ${showSuccess ? '0.1' : isCurrent ? '0.8' : '0.4'};" ${showSuccess ? 'disabled' : ''}>×</button>
                     </div>`;
 
-                    if (isCurrent) {
+                    const firstUnconfirmedIdx = exerciseData.sets_data.findIndex(s => !s.userConfirmed);
+                    if (isCurrent && sIdx === firstUnconfirmedIdx) {
                         setsHtml += `
                         <div style="grid-column: 2 / span 3; margin:-4px 0 8px 0; padding-left:2px; opacity:0.8; font-size:10px; color:var(--primary); font-weight:600; letter-spacing:0.3px;">
-                            💡  Select ${statusContent} to lock & continue
+                            💡 Select ${statusContent} to lock & continue
                         </div>`;
                     }
                 });
@@ -3373,12 +3374,13 @@ function updateSingleExerciseCard(exIdx) {
                 ${sIdx < exerciseData.sets_data.length - 1 ? `<input type="text" inputmode="decimal" id="v-${exIdx}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'}; border-color: rgba(52, 152, 219, 0.3);" value="${set.rest || '120'}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${exIdx}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">` : `<div></div>`}
                 <button onclick="removeSetFromExercise(${exIdx}, ${sIdx})" style="background:none; border:none; color:var(--danger); font-size:16px; opacity: ${showSuccess ? '0.1' : isCurrent ? '0.8' : '0.4'};" ${showSuccess ? 'disabled' : ''}>×</button>
             </div>`;
-            if (isCurrent) {
-                setsHtml += `
-                <div style="grid-column: 2 / span 3; margin:-4px 0 8px 0; padding-left:2px; opacity:0.8; font-size:10px; color:var(--primary); font-weight:600; letter-spacing:0.3px;">
-                    💡 Select ${statusContent} to lock & continue
-                </div>`;
-            }
+            const firstUnconfirmedIdx = exerciseData.sets_data.findIndex(s => !s.userConfirmed);
+                    if (isCurrent && sIdx === firstUnconfirmedIdx) {
+                        setsHtml += `
+                        <div style="grid-column: 2 / span 3; margin:-4px 0 8px 0; padding-left:2px; opacity:0.8; font-size:10px; color:var(--primary); font-weight:600; letter-spacing:0.3px;">
+                            💡 Select ${statusContent} to lock & continue
+                        </div>`;
+                    }
         });
     }
     targetCard.innerHTML = `
