@@ -835,12 +835,23 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
                     <div>
                         <span style="color: var(--text); font-weight: 700; font-size: 13px; display: block; margin-bottom: 6px;">${ex.name}</span>
                         <div style="display: flex; flex-wrap: wrap; gap: 6px;">`;
-                    if (ex.sets_data) {
+                   if(ex.sets_data) {
                         ex.sets_data.forEach((s, sIdx) => {
+                            const wVal = s.weight || 0;
+                            const rVal = s.reps || 0;
+                            const restVal = s.rest || null;
                             html += `
-                            <div style="background: rgba(34,211,238,0.06); border: 1px solid rgba(34,211,238,0.2); padding: 5px 10px; border-radius: 8px; display: flex; align-items: center; gap: 6px;">
-                                <span style="color: var(--primary); font-size: 9px; font-weight: 800; text-transform: uppercase;">Set ${sIdx+1}</span>
-                                <span style="color: #fff; font-size: 12px; font-weight: 700;">${s.weight || 0}kg × ${s.reps || 0}</span>
+                            <div style="display: flex; flex-direction: column; gap: 4px;">
+                                <div style="background: rgba(34,211,238,0.06); border: 1px solid rgba(34,211,238,0.2); padding: 8px 12px; border-radius: 10px; display: flex; align-items: center; justify-content: space-between;">
+                                    <span style="color: var(--primary); font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">Set ${sIdx+1}</span>
+                                    <span style="color: #fff; font-size: 13px; font-weight: 700;">${wVal} kg × ${rVal} reps</span>
+                                </div>
+                                ${restVal && sIdx < ex.sets_data.length - 1 ? `
+                                <div style="display: flex; align-items: center; gap: 6px; padding: 0 8px; opacity: 0.5;">
+                                    <div style="flex-grow: 1; height: 1px; background: rgba(255,255,255,0.08);"></div>
+                                    <span style="font-size: 10px; color: var(--text-light);">⏱️ ${restVal}s rest</span>
+                                    <div style="flex-grow: 1; height: 1px; background: rgba(255,255,255,0.08);"></div>
+                                </div>` : ''}
                             </div>`;
                         });
                     } else {
