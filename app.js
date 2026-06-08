@@ -155,9 +155,16 @@ function closeModal() {
         return;
     }
     if (typeof programData !== 'undefined' && programData && programData.routine) {
+        // Hitta det _isTemp-pass som faktiskt är öppet i modalen just nu
+        const nameInput = document.getElementById("edit-pass-name");
+        const currentName = nameInput ? nameInput.value.trim() : "";
         const tempIdx = programData.routine.findIndex(p => p._isTemp);
         if (tempIdx !== -1) {
             const tempPass = programData.routine[tempIdx];
+            // Spara det inskrivna namnet till tempPass direkt
+            if (currentName) {
+                tempPass.name = currentName;
+            }
             const hasContent = (tempPass.exercises && tempPass.exercises.length > 0) ||
                 (tempPass.name && tempPass.name !== '' && tempPass.name !== 'New Workout');
             if (hasContent) {
@@ -174,14 +181,11 @@ function closeModal() {
                             Unsaved changes. What would you like to do?
                         </p>
                         <button class="mode-btn glass-border" onclick="
-                            const nameInput = document.getElementById('edit-pass-name');
-                            if (nameInput && nameInput.value.trim()) {
-                                programData.routine[${tempIdx}].name = nameInput.value.trim();
-                            }
+                            if (typeof hideDefaultCloseButton === 'function') hideDefaultCloseButton(false);
                             openEditProgramModal(${tempIdx});
                         " style="width:100%; margin-bottom:10px; background:linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.05) 100%); 
                             border: 1px solid rgba(255,255,255,0.25); border-top: 1px solid rgba(255,255,255,0.45);">
-                            Continue Editing
+                            ← Continue Editing
                         </button>
                         <button class="mode-btn blue" onclick="saveProgramEdit(${tempIdx})"
                             style="width:100%; flex-direction:row; gap:8px; padding:14px; margin-bottom:10px;">
@@ -2048,6 +2052,9 @@ async function addExerciseToPassDirectly(pIdx, exId) {
 }
 
 async function openEditProgramModal(idx) {
+    // Spara befintligt namn från programData om det redan finns (t.ex. vid Continue Editing)
+    const pass = programData.routine[idx];
+    if (!pass) return;
     const existingNameInput = document.getElementById("edit-pass-name");
     if (existingNameInput && existingNameInput.value.trim()) {
         programData.routine[idx].name = existingNameInput.value.trim();
