@@ -2770,25 +2770,19 @@ function initDragAndDrop() {
                 const draggedIdx = currentOrder.indexOf(card);
                 const movedSteps = Math.round(this.y / cardHeight());
                 let newIdx = Math.max(0, Math.min(currentOrder.length - 1, draggedIdx + movedSteps));
-
                 gsap.killTweensOf(card);
                 currentOrder.forEach(c => {
                     gsap.killTweensOf(c);
                     gsap.set(c, { clearProps: "transform,zIndex,scale,boxShadow,opacity" });
                 });
-
                 setTimeout(() => { window._isDragging = false; }, 300);
-
                 if (newIdx !== draggedIdx) {
-                    // Uppdatera data synkront FÖRST
                     const exArr = activeDraft.workout.exercises;
                     const dataArr = activeDraft.data;
                     const [movedEx] = exArr.splice(draggedIdx, 1);
                     const [movedData] = dataArr.splice(draggedIdx, 1);
                     exArr.splice(newIdx, 0, movedEx);
                     dataArr.splice(newIdx, 0, movedData);
-
-                    // Uppdatera openExercises-index EN gång
                     if (activeDraft.ui_state && activeDraft.ui_state.openExercises) {
                         activeDraft.ui_state.openExercises = activeDraft.ui_state.openExercises.map(idx => {
                             if (idx === draggedIdx) return newIdx;
@@ -2797,40 +2791,69 @@ function initDragAndDrop() {
                             return idx;
                         });
                     }
-
-                    // Sedan DOM-flytt
                     await new Promise(resolve => requestAnimationFrame(resolve));
-
                     if (newIdx > draggedIdx) {
                         list.insertBefore(card, currentOrder[newIdx].nextSibling);
                     } else {
                         list.insertBefore(card, currentOrder[newIdx]);
                     }
-
-                   Array.from(list.querySelectorAll("[id^='exercise-card-']")).forEach((c, idx) => {
+                    Array.from(list.querySelectorAll("[id^='exercise-card-']")).forEach((c, idx) => {
                         c.id = `exercise-card-${idx}`;
-                        
-                        // Uppdatera toggleExercise
+
                         const header = c.querySelector('div[onclick^="toggleExercise"]');
                         if (header) header.setAttribute('onclick', `toggleExercise(${idx})`);
 
-                        // Uppdatera moveActiveExercise-knappar
                         const moveUpBtn = c.querySelector('button[onclick*="moveActiveExercise"][onclick*="-1"]');
                         if (moveUpBtn) moveUpBtn.setAttribute('onclick', `event.stopPropagation(); moveActiveExercise(${idx}, -1)`);
                         const moveDownBtn = c.querySelector('button[onclick*="moveActiveExercise"][onclick*="1"]');
                         if (moveDownBtn) moveDownBtn.setAttribute('onclick', `event.stopPropagation(); moveActiveExercise(${idx}, 1)`);
 
-                        // Uppdatera replace och remove
                         const replaceBtn = c.querySelector('button[onclick*="openReplaceExerciseModal"]');
                         if (replaceBtn) replaceBtn.setAttribute('onclick', `event.stopPropagation(); openReplaceExerciseModal(${idx})`);
                         const removeBtn = c.querySelector('button[onclick*="removeActiveExercise"]');
                         if (removeBtn) removeBtn.setAttribute('onclick', `event.stopPropagation(); removeActiveExercise(${idx})`);
 
-                        // Uppdatera addSetToExercise och toggleExerciseDone
                         const addSetBtn = c.querySelector('button[onclick*="addSetToExercise"]');
                         if (addSetBtn) addSetBtn.setAttribute('onclick', `addSetToExercise(${idx})`);
                         const doneBtn = c.querySelector('button[onclick*="toggleExerciseDone"]');
                         if (doneBtn) doneBtn.setAttribute('onclick', `toggleExerciseDone(${idx})`);
+
+                        // Uppdatera confirmSet-cirklar
+                        c.querySelectorAll('div[onclick*="confirmSet"]').forEach(circle => {
+                            const onclickVal = circle.getAttribute('onclick');
+                            const setIdxMatch = onclickVal.match(/confirmSet\(\d+,\s*(\d+)\)/);
+                            if (setIdxMatch) {
+                                const sIdx = setIdxMatch[1];
+                                circle.setAttribute('onclick', `confirmSet(${idx}, ${sIdx})`);
+                            }
+                        });
+
+                        // Uppdatera removeSetFromExercise
+                        c.querySelectorAll('button[onclick*="removeSetFromExercise"]').forEach(btn => {
+                            const onclickVal = btn.getAttribute('onclick');
+                            const setIdxMatch = onclickVal.match(/removeSetFromExercise\(\d+,\s*(\d+)\)/);
+                            if (setIdxMatch) {
+                                const sIdx = setIdxMatch[1];
+                                btn.setAttribute('onclick', `removeSetFromExercise(${idx}, ${sIdx})`);
+                            }
+                        });
+
+                        // Uppdatera updateSetDataOnly och input-id:n
+                        c.querySelectorAll('input[oninput*="updateSetDataOnly"]').forEach(inp => {
+                            const oninputVal = inp.getAttribute('oninput');
+                            const setIdxMatch = oninputVal.match(/updateSetDataOnly\(\d+,\s*(\d+)\)/);
+                            if (setIdxMatch) {
+                                const sIdx = setIdxMatch[1];
+                                inp.setAttribute('oninput', `updateSetDataOnly(${idx}, ${sIdx})`);
+                                const inputId = inp.id;
+                                if (inputId) {
+                                    const parts = inputId.split('-');
+                                    if (parts.length === 3) {
+                                        inp.id = `${parts[0]}-${idx}-${parts[2]}`;
+                                    }
+                                }
+                            }
+                        });
                     });
 
                     await persistActiveWorkout();
