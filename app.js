@@ -4536,6 +4536,10 @@ function closeEditProgramModal(idx) {
     
     const nameInput = document.getElementById("edit-pass-name");
     const currentName = nameInput ? nameInput.value.trim() : "";
+    // Spara namnet till programData direkt så det inte försvinner
+    if (currentName && pass) {
+        programData.routine[idx].name = currentName;
+    }
     const original = window._editPassOriginalState ? JSON.parse(window._editPassOriginalState) : null;
     
     const nameChanged = original && currentName !== original.name && currentName !== '';
