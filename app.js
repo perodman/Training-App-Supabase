@@ -60,7 +60,17 @@ async function initApp() {
         }
     }
 
-    // 4. Slutgiltig rendering för startskärmen
+    // 4. Rensa eventuella gamla _isTemp-pass som inte sparades korrekt
+    if (programData && programData.routine) {
+        const hadTemp = programData.routine.some(p => p._isTemp);
+        if (hadTemp) {
+            programData.routine = programData.routine.filter(p => !p._isTemp);
+            if (typeof saveCustomProgramToSupabase === 'function') {
+                saveCustomProgramToSupabase();
+            }
+        }
+    }
+    // 5. Slutgiltig rendering för startskärmen
     if (typeof renderHome === 'function') renderHome();
 }
 
