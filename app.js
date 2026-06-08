@@ -834,7 +834,7 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
                     html += `
                     <div>
                         <span style="color: var(--text); font-weight: 700; font-size: 13px; display: block; margin-bottom: 6px;">${ex.name}</span>
-                        <div style="display: flex; flex-wrap: wrap; gap: 6px;">`;
+                        <div style="display: flex; flex-direction: column; gap: 6px;">;
                    if(ex.sets_data) {
                         ex.sets_data.forEach((s, sIdx) => {
                             const wVal = s.weight || 0;
@@ -844,7 +844,7 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
                             <div style="display: flex; flex-direction: column; gap: 4px;">
                                 <div style="background: rgba(34,211,238,0.06); border: 1px solid rgba(34,211,238,0.2); padding: 8px 12px; border-radius: 10px; display: flex; align-items: center; justify-content: space-between;">
                                     <span style="color: var(--primary); font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">Set ${sIdx+1}</span>
-                                    <span style="color: #fff; font-size: 13px; font-weight: 700;">${wVal} kg × ${rVal} reps</span>
+                                    <span style="color: #fff; font-size: 11px; font-weight: 600;">${wVal} kg × ${rVal} reps</span>
                                 </div>
                                 ${restVal && sIdx < ex.sets_data.length - 1 ? `
                                 <div style="display: flex; align-items: center; gap: 6px; padding: 0 8px; opacity: 0.5;">
