@@ -271,7 +271,7 @@ async function saveWorkoutHistory(workoutInput) {
     if (typeof window.timerInterval !== 'undefined' && window.timerInterval) clearInterval(window.timerInterval);
 
     // Säkerställ att vi arbetar med den absolut senaste datan om det är det aktiva passet
-    const workout = (activeDraft && activeDraft.workout && activeDraft.workout.id === workoutInput.id)
+        const workout = (activeDraft && activeDraft.workout && activeDraft.workout.id === workoutInput.id)
         ? {
             ...activeDraft.workout,
             exercises: activeDraft.workout.exercises.map((ex, i) => ({
@@ -284,10 +284,6 @@ async function saveWorkoutHistory(workoutInput) {
                     userConfirmed: s.userConfirmed || false
                 }))
             })),
-            date: workoutInput.date,
-            totalTime: workoutInput.totalTime
-        }
-        : workoutInput;
             date: workoutInput.date,
             totalTime: workoutInput.totalTime
         }
