@@ -853,16 +853,11 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
                             const restVal = s.rest || null;
                             const isLastSet = sIdx === ex.sets_data.length - 1;
                             html += `
-                            <div style="display: flex; align-items: center;">
-                                <div style="position: relative; width: 160px;">
-                                    <div style="background: rgba(34,211,238,0.06); border: 1px solid rgba(34,211,238,0.2); padding: 6px 10px; border-radius: 10px; display: flex; align-items: center; gap: 10px;">
-                                        <span style="color: rgba(255,255,255,0.5); font-size: 10px; font-weight: 800; min-width: 20px;">#${sIdx+1}</span>
-                                        <span style="color: rgba(255,255,255,0.2); font-size: 10px;">|</span>
-                                        <span style="color: #fff; font-size: 11px; font-weight: 600;">${wVal} kg × ${rVal} reps</span>
-                                    </div>
-                                    ${!isLastSet ? `
-                                    <div style="position: absolute; left: 20px; bottom: -8px; width: 1px; height: 8px; background: rgba(255,255,255,0.15);"></div>
-                                    <div style="position: absolute; left: 17px; bottom: -9px; font-size: 8px; color: rgba(255,255,255,0.15); line-height: 1;">▼</div>` : ''}
+                           <div style="display: flex; align-items: center;">
+                                <div style="width: 160px; background: rgba(34,211,238,0.06); border: 1px solid rgba(34,211,238,0.2); padding: 6px 10px; border-radius: 10px; display: flex; align-items: center; gap: 10px;">
+                                    <span style="color: rgba(255,255,255,0.5); font-size: 10px; font-weight: 800; min-width: 20px;">#${sIdx+1}</span>
+                                    <span style="color: rgba(255,255,255,0.2); font-size: 10px;">|</span>
+                                    <span style="color: #fff; font-size: 11px; font-weight: 600;">${wVal} kg × ${rVal} reps</span>
                                 </div>
                                 ${!isLastSet && restVal ? `
                                 <span style="font-size: 10px; color: #f59e0b; font-weight: 600; margin-left: 12px; position: relative; top: 14px;">⏱️ ${restVal}s</span>` : ''}
