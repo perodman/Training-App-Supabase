@@ -826,42 +826,44 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
                         <button onclick="openConfirmDeleteModal('${dateStr}', ${idx})" style="background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); color: var(--danger); cursor: pointer; font-size: 12px; width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">✖</button>
                     </div>
                 </div>
-                <div style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 10px; display: flex; flex-direction: column; gap: 8px;">`;
+                <div style="display: flex; flex-direction: column; gap: 12px;">`;
             if (Array.isArray(w.exercises)) {
                 w.exercises.forEach((ex, exIdx) => {
                     const isLastEx = exIdx === w.exercises.length - 1;
-                    html += `<div style="margin-bottom: 4px;">
-                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                    html += `
+                    <div style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 10px;">
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
                             <div style="width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid rgba(34,211,238,0.4); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                                 <span style="color: var(--primary); font-size: 10px; font-weight: 800;">${exIdx + 1}</span>
                             </div>
                             <span style="color: var(--primary); font-weight: 700; font-size: 13px;">${ex.name}</span>
                         </div>`;
                     if (ex.sets_data) {
-                        html += `<div style="position: relative; display: flex; flex-direction: column; gap: 6px; padding-right: 80px;">`;
+                        html += `<div style="display: flex; flex-direction: column; gap: 6px;">`;
                         ex.sets_data.forEach((s, sIdx) => {
                             const wVal = s.weight || 0;
                             const rVal = s.reps || 0;
                             const restVal = s.rest || null;
                             const isLastSet = sIdx === ex.sets_data.length - 1;
                             html += `
-                            <div style="position: relative;">
+                            <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
                                 <div style="background: rgba(34,211,238,0.06); border: 1px solid rgba(34,211,238,0.2); padding: 6px 10px; border-radius: 10px; display: inline-flex; align-items: center; gap: 10px;">
                                     <span style="color: rgba(255,255,255,0.5); font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">Set ${sIdx+1}</span>
                                     <span style="color: rgba(255,255,255,0.2); font-size: 10px;">|</span>
                                     <span style="color: #fff; font-size: 11px; font-weight: 600;">${wVal} kg × ${rVal} reps</span>
                                 </div>
                                 ${!isLastSet && restVal ? `
-                                <div style="position: absolute; right: -75px; top: 50%; transform: translateY(50%); white-space: nowrap;">
-                                    <span style="font-size: 10px; color: #f59e0b; font-weight: 600;">⏱️ ${restVal}s</span>
-                                </div>` : ''}
+                                <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 1px;">
+                                    <span style="font-size: 8px; color: rgba(245,158,11,0.6); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Rest</span>
+                                    <span style="font-size: 11px; color: #f59e0b; font-weight: 700;">⏱️ ${restVal}s</span>
+                                </div>` : '<div></div>'}
                             </div>`;
                         });
                         html += `</div>`;
                     } else {
                         html += `<div style="background: rgba(34,211,238,0.06); border: 1px solid rgba(34,211,238,0.2); color: #fff; font-size: 12px; padding: 5px 10px; border-radius: 8px; font-weight: 600;">${ex.sets} set × ${ex.weight || 0}kg × ${ex.reps || 0}</div>`;
                     }
-                    html += `</div>${!isLastEx ? '<div style="height: 1px; background: linear-gradient(90deg, rgba(255,255,255,0.06), transparent); margin-top: 8px;"></div>' : ''}</div>`;
+                    html += `</div>`;
                 });
             }
             html += `</div></div>`;
