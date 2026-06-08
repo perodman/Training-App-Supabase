@@ -3303,20 +3303,26 @@ async function updateSetDataOnly(exIdx, setIdx) {
 }
 
 async function confirmSet(exIdx, setIdx) {
-    // Återställ alla fält som är i "focus-läge" (tomma med värdet i placeholder)
     flushFocusedInputs();
-
-    // Läs kg och reps direkt från activeDraft.data (redan sparat löpande via updateSetDataOnly)
-    // Hämta vilofältet separat från skärmen eftersom det inte alltid triggar oninput
     const vInp = document.getElementById(`v-${exIdx}-${setIdx}`);
     if (vInp) activeDraft.data[exIdx].sets_data[setIdx].rest = vInp.value;
-
     const currentState = activeDraft.data[exIdx].sets_data[setIdx].userConfirmed;
     activeDraft.data[exIdx].sets_data[setIdx].userConfirmed = !currentState;
     await persistActiveWorkout();
 
-    // Uppdatera BARA det berörda övningskortet (inte hela listan)
+    // Spara handtaget innan omritning
+    const targetCard = document.getElementById(`exercise-card-${exIdx}`);
+    const existingHandle = targetCard ? targetCard.querySelector('.drag-handle') : null;
+    
     updateSingleExerciseCard(exIdx);
+    
+    // Återlägg det sparade handtaget direkt utan att skapa nytt
+    if (existingHandle) {
+        const updatedHeader = targetCard.querySelector('div[onclick^="toggleExercise"]');
+        if (updatedHeader && !updatedHeader.querySelector('.drag-handle')) {
+            updatedHeader.insertBefore(existingHandle, updatedHeader.firstChild);
+        }
+    }
 }
 
 function updateSingleExerciseCard(exIdx) {
