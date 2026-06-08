@@ -842,7 +842,7 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
                         html += `<div style="display: flex; flex-direction: column; gap: 6px;">`;
                         if (hasRest) {
                             html += `
-                            <div style="display: flex; align-items: center; gap: 12px; padding: 0 4px; margin-bottom: 2px;">
+                            <div style="display: flex; justify-content: space-between; padding: 0 4px; margin-bottom: 2px;">
                                 <span style="font-size: 10px; color: rgba(34,211,238,0.6); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Set</span>
                                 <span style="font-size: 10px; color: rgba(245,158,11,0.6); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Rest</span>
                             </div>`;
