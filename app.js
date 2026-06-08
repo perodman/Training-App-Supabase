@@ -4300,9 +4300,11 @@ function initEditExerciseDragAndDrop(passIdx) {
                 gsap.set(row, { zIndex: 100 });
             },
             onDrag: function() {
-                const draggedIdx = currentOrder.indexOf(row);
-                const movedSteps = Math.round(this.y / rowHeight());
-                currentOrder.forEach((otherRow, otherIdx) => {
+                const dragY = this.y;
+                const liveOrder = Array.from(container.querySelectorAll("[id^='ex-lib-row-']"));
+                const draggedIdx = liveOrder.indexOf(row);
+                const movedSteps = Math.round(dragY / rowHeight());
+                liveOrder.forEach((otherRow, otherIdx) => {
                     if (otherRow === row) return;
                     const diff = otherIdx - draggedIdx;
                     if (movedSteps > 0 && diff > 0 && diff <= movedSteps) {
