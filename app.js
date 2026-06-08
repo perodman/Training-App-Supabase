@@ -2153,17 +2153,7 @@ if (window._scrollToExercises) {
                     modalContent.scrollTo({ top: scrollTarget, behavior: 'smooth' });
                 }
             }, 100);
-        }
-            if (exercisesDiv) {
-                const mc = document.querySelector('.modal-content');
-                if (mc) {
-                    mc.scrollTo({
-                        top: exercisesDiv.offsetTop - 20,
-                        behavior: 'smooth'
-                    });
-                }
-            }
-        
+        }       
         initEditExerciseDragAndDrop(idx);
     }, 50);
 }
