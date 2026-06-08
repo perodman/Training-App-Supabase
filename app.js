@@ -834,7 +834,7 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
                     html += `
                     <div>
                         <span style="color: var(--text); font-weight: 700; font-size: 13px; display: block; margin-bottom: 6px;">${ex.name}</span>
-                        <div style="display: flex; flex-direction: column; gap: 6px;">;
+                        <div style="display: flex; flex-direction: column; gap: 6px;">`;
                    if(ex.sets_data) {
                         ex.sets_data.forEach((s, sIdx) => {
                             const wVal = s.weight || 0;
