@@ -804,7 +804,7 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
     const safeCompleted = Array.isArray(completed) ? completed : [];
     const hasCompleted = safeCompleted.length > 0;
 
-   // 1. Workout History
+  // 1. Workout History
     if (hasCompleted) {
         html += `
         <div style="display: flex; align-items: center; gap: 10px;">
@@ -828,9 +828,10 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
                 </div>
                 <div style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 10px; display: flex; flex-direction: column; gap: 8px;">`;
             if (Array.isArray(w.exercises)) {
-                w.exercises.forEach(ex => {
-                    html += `<div style="margin-bottom: 12px;">
-                        <span style="color: var(--text); font-weight: 700; font-size: 13px; display: block; margin-bottom: 6px;">${ex.name}</span>
+                w.exercises.forEach((ex, exIdx) => {
+                    const isLast = exIdx === w.exercises.length - 1;
+                    html += `<div style="margin-bottom: 4px;">
+                        <span style="color: var(--primary); font-weight: 700; font-size: 13px; display: block; margin-bottom: 6px;">${ex.name}</span>
                         <div style="display: flex; flex-direction: column; gap: 6px;">`;
                     if (ex.sets_data) {
                         ex.sets_data.forEach((s, sIdx) => {
@@ -853,7 +854,7 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
                     } else {
                         html += `<div style="background: rgba(34,211,238,0.06); border: 1px solid rgba(34,211,238,0.2); color: #fff; font-size: 12px; padding: 5px 10px; border-radius: 8px; font-weight: 600;">${ex.sets} set × ${ex.weight || 0}kg × ${ex.reps || 0}</div>`;
                     }
-                    html += `</div></div>`;
+                    html += `</div>${!isLast ? '<div style="height: 1px; background: linear-gradient(90deg, rgba(255,255,255,0.06), transparent); margin-top: 8px;"></div>' : ''}</div>`;
                 });
             }
             html += `</div></div>`;
