@@ -853,15 +853,17 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
                             const restVal = s.rest || null;
                             const isLastSet = sIdx === ex.sets_data.length - 1;
                             html += `
-                            <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: ${!isLastSet && restVal ? '0' : '0'};">
                                 <div style="background: rgba(34,211,238,0.06); border: 1px solid rgba(34,211,238,0.2); padding: 6px 10px; border-radius: 10px; display: inline-flex; align-items: center; gap: 10px;">
                                     <span style="color: rgba(255,255,255,0.5); font-size: 10px; font-weight: 800;">#${sIdx+1}</span>
                                     <span style="color: rgba(255,255,255,0.2); font-size: 10px;">|</span>
                                     <span style="color: #fff; font-size: 11px; font-weight: 600;">${wVal} kg × ${rVal} reps</span>
                                 </div>
-                                ${!isLastSet && restVal ? `
-                                <span style="font-size: 11px; color: #f59e0b; font-weight: 700;">⏱️ ${restVal}s</span>` : ''}
-                            </div>`;
+                            </div>
+                            ${!isLastSet && restVal ? `
+                            <div style="display: flex; align-items: center; gap: 8px; margin: -4px 0 -4px 12px;">
+                                <span style="font-size: 10px; color: #f59e0b; font-weight: 600;">⏱️ ${restVal}s</span>
+                            </div>` : ''}`;
                         });
                         html += `</div>`;
                     } else {
