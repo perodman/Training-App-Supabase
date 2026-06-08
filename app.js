@@ -181,7 +181,7 @@ function closeModal() {
                             openEditProgramModal(${tempIdx});
                         " style="width:100%; margin-bottom:10px; background:linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.05) 100%); 
                             border: 1px solid rgba(255,255,255,0.25); border-top: 1px solid rgba(255,255,255,0.45);">
-                            ← Continue Editing
+                            Continue Editing
                         </button>
                         <button class="mode-btn blue" onclick="saveProgramEdit(${tempIdx})"
                             style="width:100%; flex-direction:row; gap:8px; padding:14px; margin-bottom:10px;">
