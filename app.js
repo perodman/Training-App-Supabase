@@ -843,8 +843,8 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
                         if (hasRest) {
                             html += `
                             <div style="display: flex; align-items: center; padding: 0 4px; margin-bottom: 2px;">
-                                <span style="font-size: 10px; color: rgba(34,211,238,0.6); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; width: 200px;">Set</span>
-                                <span style="font-size: 10px; color: rgba(245,158,11,0.6); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Rest</span>
+                                <span style="font-size: 10px; color: rgba(34,211,238,0.6); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; width: 160px;">Set</span>
+                                <span style="font-size: 10px; color: rgba(245,158,11,0.6); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-left: 12px;">Rest</span>
                             </div>`;
                         }
                         ex.sets_data.forEach((s, sIdx) => {
@@ -854,7 +854,7 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
                             const isLastSet = sIdx === ex.sets_data.length - 1;
                             html += `
                             <div style="display: flex; align-items: center;">
-                                <div style="width: 200px; background: rgba(34,211,238,0.06); border: 1px solid rgba(34,211,238,0.2); padding: 6px 10px; border-radius: 10px; display: flex; align-items: center; gap: 10px;">
+                                <div style="width: 160px; background: rgba(34,211,238,0.06); border: 1px solid rgba(34,211,238,0.2); padding: 6px 10px; border-radius: 10px; display: flex; align-items: center; gap: 10px;">
                                     <span style="color: rgba(255,255,255,0.5); font-size: 10px; font-weight: 800; min-width: 20px;">#${sIdx+1}</span>
                                     <span style="color: rgba(255,255,255,0.2); font-size: 10px;">|</span>
                                     <span style="color: #fff; font-size: 11px; font-weight: 600;">${wVal} kg × ${rVal} reps</span>
