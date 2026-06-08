@@ -841,7 +841,7 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
                             const rVal = s.reps || 0;
                             const restVal = s.rest || null;
                             html += `
-                            <div style="display: flex; flex-direction: column; gap: 4px;">
+                            <div style="display: flex; flex-direction: column; gap: 4px;"`>
                                 <div style="background: rgba(34,211,238,0.06); border: 1px solid rgba(34,211,238,0.2); padding: 6px 10px; border-radius: 10px; display: inline-flex; align-items: center; gap: 10px; align-self: flex-start;">
                                     <span style="color: var(--primary); font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">Set ${sIdx+1}</span>
                                     <span style="color: rgba(255,255,255,0.2); font-size: 10px;">|</span>
