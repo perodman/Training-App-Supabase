@@ -1994,6 +1994,7 @@ function saveEditDraftStateAndCreateNew(idx) {
     if (typeof openCreateExerciseModal === 'function') {
         openCreateExerciseModal((newEx) => {
             window._returnToEditIdx = null;
+            window._scrollToExercises = true;  // Sätt flaggan här
             const saved = localStorage.getItem('temp_exercise_edit_draft');
             let currentDraft = saved ? JSON.parse(saved) : [];
             if (newEx && newEx.id) {
@@ -2113,13 +2114,26 @@ async function openEditProgramModal(idx) {
         if (typeof renderExercisePickerForEdit === 'function') {
             renderExercisePickerForEdit(idx, "Legs");
         }
-        // Initiera drag-and-drop för Current Exercises
-        initEditExerciseDragAndDrop(idx);
         if (typeof window._savedEditScrollPos !== 'undefined' && window._savedEditScrollPos > 0) {
             const mc = document.querySelector('.modal-content');
             if (mc) mc.scrollTop = window._savedEditScrollPos;
             window._savedEditScrollPos = 0;
         }
+        // Om vi kommer tillbaka från create-exercise, scrolla till Current Exercises
+        if (window._scrollToExercises) {
+            window._scrollToExercises = false;
+            const exercisesDiv = document.getElementById("edit-pass-exercises");
+            if (exercisesDiv) {
+                const mc = document.querySelector('.modal-content');
+                if (mc) {
+                    mc.scrollTo({
+                        top: exercisesDiv.offsetTop - 20,
+                        behavior: 'smooth'
+                    });
+                }
+            }
+        }
+        initEditExerciseDragAndDrop(idx);
     }, 50);
 }
 
