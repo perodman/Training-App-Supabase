@@ -832,9 +832,9 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
             if (Array.isArray(w.exercises)) {
                 w.exercises.forEach(ex => {
                     html += `
-                    <div>
+                  <div style="margin-bottom: 12px;">
                         <span style="color: var(--text); font-weight: 700; font-size: 13px; display: block; margin-bottom: 6px;">${ex.name}</span>
-                        <div style="display: flex; flex-direction: column; gap: 6px;">`;
+                        <div style="display: flex; flex-direction: column; gap: 6px;">
                    if(ex.sets_data) {
                         ex.sets_data.forEach((s, sIdx) => {
                             const wVal = s.weight || 0;
@@ -847,11 +847,9 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
                                     <span style="color: rgba(255,255,255,0.2); font-size: 10px;">|</span>
                                     <span style="color: #fff; font-size: 11px; font-weight: 600;">${wVal} kg × ${rVal} reps</span>
                                 </div>
-                                ${restVal && sIdx < ex.sets_data.length - 1 ? `
-                                <div style="display: flex; align-items: center; gap: 6px; padding: 0 8px; opacity: 0.5;">
-                                    <div style="flex-grow: 1; height: 1px; background: rgba(255,255,255,0.08);"></div>
-                                    <span style="font-size: 10px; color: var(--text-light);">⏱️ ${restVal}s rest</span>
-                                    <div style="flex-grow: 1; height: 1px; background: rgba(255,255,255,0.08);"></div>
+                               ${restVal && sIdx < ex.sets_data.length - 1 ? `
+                                <div style="display: flex; align-items: center; gap: 6px; padding: 2px 0;">
+                                    <span style="font-size: 10px; color: #f59e0b; font-weight: 600;">⏱️ ${restVal}s rest</span>
                                 </div>` : ''}
                             </div>`;
                         });
