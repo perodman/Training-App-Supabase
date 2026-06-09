@@ -4762,18 +4762,6 @@ function renderRestTimer() {
             </div>
         `;
     }
-
-    // Flytta timern till rätt plats
-    const exerciseList = document.getElementById("exercise-list");
-    if (!exerciseList) return;
-    if (restTimerActive && restTimerExIdx !== null) {
-        const targetCard = document.getElementById(`exercise-card-${restTimerExIdx}`);
-        if (targetCard && targetCard.parentNode === exerciseList) {
-            exerciseList.insertBefore(bar, targetCard);
-            return;
-        }
-    }
-    exerciseList.insertBefore(bar, exerciseList.firstChild);
 }
 
 function restoreRestTimerIfActive() {
