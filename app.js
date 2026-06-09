@@ -4651,6 +4651,7 @@ function closeEditProgramModal(idx) {
 }
 
 function startRestTimer(seconds) {
+    if (activeDraft && activeDraft.restTimerDisabled) return;
     restTimerSeconds = seconds;
     restTimerActive = true;
     clearInterval(restTimerInterval);
@@ -4716,7 +4717,7 @@ function renderRestTimer() {
     const mins = String(Math.floor(restTimerSeconds / 60)).padStart(1, '0');
     const secs = String(restTimerSeconds % 60).padStart(2, '0');
     bar.innerHTML = `
-        <div style="position:absolute; top:0; left:0; right:0; height:1px; background: linear-gradient(90deg, rgba(34,211,238,0.5) 0%, rgba(34,211,238,0.1) 100%);"></div>
+       <div style="position:absolute; top:0; left:4px; right:0; height:1px; background: linear-gradient(90deg, rgba(34,211,238,0.5) 0%, rgba(34,211,238,0.1) 100%);"></div>
         <div style="display: flex; align-items: center; gap: 10px;">
             <span style="font-size: 16px;">⏱️</span>
             <div>
@@ -4728,6 +4729,11 @@ function renderRestTimer() {
             <button onclick="restTimerSeconds = Math.max(0, restTimerSeconds - 30); renderRestTimer();" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 5px 10px; font-size: 12px; color: #94a3b8; cursor: pointer;">−30s</button>
             <button onclick="restTimerSeconds += 30; renderRestTimer();" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 5px 10px; font-size: 12px; color: #94a3b8; cursor: pointer;">+30s</button>
             <button onclick="stopRestTimer();" style="background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.25); border-radius: 8px; padding: 5px 10px; font-size: 12px; color: #ef4444; cursor: pointer; font-weight: 700;">Skip ✕</button>
+            <button onclick="
+                activeDraft.restTimerDisabled = true;
+                if (typeof persistActiveWorkout === 'function') persistActiveWorkout();
+                stopRestTimer();
+            " style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 5px 8px; font-size: 14px; color: rgba(255,255,255,0.3); cursor: pointer;" title="Disable rest timer">⚙️</button>
         </div>
     `;
 }
