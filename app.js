@@ -4661,7 +4661,7 @@ function closeEditProgramModal(idx) {
     }
 }
 
-(seconds, exIdx) {
+function startRestTimer(seconds, exIdx) {
     if (activeDraft && activeDraft.restTimerDisabled) return;
     restTimerSeconds = seconds;
     restTimerActive = true;
