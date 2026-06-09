@@ -573,8 +573,8 @@ function renderCalendar(isFromStartBtn = false) {
         else if (isAutoDay && override !== "none" && programData && programData.routine.length > 0) displayPass = programData.routine[d % programData.routine.length];
 
         let info = "";
-        if (hasWorkouts.length > 0) { cell.classList.add("cell-completed"); info = "✓"; }
-        else if (isOngoing && displayPass) { cell.classList.add("cell-ongoing"); info = displayPass.name.split(" ").pop(); }
+      if (hasWorkouts.length > 0) { cell.classList.add("cell-completed"); info = "✓"; }
+        else if (isOngoing) { cell.classList.add("cell-ongoing"); info = displayPass ? displayPass.name.split(" ").pop() : "🔥"; }
         else if (displayPass) { cell.classList.add("cell-planned"); info = displayPass.name.split(" ").pop(); }
 
         cell.innerHTML = `<span>${d}</span><div class="cell-info">${info}</div>`;
