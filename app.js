@@ -1558,7 +1558,7 @@ passCard.innerHTML = `
                 <div style="font-size:28px;">${icons[passIdx % 4]}</div>
                 <h4 style="font-size: 14px; margin: 8px 0 4px 0; line-height: 1.3;">${pass.name}</h4>
                 <div style="font-size:10px; color:var(--primary); font-weight:800;">${pass.exercises.length} ${pass.exercises.length === 1 ? 'EXERCISE' : 'EXERCISES'}</div>
-                ${pass.duration ? `<div style="position:absolute; bottom:8px; left:10px; font-size:9px; color:rgba(255,255,255,0.4); font-weight:600;">⏱️ ~${pass.duration} min</div>` : ''}
+                ${pass.duration ? `<div style="position:absolute; top:8px; left:10px; font-size:10px; color:#f59e0b; font-weight:600; background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.2); padding: 3px 7px; border-radius: 8px;">⏱️ ~${pass.duration} min</div>` : ''}
                 <div onclick="event.stopPropagation(); openEditProgramModal(${passIdx})"
                     style="position: absolute; top: 6px; right: 6px; font-size: 12px; opacity: 0.6; cursor: pointer; padding: 2px 6px; border-radius: 6px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1);">✏️</div>
             `;
@@ -2102,10 +2102,6 @@ async function openEditProgramModal(idx) {
     body.innerHTML = `
         <h3 style="margin-bottom: 8px;">Workout Name</h3>
         <input type="text" id="edit-pass-name" class="log-input" placeholder="e.g. Upper Body A, Leg Day..." value="${pass.name === 'New Workout' ? '' : pass.name}" style="text-align: center;">
-        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
-            <span style="font-size: 18px;">⏱️</span>
-            <input type="number" id="edit-pass-duration" class="log-input" placeholder="Est. duration (min)" value="${pass.duration || ''}" style="margin: 0; text-align: center;">
-        </div>
         <div id="modal-exercise-picker-container"></div>
         <div class="separator" style="margin: 25px 0;"></div>
         <p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin-bottom:10px;">Current Exercises</p>
@@ -2154,6 +2150,15 @@ async function openEditProgramModal(idx) {
                         ${g.name}
                     </button>`;
                 }).join('')}
+            </div>
+        </div>
+       <div class="separator" style="margin: 25px 0;"></div>
+        <p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin-bottom:10px; letter-spacing:1px;">Estimated Duration</p>
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+            <span style="font-size: 20px;">⏱️</span>
+            <div style="position: relative; flex: 1;">
+                <input type="number" id="edit-pass-duration" class="log-input" placeholder="e.g. 60" value="${pass.duration || ''}" style="margin: 0; text-align: center; padding-right: 50px;">
+                <span style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: 12px; color: var(--text-light); font-weight: 700; pointer-events: none;">min</span>
             </div>
         </div>
         <div class="separator" style="margin: 25px 0;"></div>
