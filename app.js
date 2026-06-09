@@ -3714,8 +3714,8 @@ async function finishWorkout(e) {
             id: workoutId,
             date: activeDraft.date || new Date().toISOString().split('T')[0],
             programName: activeDraft.programName || activeDraft.workout.name,
-            startTime: activeDraft.startTime || null,
             totalTime: finalTime,
+            startTime: activeDraft.startTime || null,
             exercises: activeDraft.workout.exercises.map((ex, i) => {
                 const setsData = activeDraft.data[i] ? activeDraft.data[i].sets_data : [];
                 // Hämta vila från vila-inputs direkt från DOM innan de försvinner
