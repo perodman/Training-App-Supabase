@@ -2736,9 +2736,7 @@ const div = document.createElement("div");
     }
 
     showView("workout-view");
-        if (activeDraft && activeDraft.restTimerDisabled) {
-        renderRestTimer();
-    }
+    renderRestTimer();
     setTimeout(() => initDragAndDrop(), 50);
     if (isReturning && openExercises.length > 0 && !window._suppressAutoScroll) {
         const firstOpenIndex = openExercises.slice().sort((a, b) => a - b)[0];
