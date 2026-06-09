@@ -1432,7 +1432,7 @@ function renderGroupsView() {
     });
     // Utan grupp
     const ungroupedPasses = programData.routine.filter(p => !Array.isArray(p.groups) || p.groups.length === 0);
-    if (ungroupedPasses.length > 0) {
+    if (true) {
         const ungroupedCard = document.createElement("div");
         ungroupedCard.style.cssText = `
             background: rgba(255,255,255,0.03);
