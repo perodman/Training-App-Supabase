@@ -2523,8 +2523,16 @@ function renderActiveWorkout() {
     const startTimeStr = activeDraft.startTime 
         ? new Date(activeDraft.startTime).toLocaleTimeString('sv-SE', {hour: '2-digit', minute: '2-digit'})
         : '';
-    const titleEl = document.getElementById("active-title");
-    titleEl.innerHTML = `${activeDraft.workout.name}${startTimeStr ? `<span style="font-size:11px; color:rgba(255,255,255,0.3); font-weight:400; margin-left:10px; letter-spacing:1px;">▶ ${startTimeStr}</span>` : ''}`;
+   document.getElementById("active-title").textContent = activeDraft.workout.name;
+    const startTimeStr = activeDraft.startTime 
+        ? new Date(activeDraft.startTime).toLocaleTimeString('sv-SE', {hour: '2-digit', minute: '2-digit'})
+        : '';
+    if (startTimeStr) {
+        const startBadge = document.createElement("div");
+        startBadge.style.cssText = "display:inline-flex; align-items:center; gap:6px; background:rgba(34,197,94,0.08); border:1px solid rgba(34,197,94,0.2); border-radius:20px; padding:4px 12px; margin: 0 0 16px 15px;";
+        startBadge.innerHTML = `<span style="font-size:14px;">⏱️</span><span style="font-size:11px; color:#22c55e; font-weight:600;">Started ${startTimeStr}</span>`;
+        document.getElementById("active-title").insertAdjacentElement('afterend', startBadge);
+    }
 
     const list = document.getElementById("exercise-list");
     const footer = document.querySelector(".workout-footer");
@@ -3747,6 +3755,10 @@ async function finishWorkout(e) {
  
         console.log("🚀 [SPÅRNING] STEG 7: Tvingar fram kalendervyn.");
         showView("calendar-view");
+        renderCalendar(false);
+        const todayStr = log.date;
+        const todayWorkouts = workoutHistory.filter(w => w.date === todayStr);
+        openDayManager(todayStr, null, todayWorkouts, false);
          
         if (typeof window.currentView !== 'undefined') window.currentView = "calendar-view";
         document.body.setAttribute("data-current-view", "calendar-view");
