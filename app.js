@@ -2126,7 +2126,7 @@ async function openEditProgramModal(idx) {
         <div class="separator" style="margin: 25px 0;"></div>
         <div>
             <p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin-bottom:10px; letter-spacing:1px;">Select Group to Organize Workout</p>
-            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
                 ${ALL_GROUPS.map(g => {
                     const isSelected = Array.isArray(pass.groups) && pass.groups.includes(g.id);
                     return `
@@ -2153,7 +2153,7 @@ async function openEditProgramModal(idx) {
             </div>
         </div>
        <div class="separator" style="margin: 25px 0;"></div>
-        <p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin-bottom:10px; letter-spacing:1px;">Estimated Duration</p>
+        <p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin-bottom:10px; letter-spacing:1px;">Estimated Workout Duration</p>
         <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 6px;">
             <span style="font-size: 20px;">⏱️</span>
             <input type="number" id="edit-pass-duration" class="log-input" placeholder="e.g. 60" value="${pass.duration || ''}" 
