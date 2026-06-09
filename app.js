@@ -270,11 +270,6 @@ function pauseTimer() {
     if (btn) btn.textContent = "Continue  ▶️ ";
 }
 
-document.getElementById("timer-toggle-btn").onclick = () => {
-    if (isTimerRunning) pauseTimer();
-    else startTimer();
-};
-
 // --- ÖVNINGAR & INSTÄLLNINGAR ---
 function openCreateExerciseModal(callback = null) {
     const body = document.getElementById("modal-body");
