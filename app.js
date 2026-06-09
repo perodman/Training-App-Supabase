@@ -1389,16 +1389,19 @@ function renderGroupsView() {
             position: relative; overflow: hidden;
             background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
             border-top: 3px solid #f59e0b;
-            border-left: 1px solid rgba(245,158,11,0.5);
-            border-right: 1px solid rgba(245,158,11,0.3);
-            border-bottom: 1px solid rgba(245,158,11,0.4);
+            border-left: none;
+            border-right: none;
+            border-bottom: none;
             border-radius: 16px;
             padding: 20px 15px;
             text-align: center;
             cursor: pointer;
             transition: all 0.2s ease;
         `;
-        groupCard.innerHTML = `
+       groupCard.innerHTML = `
+            <div style="position:absolute; left:0; top:0; bottom:0; width:1px; background: linear-gradient(180deg, rgba(245,158,11,0.9) 0%, rgba(245,158,11,0.1) 100%);"></div>
+            <div style="position:absolute; right:0; top:0; bottom:0; width:1px; background: linear-gradient(180deg, rgba(245,158,11,0.9) 0%, rgba(245,158,11,0.1) 100%);"></div>
+            <div style="position:absolute; bottom:0; left:0; right:0; height:1px; background: linear-gradient(90deg, rgba(245,158,11,0.1) 0%, rgba(245,158,11,0.3) 50%, rgba(245,158,11,0.1) 100%);"></div>
             <div style="font-size: 32px; margin-bottom: 10px;">${groupDef.icon}</div>
             <div style="font-weight: 800; font-size: 15px; color: var(--text); margin-bottom: 4px;">${groupDef.name}</div>
             <div style="font-size: 10px; color: ${isEmpty ? 'rgba(255,255,255,0.3)' : 'var(--primary)'}; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">
@@ -1544,12 +1547,15 @@ function renderPassesInGroup(groupId) {
                 position: relative; min-height: 120px; overflow: hidden;
                 background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
                 border-top: 3px solid #f59e0b;
-                border-left: 1px solid rgba(245,158,11,0.5);
-                border-right: 1px solid rgba(245,158,11,0.3);
-                border-bottom: 1px solid rgba(245,158,11,0.4);
+                border-left: none;
+                border-right: none;
+                border-bottom: none;
                 border-radius: 16px;
             `;
-            passCard.innerHTML = `
+passCard.innerHTML = `
+                <div style="position:absolute; left:0; top:0; bottom:0; width:1px; background: linear-gradient(180deg, rgba(245,158,11,0.9) 0%, rgba(245,158,11,0.1) 100%);"></div>
+                <div style="position:absolute; right:0; top:0; bottom:0; width:1px; background: linear-gradient(180deg, rgba(245,158,11,0.9) 0%, rgba(245,158,11,0.1) 100%);"></div>
+                <div style="position:absolute; bottom:0; left:0; right:0; height:1px; background: linear-gradient(90deg, rgba(245,158,11,0.1) 0%, rgba(245,158,11,0.3) 50%, rgba(245,158,11,0.1) 100%);"></div>
                 <div style="font-size:28px;">${icons[passIdx % 4]}</div>
                 <h4 style="font-size: 14px; margin: 8px 0 4px 0; line-height: 1.3;">${pass.name}</h4>
                 <div style="font-size:10px; color:var(--primary); font-weight:800;">${pass.exercises.length} ${pass.exercises.length === 1 ? 'EXERCISE' : 'EXERCISES'}</div>
