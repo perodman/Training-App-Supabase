@@ -2126,7 +2126,7 @@ async function openEditProgramModal(idx) {
         <div class="separator" style="margin: 25px 0;"></div>
         <div>
             <p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin-bottom:10px; letter-spacing:1px;">Select Group to Organize Workout</p>
-            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
+            <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;">
                 ${ALL_GROUPS.map(g => {
                     const isSelected = Array.isArray(pass.groups) && pass.groups.includes(g.id);
                     return `
@@ -2141,7 +2141,7 @@ async function openEditProgramModal(idx) {
                                 b.style.color = isNow ? 'var(--primary)' : 'var(--text-light)'; 
                             } 
                         })()"
-                        style="padding: 10px 5px; border-radius: 12px; 
+                        style="padding: 10px 5px; border-radius: 12px; width: 72px; 
                         border: 1px solid ${isSelected ? 'var(--primary)' : 'rgba(255,255,255,0.1)'}; 
                         background: ${isSelected ? 'rgba(34,211,238,0.15)' : 'rgba(255,255,255,0.04)'}; 
                         color: ${isSelected ? 'var(--primary)' : 'var(--text-light)'}; 
