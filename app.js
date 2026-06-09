@@ -876,7 +876,7 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
                                     <span style="color: #fff; font-size: 11px; font-weight: 600;">${wVal} kg × ${rVal} reps</span>
                                 </div>
                                 ${!isLastSet && restVal ? `
-                                <span style="font-size: 10px; color: #f59e0b; font-weight: 600; margin-left: 12px; position: relative; top: 14px;">⏱️ ${restVal}s</span>` : ''}
+                                <span style="font-size: 10px; color: #f59e0b; font-weight: 600; margin-left: 12px; position: relative; top: 14px;">← ⏱️ ${restVal}s</span>` : ''}
                             </div>`;
                         });
                         html += `</div>`;
