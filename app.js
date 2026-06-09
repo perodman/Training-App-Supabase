@@ -2520,7 +2520,11 @@ function renderActiveWorkout() {
         });
     }
 
-    document.getElementById("active-title").textContent = activeDraft.workout.name;
+    const startTimeStr = activeDraft.startTime 
+        ? new Date(activeDraft.startTime).toLocaleTimeString('sv-SE', {hour: '2-digit', minute: '2-digit'})
+        : '';
+    const titleEl = document.getElementById("active-title");
+    titleEl.innerHTML = `${activeDraft.workout.name}${startTimeStr ? `<span style="font-size:11px; color:rgba(255,255,255,0.3); font-weight:400; margin-left:10px; letter-spacing:1px;">▶ ${startTimeStr}</span>` : ''}`;
 
     const list = document.getElementById("exercise-list");
     const footer = document.querySelector(".workout-footer");
@@ -2566,7 +2570,6 @@ function renderActiveWorkout() {
         footer.innerHTML = `
             <button id="pause-workout-btn" class="mode-btn save-draft-btn" onclick="saveDraftAndGoHome()" style="flex: 1;">Save draft  💾 </button>
             <button class="mode-btn green" onclick="finishWorkout()" style="flex: 1; font-weight: bold;">Finish Workout  ✅</button>
-            ${startTimeStr ? `<div style="width:100%; text-align:center; font-size:10px; color:rgba(255,255,255,0.25); margin-top:6px; letter-spacing:1px;">STARTED ${startTimeStr}</div>` : ''}
         `;
     }
 
