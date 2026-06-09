@@ -2538,6 +2538,7 @@ function renderActiveWorkout() {
         const timerDisp = document.getElementById("workout-timer");
         if (timerDisp) timerDisp.textContent = "00:00:00";
         showView("workout-view");
+        setTimeout(() => restoreRestTimerIfActive(), 50);
         return;
     }
 
@@ -2914,6 +2915,7 @@ async function toggleExercise(index) {
     window._suppressAutoScroll = true;
     await persistActiveWorkout();
     renderActiveWorkout();
+    setTimeout(() => restoreRestTimerIfActive(), 50);
     requestAnimationFrame(() => initDragAndDrop());
     window.scrollTo(0, scrollPos);
 }
@@ -2942,6 +2944,9 @@ async function removeSetFromExercise(exIdx, setIdx) {
 async function toggleExerciseDone(exIdx) {
     const scrollPos = window.scrollY;
     activeDraft.data[exIdx].isCompleted = !activeDraft.data[exIdx].isCompleted;
+        if (activeDraft.data[exIdx].isCompleted) {
+        stopRestTimer();
+    }
 
     // Spara handtaget innan omritning
     const targetCard = document.getElementById(`exercise-card-${exIdx}`);
@@ -3452,6 +3457,7 @@ function updateSingleExerciseCard(exIdx) {
                 ${isDone ? 'Undo ↩️' : 'Mark as Complete ✅'}
             </button>
         </div>`;
+       restoreRestTimerIfActive();
 }
 
 // Vi skapar en global flagga längst upp (utanför funktionen)
@@ -4780,5 +4786,14 @@ function renderRestTimer(exIdx) {
     } else {
         const exerciseList = document.getElementById("exercise-list");
         if (exerciseList) exerciseList.insertBefore(bar, exerciseList.firstChild);
+    }
+}
+
+function restoreRestTimerIfActive() {
+    if (!restTimerActive && !(activeDraft && activeDraft.restTimerDisabled)) return;
+    const exIdx = restTimerExIdx !== null ? restTimerExIdx : 0;
+    const bar = document.getElementById("rest-timer-bar");
+    if (!bar) {
+        renderRestTimer(exIdx);
     }
 }
