@@ -2154,14 +2154,12 @@ async function openEditProgramModal(idx) {
         </div>
        <div class="separator" style="margin: 25px 0;"></div>
         <p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin-bottom:10px; letter-spacing:1px;">Estimated Duration</p>
-        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+        <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 6px;">
             <span style="font-size: 20px;">⏱️</span>
-            <div style="position: relative; flex: 1;">
-               <input type="number" id="edit-pass-duration" class="log-input" placeholder="e.g. 60" value="${pass.duration || ''}" 
-                    style="margin: 0; text-align: center; padding-right: 40px; width: 120px; -moz-appearance: textfield;"
-                    onfocus="handleInputFocus(this)" onblur="handleInputBlur(this)">
-                <span style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: 12px; color: var(--text-light); font-weight: 700; pointer-events: none;">min</span>
-            </div>
+            <input type="number" id="edit-pass-duration" class="log-input" placeholder="e.g. 60" value="${pass.duration || ''}" 
+                style="margin: 0; text-align: center; width: 80px; -moz-appearance: textfield;"
+                onfocus="handleInputFocus(this)" onblur="handleInputBlur(this)">
+            <span style="font-size: 12px; color: var(--text-light); font-weight: 700;">min</span>
         </div>
         <div class="separator" style="margin: 25px 0;"></div>
         <div>
