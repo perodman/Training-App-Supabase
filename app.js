@@ -3,6 +3,7 @@ window.programData = JSON.parse(localStorage.getItem("myCustomProgram") || "null
 let restTimerInterval = null;
 let restTimerSeconds = 0;
 let restTimerActive = false;
+let restTimerExIdx = null
 let programData = window.programData; // Skapar en lokal referens för smidig användning i app.js
 let masterExercises = JSON.parse(localStorage.getItem("masterExercises") || "[]");
 let workoutHistory = JSON.parse(localStorage.getItem("workoutHistory") || "[]");
@@ -3353,7 +3354,7 @@ async function confirmSet(exIdx, setIdx) {
     const restValue = parseInt(activeDraft.data[exIdx].sets_data[setIdx].rest) || 120;
     const isLastSet = setIdx === activeDraft.data[exIdx].sets_data.length - 1;
     if (isNowConfirmed && !isLastSet) {
-        startRestTimer(restValue);
+        startRestTimer(restValue, exIdx);
     } else if (!isNowConfirmed) {
         stopRestTimer();
     }
@@ -4653,22 +4654,22 @@ function closeEditProgramModal(idx) {
     }
 }
 
-function startRestTimer(seconds) {
+function startRestTimer(seconds, exIdx) {
     if (activeDraft && activeDraft.restTimerDisabled) return;
     restTimerSeconds = seconds;
     restTimerActive = true;
+    restTimerExIdx = exIdx;
     clearInterval(restTimerInterval);
-    renderRestTimer();
+    renderRestTimer(exIdx);
     restTimerInterval = setInterval(() => {
         restTimerSeconds--;
         if (restTimerSeconds <= 0) {
             stopRestTimer();
-            // Vibrera/pipa när vila är klar
             if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-            try { const ctx = new AudioContext(); const o = ctx.createOscillator(); const g = ctx.createGain(); o.connect(g); g.connect(ctx.destination); o.frequency.value = 880; g.gain.value = 0.3; o.start(); setTimeout(() => o.stop(), 300); } catch(e) {}
+            try { const ctx = new AudioContext(); const o = ctx.createOscillator(); const g = ctx.createGain(); o.connect(g); g.connect(ctx.destination); o.frequency.value = 880; g.gain.value = 0.3; o.start(); setTimeout(() => o.stop(), 300); } catch(e) {} 
             return;
         }
-        renderRestTimer();
+        renderRestTimer(exIdx);
     }, 1000);
 }
 
@@ -4685,49 +4686,50 @@ function stopRestTimer() {
     }
 }
 
-function renderRestTimer() {
-    const workoutView = document.getElementById("workout-view");
-    if (!workoutView) return;
-    let bar = document.getElementById("rest-timer-bar");
-    if (!bar) {
-        bar = document.createElement("div");
-        bar.id = "rest-timer-bar";
-        bar.style.cssText = `
-            border-radius: 16px;
-            margin-bottom: 12px;
-            position: sticky;
-            top: 70px;
-            z-index: 100;
-            overflow: hidden;
-            transition: all 0.3s ease;
-        `;
-        const exerciseList = document.getElementById("exercise-list");
-        if (exerciseList) workoutView.insertBefore(bar, exerciseList);
-    }
+function renderRestTimer(exIdx) {
+    // Ta bort gammal timer-bar om den finns
+    const oldBar = document.getElementById("rest-timer-bar");
+    if (oldBar) oldBar.remove();
+
+    const targetCard = exIdx !== undefined 
+        ? document.getElementById(`exercise-card-${exIdx}`)
+        : null;
+    
+    if (!targetCard && !(activeDraft && activeDraft.restTimerDisabled)) return;
+
+    const bar = document.createElement("div");
+    bar.id = "rest-timer-bar";
+
+    const isDisabled = activeDraft && activeDraft.restTimerDisabled;
     const mins = String(Math.floor(restTimerSeconds / 60)).padStart(1, '0');
     const secs = String(restTimerSeconds % 60).padStart(2, '0');
-    const isDisabled = activeDraft && activeDraft.restTimerDisabled;
 
     if (isDisabled) {
-        bar.style.cssText += `
+        bar.style.cssText = `
             background: rgba(255,255,255,0.03);
             border-left: 4px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
             padding: 8px 16px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            opacity: 1;
+            margin-bottom: 12px;
         `;
         bar.innerHTML = `
             <div style="display: flex; align-items: center; gap: 8px;">
                 <span style="font-size: 14px; opacity: 0.25;">⏱️</span>
-                <span style="font-size: 11px; color: rgba(255,255,255,0.2); font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">Rest Timer — Off</span>
+                <span style="font-size: 11px; color: rgba(255,255,255,0.2); font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">Rest Timer</span>
             </div>
-            <button onclick="
-                activeDraft.restTimerDisabled = false;
-                if (typeof persistActiveWorkout === 'function') persistActiveWorkout();
-                renderRestTimer();
-            " style="background: none; border: none; font-size: 16px; opacity: 0.25; cursor: pointer; padding: 4px 6px;" title="Enable rest timer">⚙️</button>
+            <div style="display: flex; background: rgba(0,0,0,0.3); border-radius: 10px; border: 1px solid rgba(255,255,255,0.08); overflow: hidden;">
+                <button onclick="
+                    activeDraft.restTimerDisabled = false;
+                    if (typeof persistActiveWorkout === 'function') persistActiveWorkout();
+                    renderRestTimer(${restTimerExIdx !== undefined ? restTimerExIdx : exIdx});
+                " style="padding: 5px 12px; font-size: 11px; font-weight: 700; cursor: pointer; border: none; border-right: 1px solid rgba(255,255,255,0.08);
+                background: transparent; color: rgba(255,255,255,0.25);">On</button>
+                <button style="padding: 5px 12px; font-size: 11px; font-weight: 700; border: none;
+                background: rgba(245,158,11,0.2); color: #f59e0b;">Off</button>
+            </div>
         `;
     } else {
         bar.style.cssText = `
@@ -4735,15 +4737,12 @@ function renderRestTimer() {
             border-left: 4px solid #f59e0b;
             border-radius: 16px;
             padding: 12px 16px;
-            margin-bottom: 12px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            position: sticky;
-            top: 70px;
-            z-index: 100;
+            margin-bottom: 12px;
             overflow: hidden;
-            opacity: 1;
+            position: relative;
         `;
         bar.innerHTML = `
             <div style="position:absolute; top:0; left:4px; right:0; height:1px; background: linear-gradient(90deg, rgba(245,158,11,0.6) 0%, rgba(245,158,11,0.1) 100%);"></div>
@@ -4754,20 +4753,32 @@ function renderRestTimer() {
                     <div style="font-size: 22px; font-weight: 900; color: ${restTimerSeconds <= 10 ? '#ef4444' : '#f59e0b'}; line-height: 1; font-family: monospace;">${mins}:${secs}</div>
                 </div>
             </div>
-            <div style="display: flex; gap: 5px; align-items: center; flex-wrap: wrap; justify-content: flex-end;">
-                <button onclick="restTimerSeconds = Math.max(0, restTimerSeconds - 30); renderRestTimer();" style="background: rgba(245,158,11,0.06); border: 1px solid rgba(245,158,11,0.15); border-radius: 8px; padding: 5px 8px; font-size: 11px; color: #92400e; cursor: pointer;">−30s</button>
-                <button onclick="restTimerSeconds = Math.max(0, restTimerSeconds - 15); renderRestTimer();" style="background: rgba(245,158,11,0.06); border: 1px solid rgba(245,158,11,0.15); border-radius: 8px; padding: 5px 8px; font-size: 11px; color: #92400e; cursor: pointer;">−15s</button>
-                <button onclick="restTimerSeconds += 15; renderRestTimer();" style="background: rgba(245,158,11,0.06); border: 1px solid rgba(245,158,11,0.15); border-radius: 8px; padding: 5px 8px; font-size: 11px; color: #92400e; cursor: pointer;">+15s</button>
-                <button onclick="restTimerSeconds += 30; renderRestTimer();" style="background: rgba(245,158,11,0.06); border: 1px solid rgba(245,158,11,0.15); border-radius: 8px; padding: 5px 8px; font-size: 11px; color: #92400e; cursor: pointer;">+30s</button>
+            <div style="display: flex; gap: 5px; align-items: center;">
+                <button onclick="restTimerSeconds = Math.max(0, restTimerSeconds - 30); renderRestTimer(${exIdx});" style="background: rgba(245,158,11,0.06); border: 1px solid rgba(245,158,11,0.15); border-radius: 8px; padding: 5px 8px; font-size: 11px; color: #92400e; cursor: pointer;">−30s</button>
+                <button onclick="restTimerSeconds = Math.max(0, restTimerSeconds - 15); renderRestTimer(${exIdx});" style="background: rgba(245,158,11,0.06); border: 1px solid rgba(245,158,11,0.15); border-radius: 8px; padding: 5px 8px; font-size: 11px; color: #92400e; cursor: pointer;">−15s</button>
+                <button onclick="restTimerSeconds += 15; renderRestTimer(${exIdx});" style="background: rgba(245,158,11,0.06); border: 1px solid rgba(245,158,11,0.15); border-radius: 8px; padding: 5px 8px; font-size: 11px; color: #92400e; cursor: pointer;">+15s</button>
+                <button onclick="restTimerSeconds += 30; renderRestTimer(${exIdx});" style="background: rgba(245,158,11,0.06); border: 1px solid rgba(245,158,11,0.15); border-radius: 8px; padding: 5px 8px; font-size: 11px; color: #92400e; cursor: pointer;">+30s</button>
                 <button onclick="stopRestTimer();" style="background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.25); border-radius: 8px; padding: 5px 8px; font-size: 11px; color: #ef4444; cursor: pointer; font-weight: 700;">Skip ✕</button>
-                <button onclick="
-                    activeDraft.restTimerDisabled = true;
-                    clearInterval(restTimerInterval);
-                    restTimerActive = false;
-                    if (typeof persistActiveWorkout === 'function') persistActiveWorkout();
-                    renderRestTimer();
-                " style="background: none; border: none; font-size: 16px; opacity: 0.4; cursor: pointer; padding: 4px 6px;" title="Disable rest timer">⚙️</button>
+                <div style="display: flex; background: rgba(0,0,0,0.3); border-radius: 10px; border: 1px solid rgba(245,158,11,0.2); overflow: hidden;">
+                    <button style="padding: 5px 10px; font-size: 11px; font-weight: 700; border: none; border-right: 1px solid rgba(245,158,11,0.2);
+                    background: rgba(245,158,11,0.25); color: #f59e0b;">On</button>
+                    <button onclick="
+                        activeDraft.restTimerDisabled = true;
+                        clearInterval(restTimerInterval);
+                        restTimerActive = false;
+                        if (typeof persistActiveWorkout === 'function') persistActiveWorkout();
+                        renderRestTimer(${exIdx});
+                    " style="padding: 5px 10px; font-size: 11px; font-weight: 700; cursor: pointer; border: none;
+                    background: transparent; color: rgba(255,255,255,0.25);">Off</button>
+                </div>
             </div>
         `;
+    }
+
+    if (targetCard) {
+        targetCard.insertAdjacentElement('beforebegin', bar);
+    } else {
+        const exerciseList = document.getElementById("exercise-list");
+        if (exerciseList) exerciseList.insertBefore(bar, exerciseList.firstChild);
     }
 }
