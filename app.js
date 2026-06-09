@@ -1385,37 +1385,30 @@ function renderGroupsView() {
         if (passesInGroup.length === 0 && !isKnownGroup) return;
         const isEmpty = passesInGroup.length === 0;
         const groupCard = document.createElement("div");
-        groupCard.style.cssText = `
-            background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%);
-            border: 1px solid rgba(255,255,255,0.12);
-            border-top: 2px solid rgba(255,255,255,0.3);
-            border-radius: 20px;
+       groupCard.style.cssText = `
+            position: relative; overflow: hidden;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: none;
+            border-left: 4px solid #f59e0b;
+            border-radius: 16px;
             padding: 20px 15px;
             text-align: center;
             cursor: pointer;
             transition: all 0.2s ease;
-            position: relative;
-            overflow: hidden;
         `;
         groupCard.innerHTML = `
+            <div style="position:absolute; top:0; left:0; right:0; height:1px; background: linear-gradient(90deg, rgba(245,158,11,0.5) 0%, rgba(245,158,11,0.1) 100%);"></div>
+            <div style="position:absolute; bottom:0; left:0; right:0; height:1px; background: linear-gradient(90deg, rgba(245,158,11,0.3) 0%, rgba(245,158,11,0.05) 100%);"></div>
+            <div style="position:absolute; top:0; right:0; bottom:0; width:1px; background: linear-gradient(180deg, rgba(245,158,11,0.4) 0%, rgba(245,158,11,0) 100%);"></div>
             <div style="font-size: 32px; margin-bottom: 10px;">${groupDef.icon}</div>
             <div style="font-weight: 800; font-size: 15px; color: var(--text); margin-bottom: 4px;">${groupDef.name}</div>
-            <div style="font-size: 10px; color: ${isEmpty ? 'var(--text-light)' : 'var(--primary)'}; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; opacity: ${isEmpty ? '0.5' : '1'};">
+            <div style="font-size: 10px; color: ${isEmpty ? 'rgba(255,255,255,0.3)' : 'var(--primary)'}; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">
                 ${isEmpty ? 'No workouts yet' : `${passesInGroup.length} ${passesInGroup.length === 1 ? 'workout' : 'workouts'}`}
             </div>
         `;
         
         groupCard.onclick = () => renderPassesInGroup(groupId);
-        groupCard.addEventListener('mouseenter', () => {
-            groupCard.style.borderTopColor = 'rgba(34, 211, 238, 0.8)';
-            groupCard.style.background = 'linear-gradient(135deg, rgba(34, 211, 238, 0.1) 0%, rgba(34, 211, 238, 0.03) 100%)';
-            groupCard.style.boxShadow = '0 8px 25px rgba(34, 211, 238, 0.15)';
-        });
-        groupCard.addEventListener('mouseleave', () => {
-            groupCard.style.borderTopColor = 'rgba(255,255,255,0.3)';
-            groupCard.style.background = 'linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%)';
-            groupCard.style.boxShadow = 'none';
-        });
+        
         
         const editBtn = document.createElement("div");
         editBtn.innerHTML = "⚙️";
@@ -1548,12 +1541,21 @@ function renderPassesInGroup(groupId) {
             const passIdx = programData.routine.indexOf(pass);
             const passCard = document.createElement("div");
             passCard.className = "prog-card";
-            passCard.style.cssText = "position: relative; min-height: 120px;";
+            passCard.style.cssText = `
+                position: relative; min-height: 120px; overflow: hidden;
+                background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+                border: none;
+                border-left: 4px solid #f59e0b;
+                border-radius: 16px;
+            `;
             passCard.innerHTML = `
+                <div style="position:absolute; top:0; left:0; right:0; height:1px; background: linear-gradient(90deg, rgba(245,158,11,0.5) 0%, rgba(245,158,11,0.1) 100%);"></div>
+                <div style="position:absolute; bottom:0; left:0; right:0; height:1px; background: linear-gradient(90deg, rgba(245,158,11,0.3) 0%, rgba(245,158,11,0.05) 100%);"></div>
+                <div style="position:absolute; top:0; right:0; bottom:0; width:1px; background: linear-gradient(180deg, rgba(245,158,11,0.4) 0%, rgba(245,158,11,0) 100%);"></div>
                 <div style="font-size:28px;">${icons[passIdx % 4]}</div>
                 <h4 style="font-size: 14px; margin: 8px 0 4px 0; line-height: 1.3;">${pass.name}</h4>
                 <div style="font-size:10px; color:var(--primary); font-weight:800;">${pass.exercises.length} ${pass.exercises.length === 1 ? 'EXERCISE' : 'EXERCISES'}</div>
-              <div onclick="event.stopPropagation(); openEditProgramModal(${passIdx})"
+                <div onclick="event.stopPropagation(); openEditProgramModal(${passIdx})"
                     style="position: absolute; top: 6px; right: 6px; font-size: 12px; opacity: 0.6; cursor: pointer; padding: 2px 6px; border-radius: 6px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1);">✏️</div>
             `;
             passCard.onclick = () => {
