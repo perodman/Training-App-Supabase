@@ -2720,6 +2720,9 @@ const div = document.createElement("div");
     }
 
     showView("workout-view");
+        if (activeDraft && activeDraft.restTimerDisabled) {
+        renderRestTimer();
+    }
     setTimeout(() => initDragAndDrop(), 50);
     if (isReturning && openExercises.length > 0 && !window._suppressAutoScroll) {
         const firstOpenIndex = openExercises.slice().sort((a, b) => a - b)[0];
@@ -4704,6 +4707,7 @@ function renderRestTimer() {
             position: sticky;
             top: 70px;
             z-index: 100;
+            overflow: hidden;
         `;
         const exerciseList = document.getElementById("exercise-list");
         if (exerciseList) {
@@ -4716,24 +4720,42 @@ function renderRestTimer() {
     }
     const mins = String(Math.floor(restTimerSeconds / 60)).padStart(1, '0');
     const secs = String(restTimerSeconds % 60).padStart(2, '0');
+    const isDisabled = activeDraft && activeDraft.restTimerDisabled;
     bar.innerHTML = `
-       <div style="position:absolute; top:0; left:4px; right:0; height:1px; background: linear-gradient(90deg, rgba(34,211,238,0.5) 0%, rgba(34,211,238,0.1) 100%);"></div>
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <span style="font-size: 16px;">⏱️</span>
-            <div>
-                <div style="font-size: 9px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; font-weight: 700;">Rest</div>
-                <div style="font-size: 22px; font-weight: 900; color: ${restTimerSeconds <= 10 ? '#ef4444' : '#22d3ee'}; line-height: 1; font-family: monospace;">${mins}:${secs}</div>
+        <div style="position:absolute; top:0; left:4px; right:0; height:1px; background: linear-gradient(90deg, rgba(34,211,238,0.5) 0%, rgba(34,211,238,0.1) 100%);"></div>
+        ${isDisabled ? `
+            <div style="display:flex; align-items:center; gap:10px; flex:1;">
+                <span style="font-size:16px; opacity:0.3;">⏱️</span>
+                <div>
+                    <div style="font-size:9px; color:#94a3b8; text-transform:uppercase; letter-spacing:1px; font-weight:700;">Rest Timer</div>
+                    <div style="font-size:12px; color:rgba(255,255,255,0.3); font-weight:600;">Disabled</div>
+                </div>
             </div>
-        </div>
-        <div style="display: flex; gap: 6px; align-items: center;">
-            <button onclick="restTimerSeconds = Math.max(0, restTimerSeconds - 30); renderRestTimer();" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 5px 10px; font-size: 12px; color: #94a3b8; cursor: pointer;">−30s</button>
-            <button onclick="restTimerSeconds += 30; renderRestTimer();" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 5px 10px; font-size: 12px; color: #94a3b8; cursor: pointer;">+30s</button>
-            <button onclick="stopRestTimer();" style="background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.25); border-radius: 8px; padding: 5px 10px; font-size: 12px; color: #ef4444; cursor: pointer; font-weight: 700;">Skip ✕</button>
             <button onclick="
-                activeDraft.restTimerDisabled = true;
+                activeDraft.restTimerDisabled = false;
                 if (typeof persistActiveWorkout === 'function') persistActiveWorkout();
-                stopRestTimer();
-            " style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 5px 8px; font-size: 14px; color: rgba(255,255,255,0.3); cursor: pointer;" title="Disable rest timer">⚙️</button>
-        </div>
+                renderRestTimer();
+            " style="background: rgba(34,211,238,0.08); border: 1px solid rgba(34,211,238,0.25); border-radius: 8px; padding: 5px 12px; font-size: 12px; color: #22d3ee; cursor: pointer; font-weight: 700;">Enable ✓</button>
+        ` : `
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 16px;">⏱️</span>
+                <div>
+                    <div style="font-size: 9px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; font-weight: 700;">Rest</div>
+                    <div style="font-size: 22px; font-weight: 900; color: ${restTimerSeconds <= 10 ? '#ef4444' : '#22d3ee'}; line-height: 1; font-family: monospace;">${mins}:${secs}</div>
+                </div>
+            </div>
+            <div style="display: flex; gap: 6px; align-items: center;">
+                <button onclick="restTimerSeconds = Math.max(0, restTimerSeconds - 30); renderRestTimer();" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 5px 10px; font-size: 12px; color: #94a3b8; cursor: pointer;">−30s</button>
+                <button onclick="restTimerSeconds += 30; renderRestTimer();" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 5px 10px; font-size: 12px; color: #94a3b8; cursor: pointer;">+30s</button>
+                <button onclick="stopRestTimer();" style="background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.25); border-radius: 8px; padding: 5px 10px; font-size: 12px; color: #ef4444; cursor: pointer; font-weight: 700;">Skip ✕</button>
+                <button onclick="
+                    activeDraft.restTimerDisabled = true;
+                    clearInterval(restTimerInterval);
+                    restTimerActive = false;
+                    if (typeof persistActiveWorkout === 'function') persistActiveWorkout();
+                    renderRestTimer();
+                " style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 5px 8px; font-size: 14px; color: rgba(255,255,255,0.3); cursor: pointer;" title="Disable rest timer">⚙️</button>
+            </div>
+        `}
     `;
 }
