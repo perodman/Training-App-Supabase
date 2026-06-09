@@ -4682,24 +4682,32 @@ function stopRestTimer() {
 }
 
 function renderRestTimer() {
-    const workoutCard = document.querySelector("#workout-view .card.glass");
-    if (!workoutCard) return;
+    const workoutView = document.getElementById("workout-view");
+    if (!workoutView) return;
     let bar = document.getElementById("rest-timer-bar");
     if (!bar) {
         bar = document.createElement("div");
         bar.id = "rest-timer-bar";
         bar.style.cssText = `
-            background: linear-gradient(135deg, rgba(34,211,238,0.12) 0%, rgba(34,211,238,0.05) 100%);
-            border-bottom: 1px solid rgba(34,211,238,0.25);
-            padding: 10px 16px;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border-left: 4px solid #22d3ee;
+            border-radius: 16px;
+            padding: 12px 16px;
+            margin-bottom: 12px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             opacity: 0;
-            transform: translateY(-100%);
+            transform: translateY(-10px);
             transition: opacity 0.3s ease, transform 0.3s ease;
+            position: sticky;
+            top: 70px;
+            z-index: 100;
         `;
-        workoutCard.insertAdjacentElement('afterend', bar);
+        const exerciseList = document.getElementById("exercise-list");
+        if (exerciseList) {
+            workoutView.insertBefore(bar, exerciseList);
+        }
         setTimeout(() => {
             bar.style.opacity = "1";
             bar.style.transform = "translateY(0)";
@@ -4708,6 +4716,7 @@ function renderRestTimer() {
     const mins = String(Math.floor(restTimerSeconds / 60)).padStart(1, '0');
     const secs = String(restTimerSeconds % 60).padStart(2, '0');
     bar.innerHTML = `
+        <div style="position:absolute; top:0; left:0; right:0; height:1px; background: linear-gradient(90deg, rgba(34,211,238,0.5) 0%, rgba(34,211,238,0.1) 100%);"></div>
         <div style="display: flex; align-items: center; gap: 10px;">
             <span style="font-size: 16px;">⏱️</span>
             <div>
