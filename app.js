@@ -2062,9 +2062,15 @@ async function addExerciseToPassDirectly(pIdx, exId) {
 }
 
 async function openEditProgramModal(idx) {
+    console.log("openEditProgramModal anropad med idx:", idx);
     const pass = programData.routine[idx];
+    console.log("pass:", pass);
     const body = document.getElementById("modal-body");
-    if (!pass || !body) return;
+    console.log("body:", body);
+    if (!pass || !body) {
+        console.log("RETURNERAR TIDIGT - pass eller body saknas");
+        return;
+    }
     
     // Spara originalstate bara om det inte redan finns ett (bevara genom Continue Editing)
     if (!window._editPassOriginalState) {
