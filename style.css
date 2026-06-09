@@ -854,3 +854,9 @@ body, html {
     border-color: rgba(239, 68, 68, 0.4);
 }
 
+#edit-pass-duration::-webkit-outer-spin-button,
+#edit-pass-duration::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
