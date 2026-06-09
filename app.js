@@ -3714,6 +3714,7 @@ async function finishWorkout(e) {
             id: workoutId,
             date: activeDraft.date || new Date().toISOString().split('T')[0],
             programName: activeDraft.programName || activeDraft.workout.name,
+            startTime: activeDraft.startTime || null,
             totalTime: finalTime,
             exercises: activeDraft.workout.exercises.map((ex, i) => {
                 const setsData = activeDraft.data[i] ? activeDraft.data[i].sets_data : [];
@@ -3971,12 +3972,13 @@ async function editLoggedWorkout(date, idx) {
     secondsElapsed = savedSeconds;
     activeDraft = {
         id: item.id,
-        db_id: item.id, // Dubbelsäkrar ID-mappningen för din Supabase-funktion
-        historyIndex: globalIdx, // Skickar med det exakta indexet som ska uppdateras i databasen sen
+        db_id: item.id,
+        historyIndex: globalIdx,
         workout: workoutObj,
         data: formattedDataArray,
         date: date,
         secondsElapsed: savedSeconds,
+        startTime: item.startTime || null,
         isStarted: true,
         wasTimerRunning: false,
         ui_state: { openExercises: [0] }
