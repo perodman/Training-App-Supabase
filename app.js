@@ -2502,38 +2502,33 @@ function renderActiveWorkout() {
         console.warn(" ⚠️  Inget aktivt utkast tillgängligt.");
         return;
     }
-
-   if (activeDraft.data) {
+    if (activeDraft.data) {
         activeDraft.data.forEach((exerciseData, i) => {
             if (!exerciseData.isCompleted && exerciseData.sets_data) {
                 const allConfirmed = exerciseData.sets_data.every(s => s.userConfirmed === true);
                 const isOpen = activeDraft.ui_state?.openExercises?.includes(i);
                 const hasWeightOrReps = exerciseData.sets_data.some(s => s.weight || s.reps);
-                // Nollställ bara om alla är bekräftade OCH övningen aldrig öppnats OCH ingen data finns
                 const isBrandNewAndGhostChecked = allConfirmed && !isOpen && !hasWeightOrReps;
                 if (isBrandNewAndGhostChecked && exerciseData.sets_data.length > 0) {
-                    exerciseData.sets_data.forEach(set => {
-                        set.userConfirmed = false;
-                    });
+                    exerciseData.sets_data.forEach(set => { set.userConfirmed = false; });
                 }
             }
         });
     }
 
-    const startTimeStr = activeDraft.startTime 
-        ? new Date(activeDraft.startTime).toLocaleTimeString('sv-SE', {hour: '2-digit', minute: '2-digit'})
-        : '';
-    
-  document.getElementById("active-title").textContent = activeDraft.workout.name;
+    document.getElementById("active-title").textContent = activeDraft.workout.name;
+
     const oldBadge = document.getElementById("start-time-badge");
     if (oldBadge) oldBadge.remove();
+
+    const startTimeStr = activeDraft.startTime 
         ? new Date(activeDraft.startTime).toLocaleTimeString('sv-SE', {hour: '2-digit', minute: '2-digit'})
         : '';
     if (startTimeStr) {
         const startBadge = document.createElement("div");
         startBadge.id = "start-time-badge";
         startBadge.style.cssText = "display:inline-flex; align-items:center; gap:6px; background:rgba(34,197,94,0.08); border:1px solid rgba(34,197,94,0.2); border-radius:20px; padding:4px 12px; margin: 0 0 16px 15px;";
-        startBadge.innerHTML = `<span style="font-size:14px;">⏱️</span><span style="font-size:11px; color:#22c55e; font-weight:600;">Workout Started ${startTimeStr}</span>`;
+        startBadge.innerHTML = `<span style="font-size:14px;">⏱️</span><span style="font-size:11px; color:#22c55e; font-weight:600;">Started ${startTimeStr}</span>`;
         document.getElementById("active-title").insertAdjacentElement('afterend', startBadge);
     }
 
