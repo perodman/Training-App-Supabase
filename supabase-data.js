@@ -324,11 +324,12 @@ async function saveWorkoutHistory(workoutInput) {
     if (!workoutId) {
         workoutId = "workout_" + nowTimestamp + "_" + Math.floor(Math.random() * 1000);
     }
-    const fullWorkoutObject = {
+const fullWorkoutObject = {
         id: workoutId,
         date: workout.date,
         programName: workout.programName,
         totalTime: workout.totalTime,
+        startTime: workout.startTime || null,
         exercises: workout.exercises
     };
 
