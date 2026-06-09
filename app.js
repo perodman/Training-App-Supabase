@@ -3695,8 +3695,9 @@ async function finishWorkout(e) {
         if (typeof pauseTimer === 'function') pauseTimer(); 
         if (typeof saveInterval !== 'undefined' && saveInterval) clearInterval(saveInterval);
  
-        let finalTime = "00:00:00";
-        if (activeDraft.startTime) {
+       // Om detta är en redigering av ett historiskt pass, behåll originaltiden
+        let finalTime = activeDraft.totalTime || "00:00:00";
+        if (!activeDraft.totalTime && activeDraft.startTime) {
             const startMs = new Date(activeDraft.startTime).getTime();
             const endMs = Date.now();
             const totalSeconds = Math.floor((endMs - startMs) / 1000);
@@ -3979,6 +3980,7 @@ async function editLoggedWorkout(date, idx) {
         date: date,
         secondsElapsed: savedSeconds,
         startTime: item.startTime || null,
+        totalTime: item.totalTime || null,
         isStarted: true,
         wasTimerRunning: false,
         ui_state: { openExercises: [0] }
