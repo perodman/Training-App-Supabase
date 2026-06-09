@@ -1,5 +1,8 @@
 //// Explicita globala variabler länkade till window-objektet för full Supabase-kompatibilitet
 window.programData = JSON.parse(localStorage.getItem("myCustomProgram") || "null");
+let restTimerInterval = null;
+let restTimerSeconds = 0;
+let restTimerActive = false;
 let programData = window.programData; // Skapar en lokal referens för smidig användning i app.js
 let masterExercises = JSON.parse(localStorage.getItem("masterExercises") || "[]");
 let workoutHistory = JSON.parse(localStorage.getItem("workoutHistory") || "[]");
@@ -239,33 +242,32 @@ function openModal(preventScroll = false) {
 
 // --- TIMER LOGIK ---
 function updateTimerDisplay() {
-    const hrs = String(Math.floor(secondsElapsed / 3600)).padStart(2, '0');
-    const mins = String(Math.floor((secondsElapsed % 3600) / 60)).padStart(2, '0');
-    const secs = String(secondsElapsed % 60).padStart(2, '0');
-    document.getElementById("workout-timer").textContent = `${hrs}:${mins}:${secs}`;
+    if (activeDraft && activeDraft.startTime) {
+        const startMs = new Date(activeDraft.startTime).getTime();
+        const totalSeconds = Math.floor((Date.now() - startMs) / 1000);
+        const hrs = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
+        const mins = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
+        const secs = String(totalSeconds % 60).padStart(2, '0');
+        const el = document.getElementById("workout-timer");
+        if (el) el.textContent = `${hrs}:${mins}:${secs}`;
+    }
 }
 
 function startTimer() {
     if (isTimerRunning) return;
     isTimerRunning = true;
-    if(activeDraft) activeDraft.wasTimerRunning = true;
-    document.getElementById("timer-toggle-btn").textContent = "Pause  ⏸️ ";
+    const btn = document.getElementById("timer-toggle-btn");
+    if (btn) btn.textContent = "Pause  ⏸️ ";
     timerInterval = setInterval(() => {
-        secondsElapsed++;
         updateTimerDisplay();
-        if(activeDraft) {
-            activeDraft.secondsElapsed = secondsElapsed;
-            if (typeof persistActiveWorkout === 'function') persistActiveWorkout();
-        }
     }, 1000);
 }
 
 function pauseTimer() {
     isTimerRunning = false;
-    if(activeDraft) activeDraft.wasTimerRunning = false;
     clearInterval(timerInterval);
-    document.getElementById("timer-toggle-btn").textContent = "Continue  ▶️ ";
-    if(activeDraft && typeof persistActiveWorkout === 'function') persistActiveWorkout();
+    const btn = document.getElementById("timer-toggle-btn");
+    if (btn) btn.textContent = "Continue  ▶️ ";
 }
 
 document.getElementById("timer-toggle-btn").onclick = () => {
@@ -2478,16 +2480,17 @@ async function startWorkout(workout, data = null, date = null, isImmediateStart 
     // Bevara befintligt ui_state om passet redan har ett (återkomst till pågående pass)
     const existingUiState = (activeDraft && activeDraft.ui_state) ? activeDraft.ui_state : null;
 
-    activeDraft = {
+   activeDraft = {
         workout: JSON.parse(JSON.stringify(workout)),
         data,
         date: date || new Date().toISOString().split('T')[0],
+        startTime: activeDraft?.startTime || new Date().toISOString(),
         secondsElapsed: secondsElapsed,
         isStarted: true,
         wasTimerRunning: true,
         ui_state: existingUiState || {}
     };
-
+    
     // Sparar det skapade passutkastet direkt till både localStorage och Supabase
     await persistActiveWorkout();
     renderActiveWorkout();
@@ -3347,6 +3350,15 @@ async function confirmSet(exIdx, setIdx) {
     if (vInp) activeDraft.data[exIdx].sets_data[setIdx].rest = vInp.value;
     const currentState = activeDraft.data[exIdx].sets_data[setIdx].userConfirmed;
     activeDraft.data[exIdx].sets_data[setIdx].userConfirmed = !currentState;
+    // Starta vila-timer om setet bekräftades (inte avbekräftades) och det finns en nästa set
+    const isNowConfirmed = activeDraft.data[exIdx].sets_data[setIdx].userConfirmed;
+    const restValue = parseInt(activeDraft.data[exIdx].sets_data[setIdx].rest) || 120;
+    const isLastSet = setIdx === activeDraft.data[exIdx].sets_data.length - 1;
+    if (isNowConfirmed && !isLastSet) {
+        startRestTimer(restValue);
+    } else if (!isNowConfirmed) {
+        stopRestTimer();
+    }
     await persistActiveWorkout();
 
     // Spara handtaget innan omritning
@@ -3664,8 +3676,16 @@ async function finishWorkout(e) {
         if (typeof pauseTimer === 'function') pauseTimer(); 
         if (typeof saveInterval !== 'undefined' && saveInterval) clearInterval(saveInterval);
  
-        const finalTimeElement = document.getElementById("workout-timer");
-        const finalTime = finalTimeElement ? finalTimeElement.textContent : "00:00";
+        let finalTime = "00:00:00";
+        if (activeDraft.startTime) {
+            const startMs = new Date(activeDraft.startTime).getTime();
+            const endMs = Date.now();
+            const totalSeconds = Math.floor((endMs - startMs) / 1000);
+            const hrs = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
+            const mins = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
+            const secs = String(totalSeconds % 60).padStart(2, '0');
+            finalTime = `${hrs}:${mins}:${secs}`;
+        }
          
         let workoutId = (activeDraft.id && workoutHistory.some(w => w.id === activeDraft.id)) 
             ? activeDraft.id 
@@ -4633,4 +4653,77 @@ function closeEditProgramModal(idx) {
             renderGroupsView();
         }
     }
+}
+
+function startRestTimer(seconds) {
+    restTimerSeconds = seconds;
+    restTimerActive = true;
+    clearInterval(restTimerInterval);
+    renderRestTimer();
+    restTimerInterval = setInterval(() => {
+        restTimerSeconds--;
+        if (restTimerSeconds <= 0) {
+            stopRestTimer();
+            // Vibrera/pipa när vila är klar
+            if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+            try { const ctx = new AudioContext(); const o = ctx.createOscillator(); const g = ctx.createGain(); o.connect(g); g.connect(ctx.destination); o.frequency.value = 880; g.gain.value = 0.3; o.start(); setTimeout(() => o.stop(), 300); } catch(e) {}
+            return;
+        }
+        renderRestTimer();
+    }, 1000);
+}
+
+function stopRestTimer() {
+    clearInterval(restTimerInterval);
+    restTimerActive = false;
+    restTimerSeconds = 0;
+    const bar = document.getElementById("rest-timer-bar");
+    if (bar) {
+        bar.style.transition = "opacity 0.3s ease, transform 0.3s ease";
+        bar.style.opacity = "0";
+        bar.style.transform = "translateY(-100%)";
+        setTimeout(() => bar.remove(), 300);
+    }
+}
+
+function renderRestTimer() {
+    const workoutCard = document.querySelector("#workout-view .card.glass");
+    if (!workoutCard) return;
+    let bar = document.getElementById("rest-timer-bar");
+    if (!bar) {
+        bar = document.createElement("div");
+        bar.id = "rest-timer-bar";
+        bar.style.cssText = `
+            background: linear-gradient(135deg, rgba(34,211,238,0.12) 0%, rgba(34,211,238,0.05) 100%);
+            border-bottom: 1px solid rgba(34,211,238,0.25);
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            opacity: 0;
+            transform: translateY(-100%);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        `;
+        workoutCard.insertAdjacentElement('afterend', bar);
+        setTimeout(() => {
+            bar.style.opacity = "1";
+            bar.style.transform = "translateY(0)";
+        }, 10);
+    }
+    const mins = String(Math.floor(restTimerSeconds / 60)).padStart(1, '0');
+    const secs = String(restTimerSeconds % 60).padStart(2, '0');
+    bar.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 16px;">⏱️</span>
+            <div>
+                <div style="font-size: 9px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; font-weight: 700;">Rest</div>
+                <div style="font-size: 22px; font-weight: 900; color: ${restTimerSeconds <= 10 ? '#ef4444' : '#22d3ee'}; line-height: 1; font-family: monospace;">${mins}:${secs}</div>
+            </div>
+        </div>
+        <div style="display: flex; gap: 6px; align-items: center;">
+            <button onclick="restTimerSeconds = Math.max(0, restTimerSeconds - 30); renderRestTimer();" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 5px 10px; font-size: 12px; color: #94a3b8; cursor: pointer;">−30s</button>
+            <button onclick="restTimerSeconds += 30; renderRestTimer();" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 5px 10px; font-size: 12px; color: #94a3b8; cursor: pointer;">+30s</button>
+            <button onclick="stopRestTimer();" style="background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.25); border-radius: 8px; padding: 5px 10px; font-size: 12px; color: #ef4444; cursor: pointer; font-weight: 700;">Skip ✕</button>
+        </div>
+    `;
 }
