@@ -3934,13 +3934,13 @@ async function editLoggedWorkout(date, idx) {
         await saveActiveDraft();
     }
 
-    // Uppdatera gränssnittet omedelbart
-    if (typeof renderActiveWorkout === 'function') renderActiveWorkout();
+if (typeof renderActiveWorkout === 'function') renderActiveWorkout();
     if (typeof updateTimerDisplay === 'function') updateTimerDisplay();
-
-    // UX-OPTIMERING: Byt vy direkt till träningsvyn och stäng modalen
-    if (typeof showView === 'function') showView("workout-view");
     closeModal();
+    // Tvinga fram workout-view även om den redan är synlig
+    document.querySelectorAll(".view").forEach(v => v.classList.add("hidden"));
+    const workoutView = document.getElementById("workout-view");
+    if (workoutView) workoutView.classList.remove("hidden");
 }
 
 function hideDefaultCloseButton(hide) {
