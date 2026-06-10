@@ -918,5 +918,5 @@ body, html {
     height: 0;
     border-top: 6px solid transparent;
     border-bottom: 6px solid transparent;
-    border-left: 7px solid #1e293b;
+    border-left: 7px solid rgba(253,224,71,0.4);
 }
