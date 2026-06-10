@@ -438,16 +438,13 @@ function filterExercises(category, subtarget = null) {
 
         // Visa hint-bubbla bredvid plus-knappen
         setTimeout(() => {
-            const plusBtn = document.getElementById('plus-exercise-btn');
-            const existingHint = document.getElementById('plus-hint-bubble');
-            if (plusBtn && !existingHint) {
+            const hintContainer = document.getElementById('hint-bubble-container');
+            if (hintContainer && !document.getElementById('plus-hint-bubble')) {
                 const hint = document.createElement('div');
                 hint.id = 'plus-hint-bubble';
                 hint.className = 'hint-bubble';
                 hint.innerHTML = '<span style="font-size:12px; font-weight:700; color:#fff; letter-spacing:0.3px;">Create new exercise</span><div onclick="document.getElementById(\'plus-hint-bubble\').remove()" style="position:absolute; top:-6px; right:-6px; width:16px; height:16px; border-radius:50%; background:#ef4444; border:2px solid #0f172a; display:flex; align-items:center; justify-content:center; font-size:9px; color:#fff; cursor:pointer; font-weight:900;">✕</div>';
-                plusBtn.parentElement.appendChild(hint);
-            } else if (plusBtn && existingHint) {
-                plusBtn.parentElement.appendChild(existingHint);
+                hintContainer.appendChild(hint);
             }
         }, 300);
     }
