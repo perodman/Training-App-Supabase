@@ -1568,18 +1568,25 @@ function renderGroupsView() {
     if (true) {
         const ungroupedCard = document.createElement("div");
         ungroupedCard.style.cssText = `
-            background: rgba(255,255,255,0.03);
-            border: 1px dashed rgba(255,255,255,0.15);
-            border-radius: 20px;
+            position: relative; overflow: hidden;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border-top: 3px solid #f59e0b;
+            border-left: none;
+            border-right: none;
+            border-bottom: none;
+            border-radius: 16px;
             padding: 20px 15px;
             text-align: center;
             cursor: pointer;
             transition: all 0.2s ease;
         `;
-        ungroupedCard.innerHTML = `
+            ungroupedCard.innerHTML = `
+            <div style="position:absolute; left:0; top:0; bottom:0; width:1px; background: linear-gradient(180deg, rgba(245,158,11,0.9) 0%, rgba(245,158,11,0.1) 100%);"></div>
+            <div style="position:absolute; right:0; top:0; bottom:0; width:1px; background: linear-gradient(180deg, rgba(245,158,11,0.9) 0%, rgba(245,158,11,0.1) 100%);"></div>
+            <div style="position:absolute; bottom:0; left:0; right:0; height:1px; background: linear-gradient(90deg, rgba(245,158,11,0.1) 0%, rgba(245,158,11,0.3) 50%, rgba(245,158,11,0.1) 100%);"></div>
             <div style="font-size: 32px; margin-bottom: 10px;">📁</div>
-            <div style="font-weight: 800; font-size: 15px; color: var(--text-light); margin-bottom: 4px;">Other</div>
-            <div style="font-size: 10px; color: var(--text-light); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; opacity: 0.6;">
+            <div style="font-weight: 800; font-size: 15px; color: var(--text); margin-bottom: 4px;">Other</div>
+            <div style="font-size: 10px; color: var(--primary); font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">
                 ${ungroupedPasses.length} ${ungroupedPasses.length === 1 ? 'workout' : 'workouts'}
             </div>
         `;
@@ -2236,7 +2243,7 @@ async function openEditProgramModal(idx) {
     } else {
         window.temporarySelectedExercisesForEdit = [];
     }
-    const ALL_GROUPS = [...PREDEFINED_GROUPS, ...(programData.customGroups || [])];
+    const ALL_GROUPS = [...PREDEFINED_GROUPS, ...(programData.customGroups || []), { id: '__ungrouped__', name: 'Other', icon: '📁' }];
     body.innerHTML = `
         <h3 style="margin-bottom: 8px;">Workout Name</h3>
         <input type="text" id="edit-pass-name" class="log-input" placeholder="e.g. Upper Body A, Leg Day..." value="${pass.name === 'New Workout' ? '' : pass.name}" style="text-align: center;">
