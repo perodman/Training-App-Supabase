@@ -1091,13 +1091,17 @@ if (isOngoing && typeof activeDraft !== 'undefined' && activeDraft) {
         const groupsWithPasses = ALL_GROUPS.filter(g => groupMap[g.id] && groupMap[g.id].length > 0);
         const ungrouped = programData.routine.filter(p => !Array.isArray(p.groups) || p.groups.length === 0);
 
-        html += `
+       html += `
         <div style="display: flex; align-items: center; gap: 10px; margin-top: 12px;">
             <div style="flex-grow: 1; height: 1px; background: rgba(255,255,255,0.08);"></div>
             <span style="font-size: 10px; text-transform: uppercase; color: var(--text-light); font-weight: 700; letter-spacing: 1px; white-space: nowrap;">Edit Plan</span>
             <div style="flex-grow: 1; height: 1px; background: rgba(255,255,255,0.08);"></div>
         </div>
-
+        <div style="text-align:center;">
+            <div class="hint-bubble hint-centered" style="position:relative !important; right:auto !important; display:inline-flex !important; margin:0 auto 8px auto !important;">
+                <span style="font-size:13px; font-weight:700; color:#fff; letter-spacing:0.3px;">Tap a group to change your planned workout</span>
+            </div>
+        </div>
         <div id="day-manager-group-container" style="display: flex; flex-direction: column; gap: 8px;">`;
 
         const renderGroupSection = (g, passes, isUngrouped = false) => {
