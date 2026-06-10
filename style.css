@@ -870,3 +870,35 @@ body, html {
     100% { transform: translate(var(--spread), 120px) rotate(var(--rotate)); opacity: 0; }
 }
 
+@keyframes floatUpDown {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-6px); }
+    100% { transform: translateY(0px); }
+}
+.hint-bubble {
+    position: absolute;
+    right: 40px;
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border: 1px solid rgba(34,211,238,0.4);
+    border-radius: 12px;
+    padding: 8px 12px;
+    font-size: 11px;
+    color: #22d3ee;
+    font-weight: 600;
+    white-space: nowrap;
+    animation: floatUpDown 2s ease-in-out infinite;
+    z-index: 10;
+    box-shadow: 0 4px 15px rgba(34,211,238,0.15);
+}
+.hint-bubble::after {
+    content: "";
+    position: absolute;
+    right: -6px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+    border-left: 6px solid rgba(34,211,238,0.4);
+}
