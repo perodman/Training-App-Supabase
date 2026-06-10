@@ -4810,32 +4810,39 @@ function restoreRestTimerIfActive() {
 }
 
 function showFireworks() {
-    const canvas = document.createElement("canvas");
-    canvas.setAttribute('style', 'position:fixed !important; top:0 !important; left:0 !important; width:100vw !important; height:100vh !important; z-index:2147483647 !important; pointer-events:none !important;');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    document.body.appendChild(canvas);
-    const ctx = canvas.getContext("2d");
-    const particles = [];
-    const colors = ["#f59e0b", "#22d3ee", "#22c55e", "#a78bfa", "#f472b6", "#fff"];
-    function createBurst(x, y) {
-        for (let i = 0; i < 80; i++) {
-            const angle = (Math.PI * 2 / 80) * i;
-            const speed = 2 + Math.random() * 6;
-            particles.push({ x, y, vx: Math.cos(angle)*speed, vy: Math.sin(angle)*speed, alpha: 1, color: colors[Math.floor(Math.random()*colors.length)], size: 2+Math.random()*3 });
-        }
+    const container = document.createElement("div");
+    container.setAttribute('style', 'position:fixed !important; top:0 !important; left:0 !important; width:100vw !important; height:100vh !important; z-index:2147483647 !important; pointer-events:none !important; overflow:hidden !important;');
+    document.documentElement.appendChild(container);
+
+    const colors = ["#f59e0b", "#22d3ee", "#22c55e", "#a78bfa", "#f472b6", "#fff", "#ef4444", "#fde047"];
+
+    for (let i = 0; i < 120; i++) {
+        setTimeout(() => {
+            const el = document.createElement("div");
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            const x = Math.random() * 100;
+            const startY = 20 + Math.random() * 60;
+            const size = 4 + Math.random() * 8;
+            const duration = 0.8 + Math.random() * 1.2;
+            const spread = (Math.random() - 0.5) * 200;
+            const isCircle = Math.random() > 0.4;
+            el.setAttribute('style', `
+                position: absolute !important;
+                left: ${x}vw !important;
+                top: ${startY}vh !important;
+                width: ${size}px !important;
+                height: ${isCircle ? size : size * 0.4}px !important;
+                background: ${color} !important;
+                border-radius: ${isCircle ? '50%' : '2px'} !important;
+                opacity: 1 !important;
+                animation: burst ${duration}s ease-out forwards !important;
+                --spread: ${spread}px !important;
+                --rotate: ${Math.random() * 720}deg !important;
+                box-shadow: 0 0 ${size}px ${color} !important;
+            `);
+            container.appendChild(el);
+        }, i * 30);
     }
-    let bursts = 0;
-    const burstInterval = setInterval(() => {
-        createBurst(window.innerWidth*(0.2+Math.random()*0.6), window.innerHeight*(0.1+Math.random()*0.5));
-        bursts++;
-        if (bursts >= 6) clearInterval(burstInterval);
-    }, 300);
-    function animate() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        particles.forEach(p => { p.x+=p.vx; p.y+=p.vy; p.vy+=0.1; p.alpha-=0.015; ctx.globalAlpha=Math.max(0,p.alpha); ctx.fillStyle=p.color; ctx.beginPath(); ctx.arc(p.x,p.y,p.size,0,Math.PI*2); ctx.fill(); });
-        if (particles.some(p=>p.alpha>0)) requestAnimationFrame(animate);
-        else canvas.remove();
-    }
-    animate();
+
+    setTimeout(() => container.remove(), 6000);
 }
