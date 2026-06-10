@@ -952,8 +952,8 @@ body, html {
 }
 .set-arrow {
     position: absolute;
-    left: -22px;
-    top: 12px;
+    left: -28px;
+    top: 10px;
     transform: none;
     color: #facc15;
     font-size: 16px;
