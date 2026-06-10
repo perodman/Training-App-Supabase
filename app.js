@@ -4814,7 +4814,8 @@ function showFireworks() {
     canvas.setAttribute('style', 'position:fixed !important; top:0 !important; left:0 !important; width:100vw !important; height:100vh !important; z-index:2147483647 !important; pointer-events:none !important;');
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    document.body.appendChild(canvas);
+    const modal = document.getElementById("workout-modal");
+    (modal || document.body).appendChild(canvas);
     const ctx = canvas.getContext("2d");
     const particles = [];
     const colors = ["#f59e0b", "#22d3ee", "#22c55e", "#a78bfa", "#f472b6", "#fff"];
