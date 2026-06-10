@@ -4821,7 +4821,7 @@ function showFireworks() {
     canvas.setAttribute('style', 'position:fixed !important; top:0 !important; left:0 !important; width:100vw !important; height:100vh !important; z-index:2147483647 !important; pointer-events:none !important;');
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    document.documentElement.appendChild(canvas);
+    document.body.appendChild(canvas);
     
     const ctx = canvas.getContext("2d");
     const particles = [];
