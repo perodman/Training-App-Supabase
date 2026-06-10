@@ -2647,12 +2647,9 @@ function renderActiveWorkout() {
             }
         });
     }
-
     document.getElementById("active-title").textContent = activeDraft.workout.name;
-
     const oldBadge = document.getElementById("start-time-badge");
     if (oldBadge) oldBadge.remove();
-
     const startTimeStr = activeDraft.startTime 
         ? new Date(activeDraft.startTime).toLocaleTimeString('sv-SE', {hour: '2-digit', minute: '2-digit'})
         : '';
@@ -2663,12 +2660,10 @@ function renderActiveWorkout() {
         startBadge.innerHTML = `<span style="font-size:14px;">⏱️</span><span style="font-size:11px; color:#22c55e; font-weight:600;">Workout Started ${startTimeStr}</span>`;
         document.getElementById("active-title").insertAdjacentElement('afterend', startBadge);
     }
-
     const list = document.getElementById("exercise-list");
     const footer = document.querySelector(".workout-footer");
     if (!list) return;
     list.innerHTML = "";
-
     if (!activeDraft.isStarted) {
         if (footer) footer.classList.add("hidden");
         list.innerHTML = `
@@ -2677,14 +2672,11 @@ function renderActiveWorkout() {
         </div>
         <p style="color:var(--text-light); font-size:13px; text-align:center; margin-top:10px;">Klicka på knappen ovan för att starta klockan.</p>
         `;
-        const timerDisp = document.getElementById("workout-timer");
-        if (timerDisp) timerDisp.textContent = "00:00:00";
         showView("workout-view");
         renderRestTimer();
         setTimeout(() => restoreRestTimerIfActive(), 50);
         return;
     }
-
     if (typeof renderCalendar === 'function') {
         const calendarView = document.getElementById("calendar-view");
         if (calendarView) {
@@ -2694,35 +2686,20 @@ function renderActiveWorkout() {
             calendarView.style.display = originalDisplay;
         }
     }
-
     if (footer) {
         footer.classList.remove("hidden");
         footer.style.display = "flex";
         footer.style.alignItems = "center";
         footer.style.gap = "12px";
-        
-        // Återställt till bara de två originalknapparna med ett snyggt mellanrum emellan
-        const startTimeStr = activeDraft.startTime 
-            ? new Date(activeDraft.startTime).toLocaleTimeString('sv-SE', {hour: '2-digit', minute: '2-digit'})
-            : '';
         footer.innerHTML = `
             <button id="pause-workout-btn" class="mode-btn save-draft-btn" onclick="saveDraftAndGoHome()" style="flex: 1;">Save draft  💾 </button>
             <button class="mode-btn green" onclick="finishWorkout()" style="flex: 1; font-weight: bold;">Finish Workout  ✅</button>
         `;
     }
-
-    if (!activeDraft.ui_state) {
-        activeDraft.ui_state = {};
-    }
-    if (!activeDraft.ui_state.openExercises) {
-        activeDraft.ui_state.openExercises = [];
-    }
-
+    if (!activeDraft.ui_state) activeDraft.ui_state = {};
+    if (!activeDraft.ui_state.openExercises) activeDraft.ui_state.openExercises = [];
     const isFrittPass = activeDraft.workout.name === "Free Workout";
-
-    // Håll koll på om detta är en återkomst (hasInitializedOpen är redan true)
     const isReturning = activeDraft.ui_state.hasOwnProperty('hasInitializedOpen');
-
     if (!isFrittPass) {
         if (!activeDraft.ui_state.hasOwnProperty('hasInitializedOpen')) {
             activeDraft.ui_state.openExercises = [0];
@@ -2730,18 +2707,14 @@ function renderActiveWorkout() {
             if (typeof persistActiveWorkout === 'function') persistActiveWorkout();
         }
     }
-
     const openExercises = activeDraft.ui_state.openExercises;
-
     if (activeDraft.workout.exercises && activeDraft.workout.exercises.length > 0) {
         activeDraft.workout.exercises.forEach((ex, i) => {
             const exerciseData = activeDraft.data[i];
             if (!exerciseData) return;
-
             const isDone = exerciseData.isCompleted;
             const isOpen = openExercises.includes(i);
-
-const div = document.createElement("div");
+            const div = document.createElement("div");
             div.className = (isDone ? "exercise-done" : "");
             div.style.cssText = `
                 position: relative;
@@ -2755,10 +2728,9 @@ const div = document.createElement("div");
                 box-shadow: ${isDone ? '0 4px 12px rgba(34,197,94,0.08)' : isOpen ? '0 4px 12px rgba(34,211,238,0.08)' : '0 4px 12px rgba(0,0,0,0.3)'};
             `;
             div.id = `exercise-card-${i}`;
-
             const completedSets = exerciseData.sets_data ? exerciseData.sets_data.filter(s => s.userConfirmed).length : 0;
             const totalSets = exerciseData.sets_data ? exerciseData.sets_data.length : 0;
-
+            const firstUnconfirmed = exerciseData.sets_data ? exerciseData.sets_data.findIndex(s => !s.userConfirmed) : -1;
             let setsHtml = `<div style="margin-top:10px;">
                 <div style="display:grid; grid-template-columns: 40px 1fr 1fr 1fr 30px; gap:8px; margin-bottom:5px; align-items:center;">
                     <small style="text-align:left; padding-left:5px; color:var(--text-light); font-size:9px; font-weight:700;">SET</small>
@@ -2767,36 +2739,27 @@ const div = document.createElement("div");
                     <small style="text-align:center; color:var(--text-light); font-size:9px;">REST (S)</small>
                     <span></span>
                 </div>`;
-
             if (exerciseData.sets_data) {
                 exerciseData.sets_data.forEach((set, sIdx) => {
                     const isLocked = isDone;
                     const isCurrent = !set.userConfirmed && !isDone;
                     const showSuccess = set.userConfirmed || isDone;
-                    let circleColor = showSuccess ? '#22c55e' : (isCurrent ? '#facc15' : '#f59e0b');
+                    const circleColor = showSuccess ? '#22c55e' : (isCurrent ? '#facc15' : '#f59e0b');
                     const statusContent = showSuccess ? ' ✅ ' : `#${sIdx + 1}`;
-
-                   const firstUnconfirmed = exerciseData.sets_data.findIndex(s => !s.userConfirmed);
                     const showArrow = !isDone && isOpen && sIdx === firstUnconfirmed;
-                   setsHtml += `
+                    setsHtml += `
                     <div style="display:grid; grid-template-columns: 40px 1fr 1fr 1fr 30px; gap:8px; margin-bottom:8px; align-items:center; opacity: ${showSuccess ? '1' : isCurrent ? '1' : '0.35'}; transition: opacity 0.2s ease; position:relative; overflow:visible;">
+                        ${showArrow ? '<div class="set-arrow">➔</div>' : ''}
                         <div onclick="${isLocked && !isDone ? '' : `confirmSet(${i}, ${sIdx})`}"
                             style="width:32px; height:32px; border-radius:50%; border:2px solid ${circleColor}; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:10px; font-weight:800; background: ${showSuccess ? 'rgba(34, 197, 94, 0.2)' : (isCurrent ? 'rgba(250, 204, 21, 0.15)' : 'rgba(245, 158, 11, 0.05)')}; color: ${circleColor}; opacity: 1;">
                             ${statusContent}
                         </div>
-                        
-                        <input type="text" inputmode="decimal" id="w-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'};" value="${set.weight || ''}" placeholder="" ${isLocked ?
-                        'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
-                        <input type="text" inputmode="decimal" id="r-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'};" value="${set.reps || ''}" placeholder="" ${isLocked ?
-                        'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
-                       ${sIdx < exerciseData.sets_data.length - 1 ? `<input type="text" inputmode="decimal" id="v-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'}; border-color: rgba(52, 152, 219, 0.3);" value="${set.rest || '120'}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">` : `<div></div>`}
-
-                        
-                       <button onclick="removeSetFromExercise(${i}, ${sIdx})" style="background:none; border:none; color:var(--danger); font-size:16px; opacity: ${showSuccess ? '0.1' : isCurrent ? '0.8' : '0.4'};" ${showSuccess ? 'disabled' : ''}>×</button>
+                        <input type="text" inputmode="decimal" id="w-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'};" value="${set.weight || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
+                        <input type="text" inputmode="decimal" id="r-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'};" value="${set.reps || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
+                        ${sIdx < exerciseData.sets_data.length - 1 ? `<input type="text" inputmode="decimal" id="v-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'}; border-color: rgba(52, 152, 219, 0.3);" value="${set.rest || '120'}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">` : `<div></div>`}
+                        <button onclick="removeSetFromExercise(${i}, ${sIdx})" style="background:none; border:none; color:var(--danger); font-size:16px; opacity: ${showSuccess ? '0.1' : isCurrent ? '0.8' : '0.4'};" ${showSuccess ? 'disabled' : ''}>×</button>
                     </div>`;
-
-                    const firstUnconfirmedIdx = exerciseData.sets_data.findIndex(s => !s.userConfirmed);
-                    if (isCurrent && sIdx === firstUnconfirmedIdx) {
+                    if (isCurrent && sIdx === firstUnconfirmed) {
                         setsHtml += `
                         <div style="grid-column: 2 / span 3; margin:-4px 0 8px 0; padding-left:2px; opacity:0.8; font-size:10px; color:var(--primary); font-weight:600; letter-spacing:0.3px;">
                             💡 Select ${statusContent} to lock & continue
@@ -2804,20 +2767,15 @@ const div = document.createElement("div");
                     }
                 });
             }
-
-           div.innerHTML = `
+            div.innerHTML = `
                 <div style="position:absolute; top:0; left:0; right:0; height:1px; background: linear-gradient(90deg, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0.08) 100%); pointer-events:none; z-index:2;"></div>
                 <div style="position:absolute; bottom:0; left:0; right:0; height:1px; background: linear-gradient(90deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.03) 100%); pointer-events:none; z-index:2;"></div>
                 <div style="position:absolute; top:0; right:0; bottom:0; width:1px; background: linear-gradient(180deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0) 100%); pointer-events:none; z-index:2;"></div>
                 <div onclick="toggleExercise(${i})" style="padding: 12px 15px; display: flex; align-items: center; cursor: pointer; background: ${isOpen ? 'rgba(250, 204, 21, 0.05)' : 'transparent'}">
-                <div style="width: 8px; flex-shrink: 0;"></div>
+                    <div style="width: 8px; flex-shrink: 0;"></div>
                     <div style="display: flex; flex-direction: column; min-width:0; flex-grow:1;">
-                        <strong style="font-size: 14px; color: ${isDone ? 'var(--text-light)' : 'var(--text)'}; text-decoration: ${isDone ? 'line-through' : 'none'}; white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">
-                            ${ex.name}
-                        </strong>
-                        <small style="color: ${isDone ? '#22c55e' : 'var(--primary)'}; font-size: 10px;">
-                            ${isDone ? 'DONE  ✅ ' : `${completedSets}/${totalSets} set`}
-                        </small>
+                        <strong style="font-size: 14px; color: ${isDone ? 'var(--text-light)' : 'var(--text)'}; text-decoration: ${isDone ? 'line-through' : 'none'}; white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">${ex.name}</strong>
+                        <small style="color: ${isDone ? '#22c55e' : 'var(--primary)'}; font-size: 10px;">${isDone ? 'DONE  ✅ ' : `${completedSets}/${totalSets} set`}</small>
                     </div>
                     <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0; margin-left: 10px;">
                         <button onclick="event.stopPropagation(); openReplaceExerciseModal(${i})" style="background:none; border:none; font-size:14px; padding:5px; opacity: 0.7;" ${isDone ? 'disabled' : ''}> 🔄 </button>
@@ -2832,33 +2790,7 @@ const div = document.createElement("div");
                         ${isDone ? 'Undo  ↩️ ' : 'Mark as Complete  ✅ '}
                     </button>
                 </div>`;
-
             list.appendChild(div);
-            
-            // Lägg pil utanför kortet
-            const oldArrow = document.getElementById(`set-arrow-${i}`);
-            if (oldArrow) oldArrow.remove();
-            if (isOpen && !isDone) {
-                const firstUnconfirmed = exerciseData.sets_data ? exerciseData.sets_data.findIndex(s => !s.userConfirmed) : -1;
-                if (firstUnconfirmed !== -1) {
-                    const arrow = document.createElement('div');
-                    arrow.id = `set-arrow-${i}`;
-                    arrow.className = 'set-arrow-outer';
-                    arrow.textContent = '➔';
-                    arrow.style.cssText = `
-                        position: absolute;
-                        left: -22px;
-                        top: ${div.offsetTop + 50 + (firstUnconfirmed * 48)}px;
-                        color: #facc15;
-                        font-size: 16px;
-                        animation: arrowFloat 1s ease-in-out infinite;
-                        pointer-events: none;
-                        z-index: 100;
-                    `;
-                    list.style.position = 'relative';
-                    list.appendChild(arrow);
-                }
-            }
         });
     } else {
         const emptyNotice = document.createElement("p");
@@ -2866,34 +2798,27 @@ const div = document.createElement("div");
         emptyNotice.innerHTML = "This workout is empty. Click the button below to add your exercises!  👇 ";
         list.appendChild(emptyNotice);
     }
-
     const addBtn = document.createElement("button");
     addBtn.className = "mode-btn glass-border";
-    // Lagom och snygg marginal under "+ Add Exercise"
     addBtn.style.cssText = "margin-top:10px; margin-bottom: 25px; border: 2px dashed rgba(34, 211, 238, 0.4); color: var(--primary); background: rgba(34, 211, 238, 0.04); font-weight: 700; width:100%;";
     addBtn.innerHTML = " ➕ Add Exercise";
     addBtn.onclick = openCustomAddExerciseModal;
     list.appendChild(addBtn);
-
     const viewContainer = document.getElementById("workout-view");
     if (viewContainer) {
         const oldContainer = document.getElementById("discard-button-container");
         if (oldContainer) oldContainer.remove();
-
         const discardContainer = document.createElement("div");
         discardContainer.id = "discard-button-container";
         discardContainer.style.cssText = "width: 100%; padding: 0 10px; margin-top: 40px; margin-bottom: 20px; box-sizing: border-box;";
-
         const discardBtn = document.createElement("button");
         discardBtn.className = "btn-danger";
         discardBtn.style.cssText = "margin-top:20px;";
         discardBtn.innerHTML = "Delete Workout 🗑️";
         discardBtn.onclick = confirmDiscardActiveWorkout;
-
         discardContainer.appendChild(discardBtn);
         viewContainer.appendChild(discardContainer);
     }
-
     showView("workout-view");
     renderRestTimer();
     setTimeout(() => initDragAndDrop(), 50);
@@ -2902,9 +2827,7 @@ const div = document.createElement("div");
         setTimeout(() => {
             window._suppressAutoScroll = false;
             const targetCard = document.getElementById(`exercise-card-${firstOpenIndex}`);
-            if (targetCard) {
-                targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
+            if (targetCard) targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }, 120);
     } else {
         window._suppressAutoScroll = false;
@@ -3557,15 +3480,13 @@ function updateSingleExerciseCard(exIdx) {
     const isDone = exerciseData.isCompleted;
     const openExercises = activeDraft.ui_state.openExercises || [];
     const isOpen = openExercises.includes(exIdx);
-
     const targetCard = document.getElementById(`exercise-card-${exIdx}`);
     if (!targetCard) return;
-
     targetCard.style.borderLeft = `4px solid ${isDone ? '#22c55e' : isOpen ? '#22d3ee' : 'rgba(250,204,21,0.3)'}`;
     targetCard.style.boxShadow = isDone ? '0 4px 12px rgba(34,197,94,0.08)' : isOpen ? '0 4px 12px rgba(34,211,238,0.08)' : '0 4px 12px rgba(0,0,0,0.3)';
-
     const completedSets = exerciseData.sets_data ? exerciseData.sets_data.filter(s => s.userConfirmed).length : 0;
     const totalSets = exerciseData.sets_data ? exerciseData.sets_data.length : 0;
+    const firstUnconfirmed = exerciseData.sets_data ? exerciseData.sets_data.findIndex(s => !s.userConfirmed) : -1;
     let setsHtml = `<div style="margin-top:10px;">
         <div style="display:grid; grid-template-columns: 40px 1fr 1fr 1fr 30px; gap:8px; margin-bottom:5px; align-items:center;">
             <small style="text-align:left; padding-left:5px; color:var(--text-light); font-size:9px; font-weight:700;">SET</small>
@@ -3577,15 +3498,15 @@ function updateSingleExerciseCard(exIdx) {
     if (exerciseData.sets_data) {
         exerciseData.sets_data.forEach((set, sIdx) => {
             const isLocked = isDone;
-                    const isCurrent = !set.userConfirmed && !isDone;
+            const isCurrent = !set.userConfirmed && !isDone;
             const showSuccess = set.userConfirmed || isDone;
-            let circleColor = showSuccess ? '#22c55e' : (isCurrent ? '#facc15' : '#f59e0b');
+            const circleColor = showSuccess ? '#22c55e' : (isCurrent ? '#facc15' : '#f59e0b');
             const statusContent = showSuccess ? ' ✅ ' : `#${sIdx + 1}`;
-            const firstUnconfirmed = exerciseData.sets_data.findIndex(s => !s.userConfirmed);
-                    const showArrow = !isDone && isOpen && sIdx === firstUnconfirmed && exIdx !== undefined;
-                   setsHtml += `
-                   <div style="display:grid; grid-template-columns: 40px 1fr 1fr 1fr 30px; gap:8px; margin-bottom:8px; align-items:center; opacity: ${showSuccess ? '1' : isCurrent ? '1' : '0.35'}; transition: opacity 0.2s ease; position:relative; overflow:visible;">
-                       <div onclick="${isLocked && !isDone ? '' : `confirmSet(${exIdx}, ${sIdx})`}"
+            const showArrow = !isDone && isOpen && sIdx === firstUnconfirmed;
+            setsHtml += `
+            <div style="display:grid; grid-template-columns: 40px 1fr 1fr 1fr 30px; gap:8px; margin-bottom:8px; align-items:center; opacity: ${showSuccess ? '1' : isCurrent ? '1' : '0.35'}; transition: opacity 0.2s ease; position:relative; overflow:visible;">
+                ${showArrow ? '<div class="set-arrow">➔</div>' : ''}
+                <div onclick="${isLocked && !isDone ? '' : `confirmSet(${exIdx}, ${sIdx})`}"
                     style="width:32px; height:32px; border-radius:50%; border:2px solid ${circleColor}; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:10px; font-weight:800; background: ${showSuccess ? 'rgba(34, 197, 94, 0.2)' : (isCurrent ? 'rgba(250, 204, 21, 0.15)' : 'rgba(245, 158, 11, 0.05)')}; color: ${circleColor}; opacity: 1;">
                     ${statusContent}
                 </div>
@@ -3594,28 +3515,23 @@ function updateSingleExerciseCard(exIdx) {
                 ${sIdx < exerciseData.sets_data.length - 1 ? `<input type="text" inputmode="decimal" id="v-${exIdx}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'}; border-color: rgba(52, 152, 219, 0.3);" value="${set.rest || '120'}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${exIdx}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">` : `<div></div>`}
                 <button onclick="removeSetFromExercise(${exIdx}, ${sIdx})" style="background:none; border:none; color:var(--danger); font-size:16px; opacity: ${showSuccess ? '0.1' : isCurrent ? '0.8' : '0.4'};" ${showSuccess ? 'disabled' : ''}>×</button>
             </div>`;
-            const firstUnconfirmedIdx = exerciseData.sets_data.findIndex(s => !s.userConfirmed);
-                    if (isCurrent && sIdx === firstUnconfirmedIdx) {
-                        setsHtml += `
-                        <div style="grid-column: 2 / span 3; margin:-4px 0 8px 0; padding-left:2px; opacity:0.8; font-size:10px; color:var(--primary); font-weight:600; letter-spacing:0.3px;">
-                            💡 Select ${statusContent} to lock & continue
-                        </div>`;
-                    }
+            if (isCurrent && sIdx === firstUnconfirmed) {
+                setsHtml += `
+                <div style="grid-column: 2 / span 3; margin:-4px 0 8px 0; padding-left:2px; opacity:0.8; font-size:10px; color:var(--primary); font-weight:600; letter-spacing:0.3px;">
+                    💡 Select ${statusContent} to lock & continue
+                </div>`;
+            }
         });
     }
     targetCard.innerHTML = `
         <div style="position:absolute; top:0; left:0; right:0; height:1px; background: linear-gradient(90deg, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0.08) 100%); pointer-events:none; z-index:2;"></div>
         <div style="position:absolute; bottom:0; left:0; right:0; height:1px; background: linear-gradient(90deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.03) 100%); pointer-events:none; z-index:2;"></div>
         <div style="position:absolute; top:0; right:0; bottom:0; width:1px; background: linear-gradient(180deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0) 100%); pointer-events:none; z-index:2;"></div>
-       <div onclick="toggleExercise(${exIdx})" style="padding: 12px 15px; display: flex; align-items: center; cursor: pointer; background: ${isOpen ? 'rgba(250, 204, 21, 0.05)' : 'transparent'}">
+        <div onclick="toggleExercise(${exIdx})" style="padding: 12px 15px; display: flex; align-items: center; cursor: pointer; background: ${isOpen ? 'rgba(250, 204, 21, 0.05)' : 'transparent'}">
             <div style="width: 8px; flex-shrink: 0;"></div>
             <div style="display: flex; flex-direction: column; min-width:0; flex-grow:1;">
-                <strong style="font-size: 14px; color: ${isDone ? 'var(--text-light)' : 'var(--text)'}; text-decoration: ${isDone ? 'line-through' : 'none'}; white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">
-                    ${ex.name}
-                </strong>
-                <small style="color: ${isDone ? '#22c55e' : 'var(--primary)'}; font-size: 10px;">
-                    ${isDone ? 'DONE ✅' : `${completedSets}/${totalSets} set`}
-                </small>
+                <strong style="font-size: 14px; color: ${isDone ? 'var(--text-light)' : 'var(--text)'}; text-decoration: ${isDone ? 'line-through' : 'none'}; white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">${ex.name}</strong>
+                <small style="color: ${isDone ? '#22c55e' : 'var(--primary)'}; font-size: 10px;">${isDone ? 'DONE ✅' : `${completedSets}/${totalSets} set`}</small>
             </div>
             <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0; margin-left: 10px;">
                 <button onclick="event.stopPropagation(); openReplaceExerciseModal(${exIdx})" style="background:none; border:none; font-size:14px; padding:5px; opacity: 0.7;" ${isDone ? 'disabled' : ''}> 🔄 </button>
@@ -3630,7 +3546,7 @@ function updateSingleExerciseCard(exIdx) {
                 ${isDone ? 'Undo ↩️' : 'Mark as Complete ✅'}
             </button>
         </div>`;
-       restoreRestTimerIfActive();
+    restoreRestTimerIfActive();
 }
 
 // Vi skapar en global flagga längst upp (utanför funktionen)
