@@ -4970,3 +4970,15 @@ function showFireworks() {
 
     setTimeout(() => { container.remove(); style.remove(); }, 6000);
 }
+
+function showCalendarHint() {
+    const container = document.getElementById('calendar-hint-container');
+    if (!container || document.getElementById('calendar-hint-bubble')) return;
+    const hint = document.createElement('div');
+    hint.id = 'calendar-hint-bubble';
+    hint.className = 'hint-bubble';
+    hint.style.cssText = 'position:relative; margin: 0 auto 12px auto; display:inline-flex;';
+    hint.innerHTML = '<span style="font-size:12px; font-weight:700; color:#fff; letter-spacing:0.3px;">Select a day to start or schedule a workout 📅</span><div onclick="document.getElementById(\'calendar-hint-bubble\').remove()" style="position:absolute; top:-6px; right:-6px; width:16px; height:16px; border-radius:50%; background:#ef4444; border:2px solid #0f172a; display:flex; align-items:center; justify-content:center; font-size:9px; color:#fff; cursor:pointer; font-weight:900;">✕</div>';
+    container.style.textAlign = 'center';
+    container.appendChild(hint);
+}
