@@ -926,6 +926,7 @@ body, html {
     left: auto !important;
     margin: 0 auto 12px auto !important;
     display: inline-flex !important;
+    padding: 12px 24px 12px 14px !important;
 }
 
 .hint-bubble.hint-centered::after {
