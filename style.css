@@ -878,25 +878,28 @@ body, html {
 .hint-bubble {
     position: absolute;
     right: 40px;
-    background: linear-gradient(135deg, #818cf8, #a78bfa);
-    border-radius: 20px;
-    padding: 7px 14px 7px 10px;
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border: 1px solid rgba(253,224,71,0.4);
+    border-top: 2px solid #fde047;
+    border-radius: 14px;
+    padding: 8px 20px 8px 10px;
     font-size: 12px;
     color: #fff;
     font-weight: 700;
     white-space: nowrap;
     animation: floatUpDown 2s ease-in-out infinite;
     z-index: 10;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
     display: flex;
     align-items: center;
     gap: 6px;
 }
 .hint-bubble::before {
     content: "ℹ";
-    font-size: 13px;
+    font-size: 11px;
     font-weight: 900;
-    color: rgba(255,255,255,0.9);
-    background: rgba(255,255,255,0.2);
+    color: #fde047;
+    background: rgba(253,224,71,0.15);
     width: 18px;
     height: 18px;
     border-radius: 50%;
@@ -915,5 +918,5 @@ body, html {
     height: 0;
     border-top: 6px solid transparent;
     border-bottom: 6px solid transparent;
-    border-left: 7px solid #a78bfa;
+    border-left: 7px solid #1e293b;
 }
