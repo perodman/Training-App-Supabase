@@ -4746,9 +4746,7 @@ function renderRestTimer() {
                 </div>
             </div>
             <div style="display:flex; gap:5px; align-items:center;">
-                <button onclick="restTimerSeconds=Math.max(0,restTimerSeconds-30); renderRestTimer();" style="background:rgba(245,158,11,0.06); border:1px solid rgba(245,158,11,0.15); border-radius:8px; padding:5px 8px; font-size:11px; color:#92400e; cursor:pointer;">−30s</button>
                 <button onclick="restTimerSeconds=Math.max(0,restTimerSeconds-15); renderRestTimer();" style="background:rgba(245,158,11,0.06); border:1px solid rgba(245,158,11,0.15); border-radius:8px; padding:5px 8px; font-size:11px; color:#92400e; cursor:pointer;">−15s</button>
-                <button onclick="restTimerSeconds+=15; renderRestTimer();" style="background:rgba(245,158,11,0.06); border:1px solid rgba(245,158,11,0.15); border-radius:8px; padding:5px 8px; font-size:11px; color:#92400e; cursor:pointer;">+15s</button>
                 <button onclick="restTimerSeconds+=30; renderRestTimer();" style="background:rgba(245,158,11,0.06); border:1px solid rgba(245,158,11,0.15); border-radius:8px; padding:5px 8px; font-size:11px; color:#92400e; cursor:pointer;">+30s</button>
                 <button onclick="stopRestTimer();" style="background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.25); border-radius:8px; padding:5px 8px; font-size:11px; color:#ef4444; cursor:pointer; font-weight:700;">Skip ✕</button>
                 <div style="display:flex; background:rgba(0,0,0,0.3); border-radius:10px; border:1px solid rgba(245,158,11,0.2); overflow:hidden;">
