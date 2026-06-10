@@ -414,17 +414,13 @@ function filterExercises(category, subtarget = null) {
         subContainer.innerHTML = subs.length === 0 ? "" : `
             <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:16px;">
                 <div style="font-size:9px; color:rgba(255,255,255,0.25); text-transform:uppercase; letter-spacing:2px; text-align:center;">Filter by Muscle</div>
-                <div style="display:flex; justify-content:center; align-items:center; position:relative; margin-bottom:4px;">
+                <div style="display:flex; justify-content:center; align-items:center; margin-bottom:4px;">
                     <button onclick="filterExercises('${category}', null)"
                         style="padding:5px 14px; border-radius:20px; border:1px solid ${!subtarget ? 'var(--primary)' : 'rgba(255,255,255,0.15)'}; 
                         background:${!subtarget ? 'rgba(34,211,238,0.15)' : 'rgba(255,255,255,0.05)'}; 
                         color:${!subtarget ? 'var(--primary)' : 'var(--text-light)'}; font-size:12px; font-weight:600; cursor:pointer;">
                         All
                     </button>
-                    <div id="plus-area" style="position:absolute; right:0; display:flex; align-items:center; gap:8px;">
-                        <button onclick="openCreateExerciseModal()" 
-                            style="width:30px; height:30px; border-radius:10px; background:var(--primary); border:none; color:#333; font-weight:900; cursor:pointer; font-size:17px; display:flex; align-items:center; justify-content:center;">+</button>
-                    </div>
                 </div>
                 <div style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center;">
                     ${subs.map(sub => `
@@ -437,18 +433,16 @@ function filterExercises(category, subtarget = null) {
                 </div>
             </div>
         `;
+    }
 
-       setTimeout(() => {
-            const plusArea = document.getElementById('plus-area');
-            if (plusArea && !document.getElementById('plus-hint-bubble')) {
-                const hint = document.createElement('div');
-                hint.id = 'plus-hint-bubble';
-                hint.className = 'hint-bubble';
-                hint.style.cssText = 'position:relative; margin-right:4px;';
-                hint.innerHTML = '<span style="font-size:12px; font-weight:700; color:#fff; letter-spacing:0.3px;">Create new exercise</span><div onclick="document.getElementById(\'plus-hint-bubble\').remove()" style="position:absolute; top:-6px; right:-6px; width:16px; height:16px; border-radius:50%; background:#ef4444; border:2px solid #0f172a; display:flex; align-items:center; justify-content:center; font-size:9px; color:#fff; cursor:pointer; font-weight:900;">✕</div>';
-                plusArea.insertBefore(hint, plusArea.firstChild);
-            }
-        }, 50);
+    const plusArea = document.getElementById('plus-area');
+    if (plusArea && !document.getElementById('plus-hint-bubble')) {
+        const hint = document.createElement('div');
+        hint.id = 'plus-hint-bubble';
+        hint.className = 'hint-bubble';
+        hint.style.cssText = 'position:relative; margin-right:4px;';
+        hint.innerHTML = '<span style="font-size:12px; font-weight:700; color:#fff; letter-spacing:0.3px;">Create new exercise</span><div onclick="document.getElementById(\'plus-hint-bubble\').remove()" style="position:absolute; top:-6px; right:-6px; width:16px; height:16px; border-radius:50%; background:#ef4444; border:2px solid #0f172a; display:flex; align-items:center; justify-content:center; font-size:9px; color:#fff; cursor:pointer; font-weight:900;">✕</div>';
+        plusArea.insertBefore(hint, plusArea.firstChild);
     }
 
     const filtered = masterExercises.filter(ex => {
