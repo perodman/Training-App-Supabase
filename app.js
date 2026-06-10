@@ -1090,6 +1090,7 @@ if (isOngoing && typeof activeDraft !== 'undefined' && activeDraft) {
 
     body.innerHTML = html;
     openModal();
+    console.log("hasCompleted:", hasCompleted, "_showFireworksOnOpen:", window._showFireworksOnOpen);
     if (hasCompleted && window._showFireworksOnOpen) {
         window._showFireworksOnOpen = false;
         setTimeout(() => showFireworks(), 200);
