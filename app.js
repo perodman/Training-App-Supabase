@@ -29,6 +29,15 @@ const CATEGORY_DISPLAY = {
     "Ländrygg": "Lower Back"
 };
 
+const SUBCATEGORIES = {
+    "Ben": ["Quads", "Hamstrings", "Glutes", "Calves"],
+    "Bröst": ["Upper Chest", "Mid Chest", "Lower Chest"],
+    "Rygg": ["Lats", "Upper Back", "Lower Back"],
+    "Axlar": ["Front Delts", "Side Delts", "Rear Delts"],
+    "Armar": ["Biceps", "Triceps", "Forearms"],
+    "Bål": ["Abs", "Obliques", "Lower Back"]
+};
+
 // --- INIT ---
 async function initApp() {
     // 1. Om vi redan har ett sparat program i localStorage, använd det direkt för snabb start
@@ -274,16 +283,17 @@ function pauseTimer() {
 // --- ÖVNINGAR & INSTÄLLNINGAR ---
 function openCreateExerciseModal(callback = null) {
     const body = document.getElementById("modal-body");
-
     let selectedCategory = currentExerciseCategory || "Ben";
+    let selectedSubcategory = null;
     const categories = [
-        { id: "Ben", icon: " 🦵 " },
-        { id: "Bröst", icon: " 🏋️ " },
-        { id: "Rygg", icon: " 🪵 " },
-        { id: "Axlar", icon: " 👐 " },
-        { id: "Armar", icon: " 💪 " },
-        { id: "Bål", icon: " 🧘 " }
+        { id: "Ben", icon: "🦵" },
+        { id: "Bröst", icon: "🏋️" },
+        { id: "Rygg", icon: "🪵" },
+        { id: "Axlar", icon: "👐" },
+        { id: "Armar", icon: "💪" },
+        { id: "Bål", icon: "🧘" }
     ];
+
     body.innerHTML = `
         <h3 style="text-align:center; margin-bottom: 20px;">Create New Exercise</h3>
         <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
@@ -305,6 +315,7 @@ function openCreateExerciseModal(callback = null) {
                     `).join('')}
                 </div>
             </div>
+            <div id="subcategory-container" style="width: 100%; padding: 0 10px; box-sizing: border-box;"></div>
             <div style="width: 100%; padding: 0 10px; box-sizing: border-box;">
                 <button class="mode-btn blue" id="save-new-ex-btn" style="width: 100%; margin-top: 10px;">Save Exercise</button>
             </div>
@@ -315,59 +326,74 @@ function openCreateExerciseModal(callback = null) {
                 border-color: var(--primary) !important;
                 box-shadow: 0 0 15px rgba(59, 130, 246, 0.2);
             }
-            .cat-select-item.active div {
-                color: var(--text) !important;
-            }
+            .cat-select-item.active div { color: var(--text) !important; }
         </style>
     `;
 
+    function renderSubcategories() {
+        const container = document.getElementById("subcategory-container");
+        if (!container) return;
+        const subs = SUBCATEGORIES[selectedCategory];
+        if (!subs || subs.length === 0) { container.innerHTML = ""; return; }
+        container.innerHTML = `
+            <label style="font-size:11px; color:var(--text-light); text-transform:uppercase; letter-spacing:1px; display:block; margin-bottom:10px; text-align:center; margin-top:8px;">
+                Subcategory <span style="opacity:0.5;">(optional)</span>
+            </label>
+            <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:8px;">
+                ${subs.map(sub => `
+                <button id="sub-${sub.replace(/\s/g,'_')}" onclick="window.selectModalSubcategory('${sub}')"
+                    style="padding:6px 14px; border-radius:20px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.05); color:var(--text-light); font-size:12px; font-weight:600; cursor:pointer; transition:all 0.2s ease;">
+                    ${sub}
+                </button>`).join('')}
+            </div>
+        `;
+    }
+
     window.selectModalCategory = (catId) => {
         selectedCategory = catId;
+        selectedSubcategory = null;
         document.querySelectorAll('.cat-select-item').forEach(el => el.classList.remove('active'));
         document.getElementById(`modal-cat-${catId}`).classList.add('active');
+        renderSubcategories();
     };
+
+    window.selectModalSubcategory = (sub) => {
+        const btnId = `sub-${sub.replace(/\s/g,'_')}`;
+        if (selectedSubcategory === sub) {
+            selectedSubcategory = null;
+            const btn = document.getElementById(btnId);
+            if (btn) { btn.style.background = "rgba(255,255,255,0.05)"; btn.style.borderColor = "rgba(255,255,255,0.15)"; btn.style.color = "var(--text-light)"; }
+        } else {
+            selectedSubcategory = sub;
+            document.querySelectorAll('[id^="sub-"]').forEach(b => { b.style.background = "rgba(255,255,255,0.05)"; b.style.borderColor = "rgba(255,255,255,0.15)"; b.style.color = "var(--text-light)"; });
+            const btn = document.getElementById(btnId);
+            if (btn) { btn.style.background = "rgba(34,211,238,0.15)"; btn.style.borderColor = "var(--primary)"; btn.style.color = "var(--primary)"; }
+        }
+    };
+
+    renderSubcategories();
 
     document.getElementById("save-new-ex-btn").onclick = async () => {
         const name = document.getElementById("new-ex-name").value.trim();
-        if(!name) return alert("Ange ett namn!");
-
-        let finalTarget = selectedCategory;
-        if (selectedCategory === "Armar") {
-            finalTarget = "Biceps";
-        }
-
+        if (!name) return alert("Ange ett namn!");
         const newEx = {
             id: Date.now(),
             name,
-            target: finalTarget,
+            target: selectedCategory,
+            subtarget: selectedSubcategory || null,
             defaultSets: 3,
             animation: ""
         };
-
-        // 1. Peta in i den globala arrayen
         masterExercises.push(newEx);
-
-        // 2. Sparar lokalt OCH till Supabase automatiskt (eftersom saveAll() sköter båda i din app!)
-        if (typeof saveAll === 'function') {
-            await saveAll();
-        }
-
-        // 3. Hantera vad som händer efteråt utan att krascha om vyer saknas
-        if(callback) {
-            try {
-                callback(newEx);
-            } catch (callbackError) {
-                console.warn("⚠️ Callback kördes men det fanns ett mindre UI-fel i återställningen:", callbackError);
-                // Om den interna återställningen i ditt fria pass kraschar, stänger vi ändå modalen så du inte fastnar
+        if (typeof saveAll === 'function') await saveAll();
+        if (callback) {
+            try { callback(newEx); } catch (callbackError) {
+                console.warn("⚠️ Callback error:", callbackError);
                 closeModal();
             }
         } else {
             closeModal();
-
-            // Tvinga gränssnittet att hoppa till rätt kategori och rita ut listan på nytt
-            if (typeof filterExercises === 'function') {
-                filterExercises(selectedCategory);
-            }
+            if (typeof filterExercises === 'function') filterExercises(selectedCategory);
         }
     };
 
