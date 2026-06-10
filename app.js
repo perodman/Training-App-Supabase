@@ -440,7 +440,7 @@ function filterExercises(category, subtarget = null) {
         const hint = document.createElement('div');
         hint.id = 'plus-hint-bubble';
         hint.className = 'hint-bubble';
-        hint.style.cssText = 'position:relative; margin-right:-10px;';
+        hint.style.cssText = 'position:relative; margin-right:-25px;';
         hint.innerHTML = '<span style="font-size:12px; font-weight:700; color:#fff; letter-spacing:0.3px;">Create new exercise</span><div onclick="document.getElementById(\'plus-hint-bubble\').remove()" style="position:absolute; top:-6px; right:-6px; width:16px; height:16px; border-radius:50%; background:#ef4444; border:2px solid #0f172a; display:flex; align-items:center; justify-content:center; font-size:9px; color:#fff; cursor:pointer; font-weight:900;">✕</div>';
         plusArea.insertBefore(hint, plusArea.firstChild);
     }
