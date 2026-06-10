@@ -409,11 +409,11 @@ function filterExercises(category, subtarget = null) {
     results.innerHTML = "";
 
     // Subcategory-filter
-    const subContainer = document.getElementById("subcategory-filter-container");
+  const subContainer = document.getElementById("subcategory-filter-container");
     if (subContainer) {
         const subs = SUBCATEGORIES[category] || [];
         subContainer.innerHTML = subs.length === 0 ? "" : `
-           <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:16px;">
+            <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:16px;">
                 <div style="display:flex; justify-content:center;">
                     <button onclick="filterExercises('${category}', null)"
                         style="padding:5px 14px; border-radius:20px; border:1px solid ${!subtarget ? 'var(--primary)' : 'rgba(255,255,255,0.15)'}; 
@@ -423,27 +423,14 @@ function filterExercises(category, subtarget = null) {
                     </button>
                 </div>
                 <div style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center;">
-                ${subs.map(sub => `
-                <button onclick="filterExercises('${category}', '${sub}')"
-                    style="padding:5px 14px; border-radius:20px; border:1px solid ${subtarget === sub ? 'var(--primary)' : 'rgba(255,255,255,0.15)'}; 
-                    background:${subtarget === sub ? 'rgba(34,211,238,0.15)' : 'rgba(255,255,255,0.05)'}; 
-                    color:${subtarget === sub ? 'var(--primary)' : 'var(--text-light)'}; font-size:12px; font-weight:600; cursor:pointer;">
-                    ${sub}
-                </button>`).join('')}
+                    ${subs.map(sub => `
+                    <button onclick="filterExercises('${category}', '${sub}')"
+                        style="padding:5px 14px; border-radius:20px; border:1px solid ${subtarget === sub ? 'var(--primary)' : 'rgba(255,255,255,0.15)'}; 
+                        background:${subtarget === sub ? 'rgba(34,211,238,0.15)' : 'rgba(255,255,255,0.05)'}; 
+                        color:${subtarget === sub ? 'var(--primary)' : 'var(--text-light)'}; font-size:12px; font-weight:600; cursor:pointer;">
+                        ${sub}
+                    </button>`).join('')}
                 </div>
-            </div>
-                    style="padding:5px 14px; border-radius:20px; border:1px solid ${!subtarget ? 'var(--primary)' : 'rgba(255,255,255,0.15)'}; 
-                    background:${!subtarget ? 'rgba(34,211,238,0.15)' : 'rgba(255,255,255,0.05)'}; 
-                    color:${!subtarget ? 'var(--primary)' : 'var(--text-light)'}; font-size:12px; font-weight:600; cursor:pointer;">
-                    All
-                </button>
-                ${subs.map(sub => `
-                <button onclick="filterExercises('${category}', '${sub}')"
-                    style="padding:5px 14px; border-radius:20px; border:1px solid ${subtarget === sub ? 'var(--primary)' : 'rgba(255,255,255,0.15)'}; 
-                    background:${subtarget === sub ? 'rgba(34,211,238,0.15)' : 'rgba(255,255,255,0.05)'}; 
-                    color:${subtarget === sub ? 'var(--primary)' : 'var(--text-light)'}; font-size:12px; font-weight:600; cursor:pointer;">
-                    ${sub}
-                </button>`).join('')}
             </div>
         `;
     }
