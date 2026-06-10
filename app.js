@@ -421,9 +421,9 @@ function filterExercises(category, subtarget = null) {
                         color:${!subtarget ? 'var(--primary)' : 'var(--text-light)'}; font-size:12px; font-weight:600; cursor:pointer;">
                         All
                     </button>
+<div id="hint-bubble-container" style="position:absolute; right:40px; display:flex; align-items:center;"></div>
                     <button id="plus-exercise-btn" onclick="openCreateExerciseModal()" 
                         style="position:absolute; right:0; width:30px; height:30px; border-radius:10px; background:var(--primary); border:none; color:#333; font-weight:900; cursor:pointer; font-size:17px; display:flex; align-items:center; justify-content:center;">+</button>
-                </div>
                 <div style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center;">
                     ${subs.map(sub => `
                     <button onclick="filterExercises('${category}', '${sub}')"
