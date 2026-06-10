@@ -30,12 +30,12 @@ const CATEGORY_DISPLAY = {
 };
 
 const SUBCATEGORIES = {
-    "Ben": ["Quads", "Hamstrings", "Glutes", "Calves"],
-    "Bröst": ["Upper Chest", "Mid Chest", "Lower Chest"],
-    "Rygg": ["Lats", "Upper Back", "Lower Back"],
-    "Axlar": ["Front Delts", "Side Delts", "Rear Delts"],
+    "Ben": ["Compound", "Quads", "Hamstrings", "Glutes", "Calves"],
+    "Bröst": ["Compound", "Upper Chest", "Mid Chest", "Lower Chest"],
+    "Rygg": ["Compound", "Lats", "Upper Back", "Lower Back"],
+    "Axlar": ["Compound", "Front Delts", "Side Delts", "Rear Delts"],
     "Armar": ["Biceps", "Triceps", "Forearms"],
-    "Bål": ["Abs", "Obliques", "Lower Back"]
+    "Bål": ["Compound", "Abs", "Obliques"]
 };
 
 // --- INIT ---
@@ -413,7 +413,7 @@ function filterExercises(category, subtarget = null) {
     if (subContainer) {
         const subs = SUBCATEGORIES[category] || [];
         subContainer.innerHTML = subs.length === 0 ? "" : `
-            <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px;">
+            <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px; justify-content:center;">
                 <button onclick="filterExercises('${category}', null)"
                     style="padding:5px 14px; border-radius:20px; border:1px solid ${!subtarget ? 'var(--primary)' : 'rgba(255,255,255,0.15)'}; 
                     background:${!subtarget ? 'rgba(34,211,238,0.15)' : 'rgba(255,255,255,0.05)'}; 
@@ -435,7 +435,8 @@ function filterExercises(category, subtarget = null) {
         const matchCategory = category === "Armar"
             ? (ex.target === "Biceps" || ex.target === "Triceps" || ex.target === "Armar")
             : ex.target === category;
-        const matchSubtarget = !subtarget || ex.subtarget === subtarget;
+        const matchSubtarget = !subtarget || ex.subtarget === subtarget || 
+            (category === "Armar" && !ex.subtarget && (ex.target === subtarget));
         return matchCategory && matchSubtarget;
     });
 
@@ -499,8 +500,8 @@ function openEditExerciseModal(id) {
     const ex = masterExercises.find(e => e.id == id);
     if(!ex) return;
     const body = document.getElementById("modal-body");
-
     let selectedCategory = ex.target;
+    let selectedSubcategory = ex.subtarget || null;
     const categories = [
         { id: "Ben", icon: " 🦵 " },
         { id: "Bröst", icon: " 🏋️ " },
@@ -509,7 +510,7 @@ function openEditExerciseModal(id) {
         { id: "Armar", icon: " 💪 " },
         { id: "Bål", icon: " 🧘 " }
     ];
-   body.innerHTML = `
+    body.innerHTML = `
         <h3 style="text-align:center; margin-bottom: 20px;">Edit Exercise</h3>
         <div style="display: flex; flex-direction: column; align-items: center; gap: 10px; min-height: 400px;">
             <div style="width: 100%; max-width: 300px; margin-bottom: 10px;">
@@ -530,9 +531,8 @@ function openEditExerciseModal(id) {
                     `).join('')}
                 </div>
             </div>
-            
+            <div id="edit-subcategory-container" style="width: 100%; padding: 0 10px; box-sizing: border-box; margin-top: 8px;"></div>
             <button class="mode-btn blue" style="width: 100%; margin-top: 15px;" id="update-exercise-confirm-btn">Update</button>
-            
             <button class="btn-danger" onclick="deleteMasterExercise(${id})">Delete Exercise Permanently 🗑️</button>
         </div>
         <style>
@@ -541,43 +541,73 @@ function openEditExerciseModal(id) {
                 border-color: var(--primary) !important;
                 box-shadow: 0 0 15px rgba(59, 130, 246, 0.2);
             }
-            .cat-select-item.active div {
-                color: var(--text) !important;
-            }
+            .cat-select-item.active div { color: var(--text) !important; }
         </style>
     `;
 
+    function renderEditSubcategories() {
+        const container = document.getElementById("edit-subcategory-container");
+        if (!container) return;
+        const subs = SUBCATEGORIES[selectedCategory];
+        if (!subs || subs.length === 0) { container.innerHTML = ""; return; }
+        container.innerHTML = `
+            <label style="font-size:11px; color:var(--text-light); text-transform:uppercase; letter-spacing:1px; display:block; margin-bottom:10px; text-align:center;">
+                Subcategory <span style="opacity:0.5;">(optional)</span>
+            </label>
+            <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin-bottom:10px;">
+                ${subs.map(sub => `
+                <button id="editsub-${sub.replace(/\s/g,'_')}" onclick="window.selectEditSubcategory('${sub}')"
+                    style="padding:6px 14px; border-radius:20px; 
+                    border:1px solid ${selectedSubcategory === sub ? 'var(--primary)' : 'rgba(255,255,255,0.15)'}; 
+                    background:${selectedSubcategory === sub ? 'rgba(34,211,238,0.15)' : 'rgba(255,255,255,0.05)'}; 
+                    color:${selectedSubcategory === sub ? 'var(--primary)' : 'var(--text-light)'}; 
+                    font-size:12px; font-weight:600; cursor:pointer; transition:all 0.2s ease;">
+                    ${sub}
+                </button>`).join('')}
+            </div>
+        `;
+    }
+
     window.selectEditModalCategory = (catId) => {
         selectedCategory = catId;
+        selectedSubcategory = null;
         document.querySelectorAll('#edit-category-grid .cat-select-item').forEach(el => el.classList.remove('active'));
         document.getElementById(`edit-modal-cat-${catId}`).classList.add('active');
+        renderEditSubcategories();
     };
+
+    window.selectEditSubcategory = (sub) => {
+        if (selectedSubcategory === sub) {
+            selectedSubcategory = null;
+        } else {
+            selectedSubcategory = sub;
+        }
+        renderEditSubcategories();
+    };
+
+    renderEditSubcategories();
 
     document.getElementById("update-exercise-confirm-btn").onclick = async () => {
         const nameInput = document.getElementById("edit-ex-name").value.trim();
         if(!nameInput) return alert("Namnet får inte vara tomt!");
-
         const exIndex = masterExercises.findIndex(e => e.id == id);
         if(exIndex !== -1) {
-            // AUTOMATISERING: Spara det gamla namnet innan det skrivs över, och uppdatera historiken
             const oldName = masterExercises[exIndex].name;
             if (typeof updateExerciseNameInHistory === 'function') {
                 await updateExerciseNameInHistory(oldName, nameInput);
             }
-            // Din befintliga sparlogik
             masterExercises[exIndex].name = nameInput;
             masterExercises[exIndex].target = selectedCategory;
+            masterExercises[exIndex].subtarget = selectedSubcategory || null;
             saveAll();
-
-            // SKOTTSÄKRING: Synka den redigerade övningen till Supabase direkt!
             if (typeof saveCustomProgram === 'function') {
                 await saveCustomProgram();
             }
-
             closeModal();
             filterExercises(currentExerciseCategory);
         }
     };
+
     openModal();
 }
 
