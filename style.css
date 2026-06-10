@@ -976,3 +976,12 @@ body, html {
 #exercise-results, #subcategory-filter-container {
     transition: opacity 0.3s ease, transform 0.3s ease;
 }
+
+@keyframes pulseRing {
+    0% { box-shadow: 0 0 0 0 rgba(250, 204, 21, 0.5); }
+    70% { box-shadow: 0 0 0 10px rgba(250, 204, 21, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(250, 204, 21, 0); }
+}
+.pulse-ring {
+    animation: pulseRing 1.6s ease-out infinite;
+}
