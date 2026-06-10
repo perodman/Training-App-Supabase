@@ -3584,19 +3584,22 @@ function updateSingleExerciseCard(exIdx) {
                 <small style="color: ${isDone ? '#22c55e' : 'var(--primary)'}; font-size: 10px;">${isDone ? 'DONE ✅' : `${completedSets}/${totalSets} set`}</small>
             </div>
             <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0; margin-left: 10px;">
+                <button onclick="event.stopPropagation(); toggleExerciseNote(${exIdx})" style="background:none; border:none; font-size:14px; padding:5px; opacity: ${exerciseData.note ? '1' : '0.5'}; position:relative;">
+                    📝${exerciseData.note ? '<span style="position:absolute; top:2px; right:2px; width:6px; height:6px; background:#fde047; border-radius:50%;"></span>' : ''}
+                </button>
                 <button onclick="event.stopPropagation(); openReplaceExerciseModal(${exIdx})" style="background:none; border:none; font-size:14px; padding:5px; opacity: 0.7;" ${isDone ? 'disabled' : ''}> 🔄 </button>
                 <button onclick="event.stopPropagation(); removeActiveExercise(${exIdx})" style="background:none; border:none; font-size:14px; padding:5px; opacity: 0.7;" ${isDone ? 'disabled' : ''}> ✖ </button>
                 <span style="font-size: 10px; color: var(--text-light); margin-left: 5px; transform: ${isOpen ? 'rotate(180deg)' : 'rotate(0)'}; transition: 0.3s;"> ▼ </span>
             </div>
         </div>
         <div style="padding: 0 15px 15px 15px; display: ${isOpen ? 'block' : 'none'}; border-top: 1px solid rgba(255,255,255,0.05);">
-                    <div id="note-area-${i}" style="display: ${activeDraft.ui_state.openNotes && activeDraft.ui_state.openNotes.includes(i) ? 'block' : 'none'}; margin-top:10px;">
-                        <textarea id="note-input-${i}" placeholder="Add a note for this exercise..." 
-                            oninput="updateExerciseNote(${i})"
-                            style="width:100%; min-height:60px; padding:10px; border-radius:10px; background:rgba(0,0,0,0.2); border:1px solid rgba(253,224,71,0.2); color:#fff; font-size:13px; font-family:inherit; resize:vertical;">${exerciseData.note || ''}</textarea>
-                    </div>
-                    ${setsHtml}
-                    <button class="mode-border glass-border" style="padding:8px; font-size:11px; margin-top:10px; border-style:dashed; width:100%;" onclick="addSetToExercise(${i})" ${isDone ? 'disabled' : ''}>+ Add set</button>
+            <div id="note-area-${exIdx}" style="display: ${activeDraft.ui_state.openNotes && activeDraft.ui_state.openNotes.includes(exIdx) ? 'block' : 'none'}; margin-top:10px;">
+                <textarea id="note-input-${exIdx}" placeholder="Add a note for this exercise..." 
+                    oninput="updateExerciseNote(${exIdx})"
+                    style="width:100%; min-height:60px; padding:10px; border-radius:10px; background:rgba(0,0,0,0.2); border:1px solid rgba(253,224,71,0.2); color:#fff; font-size:13px; font-family:inherit; resize:vertical;">${exerciseData.note || ''}</textarea>
+            </div>
+            ${setsHtml}
+            <button class="mode-border glass-border" style="padding:8px; font-size:11px; margin-top:10px; border-style:dashed; width:100%;" onclick="addSetToExercise(${exIdx})" ${isDone ? 'disabled' : ''}>+ Add set</button>
             <button class="mode-btn ${isDone ? 'blue' : 'green'}" style="padding:12px; font-size:13px; margin-top:15px; width:100%; font-weight:bold;" onclick="toggleExerciseDone(${exIdx})">
                 ${isDone ? 'Undo ↩️' : 'Mark as Complete ✅'}
             </button>
