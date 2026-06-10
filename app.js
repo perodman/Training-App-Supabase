@@ -4811,39 +4811,59 @@ function restoreRestTimerIfActive() {
 }
 
 function showFireworks() {
+    const style = document.createElement("style");
+    style.textContent = `
+        @keyframes burstUp {
+            0% { transform: translate(0, 0) scale(1) rotate(0deg); opacity: 1; }
+            100% { transform: translate(var(--tx), var(--ty)) scale(0) rotate(var(--rot)); opacity: 0; }
+        }
+    `;
+    document.head.appendChild(style);
+
     const container = document.createElement("div");
     container.setAttribute('style', 'position:fixed !important; top:0 !important; left:0 !important; width:100vw !important; height:100vh !important; z-index:2147483647 !important; pointer-events:none !important; overflow:hidden !important;');
     document.documentElement.appendChild(container);
 
     const colors = ["#f59e0b", "#22d3ee", "#22c55e", "#a78bfa", "#f472b6", "#fff", "#ef4444", "#fde047"];
 
-    for (let i = 0; i < 120; i++) {
-        setTimeout(() => {
+    const burst = (cx, cy) => {
+        for (let i = 0; i < 40; i++) {
             const el = document.createElement("div");
             const color = colors[Math.floor(Math.random() * colors.length)];
-            const x = Math.random() * 100;
-            const startY = 20 + Math.random() * 60;
-            const size = 4 + Math.random() * 8;
-            const duration = 0.8 + Math.random() * 1.2;
-            const spread = (Math.random() - 0.5) * 200;
-            const isCircle = Math.random() > 0.4;
+            const angle = Math.random() * Math.PI * 2;
+            const dist = 80 + Math.random() * 150;
+            const tx = Math.cos(angle) * dist;
+            const ty = Math.sin(angle) * dist;
+            const size = 4 + Math.random() * 6;
+            const duration = 0.6 + Math.random() * 0.8;
+            const isCircle = Math.random() > 0.3;
             el.setAttribute('style', `
-                position: absolute !important;
-                left: ${x}vw !important;
-                top: ${startY}vh !important;
-                width: ${size}px !important;
-                height: ${isCircle ? size : size * 0.4}px !important;
-                background: ${color} !important;
-                border-radius: ${isCircle ? '50%' : '2px'} !important;
-                opacity: 1 !important;
-                animation: burst ${duration}s ease-out forwards !important;
-                --spread: ${spread}px !important;
-                --rotate: ${Math.random() * 720}deg !important;
+                position:absolute !important;
+                left:${cx}px !important;
+                top:${cy}px !important;
+                width:${size}px !important;
+                height:${isCircle ? size : size*0.3}px !important;
+                background:${color} !important;
+                border-radius:${isCircle ? '50%' : '2px'} !important;
                 box-shadow: 0 0 ${size}px ${color} !important;
+                --tx:${tx}px !important;
+                --ty:${ty}px !important;
+                --rot:${Math.random()*360}deg !important;
+                animation: burstUp ${duration}s ease-out forwards !important;
             `);
             container.appendChild(el);
-        }, i * 30);
-    }
+        }
+    };
 
-    setTimeout(() => container.remove(), 6000);
+    let count = 0;
+    const interval = setInterval(() => {
+        burst(
+            window.innerWidth * (0.2 + Math.random() * 0.6),
+            window.innerHeight * (0.1 + Math.random() * 0.6)
+        );
+        count++;
+        if (count >= 6) clearInterval(interval);
+    }, 400);
+
+    setTimeout(() => { container.remove(); style.remove(); }, 6000);
 }
