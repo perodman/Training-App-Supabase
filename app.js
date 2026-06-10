@@ -2745,7 +2745,7 @@ const div = document.createElement("div");
             div.className = (isDone ? "exercise-done" : "");
             div.style.cssText = `
                 position: relative;
-                overflow: hidden;
+                overflow: visible;
                 margin-bottom: 12px;
                 padding: 0;
                 border-radius: 16px;
