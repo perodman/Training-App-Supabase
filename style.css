@@ -427,10 +427,22 @@ body {
 }
 
 .category-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-.cat-btn { display: flex; flex-direction: column; align-items: center; padding: 15px 5px; border-radius: 20px; font-size: 14px; font-weight: 700; color: var(--text-light); cursor: pointer; border: 1px solid var(--glass-border); background: var(--card); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+.cat-btn { 
+    display: flex; flex-direction: column; align-items: center; padding: 15px 5px; border-radius: 20px; font-size: 14px; font-weight: 700; color: var(--text-light); cursor: pointer; 
+    position: relative; overflow: hidden;
+    background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+    border: 1px solid rgba(255,255,255,0.07);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+.cat-btn::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(129,140,248,0.5), transparent);
+}
 .cat-btn .cat-icon { font-size: 24px; margin-bottom: 5px; }
 .cat-btn.active { background: rgba(34, 211, 238, 0.15); border-color: var(--primary); color: var(--primary); box-shadow: 0 4px 15px rgba(34, 211, 238, 0.1); }
-
 #category-menu .cat-btn.glass::before { display: none !important; content: none !important; }
 
 /* Träningsöverskrivning (Plan Override) Grid */
@@ -960,4 +972,8 @@ body, html {
     animation: arrowFloat 1s ease-in-out infinite;
     pointer-events: none;
     z-index: 10;
+}
+
+#exercise-results, #subcategory-filter-container {
+    transition: opacity 0.3s ease, transform 0.3s ease;
 }
