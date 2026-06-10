@@ -400,13 +400,45 @@ function openCreateExerciseModal(callback = null) {
     openModal();
 }
 
-function filterExercises(category) {
+function filterExercises(category, subtarget = null) {
     currentExerciseCategory = category;
     document.querySelectorAll(".cat-btn").forEach(b => b.classList.toggle("active", b.dataset.cat === category));
+    
     const results = document.getElementById("exercise-results");
     if (!results) return;
     results.innerHTML = "";
-    const filtered = masterExercises.filter(ex => category === "Armar" ? (ex.target === "Biceps" || ex.target === "Triceps") : ex.target === category);
+
+    // Subcategory-filter
+    const subContainer = document.getElementById("subcategory-filter-container");
+    if (subContainer) {
+        const subs = SUBCATEGORIES[category] || [];
+        subContainer.innerHTML = subs.length === 0 ? "" : `
+            <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px;">
+                <button onclick="filterExercises('${category}', null)"
+                    style="padding:5px 14px; border-radius:20px; border:1px solid ${!subtarget ? 'var(--primary)' : 'rgba(255,255,255,0.15)'}; 
+                    background:${!subtarget ? 'rgba(34,211,238,0.15)' : 'rgba(255,255,255,0.05)'}; 
+                    color:${!subtarget ? 'var(--primary)' : 'var(--text-light)'}; font-size:12px; font-weight:600; cursor:pointer;">
+                    All
+                </button>
+                ${subs.map(sub => `
+                <button onclick="filterExercises('${category}', '${sub}')"
+                    style="padding:5px 14px; border-radius:20px; border:1px solid ${subtarget === sub ? 'var(--primary)' : 'rgba(255,255,255,0.15)'}; 
+                    background:${subtarget === sub ? 'rgba(34,211,238,0.15)' : 'rgba(255,255,255,0.05)'}; 
+                    color:${subtarget === sub ? 'var(--primary)' : 'var(--text-light)'}; font-size:12px; font-weight:600; cursor:pointer;">
+                    ${sub}
+                </button>`).join('')}
+            </div>
+        `;
+    }
+
+    const filtered = masterExercises.filter(ex => {
+        const matchCategory = category === "Armar"
+            ? (ex.target === "Biceps" || ex.target === "Triceps" || ex.target === "Armar")
+            : ex.target === category;
+        const matchSubtarget = !subtarget || ex.subtarget === subtarget;
+        return matchCategory && matchSubtarget;
+    });
+
     filtered.forEach(ex => {
         const div = document.createElement("div");
         div.className = "card glass";
@@ -422,11 +454,14 @@ function filterExercises(category) {
                 touch-action: none !important;">⠿</div>
             <div style="flex-grow:1; cursor:pointer;" onclick="showExerciseAnimation(${ex.id})">
                 <strong style="font-size:16px;">${ex.name}</strong><br>
-                <small style="color:var(--primary); font-weight:800; text-transform:uppercase; font-size:10px;">${CATEGORY_DISPLAY[ex.target] || ex.target}</small>
+                <small style="color:${ex.subtarget === 'Compound' ? '#f59e0b' : 'var(--primary)'}; font-weight:800; text-transform:uppercase; font-size:10px;">
+                    ${ex.subtarget ? ex.subtarget : (CATEGORY_DISPLAY[ex.target] || ex.target)}
+                </small>
             </div>
             <button style="background:none; border:none; font-size:18px; cursor:pointer;" onclick="openEditExerciseModal(${ex.id})">⚙️</button>`;
         results.appendChild(div);
     });
+
     setTimeout(() => initExerciseLibraryDragAndDrop(), 50);
 }
 
