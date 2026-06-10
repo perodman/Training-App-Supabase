@@ -1490,12 +1490,16 @@ function renderGroupsView() {
         hintWrap.style.cssText = 'text-align:center; width:100%; margin-bottom:12px;';
         programsView.insertBefore(hintWrap, selector);
     }
-    if (!document.getElementById('groups-hint-bubble')) {
+    const existingHint = document.getElementById('groups-hint-bubble');
+    if (!existingHint) {
         const hint = document.createElement('div');
         hint.id = 'groups-hint-bubble';
         hint.className = 'hint-bubble hint-centered';
         hint.innerHTML = '<span style="font-size:13px; font-weight:700; color:#fff; letter-spacing:0.3px;">Tap a group to see its workouts</span>';
         hintWrap.appendChild(hint);
+    } else {
+        const span = existingHint.querySelector('span');
+        if (span) span.textContent = 'Tap a group to see its workouts';
     }
     if (!programData.groups) programData.groups = [];
     const usedGroupIds = new Set();
@@ -1600,6 +1604,10 @@ function renderPassesInGroup(groupId) {
     const ALL_GROUPS = [...PREDEFINED_GROUPS, ...customGroups];
     const groupDef = ALL_GROUPS.find(g => g.id === groupId) || { id: groupId, name: groupId === '__ungrouped__' ? 'Other' : groupId, icon: groupId === '__ungrouped__' ? '📁' : '📁' };
     currentViewGroupId = groupId;
+    const hint = document.getElementById('groups-hint-bubble');
+    if (hint) {
+        hint.querySelector('span').textContent = 'Tap a workout to see its exercises';
+    }
     const passesInGroup = groupId === '__ungrouped__'
         ? programData.routine.filter(p => !Array.isArray(p.groups) || p.groups.length === 0)
         : programData.routine.filter(p => Array.isArray(p.groups) && p.groups.includes(groupId));
