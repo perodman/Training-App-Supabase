@@ -959,7 +959,8 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
                                 <span style="color: var(--primary); font-size: 10px; font-weight: 800;">${exIdx + 1}</span>
                             </div>
                             <span style="color: var(--primary); font-weight: 700; font-size: 13px;">${ex.name}</span>
-                        </div>`;
+                        </div>
+                        ${ex.note ? `<div style="background:rgba(253,224,71,0.06); border:1px solid rgba(253,224,71,0.15); border-radius:8px; padding:6px 10px; margin-bottom:8px; font-size:11px; color:#fde047;">📝 ${ex.note}</div>` : ''}`;
                     if (ex.sets_data) {
                         const hasRest = ex.sets_data.some((s, i) => s.rest && i < ex.sets_data.length - 1);
                         html += `<div style="display: flex; flex-direction: column; gap: 4px;">`;
@@ -3852,7 +3853,6 @@ async function finishWorkout(e) {
             startTime: activeDraft.startTime || null,
             exercises: activeDraft.workout.exercises.map((ex, i) => {
                 const setsData = activeDraft.data[i] ? activeDraft.data[i].sets_data : [];
-                // Hämta vila från vila-inputs direkt från DOM innan de försvinner
                 const setsWithRest = setsData.map((set, sIdx) => {
                     const vInp = document.getElementById(`v-${i}-${sIdx}`);
                     return {
@@ -3862,7 +3862,8 @@ async function finishWorkout(e) {
                 });
                 return {
                     name: ex.name,
-                    sets_data: setsWithRest
+                    sets_data: setsWithRest,
+                    note: (activeDraft.data[i] && activeDraft.data[i].note) || null
                 };
             })
         };
@@ -4080,11 +4081,12 @@ async function editLoggedWorkout(date, idx) {
     // Strukturera om övningsdatan korrekt till en matris som matchar activeDraft-strukturen
     const formattedDataArray = item.exercises.map(ex => {
         if(ex.sets_data) {
-            return { sets_data: JSON.parse(JSON.stringify(ex.sets_data)), isCompleted: false };
+            return { sets_data: JSON.parse(JSON.stringify(ex.sets_data)), isCompleted: false, note: ex.note || null };
         }
         return {
             sets_data: Array(parseInt(ex.sets || 1)).fill(null).map(() => ({ weight: ex.weight || "", reps: ex.reps || "" })),
-            isCompleted: false
+            isCompleted: false,
+            note: ex.note || null
         };
     });
     // Rensa eventuella gamla utkast i bakgrunden utan att frysa appen
