@@ -414,13 +414,15 @@ function filterExercises(category, subtarget = null) {
         const subs = SUBCATEGORIES[category] || [];
         subContainer.innerHTML = subs.length === 0 ? "" : `
             <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:16px;">
-                <div style="display:flex; justify-content:center;">
+            <div style="display:flex; justify-content:center; align-items:center; gap:10px;">
                     <button onclick="filterExercises('${category}', null)"
                         style="padding:5px 14px; border-radius:20px; border:1px solid ${!subtarget ? 'var(--primary)' : 'rgba(255,255,255,0.15)'}; 
                         background:${!subtarget ? 'rgba(34,211,238,0.15)' : 'rgba(255,255,255,0.05)'}; 
                         color:${!subtarget ? 'var(--primary)' : 'var(--text-light)'}; font-size:12px; font-weight:600; cursor:pointer;">
                         All
                     </button>
+                    <button onclick="openCreateExerciseModal()" 
+                        style="width:30px; height:30px; border-radius:10px; background:var(--primary); border:none; color:#333; font-weight:900; cursor:pointer; font-size:17px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">+</button>
                 </div>
                 <div style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center;">
                     ${subs.map(sub => `
