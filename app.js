@@ -1090,6 +1090,10 @@ if (isOngoing && typeof activeDraft !== 'undefined' && activeDraft) {
 
     body.innerHTML = html;
     openModal();
+    if (hasCompleted && window._showFireworksOnOpen) {
+        window._showFireworksOnOpen = false;
+        setTimeout(() => showFireworks(), 200);
+    }
 }
 
 function toggleDayManagerGroup(groupId) {
@@ -3756,11 +3760,8 @@ async function finishWorkout(e) {
         renderCalendar(false);
         const todayStr = log.date;
         const todayWorkouts = workoutHistory.filter(w => w.date === todayStr);
+        window._showFireworksOnOpen = true;
         openDayManager(todayStr, null, todayWorkouts, false);
-        setTimeout(() => {
-            window.blockAllSync = false;
-            showFireworks();
-        }, 400);
          
         if (typeof window.currentView !== 'undefined') window.currentView = "calendar-view";
         document.body.setAttribute("data-current-view", "calendar-view");
