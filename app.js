@@ -4810,32 +4810,69 @@ function restoreRestTimerIfActive() {
 }
 
 function showFireworks() {
-    const container = document.createElement("div");
-    container.setAttribute('style', 'position:fixed !important; top:0 !important; left:0 !important; width:100vw !important; height:100vh !important; z-index:2147483647 !important; pointer-events:none !important; overflow:hidden !important;');
-    document.documentElement.appendChild(container);
+    const modal = document.getElementById("workout-modal");
+    const modalContent = document.querySelector(".modal-content");
     
-    const emojis = ["🎆", "🎇", "✨", "🌟", "⭐", "💥", "🎉", "🎊"];
+    // Tillfälligt ta bort backdrop-filter så canvas kan synas
+    if (modal) modal.style.backdropFilter = "none";
+    if (modal) modal.style.webkitBackdropFilter = "none";
+    
+    const canvas = document.createElement("canvas");
+    canvas.setAttribute('style', 'position:fixed !important; top:0 !important; left:0 !important; width:100vw !important; height:100vh !important; z-index:2147483647 !important; pointer-events:none !important;');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    document.documentElement.appendChild(canvas);
+    
+    const ctx = canvas.getContext("2d");
     const particles = [];
-    
-    for (let i = 0; i < 60; i++) {
-        setTimeout(() => {
-            const el = document.createElement("div");
-            const emoji = emojis[Math.floor(Math.random() * emojis.length)];
-            const x = Math.random() * 100;
-            const duration = 1.5 + Math.random() * 2;
-            const size = 20 + Math.random() * 30;
-            el.textContent = emoji;
-            el.setAttribute('style', `
-                position: absolute !important;
-                left: ${x}vw !important;
-                top: -50px !important;
-                font-size: ${size}px !important;
-                animation: fireworkFall ${duration}s ease-in forwards !important;
-            `);
-            container.appendChild(el);
-            particles.push(el);
-        }, i * 80);
+    const colors = ["#f59e0b", "#22d3ee", "#22c55e", "#a78bfa", "#f472b6", "#fff"];
+
+    function createBurst(x, y) {
+        for (let i = 0; i < 80; i++) {
+            const angle = (Math.PI * 2 / 80) * i;
+            const speed = 2 + Math.random() * 6;
+            particles.push({
+                x, y,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                alpha: 1,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                size: 2 + Math.random() * 3
+            });
+        }
     }
-    
-    setTimeout(() => container.remove(), 8000);
+
+    let bursts = 0;
+    const burstInterval = setInterval(() => {
+        createBurst(
+            window.innerWidth * (0.2 + Math.random() * 0.6),
+            window.innerHeight * (0.1 + Math.random() * 0.5)
+        );
+        bursts++;
+        if (bursts >= 6) clearInterval(burstInterval);
+    }, 300);
+
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach((p) => {
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += 0.1;
+            p.alpha -= 0.015;
+            ctx.globalAlpha = Math.max(0, p.alpha);
+            ctx.fillStyle = p.color;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fill();
+        });
+        if (particles.some(p => p.alpha > 0)) {
+            requestAnimationFrame(animate);
+        } else {
+            canvas.remove();
+            // Återställ backdrop-filter
+            if (modal) modal.style.backdropFilter = "";
+            if (modal) modal.style.webkitBackdropFilter = "";
+        }
+    }
+    animate();
 }
