@@ -959,8 +959,7 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
                                 <span style="color: var(--primary); font-size: 10px; font-weight: 800;">${exIdx + 1}</span>
                             </div>
                             <span style="color: var(--primary); font-weight: 700; font-size: 13px;">${ex.name}</span>
-                        </div>
-                        ${ex.note ? `<div style="background:rgba(253,224,71,0.06); border:1px solid rgba(253,224,71,0.15); border-radius:8px; padding:6px 10px; margin-bottom:8px; font-size:11px; color:#fde047;">📝 ${ex.note}</div>` : ''}`;
+                        </div>`;
                     if (ex.sets_data) {
                         const hasRest = ex.sets_data.some((s, i) => s.rest && i < ex.sets_data.length - 1);
                         html += `<div style="display: flex; flex-direction: column; gap: 4px;">`;
@@ -990,6 +989,9 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
                         html += `</div>`;
                     } else {
                         html += `<div style="background: rgba(34,211,238,0.06); border: 1px solid rgba(34,211,238,0.2); color: #fff; font-size: 12px; padding: 5px 10px; border-radius: 8px; font-weight: 600;">${ex.sets} set × ${ex.weight || 0}kg × ${ex.reps || 0}</div>`;
+                    }
+                    if (ex.note) {
+                        html += `<div style="background:rgba(253,224,71,0.06); border:1px solid rgba(253,224,71,0.15); border-radius:8px; padding:6px 10px; margin-top:8px; font-size:11px; color:#fde047;">📝 ${ex.note}</div>`;
                     }
                     html += `</div>`;
                 });
@@ -2598,31 +2600,27 @@ async function updateWorkoutNameInHistory(oldName, newName) {
 // Läser ut historisk data från den lokala variabeln (som är synkad med Supabase vid start)
 function getExerciseHistory(exerciseName) {
   if (!Array.isArray(workoutHistory) || workoutHistory.length === 0) return null;
-
-  // försök tolka datum och hitta senaste passet
   const withDates = workoutHistory
     .map(w => ({ w, dt: w.date ? new Date(w.date) : new Date(0) }))
     .filter(x => x.dt.toString() !== 'Invalid Date');
-
   if (withDates.length === 0) return null;
-
-  withDates.sort((a, b) => b.dt - a.dt); // nyast först
+  withDates.sort((a, b) => b.dt - a.dt);
   const latest = withDates[0].w;
-
   if (!latest.exercises) return null;
   const exMatch = latest.exercises.find(e => e.name === exerciseName);
   if (!exMatch) return null;
-
   if (exMatch.sets_data && Array.isArray(exMatch.sets_data)) {
-    return JSON.parse(JSON.stringify(exMatch.sets_data)); // deep copy
+    return { sets_data: JSON.parse(JSON.stringify(exMatch.sets_data)), note: exMatch.note || null };
   }
-
   const count = parseInt(exMatch.sets || 3, 10) || 3;
-  return Array.from({ length: count }, (_, i) => ({
-    weight: exMatch.weight || "",
-    reps: exMatch.reps || "",
-    userConfirmed: false
-  }));
+  return {
+    sets_data: Array.from({ length: count }, (_, i) => ({
+      weight: exMatch.weight || "",
+      reps: exMatch.reps || "",
+      userConfirmed: false
+    })),
+    note: exMatch.note || null
+  };
 }
 
 async function startWorkout(workout, data = null, date = null, isImmediateStart = false) {
@@ -2636,13 +2634,9 @@ async function startWorkout(workout, data = null, date = null, isImmediateStart 
         data = workout.exercises.map(ex => {
             const history = getExerciseHistory(ex.name);
             if (history) {
-                const historyCopy = JSON.parse(JSON.stringify(history));
-                if (Array.isArray(historyCopy)) {
-                    historyCopy.forEach(set => {
-                        set.userConfirmed = false;
-                    });
-                }
-                return { sets_data: historyCopy, isCompleted: false };
+                const setsCopy = JSON.parse(JSON.stringify(history.sets_data));
+                setsCopy.forEach(set => { set.userConfirmed = false; });
+                return { sets_data: setsCopy, isCompleted: false, note: history.note || null };
             }
             return { sets_data: [{ weight: "", reps: "" }, { weight: "", reps: "" }, { weight: "", reps: "" }], isCompleted: false };
         });
@@ -3363,11 +3357,9 @@ async function confirmAddExerciseToActive(exId, replaceIndex = null) {
     const history = getExerciseHistory(ex.name);
     
     if (history) {
-        // Skapa en djupkopia av historiken
-        let historyCopy = JSON.parse(JSON.stringify(history));
-        // Nollställ klarmarkeringar
-        historyCopy.forEach(set => set.userConfirmed = false);
-        newDataEntry = { sets_data: historyCopy, isCompleted: false };
+        let setsCopy = JSON.parse(JSON.stringify(history.sets_data));
+        setsCopy.forEach(set => set.userConfirmed = false);
+        newDataEntry = { sets_data: setsCopy, isCompleted: false, note: history.note || null };
     } else {
         newDataEntry = { sets_data: [{ weight: "", reps: "" }, { weight: "", reps: "" }, { weight: "", reps: "" }], isCompleted: false };
     }
