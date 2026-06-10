@@ -920,3 +920,24 @@ body, html {
     border-bottom: 6px solid transparent;
     border-left: 7px solid rgba(253,224,71,0.4);
 }
+.hint-bubble.hint-centered {
+    position: relative;
+    right: auto;
+    margin: 0 auto 12px auto;
+    display: inline-flex;
+}
+.hint-bubble.hint-centered::after {
+    content: "";
+    position: absolute;
+    bottom: -7px;
+    left: 50%;
+    top: auto;
+    right: auto;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 7px solid rgba(253,224,71,0.4);
+    border-bottom: none;
+}
