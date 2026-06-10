@@ -435,7 +435,6 @@ function filterExercises(category, subtarget = null) {
                     </button>`).join('')}
                 </div>
             </div>
-        </div>
         `;
     }
 
