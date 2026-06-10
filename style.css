@@ -860,3 +860,8 @@ body, html {
     margin: 0;
 }
 
+@keyframes fireworkFall {
+    0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+}
+
