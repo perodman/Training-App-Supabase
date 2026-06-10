@@ -645,11 +645,6 @@ function renderCalendar(isFromStartBtn = false) {
     showCalendarHint();
     infoBox.innerHTML = "";
 
-    if(isFromStartBtn === true) {
-        infoBox.innerHTML = `<div style="background:rgba(34, 211, 238, 0.1); padding:12px; border-radius:12px; margin-bottom:15px; font-size:13px; text-align:center; color:var(--primary); border:1px solid var(--primary);">
-        Select the day you want to start or schedule a workout in the calendar below  📅
-        </div>`;
-    }
     const year = currentViewDate.getFullYear();
     const month = currentViewDate.getMonth();
     const monthText = currentViewDate.toLocaleString('en-US', { month: 'long', year: 'numeric' });
