@@ -2787,7 +2787,7 @@ function renderActiveWorkout() {
                     setsHtml += `
                     <div style="display:grid; grid-template-columns: 40px 1fr 1fr 1fr 30px; gap:8px; margin-bottom:8px; align-items:center; opacity: ${showSuccess ? '1' : isCurrent ? '1' : '0.35'}; transition: opacity 0.2s ease; position:relative; overflow:visible;">
                         ${showArrow ? '<div class="set-arrow">➔</div>' : ''}
-                        <div onclick="${isLocked && !isDone ? '' : `confirmSet(${i}, ${sIdx})`}"
+                       <div class="${showArrow ? 'pulse-ring' : ''}" onclick="${isLocked && !isDone ? '' : `confirmSet(${i}, ${sIdx})`}"
                             style="width:32px; height:32px; border-radius:50%; border:2px solid ${circleColor}; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:10px; font-weight:800; background: ${showSuccess ? 'rgba(34, 197, 94, 0.2)' : (isCurrent ? 'rgba(250, 204, 21, 0.15)' : 'rgba(245, 158, 11, 0.05)')}; color: ${circleColor}; opacity: 1;">
                             ${statusContent}
                         </div>
@@ -3547,7 +3547,7 @@ function updateSingleExerciseCard(exIdx) {
             setsHtml += `
             <div style="display:grid; grid-template-columns: 40px 1fr 1fr 1fr 30px; gap:8px; margin-bottom:8px; align-items:center; opacity: ${showSuccess ? '1' : isCurrent ? '1' : '0.35'}; transition: opacity 0.2s ease; position:relative; overflow:visible;">
                 ${showArrow ? '<div class="set-arrow">➔</div>' : ''}
-                <div onclick="${isLocked && !isDone ? '' : `confirmSet(${exIdx}, ${sIdx})`}"
+                <div class="${showArrow ? 'pulse-ring' : ''}" onclick="${isLocked && !isDone ? '' : `confirmSet(${exIdx}, ${sIdx})`}"
                     style="width:32px; height:32px; border-radius:50%; border:2px solid ${circleColor}; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:10px; font-weight:800; background: ${showSuccess ? 'rgba(34, 197, 94, 0.2)' : (isCurrent ? 'rgba(250, 204, 21, 0.15)' : 'rgba(245, 158, 11, 0.05)')}; color: ${circleColor}; opacity: 1;">
                     ${statusContent}
                 </div>
