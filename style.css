@@ -953,10 +953,11 @@ body, html {
 .set-arrow {
     position: absolute;
     left: -20px;
-    top: 16px;
+    top: 12px;
     transform: none;
     color: #facc15;
     font-size: 14px;
     animation: arrowFloat 1s ease-in-out infinite;
     pointer-events: none;
+    z-index: 10;
 }
