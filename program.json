@@ -1,83 +1,42 @@
 {
-
   "routine": [
-
     {
-
       "id": "fullbody-a",
-
       "name": "Full Body A",
-
       "exercises": [
-
-        { "name": "Leg Press", "target": "Ben", "defaultSets": 3, "description": "Pressa plattan kontrollerat bort från kroppen." },
-
-        { "name": "Barbell Bench Press", "target": "Bröst", "defaultSets": 3, "description": "Sänk stången till bröstet, pressa upp." },
-
-        { "name": "Pull-ups", "target": "Rygg", "defaultSets": 3, "description": "Dra dig upp tills hakan är över stången." },
-
-        { "name": "Seated DB Press", "target": "Axlar", "defaultSets": 3, "description": "Pressa hantlarna rakt upp." },
-
-        { "name": "Back Extensions", "target": "Ländrygg", "defaultSets": 3, "description": "Kontrollerad fällning i höften." },
-
-        { "name": "Front Delt Raises", "target": "Axlar", "defaultSets": 3, "description": "Lyft hantlarna framåt." },
-
-        { "name": "Preacher Curls", "target": "Biceps", "defaultSets": 3, "description": "Isolera biceps mot dynan." },
-
-        { "name": "Tricep Pushdowns", "target": "Triceps", "defaultSets": 3, "description": "Pressa ner stången." },
-
-        { "name": "Hanging Leg Raises", "target": "Bål", "defaultSets": 3, "description": "Lyft benen med magmusklerna." }
-
+        { "name": "Leg Press", "target": "Ben", "subtarget": "Quads", "defaultSets": 3 },
+        { "name": "Barbell Bench Press", "target": "Bröst", "subtarget": "Compound", "defaultSets": 3 },
+        { "name": "Pull-ups", "target": "Rygg", "subtarget": "Compound", "defaultSets": 3 },
+        { "name": "Seated DB Press", "target": "Axlar", "subtarget": "Compound", "defaultSets": 3 },
+        { "name": "Back Extensions", "target": "Rygg", "subtarget": "Lower Back", "defaultSets": 3 },
+        { "name": "Front Delt Raises", "target": "Axlar", "subtarget": "Front Delts", "defaultSets": 3 },
+        { "name": "Preacher Curls", "target": "Armar", "subtarget": "Biceps", "defaultSets": 3 },
+        { "name": "Tricep Pushdowns", "target": "Armar", "subtarget": "Triceps", "defaultSets": 3 },
+        { "name": "Hanging Leg Raises", "target": "Bål", "subtarget": "Abs", "defaultSets": 3 }
       ]
-
     },
-
     {
-
       "id": "fullbody-b",
-
       "name": "Full Body B",
-
       "exercises": [
-
-        { "name": "Romanian DB Deadlifts", "target": "Ben", "defaultSets": 3, "description": "Känn stretchen i baksidan." },
-
-        { "name": "Incline DB Bench Press", "target": "Bröst", "defaultSets": 3, "description": "Lutande bänk för övre bröst." },
-
-        { "name": "Incline DB Rows", "target": "Rygg", "defaultSets": 3, "description": "Dra vikterna uppåt." },
-
-        { "name": "Cable Lateral Raises", "target": "Axlar", "defaultSets": 3, "description": "Dra åt sidan i kabelmaskin." },
-
-        { "name": "Lat Pulldowns", "target": "Rygg", "defaultSets": 3, "description": "Dra stången mot bröstet." },
-
-        { "name": "DB Rear Delt Rows", "target": "Axlar", "defaultSets": 3, "description": "Dra för baksida axlar." },
-
-        { "name": "Dumbbell Shrugs", "target": "Rygg", "defaultSets": 3, "description": "Dra upp axlarna mot öronen." },
-
-        { "name": "Incline DB Curls", "target": "Biceps", "defaultSets": 3, "description": "Stretcha biceps i bottenläget." },
-
-        { "name": "Cable Woodchoppers", "target": "Bål", "defaultSets": 3, "description": "Rotation för magen." }
-
+        { "name": "Romanian DB Deadlifts", "target": "Ben", "subtarget": "Compound", "defaultSets": 3 },
+        { "name": "Incline DB Bench Press", "target": "Bröst", "subtarget": "Upper Chest", "defaultSets": 3 },
+        { "name": "Incline DB Rows", "target": "Rygg", "subtarget": "Compound", "defaultSets": 3 },
+        { "name": "Cable Lateral Raises", "target": "Axlar", "subtarget": "Side Delts", "defaultSets": 3 },
+        { "name": "Lat Pulldowns", "target": "Rygg", "subtarget": "Lats", "defaultSets": 3 },
+        { "name": "DB Rear Delt Rows", "target": "Axlar", "subtarget": "Rear Delts", "defaultSets": 3 },
+        { "name": "Dumbbell Shrugs", "target": "Rygg", "subtarget": "Upper Back", "defaultSets": 3 },
+        { "name": "Incline DB Curls", "target": "Armar", "subtarget": "Biceps", "defaultSets": 3 },
+        { "name": "Cable Woodchoppers", "target": "Bål", "subtarget": "Obliques", "defaultSets": 3 }
       ]
-
     },
-
     {
-
       "id": "test-a",
-
       "name": "Test A",
-
       "exercises": [
-
-        { "name": "Testövning 1", "target": "Ben", "defaultSets": 3, "description": "Känn stretchen i baksidan." },
-
-        { "name": "Testövning 2", "target": "Rygg", "defaultSets": 4, "description": "Lutande bänk för övre bröst." }
-
+        { "name": "Testövning 1", "target": "Ben", "subtarget": null, "defaultSets": 3 },
+        { "name": "Testövning 2", "target": "Rygg", "subtarget": null, "defaultSets": 4 }
       ]
-
     }
-
   ]
-
 }
