@@ -3757,6 +3757,7 @@ async function finishWorkout(e) {
         const todayStr = log.date;
         const todayWorkouts = workoutHistory.filter(w => w.date === todayStr);
         openDayManager(todayStr, null, todayWorkouts, false);
+        showFireworks();
          
         if (typeof window.currentView !== 'undefined') window.currentView = "calendar-view";
         document.body.setAttribute("data-current-view", "calendar-view");
@@ -4802,4 +4803,61 @@ function restoreRestTimerIfActive() {
     if (!bar) {
         renderRestTimer(exIdx);
     }
+}
+
+function showFireworks() {
+    const canvas = document.createElement("canvas");
+    canvas.style.cssText = "position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:99999; pointer-events:none;";
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    document.body.appendChild(canvas);
+    const ctx = canvas.getContext("2d");
+    const particles = [];
+    const colors = ["#f59e0b", "#22d3ee", "#22c55e", "#a78bfa", "#f472b6", "#fff"];
+
+    function createBurst(x, y) {
+        for (let i = 0; i < 80; i++) {
+            const angle = (Math.PI * 2 / 80) * i;
+            const speed = 2 + Math.random() * 6;
+            particles.push({
+                x, y,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                alpha: 1,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                size: 2 + Math.random() * 3
+            });
+        }
+    }
+
+    let bursts = 0;
+    const burstInterval = setInterval(() => {
+        createBurst(
+            window.innerWidth * (0.2 + Math.random() * 0.6),
+            window.innerHeight * (0.1 + Math.random() * 0.5)
+        );
+        bursts++;
+        if (bursts >= 6) clearInterval(burstInterval);
+    }, 300);
+
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach((p, i) => {
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += 0.1;
+            p.alpha -= 0.015;
+            ctx.globalAlpha = Math.max(0, p.alpha);
+            ctx.fillStyle = p.color;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fill();
+        });
+        if (particles.some(p => p.alpha > 0)) {
+            requestAnimationFrame(animate);
+        } else {
+            canvas.remove();
+        }
+    }
+    animate();
 }
