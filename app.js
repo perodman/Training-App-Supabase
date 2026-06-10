@@ -443,7 +443,7 @@ function filterExercises(category, subtarget = null) {
                 const hint = document.createElement('div');
                 hint.id = 'plus-hint-bubble';
                 hint.className = 'hint-bubble';
-                hint.textContent = 'Create new exercise';
+                hint.innerHTML = 'Create new exercise <span onclick="document.getElementById(\'plus-hint-bubble\').remove()" style="margin-left:6px; opacity:0.7; cursor:pointer; font-size:14px; line-height:1;">✕</span>';
                 plusBtn.parentElement.appendChild(hint);
                 setTimeout(() => hint.remove(), 5000);
             }
