@@ -921,23 +921,25 @@ body, html {
     border-left: 7px solid rgba(253,224,71,0.4);
 }
 .hint-bubble.hint-centered {
-    position: relative;
-    right: auto;
-    margin: 0 auto 12px auto;
-    display: inline-flex;
+    position: relative !important;
+    right: auto !important;
+    left: auto !important;
+    margin: 0 auto 12px auto !important;
+    display: inline-flex !important;
 }
+
 .hint-bubble.hint-centered::after {
-    content: "";
-    position: absolute;
-    bottom: -7px;
-    left: 50%;
-    top: auto;
-    right: auto;
-    transform: translateX(-50%);
-    width: 0;
-    height: 0;
-    border-left: 6px solid transparent;
-    border-right: 6px solid transparent;
-    border-top: 7px solid rgba(253,224,71,0.4);
-    border-bottom: none;
+    content: "" !important;
+    position: absolute !important;
+    bottom: -7px !important;
+    left: 50% !important;
+    top: auto !important;
+    right: auto !important;
+    transform: translateX(-50%) !important;
+    width: 0 !important;
+    height: 0 !important;
+    border-left: 6px solid transparent !important;
+    border-right: 6px solid transparent !important;
+    border-top: 7px solid rgba(253,224,71,0.4) !important;
+    border-bottom: none !important;
 }
