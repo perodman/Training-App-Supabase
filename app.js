@@ -445,7 +445,6 @@ function filterExercises(category, subtarget = null) {
                 hint.className = 'hint-bubble';
                 hint.innerHTML = '<span style="font-size:12px; font-weight:700; color:#fff; letter-spacing:0.3px;">Create new exercise</span><div onclick="document.getElementById(\'plus-hint-bubble\').remove()" style="position:absolute; top:-6px; right:-6px; width:16px; height:16px; border-radius:50%; background:#ef4444; border:2px solid #0f172a; display:flex; align-items:center; justify-content:center; font-size:9px; color:#fff; cursor:pointer; font-weight:900;">✕</div>';
                 plusBtn.parentElement.appendChild(hint);
-                setTimeout(() => hint.remove(), 5000);
             }
         }, 300);
     }
