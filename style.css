@@ -944,3 +944,19 @@ body, html {
     border-top: 7px solid rgba(253,224,71,0.4) !important;
     border-bottom: none !important;
 }
+
+@keyframes arrowFloat {
+    0% { transform: translateX(0px); }
+    50% { transform: translateX(6px); }
+    100% { transform: translateX(0px); }
+}
+.set-arrow {
+    position: absolute;
+    left: -20px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #facc15;
+    font-size: 14px;
+    animation: arrowFloat 1s ease-in-out infinite;
+    pointer-events: none;
+}
