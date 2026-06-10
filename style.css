@@ -865,3 +865,8 @@ body, html {
     100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
 }
 
+@keyframes burst {
+    0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
+    100% { transform: translate(var(--spread), 120px) rotate(var(--rotate)); opacity: 0; }
+}
+
