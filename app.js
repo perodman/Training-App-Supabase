@@ -408,21 +408,20 @@ function filterExercises(category, subtarget = null) {
     if (!results) return;
     results.innerHTML = "";
 
-    // Subcategory-filter
-  const subContainer = document.getElementById("subcategory-filter-container");
+    const subContainer = document.getElementById("subcategory-filter-container");
     if (subContainer) {
         const subs = SUBCATEGORIES[category] || [];
         subContainer.innerHTML = subs.length === 0 ? "" : `
             <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:16px;">
                 <div style="font-size:9px; color:rgba(255,255,255,0.25); text-transform:uppercase; letter-spacing:2px; text-align:center;">Filter by Muscle</div>
-            <div style="display:flex; justify-content:center; align-items:center; position:relative; margin-bottom:4px;">
+                <div style="display:flex; justify-content:center; align-items:center; position:relative; margin-bottom:4px;">
                     <button onclick="filterExercises('${category}', null)"
                         style="padding:5px 14px; border-radius:20px; border:1px solid ${!subtarget ? 'var(--primary)' : 'rgba(255,255,255,0.15)'}; 
                         background:${!subtarget ? 'rgba(34,211,238,0.15)' : 'rgba(255,255,255,0.05)'}; 
                         color:${!subtarget ? 'var(--primary)' : 'var(--text-light)'}; font-size:12px; font-weight:600; cursor:pointer;">
                         All
                     </button>
-                    <button onclick="openCreateExerciseModal()" 
+                    <button id="plus-exercise-btn" onclick="openCreateExerciseModal()" 
                         style="position:absolute; right:0; width:30px; height:30px; border-radius:10px; background:var(--primary); border:none; color:#333; font-weight:900; cursor:pointer; font-size:17px; display:flex; align-items:center; justify-content:center;">+</button>
                 </div>
                 <div style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center;">
@@ -436,6 +435,19 @@ function filterExercises(category, subtarget = null) {
                 </div>
             </div>
         `;
+
+        // Visa hint-bubbla bredvid plus-knappen
+        setTimeout(() => {
+            const plusBtn = document.getElementById('plus-exercise-btn');
+            if (plusBtn && !document.getElementById('plus-hint-bubble')) {
+                const hint = document.createElement('div');
+                hint.id = 'plus-hint-bubble';
+                hint.className = 'hint-bubble';
+                hint.textContent = 'Create new exercise';
+                plusBtn.parentElement.appendChild(hint);
+                setTimeout(() => hint.remove(), 5000);
+            }
+        }, 300);
     }
 
     const filtered = masterExercises.filter(ex => {
