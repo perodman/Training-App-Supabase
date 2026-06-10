@@ -406,7 +406,11 @@ function filterExercises(category, subtarget = null) {
     
     const results = document.getElementById("exercise-results");
     if (!results) return;
-    results.innerHTML = "";
+    results.style.opacity = "0";
+    results.style.transform = "translateY(8px)";
+    
+    setTimeout(() => {
+        results.innerHTML = "";
 
     const subContainer = document.getElementById("subcategory-filter-container");
     if (subContainer) {
@@ -477,7 +481,12 @@ function filterExercises(category, subtarget = null) {
         results.appendChild(div);
     });
 
-    setTimeout(() => initExerciseLibraryDragAndDrop(), 50);
+    requestAnimationFrame(() => {
+            results.style.opacity = "1";
+            results.style.transform = "translateY(0)";
+        });
+        setTimeout(() => initExerciseLibraryDragAndDrop(), 50);
+    }, 150);
 }
 
 function showExerciseAnimation(id) {
