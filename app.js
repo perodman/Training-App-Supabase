@@ -413,7 +413,7 @@ function filterExercises(category, subtarget = null) {
     if (subContainer) {
         const subs = SUBCATEGORIES[category] || [];
         subContainer.innerHTML = subs.length === 0 ? "" : `
-            <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:16px;">
+            <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:16px;">
                 <div style="font-size:9px; color:rgba(255,255,255,0.25); text-transform:uppercase; letter-spacing:2px; text-align:center;">Filter by Muscle</div>
             <div style="display:flex; justify-content:center; align-items:center; position:relative; margin-bottom:4px;">
                     <button onclick="filterExercises('${category}', null)"
