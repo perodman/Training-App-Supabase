@@ -421,9 +421,11 @@ function filterExercises(category, subtarget = null) {
                         color:${!subtarget ? 'var(--primary)' : 'var(--text-light)'}; font-size:12px; font-weight:600; cursor:pointer;">
                         All
                     </button>
-<div id="hint-bubble-container" style="position:absolute; right:40px; display:flex; align-items:center;"></div>
-                    <button id="plus-exercise-btn" onclick="openCreateExerciseModal()" 
-                        style="position:absolute; right:0; width:30px; height:30px; border-radius:10px; background:var(--primary); border:none; color:#333; font-weight:900; cursor:pointer; font-size:17px; display:flex; align-items:center; justify-content:center;">+</button>
+                    <div id="plus-area" style="position:absolute; right:0; display:flex; align-items:center; gap:8px;">
+                        <button onclick="openCreateExerciseModal()" 
+                            style="width:30px; height:30px; border-radius:10px; background:var(--primary); border:none; color:#333; font-weight:900; cursor:pointer; font-size:17px; display:flex; align-items:center; justify-content:center;">+</button>
+                    </div>
+                </div>
                 <div style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center;">
                     ${subs.map(sub => `
                     <button onclick="filterExercises('${category}', '${sub}')"
@@ -436,17 +438,20 @@ function filterExercises(category, subtarget = null) {
             </div>
         `;
 
-        // Visa hint-bubbla bredvid plus-knappen
         setTimeout(() => {
-            const hintContainer = document.getElementById('hint-bubble-container');
-            if (hintContainer && !document.getElementById('plus-hint-bubble')) {
+            const plusArea = document.getElementById('plus-area');
+            if (plusArea && !document.getElementById('plus-hint-bubble')) {
                 const hint = document.createElement('div');
                 hint.id = 'plus-hint-bubble';
                 hint.className = 'hint-bubble';
+                hint.style.cssText = 'position:relative;';
                 hint.innerHTML = '<span style="font-size:12px; font-weight:700; color:#fff; letter-spacing:0.3px;">Create new exercise</span><div onclick="document.getElementById(\'plus-hint-bubble\').remove()" style="position:absolute; top:-6px; right:-6px; width:16px; height:16px; border-radius:50%; background:#ef4444; border:2px solid #0f172a; display:flex; align-items:center; justify-content:center; font-size:9px; color:#fff; cursor:pointer; font-weight:900;">✕</div>';
-                hintContainer.appendChild(hint);
+                plusArea.insertBefore(hint, plusArea.firstChild);
+            } else if (plusArea && document.getElementById('plus-hint-bubble')) {
+                const existingHint = document.getElementById('plus-hint-bubble');
+                plusArea.insertBefore(existingHint, plusArea.firstChild);
             }
-        }, 300);
+        }, 50);
     }
 
     const filtered = masterExercises.filter(ex => {
