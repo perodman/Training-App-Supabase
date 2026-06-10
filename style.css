@@ -953,7 +953,7 @@ body, html {
 .set-arrow {
     position: absolute;
     left: -26px;
-    top: 6px;
+    top: 9px;
     transform: none;
     color: #facc15;
     font-size: 16px;
