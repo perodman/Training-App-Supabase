@@ -3757,7 +3757,10 @@ async function finishWorkout(e) {
         const todayStr = log.date;
         const todayWorkouts = workoutHistory.filter(w => w.date === todayStr);
         openDayManager(todayStr, null, todayWorkouts, false);
-        setTimeout(() => showFireworks(), 300);
+        setTimeout(() => {
+            window.blockAllSync = false;
+            showFireworks();
+        }, 400);
          
         if (typeof window.currentView !== 'undefined') window.currentView = "calendar-view";
         document.body.setAttribute("data-current-view", "calendar-view");
@@ -4807,7 +4810,7 @@ function restoreRestTimerIfActive() {
 
 function showFireworks() {
     const canvas = document.createElement("canvas");
-    canvas.style.cssText = "position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:999999; pointer-events:none;";
+    canvas.setAttribute('style', 'position:fixed !important; top:0 !important; left:0 !important; width:100vw !important; height:100vh !important; z-index:2147483647 !important; pointer-events:none !important;');
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
     document.body.appendChild(canvas);
@@ -4842,7 +4845,7 @@ function showFireworks() {
 
     function animate() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        particles.forEach((p, i) => {
+        particles.forEach((p) => {
             p.x += p.vx;
             p.y += p.vy;
             p.vy += 0.1;
