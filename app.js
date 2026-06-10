@@ -642,6 +642,7 @@ function renderCalendar(isFromStartBtn = false) {
 
     if(!grid || !label || !infoBox) return;
     grid.innerHTML = "";
+    showCalendarHint();
     infoBox.innerHTML = "";
 
     if(isFromStartBtn === true) {
@@ -1474,6 +1475,18 @@ function renderGroupsView() {
     const selector = document.getElementById("pass-selector-list");
     if (!selector) return;
     selector.innerHTML = "";
+    const existingHint = document.getElementById('groups-hint-bubble');
+    if (!existingHint) {
+        const hintWrap = document.createElement('div');
+        hintWrap.style.cssText = 'text-align:center; margin-bottom:12px; grid-column: span 3;';
+        const hint = document.createElement('div');
+        hint.id = 'groups-hint-bubble';
+        hint.className = 'hint-bubble';
+        hint.style.cssText = 'position:relative; margin: 0 auto; display:inline-flex;';
+        hint.innerHTML = '<span style="font-size:12px; font-weight:700; color:#fff; letter-spacing:0.3px;">Tap a group to see its workouts</span><div onclick="document.getElementById(\'groups-hint-bubble\').remove()" style="position:absolute; top:-6px; right:-6px; width:16px; height:16px; border-radius:50%; background:#ef4444; border:2px solid #0f172a; display:flex; align-items:center; justify-content:center; font-size:9px; color:#fff; cursor:pointer; font-weight:900;">✕</div>';
+        hintWrap.appendChild(hint);
+        selector.appendChild(hintWrap);
+    }
     selector.style.cssText = "display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;";
     if (!programData.groups) programData.groups = [];
     const usedGroupIds = new Set();
@@ -4982,3 +4995,5 @@ function showCalendarHint() {
     container.style.textAlign = 'center';
     container.appendChild(hint);
 }
+
+
