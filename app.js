@@ -3300,11 +3300,9 @@ async function confirmAndAddAllSelectedExercises() {
         const history = getExerciseHistory(ex.name);
         
         if (history) {
-            // Skapa en djupkopia av historiken
-            let historyCopy = JSON.parse(JSON.stringify(history));
-            // Nollställ klarmarkeringar för att övningen ska börja "fräsch"
-            historyCopy.forEach(set => set.userConfirmed = false);
-            newDataEntry = { sets_data: historyCopy, isCompleted: false };
+            let setsCopy = JSON.parse(JSON.stringify(history.sets_data));
+            setsCopy.forEach(set => set.userConfirmed = false);
+            newDataEntry = { sets_data: setsCopy, isCompleted: false, note: history.note || null };
         } else {
             newDataEntry = { sets_data: [{ weight: "", reps: "" }, { weight: "", reps: "" }, { weight: "", reps: "" }], isCompleted: false };
         }
