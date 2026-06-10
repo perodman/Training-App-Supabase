@@ -443,7 +443,6 @@ body {
 }
 .cat-btn .cat-icon { font-size: 24px; margin-bottom: 5px; }
 .cat-btn.active { background: rgba(34, 211, 238, 0.15); border-color: var(--primary); color: var(--primary); box-shadow: 0 4px 15px rgba(34, 211, 238, 0.1); }
-#category-menu .cat-btn.glass::before { display: none !important; content: none !important; }
 
 /* Träningsöverskrivning (Plan Override) Grid */
 .plan-override-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 10px; }
