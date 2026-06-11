@@ -52,6 +52,19 @@ async function initApp() {
             const r = await fetch("program.json");
             const json = await r.json();
             if (!window.programData) {
+                // Tilldela standardgrupper baserat på pass-id, så importerade pass
+                // hamnar i rätt träningsgrupp (t.ex. Full Body) istället för "Other"
+                const DEFAULT_GROUP_MAP = {
+                    "fullbody-a": ["fullbody"],
+                    "fullbody-b": ["fullbody"]
+                };
+                json.routine.forEach(p => {
+                    if (!Array.isArray(p.groups) || p.groups.length === 0) {
+                        if (DEFAULT_GROUP_MAP[p.id]) {
+                            p.groups = DEFAULT_GROUP_MAP[p.id];
+                        }
+                    }
+                });
                 window.programData = json;
                 programData = window.programData;
                 localStorage.setItem("myCustomProgram", JSON.stringify(window.programData));
@@ -1896,8 +1909,8 @@ function showProgramDetails(idx) {
         </div>
         ${pass.exercises.map(e => `
         <div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.03);">
-            <span style="font-weight:600;">${e.name}</span>
-            <small style="color:var(--primary); font-weight:800; text-transform:uppercase; font-size:9px;">${CATEGORY_DISPLAY[e.target] || e.target}</small>
+         <span style="font-weight:600;">${e.name}</span>
+        <small style="color:var(--primary); font-weight:800; text-transform:uppercase; font-size:9px;">${CATEGORY_DISPLAY[e.target] || e.target}${e.subtarget ? ' • ' + e.subtarget : ''}</small>
         </div>
         `).join("")}
     `;
