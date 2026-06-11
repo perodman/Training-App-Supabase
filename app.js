@@ -1136,14 +1136,15 @@ if (isOngoing && typeof activeDraft !== 'undefined' && activeDraft) {
                 </div>
 
             <div id="${sectionId}" style="
-                                height: 0; overflow: hidden;
-                                opacity: 0;
-                                display: none;
-                ">
-                    <div style="padding: 6px 10px 10px 10px; background: rgba(0,0,0,0.2); display:flex; flex-direction:column; gap:6px;">
-                        <div style="font-size:10px; color:var(--text-light); opacity:0.7; text-align:center; padding: 4px 0 6px 0; font-weight:600; letter-spacing:0.3px;">
-                            💡 Hold to preview exercises
-                        </div>
+                            height: 0; overflow: hidden;
+                            opacity: 0;
+                            display: none;
+            ">
+                <div style="padding: 6px 10px 10px 10px; background: rgba(0,0,0,0.2);">
+                    <div style="font-size:10px; color:var(--text-light); opacity:0.7; text-align:center; padding: 4px 0 6px 0; font-weight:600; letter-spacing:0.3px;">
+                        💡 Hold to preview exercises
+                    </div>
+                    <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:8px;">
                         ${passes.map(p => {
                             const isSelected = planned && p.id === planned.id;
                             const passIcons = [' ⚡ ', ' 🔥 ', ' 🏆 ', ' 💎 '];
@@ -1159,18 +1160,21 @@ if (isOngoing && typeof activeDraft !== 'undefined' && activeDraft) {
                                 ontouchstart="startPress(${programData.routine.indexOf(p)}, event)"
                                 ontouchend="handleTouchEnd(${programData.routine.indexOf(p)}, '${dateStr}', '${p.id}', event)"
                                 ontouchmove="handleTouchMove(event)"
-                                style="margin:0; padding:10px 14px; font-size:13px; border-radius:14px; font-weight:600;
+                                style="margin:0; padding:10px 12px; font-size:13px; border-radius:14px; font-weight:600;
                                 width:100% !important; height:auto !important; min-height:0 !important;
-                                text-align:left !important; display:flex !important; flex-direction:row !important;
-                                align-items:center !important; justify-content:flex-start !important; gap:14px;
+                                text-align:left !important; display:flex !important; flex-direction:column !important;
+                                align-items:flex-start !important; justify-content:flex-start !important; gap:6px;
                                 background: ${isSelected ? 'rgba(34,211,238,0.1)' : '#1e293b'} !important;
                                 border: 1px solid ${isSelected ? 'rgba(34,211,238,1)' : 'rgba(255,255,255,0.08)'} !important;
                                 color: ${isSelected ? 'var(--primary)' : 'var(--text)'} !important;
                                 user-select:none; -webkit-user-select:none;">
-                                <span style="width:36px; height:36px; border-radius:50%; background:${isSelected ? 'rgba(34,211,238,0.2)' : 'rgba(255,255,255,0.05)'}; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0;">${icon}</span>
-                                <span style="display:flex; flex-direction:column; gap:1px; min-width:0;">
-                                    <span style="font-size:13px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${isSelected ? '✓ ' : ''}${p.name}</span>
-                                    <span style="font-size:9px; font-weight:800; text-transform:uppercase; opacity:${isSelected ? '0.7' : '0.5'}; color:${isSelected ? 'var(--primary)' : 'var(--text-light)'};">${p.exercises.length} ${p.exercises.length === 1 ? 'exercise' : 'exercises'}${isSelected ? ' • Selected' : ''}</span>
+                                <span style="display:flex; align-items:center; gap:8px; width:100%;">
+                                    <span style="width:28px; height:28px; border-radius:50%; background:${isSelected ? 'rgba(34,211,238,0.2)' : 'rgba(255,255,255,0.05)'}; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0;">${icon}</span>
+                                    <span style="font-size:12px; font-weight:700; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${isSelected ? '✓ ' : ''}${p.name}</span>
+                                </span>
+                                <span style="display:flex; justify-content:space-between; width:100%; font-size:9px; font-weight:800; text-transform:uppercase; opacity:${isSelected ? '0.7' : '0.5'}; color:${isSelected ? 'var(--primary)' : 'var(--text-light)'};">
+                                    <span>${p.exercises.length} EX</span>
+                                    ${p.duration ? `<span>⏱️ ~${p.duration} min</span>` : ''}
                                 </span>
                             </button>`;
                         }).join('')}
