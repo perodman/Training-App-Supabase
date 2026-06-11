@@ -1647,11 +1647,28 @@ function renderChipsLayout(passesInGroup, selector, icons) {
 }
 
 function showChipsDetail(passesInGroup, activePass, selector, icons) {
-    selector.innerHTML = "";
-    selector.style.gridTemplateColumns = '1fr';
+    let chipsRow = document.getElementById("chips-row");
+    let detailCard = document.getElementById("chips-detail-card");
 
-    const chipsRow = document.createElement("div");
-    chipsRow.style.cssText = "display:flex; flex-wrap:wrap; gap:6px; margin-bottom:4px;";
+    if (!chipsRow || !detailCard) {
+        selector.innerHTML = "";
+        selector.style.gridTemplateColumns = '1fr';
+
+        chipsRow = document.createElement("div");
+        chipsRow.id = "chips-row";
+        chipsRow.style.cssText = "display:flex; flex-wrap:wrap; gap:6px; margin-bottom:4px;";
+        selector.appendChild(chipsRow);
+
+        detailCard = document.createElement("div");
+        detailCard.id = "chips-detail-card";
+        detailCard.style.cssText = `
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border-top: 3px solid #f59e0b; border-radius: 16px; padding: 16px; position:relative; overflow:hidden;
+        `;
+        selector.appendChild(detailCard);
+    }
+
+    chipsRow.innerHTML = "";
     passesInGroup.forEach(p => {
         const chip = document.createElement("div");
         const isActive = p === activePass;
@@ -1661,23 +1678,17 @@ function showChipsDetail(passesInGroup, activePass, selector, icons) {
         chip.onclick = () => showChipsDetail(passesInGroup, p, selector, icons);
         chipsRow.appendChild(chip);
     });
-    selector.appendChild(chipsRow);
 
     const passIdx = programData.routine.indexOf(activePass);
-    const detailCard = document.createElement("div");
-    detailCard.style.cssText = `
-        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-        border-top: 3px solid #f59e0b; border-radius: 16px; padding: 16px; position:relative; overflow:hidden;
-    `;
     detailCard.innerHTML = `
         <div style="position:absolute; left:0; top:0; bottom:0; width:1px; background: linear-gradient(180deg, rgba(245,158,11,0.9) 0%, rgba(245,158,11,0.1) 100%);"></div>
         <div style="position:absolute; right:0; top:0; bottom:0; width:1px; background: linear-gradient(180deg, rgba(245,158,11,0.9) 0%, rgba(245,158,11,0.1) 100%);"></div>
         <div style="display:flex; justify-content:space-between; align-items:flex-start; padding-bottom:10px; border-bottom:1px solid rgba(255,255,255,0.08); margin-bottom:6px;">
             <div>
                 <h4 style="margin:0; font-size:16px; color:#fff;">${activePass.name}</h4>
-                <div style="display:flex; gap:10px; margin-top:4px;">
+                <div style="display:flex; gap:10px; margin-top:4px; align-items:center;">
                     <span style="font-size:10px; color:var(--primary); font-weight:800; text-transform:uppercase;">${activePass.exercises.length} ${activePass.exercises.length === 1 ? 'EXERCISE' : 'EXERCISES'}</span>
-                    ${activePass.duration ? `<span style="font-size:10px; color:#f59e0b; font-weight:700;">⏱️ ~${activePass.duration} min</span>` : ''}
+                    ${activePass.duration ? `<span style="font-size:14px; color:#f59e0b; font-weight:800;">⏱️ ~${activePass.duration} min</span>` : ''}
                 </div>
             </div>
             <span onclick="event.stopPropagation(); openEditProgramModal(${passIdx})" style="font-size:14px; opacity:0.7; cursor:pointer; padding:4px 8px; border-radius:6px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.1);">✏️</span>
@@ -1694,7 +1705,6 @@ function showChipsDetail(passesInGroup, activePass, selector, icons) {
         </div>
         `).join("")}
     `;
-    selector.appendChild(detailCard);
 }
 
 function openLayoutPickerModal() {
@@ -1912,6 +1922,20 @@ function renderPassesInGroup(groupId) {
             selector.parentElement.insertBefore(topBar, selector);
         }
 
+        let backBtn = document.getElementById("group-back-btn");
+        if (!backBtn) {
+            backBtn = document.createElement("button");
+            backBtn.id = "group-back-btn";
+            topBar.appendChild(backBtn);
+        }
+        backBtn.style.cssText = `
+            display: flex; align-items: center; gap: 8px;
+            background: none; border: none; color: var(--primary);
+            font-size: 14px; font-weight: 700; cursor: pointer;
+            padding: 0;
+        `;
+        backBtn.innerHTML = `← ${groupDef.icon} ${groupDef.name}`;
+
         let layoutBar = document.getElementById("layout-picker-bar");
         if (!layoutBar) {
             layoutBar = document.createElement("div");
@@ -1947,20 +1971,6 @@ function renderPassesInGroup(groupId) {
         });
         layoutBar.querySelector('#layout-settings-btn').onclick = openLayoutPickerModal;
         layoutBar.style.display = 'flex';
-
-        let backBtn = document.getElementById("group-back-btn");
-        if (!backBtn) {
-            backBtn = document.createElement("button");
-            backBtn.id = "group-back-btn";
-            topBar.appendChild(backBtn);
-        }
-        backBtn.style.cssText = `
-            display: flex; align-items: center; gap: 8px;
-            background: none; border: none; color: var(--primary);
-            font-size: 14px; font-weight: 700; cursor: pointer;
-            padding: 0;
-        `;
-        backBtn.innerHTML = `← ${groupDef.icon} ${groupDef.name}`;
         backBtn.onclick = () => {
             backBtn.style.transition = 'opacity 0.25s ease';
             backBtn.style.opacity = '0';
