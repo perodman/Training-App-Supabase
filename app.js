@@ -1630,28 +1630,8 @@ function renderAccordionPassCard(pass, passIdx, icons, selector, layoutMode) {
 
 function renderChipsLayout(passesInGroup, selector, icons) {
     selector.style.gridTemplateColumns = '1fr';
-    passesInGroup.forEach(pass => {
-        const passIdx = programData.routine.indexOf(pass);
-        const passCard = document.createElement("div");
-        passCard.className = "prog-card";
-        passCard.style.cssText = `
-            position: relative; overflow: hidden; min-height:60px; padding:12px 15px;
-            display:flex; align-items:center; gap:12px;
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-            border-top: 3px solid #f59e0b; border-radius: 16px;
-        `;
-        passCard.innerHTML = `
-            <div style="position:absolute; left:0; top:0; bottom:0; width:1px; background: linear-gradient(180deg, rgba(245,158,11,0.9) 0%, rgba(245,158,11,0.1) 100%);"></div>
-            <div style="position:absolute; right:0; top:0; bottom:0; width:1px; background: linear-gradient(180deg, rgba(245,158,11,0.9) 0%, rgba(245,158,11,0.1) 100%);"></div>
-            <div style="font-size:20px;">${icons[passIdx % 4]}</div>
-            <div style="flex:1;">
-                <h4 style="font-size:13px; margin:0; line-height:1.3;">${pass.name}</h4>
-                <div style="font-size:9px; color:var(--primary); font-weight:800;">${pass.exercises.length} ${pass.exercises.length === 1 ? 'EXERCISE' : 'EXERCISES'}</div>
-            </div>
-        `;
-        passCard.onclick = () => showChipsDetail(passesInGroup, pass, selector, icons);
-        selector.appendChild(passCard);
-    });
+    if (passesInGroup.length === 0) return;
+    showChipsDetail(passesInGroup, passesInGroup[0], selector, icons);
 }
 
 function showChipsDetail(passesInGroup, activePass, selector, icons) {
@@ -1680,10 +1660,13 @@ function showChipsDetail(passesInGroup, activePass, selector, icons) {
     detailCard.innerHTML = `
         <div style="position:absolute; left:0; top:0; bottom:0; width:1px; background: linear-gradient(180deg, rgba(245,158,11,0.9) 0%, rgba(245,158,11,0.1) 100%);"></div>
         <div style="position:absolute; right:0; top:0; bottom:0; width:1px; background: linear-gradient(180deg, rgba(245,158,11,0.9) 0%, rgba(245,158,11,0.1) 100%);"></div>
-        <div style="display:flex; justify-content:space-between; align-items:flex-end; padding-bottom:10px; border-bottom:1px solid rgba(255,255,255,0.08); margin-bottom:6px;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; padding-bottom:10px; border-bottom:1px solid rgba(255,255,255,0.08); margin-bottom:6px;">
             <div>
-                <h4 style="margin:0; font-size:15px; color:#fff;">${activePass.name}</h4>
-                <span style="font-size:9px; color:var(--text-light); text-transform:uppercase; letter-spacing:1px;">Exercises</span>
+                <h4 style="margin:0; font-size:16px; color:#fff;">${activePass.name}</h4>
+                <div style="display:flex; gap:10px; margin-top:4px;">
+                    <span style="font-size:10px; color:var(--primary); font-weight:800; text-transform:uppercase;">${activePass.exercises.length} ${activePass.exercises.length === 1 ? 'EXERCISE' : 'EXERCISES'}</span>
+                    ${activePass.duration ? `<span style="font-size:10px; color:#f59e0b; font-weight:700;">⏱️ ~${activePass.duration} min</span>` : ''}
+                </div>
             </div>
             <span onclick="event.stopPropagation(); openEditProgramModal(${passIdx})" style="font-size:14px; opacity:0.7; cursor:pointer; padding:4px 8px; border-radius:6px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.1);">✏️</span>
         </div>
@@ -1716,8 +1699,7 @@ function openLayoutPickerModal() {
     </div>`;
 
     const options = [
-        { id: 'large', icon: iconLarge, title: 'Large cards', desc: 'Best when you have only a few workouts' },
-        { id: 'balanced', icon: iconGrid, title: 'Two columns', desc: 'Best for a handful of workouts' },
+        { id: 'balanced', icon: iconGrid, title: 'Cards', desc: 'Best for a handful of workouts' },
         { id: 'compact', icon: iconList, title: 'Quick switch', desc: 'Best when you have many workouts' }
     ];
 
@@ -1880,43 +1862,8 @@ function renderGroupsView() {
     const addPassBtn = document.getElementById("add-custom-pass-btn");
     if (addPassBtn) addPassBtn.style.display = 'block';
 
-    let layoutBtn = document.getElementById("layout-picker-bar");
-    if (!layoutBtn) {
-        layoutBtn = document.createElement("div");
-        layoutBtn.id = "layout-picker-bar";
-        layoutBtn.style.cssText = "display:flex; align-items:center; justify-content:flex-end; gap:8px; margin-bottom:8px;";
-        programsView.insertBefore(layoutBtn, programsView.firstChild);
-    }
-    const currentLayout = programData.layoutPreference || 'balanced';
-    const segIcons = {
-        large: `<div style="width:14px; height:14px; border-radius:3px; background:currentColor;"></div>`,
-        balanced: `<div style="display:grid; grid-template-columns:repeat(2,1fr); gap:2px; width:14px; height:14px;">
-            <div style="background:currentColor; border-radius:2px;"></div><div style="background:currentColor; border-radius:2px;"></div>
-            <div style="background:currentColor; border-radius:2px;"></div><div style="background:currentColor; border-radius:2px;"></div>
-        </div>`,
-        compact: `<div style="display:flex; gap:2px; width:14px; height:14px; align-items:flex-end;">
-            <div style="width:3px; height:14px; border-radius:2px; background:currentColor;"></div>
-            <div style="width:3px; height:9px; border-radius:2px; background:currentColor;"></div>
-            <div style="width:3px; height:14px; border-radius:2px; background:currentColor;"></div>
-        </div>`
-    };
-    layoutBtn.innerHTML = `
-        <div style="display:flex; border:1px solid rgba(255,255,255,0.1); border-radius:10px; overflow:hidden;">
-            ${['large','balanced','compact'].map(id => `
-                <div data-layout="${id}" style="padding:7px 11px; display:flex; align-items:center; justify-content:center; cursor:pointer;
-                    color:${currentLayout===id ? 'var(--primary)' : 'var(--text-light)'};
-                    background:${currentLayout===id ? 'rgba(34,211,238,0.1)' : 'transparent'};">
-                    ${segIcons[id]}
-                </div>
-            `).join('')}
-        </div>
-        <div id="layout-settings-btn" style="font-size:18px; opacity:0.6; cursor:pointer;">⚙️</div>
-    `;
-    layoutBtn.querySelectorAll('[data-layout]').forEach(el => {
-        el.onclick = () => window.selectLayoutPreference(el.dataset.layout);
-    });
-    layoutBtn.querySelector('#layout-settings-btn').onclick = openLayoutPickerModal;
-
+    const layoutBar = document.getElementById("layout-picker-bar");
+    if (layoutBar) layoutBar.style.display = 'none';
     showView("programs-view");
 }
 
@@ -1944,6 +1891,41 @@ function renderPassesInGroup(groupId) {
         const layoutMode = programData.layoutPreference || 'balanced';
         const gridCols = layoutMode === 'compact' ? '1fr' : 'repeat(2, 1fr)';
         selector.style.cssText = `display: grid; grid-template-columns: ${gridCols}; gap: 12px; transition: transform 0.3s ease, opacity 0.3s ease; transform: translateX(30px); opacity: 0;`;
+        let layoutBar = document.getElementById("layout-picker-bar");
+        if (!layoutBar) {
+            layoutBar = document.createElement("div");
+            layoutBar.id = "layout-picker-bar";
+            selector.parentElement.insertBefore(layoutBar, selector);
+        }
+        layoutBar.style.cssText = "display:flex; align-items:center; justify-content:flex-end; gap:8px; margin-bottom:8px;";
+        const segIcons = {
+            balanced: `<div style="display:grid; grid-template-columns:repeat(2,1fr); gap:2px; width:14px; height:14px;">
+                <div style="background:currentColor; border-radius:2px;"></div><div style="background:currentColor; border-radius:2px;"></div>
+                <div style="background:currentColor; border-radius:2px;"></div><div style="background:currentColor; border-radius:2px;"></div>
+            </div>`,
+            compact: `<div style="display:flex; gap:2px; width:14px; height:14px; align-items:flex-end;">
+                <div style="width:3px; height:14px; border-radius:2px; background:currentColor;"></div>
+                <div style="width:3px; height:9px; border-radius:2px; background:currentColor;"></div>
+                <div style="width:3px; height:14px; border-radius:2px; background:currentColor;"></div>
+            </div>`
+        };
+        layoutBar.innerHTML = `
+            <div style="display:flex; border:1px solid rgba(255,255,255,0.1); border-radius:10px; overflow:hidden;">
+                ${['balanced','compact'].map(id => `
+                    <div data-layout="${id}" style="padding:7px 11px; display:flex; align-items:center; justify-content:center; cursor:pointer;
+                        color:${layoutMode===id ? 'var(--primary)' : 'var(--text-light)'};
+                        background:${layoutMode===id ? 'rgba(34,211,238,0.1)' : 'transparent'};">
+                        ${segIcons[id]}
+                    </div>
+                `).join('')}
+            </div>
+            <div id="layout-settings-btn" style="font-size:18px; opacity:0.6; cursor:pointer;">⚙️</div>
+        `;
+        layoutBar.querySelectorAll('[data-layout]').forEach(el => {
+            el.onclick = () => window.selectLayoutPreference(el.dataset.layout);
+        });
+        layoutBar.querySelector('#layout-settings-btn').onclick = openLayoutPickerModal;
+        layoutBar.style.display = 'flex';
         let backBtn = document.getElementById("group-back-btn");
         if (!backBtn) {
             backBtn = document.createElement("button");
@@ -2006,11 +1988,7 @@ function renderPassesInGroup(groupId) {
         } else {
             passesInGroup.forEach(pass => {
                 const passIdx = programData.routine.indexOf(pass);
-                if (layoutMode === 'large') {
-                    renderLargePassCard(pass, passIdx, icons, selector);
-                } else {
-                    renderAccordionPassCard(pass, passIdx, icons, selector, layoutMode);
-                }
+                renderAccordionPassCard(pass, passIdx, icons, selector, layoutMode);
             });
         }
         if (passesInGroup.length === 0) {
