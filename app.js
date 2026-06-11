@@ -1535,6 +1535,8 @@ function renderLargePassCard(pass, passIdx, icons, selector) {
     selector.appendChild(passCard);
 }
 
+let accordionOpenPassIdx = null;
+
 function renderAccordionPassCard(pass, passIdx, icons, selector, layoutMode) {
     const isCompact = layoutMode === 'compact';
     const passCard = document.createElement("div");
@@ -1548,6 +1550,11 @@ function renderAccordionPassCard(pass, passIdx, icons, selector, layoutMode) {
         ${isCompact ? 'min-height:60px; padding:12px 15px; display:flex; align-items:center; gap:12px; flex-wrap:wrap;' : 'min-height:120px;'}
     `;
 
+    const editPencil = `
+        <div onclick="event.stopPropagation(); openEditProgramModal(${passIdx})"
+            style="position: absolute; top: 6px; right: 6px; font-size: 12px; opacity: 0.6; cursor: pointer; padding: 2px 6px; border-radius: 6px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); z-index:2;">✏️</div>
+    `;
+
     if (isCompact) {
         passCard.innerHTML = `
             <div style="position:absolute; left:0; top:0; bottom:0; width:1px; background: linear-gradient(180deg, rgba(245,158,11,0.9) 0%, rgba(245,158,11,0.1) 100%);"></div>
@@ -1557,6 +1564,7 @@ function renderAccordionPassCard(pass, passIdx, icons, selector, layoutMode) {
                 <h4 style="font-size:13px; margin:0; line-height:1.3;">${pass.name}</h4>
                 <div style="font-size:9px; color:var(--primary); font-weight:800;">${pass.exercises.length} ${pass.exercises.length === 1 ? 'EXERCISE' : 'EXERCISES'}</div>
             </div>
+            ${editPencil}
         `;
     } else {
         passCard.innerHTML = `
@@ -1567,6 +1575,7 @@ function renderAccordionPassCard(pass, passIdx, icons, selector, layoutMode) {
             <h4 style="font-size:14px; margin:8px 0 4px 0; line-height:1.3;">${pass.name}</h4>
             <div style="font-size:10px; color:var(--primary); font-weight:800;">${pass.exercises.length} ${pass.exercises.length === 1 ? 'EXERCISE' : 'EXERCISES'}</div>
             ${pass.duration ? `<div style="position:absolute; top:8px; left:10px; font-size:10px; color:#f59e0b; font-weight:600; background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.2); padding: 3px 7px; border-radius: 8px;">⏱️ ~${pass.duration} min</div>` : ''}
+            ${editPencil}
         `;
     }
 
@@ -1588,18 +1597,15 @@ function renderAccordionPassCard(pass, passIdx, icons, selector, layoutMode) {
                 c.style.opacity = c === passCard ? "1" : "0.55";
             });
             passCard.classList.add("active");
+            accordionOpenPassIdx = passIdx;
             if (!isCompact) passCard.style.gridColumn = "span 2";
 
             const list = document.createElement("div");
             list.className = "acc-exercise-list";
             list.style.cssText = "max-height:0px; opacity:0; overflow:hidden; transition: max-height 0.35s ease, opacity 0.3s ease; width:100%;";
             list.innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:flex-end; padding-top:12px; margin-top:12px; border-top:1px solid rgba(255,255,255,0.08); margin-bottom:6px;">
-                    <div>
-                        <h4 style="margin:0; font-size:14px; color:#fff;">${pass.name}</h4>
-                        <span style="font-size:9px; color:var(--text-light); text-transform:uppercase; letter-spacing:1px;">Exercises</span>
-                    </div>
-                    <span onclick="event.stopPropagation(); openEditProgramModal(${passIdx})" style="font-size:14px; opacity:0.7; cursor:pointer; padding:4px 8px; border-radius:6px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.1);">✏️</span>
+                <div style="padding-top:12px; margin-top:12px; border-top:1px solid rgba(255,255,255,0.08); margin-bottom:6px;">
+                    <span style="font-size:13px; color:var(--text-light); text-transform:uppercase; letter-spacing:1px; font-weight:700;">Exercises</span>
                 </div>
                 ${pass.exercises.map((e, i) => `
                 <div style="display:grid; grid-template-columns: 1fr 70px 12px 70px; align-items:center; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.03);">
@@ -1619,12 +1625,18 @@ function renderAccordionPassCard(pass, passIdx, icons, selector, layoutMode) {
                 list.style.opacity = "1";
             });
         } else {
+            accordionOpenPassIdx = null;
             document.querySelectorAll("#pass-selector-list .prog-card").forEach(c => {
                 c.style.opacity = "1";
             });
         }
     };
+
     selector.appendChild(passCard);
+
+    if (passIdx === accordionOpenPassIdx) {
+        passCard.click();
+    }
 }
 
 
@@ -1895,9 +1907,9 @@ function renderPassesInGroup(groupId) {
         if (!layoutBar) {
             layoutBar = document.createElement("div");
             layoutBar.id = "layout-picker-bar";
-            selector.parentElement.insertBefore(layoutBar, selector);
+            topBar.appendChild(layoutBar);
         }
-        layoutBar.style.cssText = "display:flex; align-items:center; justify-content:flex-end; gap:8px; margin-bottom:8px;";
+        layoutBar.style.cssText = "display:flex; align-items:center; gap:8px;";
         const segIcons = {
             balanced: `<div style="display:grid; grid-template-columns:repeat(2,1fr); gap:2px; width:14px; height:14px;">
                 <div style="background:currentColor; border-radius:2px;"></div><div style="background:currentColor; border-radius:2px;"></div>
@@ -1926,17 +1938,25 @@ function renderPassesInGroup(groupId) {
         });
         layoutBar.querySelector('#layout-settings-btn').onclick = openLayoutPickerModal;
         layoutBar.style.display = 'flex';
+        let topBar = document.getElementById("programs-top-bar");
+        if (!topBar) {
+            topBar = document.createElement("div");
+            topBar.id = "programs-top-bar";
+            topBar.style.cssText = "display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:16px;";
+            selector.parentElement.insertBefore(topBar, selector);
+        }
+
         let backBtn = document.getElementById("group-back-btn");
         if (!backBtn) {
             backBtn = document.createElement("button");
             backBtn.id = "group-back-btn";
-            selector.parentElement.insertBefore(backBtn, selector);
+            topBar.appendChild(backBtn);
         }
         backBtn.style.cssText = `
             display: flex; align-items: center; gap: 8px;
             background: none; border: none; color: var(--primary);
             font-size: 14px; font-weight: 700; cursor: pointer;
-            padding: 0 0 16px 0; width: 100%;
+            padding: 0;
         `;
         backBtn.innerHTML = `← ${groupDef.icon} ${groupDef.name}`;
         backBtn.onclick = () => {
