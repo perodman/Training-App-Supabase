@@ -887,6 +887,19 @@ function closePreviewModal() {
     }
 }
 
+function renderOverrideBtnContent(p, isSelected) {
+    return `
+        <span style="display:flex; align-items:center; gap:8px; width:100%;">
+            <span class="ovr-check" style="width:22px; height:22px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:900; border:2px solid ${isSelected ? '#22d3ee' : 'rgba(255,255,255,0.2)'}; background:${isSelected ? '#22d3ee' : 'transparent'}; color:${isSelected ? '#0f172a' : 'transparent'};">✓</span>
+            <span style="font-size:12px; font-weight:700; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1; min-width:0;">${p.name}</span>
+        </span>
+        <span style="display:flex; gap:10px; width:100%; font-size:9px; font-weight:800; flex-wrap:nowrap; overflow:hidden;">
+            <span style="color:#22d3ee; flex-shrink:0;">${p.exercises.length} EX</span>
+            ${p.duration ? `<span style="color:#f59e0b; flex-shrink:0; white-space:nowrap;">⏱️ ~${p.duration} MIN</span>` : ''}
+        </span>
+    `;
+}
+
 function openDayManager(dateStr, planned, completed, isOngoing) {
     if (typeof hideDefaultCloseButton === 'function') {
         hideDefaultCloseButton(false);
@@ -1175,14 +1188,7 @@ if (isOngoing && typeof activeDraft !== 'undefined' && activeDraft) {
                               color: ${isSelected ? 'var(--primary)' : 'var(--text)'} !important;
                                 outline: none !important;
                                 user-select:none; -webkit-user-select:none;">
-                               <span style="display:flex; align-items:center; gap:8px; width:100%;">
-                                    <span class="ovr-check" style="width:22px; height:22px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:900; border:2px solid ${isSelected ? '#22d3ee' : 'rgba(255,255,255,0.2)'}; background:${isSelected ? '#22d3ee' : 'transparent'}; color:${isSelected ? '#0f172a' : 'transparent'};">✓</span>
-                                    <span style="font-size:12px; font-weight:700; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1; min-width:0;">${p.name}</span>
-                                </span>
-                                <span style="display:flex; gap:10px; width:100%; font-size:9px; font-weight:800; flex-wrap:nowrap; overflow:hidden;">
-                                    <span style="color:#22d3ee; flex-shrink:0;">${p.exercises.length} EX</span>
-                                    ${p.duration ? `<span style="color:#f59e0b; flex-shrink:0; white-space:nowrap;">⏱️ ~${p.duration} MIN</span>` : ''}
-                                </span>
+                               ${renderOverrideBtnContent(p, isSelected)}
                             </button>`;
                         }).join('')}
                     </div>
@@ -1351,12 +1357,9 @@ function setOverrideSilent(dateStr, programId) {
             btn.style.setProperty('justify-content', 'flex-start', 'important');
             btn.style.setProperty('text-align', 'left', 'important');
             btn.style.color = 'var(--text)';
-            const checkSpan = btn.querySelector('.ovr-check');
-            if (checkSpan) {
-                checkSpan.style.border = '2px solid rgba(255,255,255,0.2)';
-                checkSpan.style.background = 'transparent';
-                checkSpan.style.color = 'transparent';
-            }
+            const passId = btn.id.replace('btn-ovr-', '');
+            const passObj = programData.routine.find(x => x.id === passId);
+            if (passObj) btn.innerHTML = renderOverrideBtnContent(passObj, false);
             const accentMap = ['#f59e0b', '#ef4444', '#fbbf24', '#3b82f6'];
             const idx = btn.dataset.idx ? parseInt(btn.dataset.idx) : 0;
             btn.style.setProperty('border-left', `3px solid ${accentMap[idx % 4]}`, 'important');
@@ -1376,12 +1379,8 @@ function setOverrideSilent(dateStr, programId) {
                 selectedBtn.style.setProperty('justify-content', 'flex-start', 'important');
                 selectedBtn.style.setProperty('text-align', 'left', 'important');
                 selectedBtn.style.color = 'var(--primary)';
-                const checkSpan = selectedBtn.querySelector('.ovr-check');
-                if (checkSpan) {
-                    checkSpan.style.border = '2px solid #22d3ee';
-                    checkSpan.style.background = '#22d3ee';
-                    checkSpan.style.color = '#0f172a';
-                }
+                const passObj = programData.routine.find(x => x.id === programId);
+                if (passObj) selectedBtn.innerHTML = renderOverrideBtnContent(passObj, true);
                 selectedBtn.style.setProperty('border-left', '3px solid #22d3ee', 'important');
             }
         }
