@@ -635,6 +635,18 @@ function openEditExerciseModal(id) {
             masterExercises[exIndex].name = nameInput;
             masterExercises[exIndex].target = selectedCategory;
             masterExercises[exIndex].subtarget = selectedSubcategory || null;
+
+            // Spegla ändringen i alla pass där övningen förekommer
+            programData.routine.forEach(pass => {
+                pass.exercises.forEach(ex => {
+                    if (ex.name === oldName) {
+                        ex.name = nameInput;
+                        ex.target = selectedCategory;
+                        ex.subtarget = selectedSubcategory || null;
+                    }
+                });
+            });
+
             saveAll();
             if (typeof saveCustomProgram === 'function') {
                 await saveCustomProgram();
