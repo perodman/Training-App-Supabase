@@ -1620,6 +1620,7 @@ function renderAccordionPassCard(pass, passIdx, icons, selector, layoutMode) {
                 `).join("")}
             `;
             passCard.appendChild(list);
+            void list.offsetHeight; // tvingar fram reflow så transitionen verkligen triggas
             requestAnimationFrame(() => {
                 list.style.maxHeight = (pass.exercises.length * 44 + 70) + "px";
                 list.style.opacity = "1";
@@ -1642,8 +1643,7 @@ function renderAccordionPassCard(pass, passIdx, icons, selector, layoutMode) {
 
 function renderChipsLayout(passesInGroup, selector, icons) {
     selector.style.gridTemplateColumns = '1fr';
-    if (passesInGroup.length === 0) return;
-    showChipsDetail(passesInGroup, passesInGroup[0], selector, icons);
+    showChipsDetail(passesInGroup, null, selector, icons);
 }
 
 function showChipsDetail(passesInGroup, activePass, selector, icons) {
@@ -1675,9 +1675,22 @@ function showChipsDetail(passesInGroup, activePass, selector, icons) {
         chip.style.cssText = `padding:6px 12px; border-radius:20px; font-size:11px; font-weight:700; cursor:pointer;
             ${isActive ? 'background:rgba(34,211,238,0.15); color:var(--primary); border:1px solid var(--primary);' : 'background:rgba(255,255,255,0.05); color:var(--text-light); border:1px solid rgba(255,255,255,0.1);'}`;
         chip.textContent = p.name;
-        chip.onclick = () => showChipsDetail(passesInGroup, p, selector, icons);
+        chip.onclick = () => showChipsDetail(passesInGroup, isActive ? null : p, selector, icons);
         chipsRow.appendChild(chip);
     });
+
+    const hint = document.getElementById('groups-hint-bubble');
+    const hintWrap = document.getElementById('groups-hint-wrap');
+
+    if (!activePass) {
+        detailCard.style.display = 'none';
+        detailCard.innerHTML = '';
+        if (hintWrap) hintWrap.style.display = '';
+        return;
+    }
+
+    if (hintWrap) hintWrap.style.display = 'none';
+    detailCard.style.display = 'block';
 
     const passIdx = programData.routine.indexOf(activePass);
     detailCard.innerHTML = `
