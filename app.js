@@ -1546,7 +1546,7 @@ function renderAccordionPassCard(pass, passIdx, icons, selector, layoutMode) {
         background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
         border-top: 3px solid #f59e0b;
         border-radius: 16px;
-        transition: all 0.3s ease;
+        transition: opacity 0.3s ease, grid-column 0.3s ease;
         ${isCompact ? 'min-height:60px; padding:12px 15px; display:flex; align-items:center; gap:12px; flex-wrap:wrap;' : 'min-height:120px;'}
     `;
 
@@ -1703,7 +1703,7 @@ function showChipsDetail(passesInGroup, activePass, selector, icons) {
                 <h4 style="margin:0; font-size:16px; color:#fff;">${activePass.name}</h4>
                 <div style="display:flex; gap:10px; margin-top:4px; align-items:center;">
                     <span style="font-size:10px; color:var(--primary); font-weight:800; text-transform:uppercase;">${activePass.exercises.length} ${activePass.exercises.length === 1 ? 'EXERCISE' : 'EXERCISES'}</span>
-                    ${activePass.duration ? `<span style="font-size:14px; color:#f59e0b; font-weight:800;">⏱️ ~${activePass.duration} min</span>` : ''}
+                    ${activePass.duration ? `<span style="font-size:12px; color:#f59e0b; font-weight:800;">⏱️ ~${activePass.duration} min</span>` : ''}
                 </div>
             </div>
             <span onclick="event.stopPropagation(); openEditProgramModal(${passIdx})" style="font-size:14px; opacity:0.7; cursor:pointer; padding:4px 8px; border-radius:6px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.1);">✏️</span>
