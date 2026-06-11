@@ -1663,7 +1663,9 @@ function showChipsDetail(passesInGroup, activePass, selector, icons) {
         detailCard.id = "chips-detail-card";
         detailCard.style.cssText = `
             background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-            border-top: 3px solid #f59e0b; border-radius: 16px; padding: 16px; position:relative; overflow:hidden;
+            border-top: 3px solid #f59e0b; border-radius: 16px; position:relative; overflow:hidden;
+            max-height:0px; opacity:0; padding:0 16px;
+            transition: max-height 0.35s ease, opacity 0.3s ease, padding 0.35s ease;
         `;
         selector.appendChild(detailCard);
     }
@@ -1679,18 +1681,18 @@ function showChipsDetail(passesInGroup, activePass, selector, icons) {
         chipsRow.appendChild(chip);
     });
 
-    const hint = document.getElementById('groups-hint-bubble');
-    const hintWrap = document.getElementById('groups-hint-wrap');
-
     if (!activePass) {
-        detailCard.style.display = 'none';
-        detailCard.innerHTML = '';
-        if (hintWrap) hintWrap.style.display = '';
+        // Collapsa mjukt
+        const currentHeight = detailCard.scrollHeight + 32; // +32 = padding top+bottom när öppen
+        detailCard.style.maxHeight = currentHeight + "px";
+        void detailCard.offsetHeight;
+        requestAnimationFrame(() => {
+            detailCard.style.maxHeight = "0px";
+            detailCard.style.opacity = "0";
+            detailCard.style.padding = "0 16px";
+        });
         return;
     }
-
-    if (hintWrap) hintWrap.style.display = 'none';
-    detailCard.style.display = 'block';
 
     const passIdx = programData.routine.indexOf(activePass);
     detailCard.innerHTML = `
@@ -1718,6 +1720,18 @@ function showChipsDetail(passesInGroup, activePass, selector, icons) {
         </div>
         `).join("")}
     `;
+
+    // Mät naturlig innehållshöjd (utan padding) och expandera mjukt
+    const targetHeight = detailCard.scrollHeight + 32;
+    detailCard.style.maxHeight = "0px";
+    detailCard.style.opacity = "0";
+    detailCard.style.padding = "0 16px";
+    void detailCard.offsetHeight;
+    requestAnimationFrame(() => {
+        detailCard.style.padding = "16px";
+        detailCard.style.maxHeight = targetHeight + "px";
+        detailCard.style.opacity = "1";
+    });
 }
 
 function openLayoutPickerModal() {
@@ -5108,18 +5122,13 @@ function closeEditProgramModal(idx) {
             </div>
         `;
     } else {
-        // Inga ändringar — stäng direkt
+        // Inga ändringar — stäng direkt utan att rita om vyn
         if (pass._isTemp) {
             programData.routine.splice(idx, 1);
         }
         window._editPassOriginalState = null;
         hideDefaultCloseButton(false);
         document.getElementById('workout-modal').classList.add('hidden');
-        if (currentViewGroupId) {
-            renderPassesInGroup(currentViewGroupId);
-        } else {
-            renderGroupsView();
-        }
     }
 }
 
