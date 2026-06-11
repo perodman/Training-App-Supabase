@@ -1908,12 +1908,11 @@ function showProgramDetails(idx) {
             <button class="order-btn" style="background:var(--primary); color:#0f172a; padding:8px 15px; border-radius:10px; font-weight:800; border:none; cursor:pointer; font-size:12px;" onclick="openEditProgramModal(${idx})">Edit</button>
         </div>
         ${pass.exercises.map(e => `
-        <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.03);">
+        <div style="display:grid; grid-template-columns: 1fr 70px 12px 70px; align-items:center; padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.03); gap:0;">
          <span style="font-weight:600;">${e.name}</span>
-       <span style="display:flex; align-items:center; gap:8px; font-weight:800; text-transform:uppercase; font-size:10px;">
-            <span style="color:var(--primary); width:80px; text-align:right;">${CATEGORY_DISPLAY[e.target] || e.target}</span>
-            ${e.subtarget ? `<span style="border-left:1px solid rgba(255,255,255,0.15); padding-left:8px; color:var(--text-light); opacity:0.6; min-width:70px;">${e.subtarget}</span>` : `<span style="min-width:70px;"></span>`}
-        </span>
+         <span style="font-weight:800; text-transform:uppercase; font-size:9px; color:var(--primary); text-align:right;">${CATEGORY_DISPLAY[e.target] || e.target}</span>
+         <span style="height:100%; display:flex; justify-content:center;">${e.subtarget ? '<span style="width:1px; height:14px; background:rgba(255,255,255,0.15);"></span>' : ''}</span>
+         <span style="font-weight:800; text-transform:uppercase; font-size:10px; color:var(--text-light); opacity:0.6;">${e.subtarget || ''}</span>
         </div>
         `).join("")}
     `;
