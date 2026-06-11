@@ -1739,10 +1739,48 @@ passCard.innerHTML = `
                 <div onclick="event.stopPropagation(); openEditProgramModal(${passIdx})"
                     style="position: absolute; top: 6px; right: 6px; font-size: 12px; opacity: 0.6; cursor: pointer; padding: 2px 6px; border-radius: 6px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1);">✏️</div>
             `;
+            passCard.style.transition = "all 0.3s ease";
             passCard.onclick = () => {
-                document.querySelectorAll(".prog-card").forEach(c => c.classList.remove("active"));
-                passCard.classList.add("active");
-                showProgramDetails(passIdx);
+                const isOpen = passCard.classList.contains("active");
+
+                selector.querySelectorAll(".prog-card.active").forEach(c => {
+                    c.classList.remove("active");
+                    c.style.gridColumn = "span 1";
+                    const list = c.querySelector(".acc-exercise-list");
+                    if (list) {
+                        list.style.maxHeight = "0px";
+                        list.style.opacity = "0";
+                        setTimeout(() => list.remove(), 300);
+                    }
+                });
+
+                if (!isOpen) {
+                    passCard.classList.add("active");
+                    passCard.style.gridColumn = "span 2";
+
+                    const list = document.createElement("div");
+                    list.className = "acc-exercise-list";
+                    list.style.cssText = "max-height:0px; opacity:0; overflow:hidden; transition: max-height 0.35s ease, opacity 0.3s ease;";
+                    list.innerHTML = `
+                        <div style="margin-top:12px; padding-top:12px; border-top:1px solid var(--glass-border); display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                            <h4 style="margin:0; font-size:14px;">${pass.name}</h4>
+                            <button onclick="event.stopPropagation(); openEditProgramModal(${passIdx})" style="background:var(--primary); color:#0f172a; padding:6px 12px; border-radius:8px; font-weight:800; border:none; cursor:pointer; font-size:11px;">Edit</button>
+                        </div>
+                        ${pass.exercises.map(e => `
+                        <div style="display:grid; grid-template-columns: 1fr 70px 12px 70px; align-items:center; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.03);">
+                         <span style="font-weight:600; font-size:13px;">${e.name}</span>
+                         <span style="font-weight:800; text-transform:uppercase; font-size:9px; color:var(--primary); text-align:right;">${CATEGORY_DISPLAY[e.target] || e.target}</span>
+                         <span style="height:100%; display:flex; justify-content:center;">${e.subtarget ? '<span style="width:1px; height:14px; background:rgba(255,255,255,0.15);"></span>' : ''}</span>
+                         <span style="font-weight:800; text-transform:uppercase; font-size:9px; color:var(--text-light); opacity:0.6;">${e.subtarget || ''}</span>
+                        </div>
+                        `).join("")}
+                    `;
+                    passCard.appendChild(list);
+                    requestAnimationFrame(() => {
+                        list.style.maxHeight = (pass.exercises.length * 44 + 70) + "px";
+                        list.style.opacity = "1";
+                    });
+                }
             };
             selector.appendChild(passCard);
         });
