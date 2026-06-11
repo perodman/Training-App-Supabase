@@ -1185,6 +1185,7 @@ if (isOngoing && typeof activeDraft !== 'undefined' && activeDraft) {
                                 id="btn-ovr-${p.id}"
                                 data-name="${p.name}"
                                 data-idx="${idx}"
+                                data-accent="${accentColor}"
                                 data-compact="true"
                                 onclick="if(!isLongPress) { setOverrideSilent('${dateStr}', '${p.id}'); cancelPress(); }"
                                 onmousedown="startPress(${programData.routine.indexOf(p)}, event)"
@@ -1253,8 +1254,8 @@ function renderOverrideBtnContentCompact(p, isSelected) {
             <span class="ovr-check" style="width:20px; height:20px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:900; border:2px solid ${isSelected ? '#22d3ee' : 'rgba(255,255,255,0.2)'}; background:${isSelected ? '#22d3ee' : 'transparent'}; color:${isSelected ? '#0f172a' : 'transparent'};">✓</span>
             <span style="font-size:12px; font-weight:700; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${p.name}</span>
         </span>
-        <span style="display:flex; gap:10px; flex-shrink:0; font-size:9px; font-weight:800;">
-           <span style="color:#22d3ee;">${p.exercises.length} EXERCISES</span>
+       <span style="display:flex; gap:10px; flex-shrink:0; font-size:11px; font-weight:800;">
+            <span style="color:#22d3ee;">${p.exercises.length} EXERCISES</span>
             ${p.duration ? `<span style="color:#f59e0b; white-space:nowrap;">⏱️ ~${p.duration} MIN</span>` : ''}
         </span>
     `;
@@ -1403,9 +1404,8 @@ function setOverrideSilent(dateStr, programId) {
                     ? renderOverrideBtnContentCompact(passObj, false)
                     : renderOverrideBtnContent(passObj, false);
             }
-            const accentMap = ['#f59e0b', '#ef4444', '#fbbf24', '#3b82f6'];
-            const idx = btn.dataset.idx ? parseInt(btn.dataset.idx) : 0;
-            btn.style.setProperty('border-left', `3px solid ${accentMap[idx % 4]}`, 'important');
+            const accent = btn.dataset.accent || '#22d3ee';
+            btn.style.setProperty('border-left', `3px solid ${accent}`, 'important');
         }
     });
     // Markera den valda knappen
