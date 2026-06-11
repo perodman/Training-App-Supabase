@@ -1910,9 +1910,9 @@ function showProgramDetails(idx) {
         ${pass.exercises.map(e => `
         <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.03);">
          <span style="font-weight:600;">${e.name}</span>
-        <span style="display:flex; align-items:center; gap:8px; font-weight:800; text-transform:uppercase; font-size:9px;">
-            <span style="color:var(--primary);">${CATEGORY_DISPLAY[e.target] || e.target}</span>
-            ${e.subtarget ? `<span style="border-left:1px solid rgba(255,255,255,0.15); padding-left:8px; color:var(--text-light); opacity:0.6;">${e.subtarget}</span>` : ''}
+       <span style="display:flex; align-items:center; gap:8px; font-weight:800; text-transform:uppercase; font-size:10px;">
+            <span style="color:var(--primary); min-width:62px; text-align:right;">${CATEGORY_DISPLAY[e.target] || e.target}</span>
+            ${e.subtarget ? `<span style="border-left:1px solid rgba(255,255,255,0.15); padding-left:8px; color:var(--text-light); opacity:0.6; min-width:70px;">${e.subtarget}</span>` : `<span style="min-width:70px;"></span>`}
         </span>
         </div>
         `).join("")}
