@@ -1903,13 +1903,7 @@ function renderPassesInGroup(groupId) {
         const layoutMode = programData.layoutPreference || 'balanced';
         const gridCols = layoutMode === 'compact' ? '1fr' : 'repeat(2, 1fr)';
         selector.style.cssText = `display: grid; grid-template-columns: ${gridCols}; gap: 12px; transition: transform 0.3s ease, opacity 0.3s ease; transform: translateX(30px); opacity: 0;`;
-        let layoutBar = document.getElementById("layout-picker-bar");
-        if (!layoutBar) {
-            layoutBar = document.createElement("div");
-            layoutBar.id = "layout-picker-bar";
-            topBar.appendChild(layoutBar);
-        }
-        layoutBar.style.cssText = "display:flex; align-items:center; gap:8px;";
+       
         const segIcons = {
             balanced: `<div style="display:grid; grid-template-columns:repeat(2,1fr); gap:2px; width:14px; height:14px;">
                 <div style="background:currentColor; border-radius:2px;"></div><div style="background:currentColor; border-radius:2px;"></div>
@@ -1945,6 +1939,13 @@ function renderPassesInGroup(groupId) {
             topBar.style.cssText = "display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:16px;";
             selector.parentElement.insertBefore(topBar, selector);
         }
+         let layoutBar = document.getElementById("layout-picker-bar");
+        if (!layoutBar) {
+            layoutBar = document.createElement("div");
+            layoutBar.id = "layout-picker-bar";
+            topBar.appendChild(layoutBar);
+        }
+        layoutBar.style.cssText = "display:flex; align-items:center; gap:8px;";
 
         let backBtn = document.getElementById("group-back-btn");
         if (!backBtn) {
