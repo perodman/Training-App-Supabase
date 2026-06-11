@@ -726,53 +726,6 @@ function renderCalendar(isFromStartBtn = false) {
     }
 }
 
-// NY FUNKTION: Öppnar en renodlad popup-ruta med övningarna (Likt showProgramDetails fast som modal)
-function openProgramPreviewModal(idx) {
-    if(!programData || !programData.routine[idx]) return;
-    const pass = programData.routine[idx];
-
-    // Skapa ett temporärt modalelement om det inte redan finns
-    let previewModal = document.getElementById("preview-modal");
-    if (!previewModal) {
-        previewModal = document.createElement("div");
-        previewModal.id = "preview-modal";
-        previewModal.style.position = "fixed";
-        previewModal.style.top = "0";
-        previewModal.style.left = "0";
-        previewModal.style.width = "100vw";
-        previewModal.style.height = "100vh";
-        previewModal.style.backgroundColor = "rgba(0, 0, 0, 0.75)";
-        previewModal.style.backdropFilter = "blur(8px)";
-        previewModal.style.display = "flex";
-        previewModal.style.justifyContent = "center";
-        previewModal.style.alignItems = "center";
-        previewModal.style.zIndex = "10000"; // Se till att den hamnar överst av allt
-        document.body.appendChild(previewModal);
-    }
-    // Generera innehållet till popupen
-    previewModal.innerHTML = `
-        <div class="card glass" style="width: 90%; max-width: 400px; padding: 20px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); background: rgba(15, 23, 42, 0.95); animation: modalFadeIn 0.2s ease-out;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.08);">
-                <h3 style="margin: 0; font-size: 20px; color: #fff;">${pass.name}</h3>
-                <button onclick="document.getElementById('preview-modal').style.display='none'" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--text-light); cursor: pointer; font-size: 14px; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;"> ✖ </button>
-            </div>
-            <div style="max-height: 300px; overflow-y: auto; display: flex; flex-direction: column; gap: 2px;">
-                ${pass.exercises.map(e => `
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 4px; border-bottom: 1px solid rgba(255,255,255,0.03);">
-                    <span style="font-weight: 600; color: #ffffff; font-size: 14px;">${e.name}</span>
-                    <small style="color: var(--primary); font-weight: 800; text-transform: uppercase; font-size: 10px; background: rgba(59, 130, 246, 0.1); padding: 4px 8px; border-radius: 6px;">${e.target || 'Exercise'}</small>
-                </div>
-                `).join("")}
-            </div>
-            <button onclick="document.getElementById('preview-modal').style.display='none'" style="width: 100%; margin-top: 20px; padding: 12px; background: var(--primary); color: #0f172a; border: none; border-radius: 12px; font-weight: 700; cursor: pointer;">
-                Close Overview
-            </button>
-        </div>
-    `;
-    // Visa modalen
-    previewModal.style.display = "flex";
-}
-
 // GLOBALA VARIABLER FÖR LÅNGTRYCK OCH SCROLL-ACCURACY
 let pressTimer;
 let touchTimeout = null;
@@ -885,10 +838,15 @@ function openProgramPreviewModal(idx) {
                 <button onclick="closePreviewModal()" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--text-light); cursor: pointer; font-size: 14px; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;"> ✖ </button>
             </div>
             <div style="max-height: 65vh; overflow-y: auto; display: flex; flex-direction: column; gap: 2px;">
-                ${pass.exercises.map(e => `
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 4px; border-bottom: 1px solid rgba(255,255,255,0.03);">
-                    <span style="font-weight: 600; color: #ffffff; font-size: 14px;">${e.name}</span>
-                    <small style="color: var(--primary); font-weight: 800; text-transform: uppercase; font-size: 10px; background: rgba(59, 130, 246, 0.1); padding: 4px 8px; border-radius: 6px;">${e.target || 'Exercise'}</small>
+                ${pass.exercises.map((e, i) => `
+                <div style="display:grid; grid-template-columns: 1fr 70px 12px 70px; align-items:center; padding:10px 4px; border-bottom:1px solid rgba(255,255,255,0.03);">
+                    <span style="display:flex; align-items:center; gap:10px; font-weight:600; font-size:13px; color:#ffffff;">
+                        <span style="display:flex; align-items:center; justify-content:center; width:18px; height:18px; border-radius:50%; border:1px solid rgba(34,211,238,0.4); color:var(--primary); font-size:10px; font-weight:700; flex-shrink:0;">${i + 1}</span>
+                        ${e.name}
+                    </span>
+                    <span style="font-weight:800; text-transform:uppercase; font-size:9px; color:var(--primary); text-align:right;">${CATEGORY_DISPLAY[e.target] || e.target}</span>
+                    <span style="height:100%; display:flex; justify-content:center;">${e.subtarget ? '<span style="width:1px; height:14px; background:rgba(255,255,255,0.15);"></span>' : ''}</span>
+                    <span style="font-weight:800; text-transform:uppercase; font-size:9px; color:var(--text-light); opacity:0.6;">${e.subtarget || ''}</span>
                 </div>
                 `).join("")}
             </div>
@@ -1177,7 +1135,7 @@ if (isOngoing && typeof activeDraft !== 'undefined' && activeDraft) {
                                 display: none;
                 ">
                     <div style="padding: 6px 10px 10px 10px; background: rgba(0,0,0,0.2); display:flex; flex-direction:column; gap:6px;">
-                        <div style="font-size:10px; color:var(--text-light); opacity:0.4; text-align:center; padding: 4px 0 6px 0; font-weight:600; letter-spacing:0.3px;">
+                        <div style="font-size:10px; color:var(--text-light); opacity:0.7; text-align:center; padding: 4px 0 6px 0; font-weight:600; letter-spacing:0.3px;">
                             💡 Hold to preview exercises
                         </div>
                         ${passes.map(p => {
