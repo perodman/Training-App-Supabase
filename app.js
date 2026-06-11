@@ -1908,9 +1908,12 @@ function showProgramDetails(idx) {
             <button class="order-btn" style="background:var(--primary); color:#0f172a; padding:8px 15px; border-radius:10px; font-weight:800; border:none; cursor:pointer; font-size:12px;" onclick="openEditProgramModal(${idx})">Edit</button>
         </div>
         ${pass.exercises.map(e => `
-        <div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.03);">
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.03);">
          <span style="font-weight:600;">${e.name}</span>
-        <small style="color:var(--primary); font-weight:800; text-transform:uppercase; font-size:9px;">${CATEGORY_DISPLAY[e.target] || e.target}${e.subtarget ? ' • ' + e.subtarget : ''}</small>
+        <span style="text-align:right; line-height:1.3;">
+            <small style="display:block; color:var(--primary); font-weight:800; text-transform:uppercase; font-size:9px;">${CATEGORY_DISPLAY[e.target] || e.target}</small>
+            ${e.subtarget ? `<small style="display:block; color:var(--text-light); font-weight:600; text-transform:uppercase; font-size:8px; opacity:0.7;">${e.subtarget}</small>` : ''}
+        </span>
         </div>
         `).join("")}
     `;
