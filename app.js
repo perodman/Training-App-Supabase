@@ -1111,7 +1111,7 @@ if (isOngoing && typeof activeDraft !== 'undefined' && activeDraft) {
                 <span style="font-size:13px; font-weight:700; color:#fff; letter-spacing:0.3px;">Tap a group to change workout</span>
             </div>
         </div>
-        <div id="day-manager-group-container" style="display: flex; flex-direction: column; gap: 12px; border-left: none;">`;
+       <div id="day-manager-group-container" style="display: flex; flex-direction: column; gap: 18px; border-left: none;">`;
 
         const GROUP_COLORS = {
             fullbody: '#f59e0b',
@@ -1191,7 +1191,7 @@ if (isOngoing && typeof activeDraft !== 'undefined' && activeDraft) {
                                 text-align:left !important; display:flex !important; flex-direction:column !important;
                                 align-items:flex-start !important; justify-content:flex-start !important; gap:6px;
                                 background: #1e293b !important;
-                                border: none !important;
+                                border: 1px solid ${isSelected ? '#22d3ee' : 'rgba(255,255,255,0.08)'} !important;
                                 border-left: 3px solid ${isSelected ? '#22d3ee' : accentColor} !important;
                                 box-shadow: 0 4px 10px rgba(0,0,0,0.4) !important;
                               color: ${isSelected ? 'var(--primary)' : 'var(--text)'} !important;
@@ -1361,7 +1361,7 @@ function setOverrideSilent(dateStr, programId) {
         btn.classList.remove('active-choice');
         if (!btn.classList.contains('override-rest-btn')) {
             btn.style.setProperty('background', '#1e293b', 'important');
-            btn.style.setProperty('border', 'none', 'important');
+            btn.style.setProperty('border', '1px solid rgba(255,255,255,0.08)', 'important');
             btn.style.color = 'var(--text)';
             const passId = btn.id.replace('btn-ovr-', '');
             const passObj = programData.routine.find(x => x.id === passId);
@@ -1380,7 +1380,7 @@ function setOverrideSilent(dateStr, programId) {
             if (selectedBtn) {
                 selectedBtn.classList.remove('active-choice');
                 selectedBtn.style.setProperty('background', 'rgba(34,211,238,0.1)', 'important');
-                selectedBtn.style.setProperty('border', 'none', 'important');
+                selectedBtn.style.setProperty('border', '1px solid #22d3ee', 'important');
                 selectedBtn.style.color = 'var(--primary)';
                 const passObj = programData.routine.find(x => x.id === programId);
                 if (passObj) selectedBtn.innerHTML = renderOverrideBtnContent(passObj, true);
