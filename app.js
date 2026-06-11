@@ -1160,7 +1160,9 @@ if (isOngoing && typeof activeDraft !== 'undefined' && activeDraft) {
                                 ontouchend="handleTouchEnd(${programData.routine.indexOf(p)}, '${dateStr}', '${p.id}', event)"
                                 ontouchmove="handleTouchMove(event)"
                                 style="margin:0; padding:10px 14px; font-size:13px; border-radius:14px; font-weight:600;
-                                width:100%; text-align:left; display:flex; align-items:center; gap:14px;
+                                width:100% !important; height:auto !important; min-height:0 !important;
+                                text-align:left !important; display:flex !important; flex-direction:row !important;
+                                align-items:center !important; justify-content:flex-start !important; gap:14px;
                                 background: ${isSelected ? 'rgba(34,211,238,0.1)' : '#1e293b'} !important;
                                 border: 1px solid ${isSelected ? 'rgba(34,211,238,1)' : 'rgba(255,255,255,0.08)'} !important;
                                 color: ${isSelected ? 'var(--primary)' : 'var(--text)'} !important;
@@ -1331,6 +1333,9 @@ function setOverrideSilent(dateStr, programId) {
         if (!btn.classList.contains('override-rest-btn')) {
             btn.style.setProperty('background', '#1e293b', 'important');
             btn.style.setProperty('border', '1px solid rgba(255,255,255,0.08)', 'important');
+            btn.style.setProperty('flex-direction', 'row', 'important');
+            btn.style.setProperty('justify-content', 'flex-start', 'important');
+            btn.style.setProperty('text-align', 'left', 'important');
             btn.style.color = 'var(--text)';
             const iconCircle = btn.querySelector('span');
             const nameSpan = btn.querySelector('span > span:first-child');
@@ -1354,6 +1359,9 @@ function setOverrideSilent(dateStr, programId) {
                 selectedBtn.classList.add('active-choice');
                 selectedBtn.style.setProperty('background', 'rgba(34,211,238,0.1)', 'important');
                 selectedBtn.style.setProperty('border', '1px solid rgba(34,211,238,1)', 'important');
+                selectedBtn.style.setProperty('flex-direction', 'row', 'important');
+                selectedBtn.style.setProperty('justify-content', 'flex-start', 'important');
+                selectedBtn.style.setProperty('text-align', 'left', 'important');
                 selectedBtn.style.color = 'var(--primary)';
                 const iconCircle = selectedBtn.querySelector('span');
                 const nameSpan = selectedBtn.querySelector('span > span:first-child');
