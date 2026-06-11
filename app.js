@@ -1148,11 +1148,15 @@ if (isOngoing && typeof activeDraft !== 'undefined' && activeDraft) {
                         ${passes.map(p => {
                             const isSelected = planned && p.id === planned.id;
                             const passIcons = [' ⚡ ', ' 🔥 ', ' 🏆 ', ' 💎 '];
-                            const icon = passIcons[programData.routine.indexOf(p) % 4];
+                            const iconColors = ['#f59e0b', '#ef4444', '#fbbf24', '#3b82f6'];
+                            const idx = programData.routine.indexOf(p) % 4;
+                            const icon = passIcons[idx];
+                            const accentColor = iconColors[idx];
                             return `
                             <button class="mode-btn plan-override-btn ${isSelected ? 'active-choice' : ''}"
                                 id="btn-ovr-${p.id}"
                                 data-name="${p.name}"
+                                data-idx="${idx}"
                                 onclick="if(!isLongPress) { setOverrideSilent('${dateStr}', '${p.id}'); cancelPress(); }"
                                 onmousedown="startPress(${programData.routine.indexOf(p)}, event)"
                                 onmouseup="if(!isLongPress && !hasScrolled) setOverrideSilent('${dateStr}', '${p.id}'); cancelPress();"
@@ -1160,21 +1164,23 @@ if (isOngoing && typeof activeDraft !== 'undefined' && activeDraft) {
                                 ontouchstart="startPress(${programData.routine.indexOf(p)}, event)"
                                 ontouchend="handleTouchEnd(${programData.routine.indexOf(p)}, '${dateStr}', '${p.id}', event)"
                                 ontouchmove="handleTouchMove(event)"
-                                style="margin:0; padding:10px 12px; font-size:13px; border-radius:14px; font-weight:600;
+                                style="margin:0; padding:10px 12px; font-size:13px; border-radius:12px; font-weight:600;
                                 width:100% !important; height:auto !important; min-height:0 !important;
                                 text-align:left !important; display:flex !important; flex-direction:column !important;
                                 align-items:flex-start !important; justify-content:flex-start !important; gap:6px;
-                                background: ${isSelected ? 'rgba(34,211,238,0.1)' : '#1e293b'} !important;
-                                border: 1px solid ${isSelected ? 'rgba(34,211,238,1)' : 'rgba(255,255,255,0.08)'} !important;
+                                background: #1e293b !important;
+                                border: none !important;
+                                border-left: 3px solid ${isSelected ? '#22d3ee' : accentColor} !important;
+                                box-shadow: 0 4px 10px rgba(0,0,0,0.4) !important;
                                 color: ${isSelected ? 'var(--primary)' : 'var(--text)'} !important;
                                 user-select:none; -webkit-user-select:none;">
                                 <span style="display:flex; align-items:center; gap:8px; width:100%;">
-                                    <span style="width:28px; height:28px; border-radius:50%; background:${isSelected ? 'rgba(34,211,238,0.2)' : 'rgba(255,255,255,0.05)'}; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0;">${icon}</span>
+                                    <span style="font-size:16px;">${icon}</span>
                                     <span style="font-size:12px; font-weight:700; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${isSelected ? '✓ ' : ''}${p.name}</span>
                                 </span>
-                                <span style="display:flex; justify-content:space-between; width:100%; font-size:9px; font-weight:800; text-transform:uppercase; opacity:${isSelected ? '0.7' : '0.5'}; color:${isSelected ? 'var(--primary)' : 'var(--text-light)'};">
-                                    <span>${p.exercises.length} EX</span>
-                                    ${p.duration ? `<span>⏱️ ~${p.duration} min</span>` : ''}
+                                <span style="display:flex; justify-content:space-between; width:100%; font-size:9px; font-weight:800;">
+                                    <span style="color:#22d3ee;">${p.exercises.length} EX</span>
+                                    ${p.duration ? `<span style="color:#f59e0b;">⏱️ ~${p.duration} MIN</span>` : ''}
                                 </span>
                             </button>`;
                         }).join('')}
@@ -1341,16 +1347,11 @@ function setOverrideSilent(dateStr, programId) {
             btn.style.setProperty('justify-content', 'flex-start', 'important');
             btn.style.setProperty('text-align', 'left', 'important');
             btn.style.color = 'var(--text)';
-            const iconCircle = btn.querySelector('span');
-            const nameSpan = btn.querySelector('span > span:first-child');
-            const subSpan = btn.querySelector('span > span:last-child');
-            if (iconCircle) iconCircle.style.background = 'rgba(255,255,255,0.05)';
+            const nameSpan = btn.querySelector('span > span:last-child');
             if (nameSpan && btn.dataset.name) nameSpan.textContent = btn.dataset.name;
-            if (subSpan) {
-                subSpan.style.opacity = '0.5';
-                subSpan.style.color = 'var(--text-light)';
-                subSpan.textContent = subSpan.textContent.replace(' • Selected', '');
-            }
+            const accentMap = ['#f59e0b', '#ef4444', '#fbbf24', '#3b82f6'];
+            const idx = btn.dataset.idx ? parseInt(btn.dataset.idx) : 0;
+            btn.style.setProperty('border-left', `3px solid ${accentMap[idx % 4]}`, 'important');
         }
     });
     // Markera den valda knappen
@@ -1367,18 +1368,9 @@ function setOverrideSilent(dateStr, programId) {
                 selectedBtn.style.setProperty('justify-content', 'flex-start', 'important');
                 selectedBtn.style.setProperty('text-align', 'left', 'important');
                 selectedBtn.style.color = 'var(--primary)';
-                const iconCircle = selectedBtn.querySelector('span');
-                const nameSpan = selectedBtn.querySelector('span > span:first-child');
-                const subSpan = selectedBtn.querySelector('span > span:last-child');
-                if (iconCircle) iconCircle.style.background = 'rgba(34,211,238,0.2)';
+                const nameSpan = selectedBtn.querySelector('span > span:last-child');
                 if (nameSpan) nameSpan.textContent = '✓ ' + (selectedBtn.dataset.name || nameSpan.textContent);
-                if (subSpan) {
-                    subSpan.style.opacity = '0.7';
-                    subSpan.style.color = 'var(--primary)';
-                    if (!subSpan.textContent.includes('Selected')) {
-                        subSpan.textContent += ' • Selected';
-                    }
-                }
+                selectedBtn.style.setProperty('border-left', '3px solid #22d3ee', 'important');
             }
         }
     
