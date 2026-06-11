@@ -1167,18 +1167,28 @@ if (isOngoing && typeof activeDraft !== 'undefined' && activeDraft) {
                     <div style="font-size:10px; color:var(--text-light); opacity:0.7; text-align:center; padding: 4px 0 6px 0; font-weight:600; letter-spacing:0.3px;">
                         💡 Hold to preview exercises
                     </div>
-                    <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:8px;">
-                        ${passes.map(p => {
+                    ${(() => {
+                        const isCompactList = passes.length > PASS_COMPACT_THRESHOLD;
+                        const gridCols = isCompactList ? '1fr' : 'repeat(2,1fr)';
+                        const visiblePasses = isCompactList ? passes.slice(0, PASS_COMPACT_THRESHOLD) : passes;
+                        const buttonsHtml = visiblePasses.map(p => {
                             const isSelected = planned && p.id === planned.id;
                             const passIcons = [' ⚡ ', ' 🔥 ', ' 🏆 ', ' 💎 '];
                             const idx = programData.routine.indexOf(p) % 4;
                             const icon = passIcons[idx];
                             const accentColor = groupAccent;
+                            const contentHtml = isCompactList
+                                ? renderOverrideBtnContentCompact(p, isSelected)
+                                : renderOverrideBtnContent(p, isSelected);
+                            const flexStyles = isCompactList
+                                ? `flex-direction:row !important; align-items:center !important; justify-content:space-between !important; padding:8px 12px;`
+                                : `flex-direction:column !important; align-items:flex-start !important; justify-content:flex-start !important; gap:6px; padding:10px 12px;`;
                             return `
                             <button class="mode-btn plan-override-btn plan-override-btn-v2"
                                 id="btn-ovr-${p.id}"
                                 data-name="${p.name}"
                                 data-idx="${idx}"
+                                data-compact="${isCompactList}"
                                 onclick="if(!isLongPress) { setOverrideSilent('${dateStr}', '${p.id}'); cancelPress(); }"
                                 onmousedown="startPress(${programData.routine.indexOf(p)}, event)"
                                 onmouseup="if(!isLongPress && !hasScrolled) setOverrideSilent('${dateStr}', '${p.id}'); cancelPress();"
@@ -1186,21 +1196,28 @@ if (isOngoing && typeof activeDraft !== 'undefined' && activeDraft) {
                                 ontouchstart="startPress(${programData.routine.indexOf(p)}, event)"
                                 ontouchend="handleTouchEnd(${programData.routine.indexOf(p)}, '${dateStr}', '${p.id}', event)"
                                 ontouchmove="handleTouchMove(event)"
-                                style="margin:0; padding:10px 12px; font-size:13px; border-radius:12px; font-weight:600;
+                                style="margin:0; ${flexStyles} font-size:13px; border-radius:12px; font-weight:600;
                                 width:100% !important; height:auto !important; min-height:0 !important;
-                                text-align:left !important; display:flex !important; flex-direction:column !important;
-                                align-items:flex-start !important; justify-content:flex-start !important; gap:6px;
+                                text-align:left !important; display:flex !important;
                                 background: #1e293b !important;
                                 border: 1px solid ${isSelected ? '#22d3ee' : 'rgba(255,255,255,0.08)'} !important;
                                 border-left: 3px solid ${isSelected ? '#22d3ee' : accentColor} !important;
                                 box-shadow: 0 4px 10px rgba(0,0,0,0.4) !important;
-                              color: ${isSelected ? 'var(--primary)' : 'var(--text)'} !important;
+                                color: ${isSelected ? 'var(--primary)' : 'var(--text)'} !important;
                                 outline: none !important;
                                 user-select:none; -webkit-user-select:none;">
-                               ${renderOverrideBtnContent(p, isSelected)}
+                               ${contentHtml}
                             </button>`;
-                        }).join('')}
-                    </div>
+                        }).join('');
+                        const browseLink = isCompactList ? `
+                            <button onclick="goToWorkoutProgramsGroup('${g.id}')"
+                                style="margin-top:8px; width:100%; padding:10px; border-radius:12px;
+                                border:1px dashed rgba(34,211,238,0.4); background:rgba(34,211,238,0.04);
+                                color:var(--primary); font-size:12px; font-weight:700; cursor:pointer;">
+                                Browse all ${passes.length} workouts in Workout Programs →
+                            </button>` : '';
+                        return `<div style="display:grid; grid-template-columns:${gridCols}; gap:8px;">${buttonsHtml}</div>${browseLink}`;
+                    })()}
                 </div>
             </div>`;
         };
@@ -1235,6 +1252,27 @@ if (isOngoing && typeof activeDraft !== 'undefined' && activeDraft) {
         setTimeout(() => showFireworks(), 200);
     }
 }
+
+const PASS_COMPACT_THRESHOLD = 6;
+
+function renderOverrideBtnContentCompact(p, isSelected) {
+    return `
+        <span style="display:flex; align-items:center; gap:8px; flex:1; min-width:0;">
+            <span class="ovr-check" style="width:20px; height:20px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:900; border:2px solid ${isSelected ? '#22d3ee' : 'rgba(255,255,255,0.2)'}; background:${isSelected ? '#22d3ee' : 'transparent'}; color:${isSelected ? '#0f172a' : 'transparent'};">✓</span>
+            <span style="font-size:12px; font-weight:700; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${p.name}</span>
+        </span>
+        <span style="display:flex; gap:10px; flex-shrink:0; font-size:9px; font-weight:800;">
+            <span style="color:#22d3ee;">${p.exercises.length} EX</span>
+            ${p.duration ? `<span style="color:#f59e0b; white-space:nowrap;">⏱️ ~${p.duration} MIN</span>` : ''}
+        </span>
+    `;
+}
+
+window.goToWorkoutProgramsGroup = (groupId) => {
+    closeModal();
+    const targetId = groupId === '__other__' ? '__ungrouped__' : groupId;
+    renderPassesInGroup(targetId);
+};
 
 function toggleDayManagerGroup(groupId) {
     const section = document.getElementById(`dm-group-${groupId}`);
@@ -1363,9 +1401,13 @@ function setOverrideSilent(dateStr, programId) {
             btn.style.setProperty('background', '#1e293b', 'important');
             btn.style.setProperty('border', '1px solid rgba(255,255,255,0.08)', 'important');
             btn.style.color = 'var(--text)';
-            const passId = btn.id.replace('btn-ovr-', '');
+           const passId = btn.id.replace('btn-ovr-', '');
             const passObj = programData.routine.find(x => x.id === passId);
-            if (passObj) btn.innerHTML = renderOverrideBtnContent(passObj, false);
+            if (passObj) {
+                btn.innerHTML = btn.dataset.compact === 'true'
+                    ? renderOverrideBtnContentCompact(passObj, false)
+                    : renderOverrideBtnContent(passObj, false);
+            }
             const accentMap = ['#f59e0b', '#ef4444', '#fbbf24', '#3b82f6'];
             const idx = btn.dataset.idx ? parseInt(btn.dataset.idx) : 0;
             btn.style.setProperty('border-left', `3px solid ${accentMap[idx % 4]}`, 'important');
@@ -1383,7 +1425,11 @@ function setOverrideSilent(dateStr, programId) {
                 selectedBtn.style.setProperty('border', '1px solid #22d3ee', 'important');
                 selectedBtn.style.color = 'var(--primary)';
                 const passObj = programData.routine.find(x => x.id === programId);
-                if (passObj) selectedBtn.innerHTML = renderOverrideBtnContent(passObj, true);
+                if (passObj) {
+                    selectedBtn.innerHTML = selectedBtn.dataset.compact === 'true'
+                        ? renderOverrideBtnContentCompact(passObj, true)
+                        : renderOverrideBtnContent(passObj, true);
+                }
                 selectedBtn.style.setProperty('border-left', '3px solid #22d3ee', 'important');
             }
         }
