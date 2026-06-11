@@ -734,8 +734,8 @@ let touchStartY = 0;
 let hasScrolled = false;
 
 function startPress(idx, event) {
-    // 1. SÄKERHETSKONTROLL: Endast för knappar med rätt klass
-    if (!event.target.classList.contains('plan-override-btn')) return;
+    // 1. SÄKERHETSKONTROLL: Endast för knappar med rätt klass (eller barn till en sådan)
+    if (!event.target.closest('.plan-override-btn')) return;
     isLongPress = false;
     hasScrolled = false;
 
@@ -1178,9 +1178,9 @@ if (isOngoing && typeof activeDraft !== 'undefined' && activeDraft) {
                                     <span style="font-size:16px;">${icon}</span>
                                     <span style="font-size:12px; font-weight:700; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${isSelected ? '✓ ' : ''}${p.name}</span>
                                 </span>
-                                <span style="display:flex; justify-content:space-between; width:100%; font-size:9px; font-weight:800;">
-                                    <span style="color:#22d3ee;">${p.exercises.length} EX</span>
-                                    ${p.duration ? `<span style="color:#f59e0b;">⏱️ ~${p.duration} MIN</span>` : ''}
+                                <span style="display:flex; gap:10px; width:100%; font-size:9px; font-weight:800; flex-wrap:nowrap; overflow:hidden;">
+                                    <span style="color:#22d3ee; flex-shrink:0;">${p.exercises.length} EX</span>
+                                    ${p.duration ? `<span style="color:#f59e0b; flex-shrink:0; white-space:nowrap;">⏱️ ~${p.duration} MIN</span>` : ''}
                                 </span>
                             </button>`;
                         }).join('')}
