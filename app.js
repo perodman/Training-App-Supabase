@@ -1166,7 +1166,7 @@ if (isOngoing && typeof activeDraft !== 'undefined' && activeDraft) {
                             const icon = passIcons[idx];
                             const accentColor = iconColors[idx];
                             return `
-                            <button class="mode-btn plan-override-btn ${isSelected ? 'active-choice' : ''}"
+                            <button class="mode-btn plan-override-btn plan-override-btn-v2 ${isSelected ? 'active-choice' : ''}"
                                 id="btn-ovr-${p.id}"
                                 data-name="${p.name}"
                                 data-idx="${idx}"
