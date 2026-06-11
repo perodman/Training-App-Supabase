@@ -1174,9 +1174,10 @@ if (isOngoing && typeof activeDraft !== 'undefined' && activeDraft) {
                                 box-shadow: 0 4px 10px rgba(0,0,0,0.4) !important;
                                 color: ${isSelected ? 'var(--primary)' : 'var(--text)'} !important;
                                 user-select:none; -webkit-user-select:none;">
-                                <span style="display:flex; align-items:center; gap:8px; width:100%;">
-                                    <span style="font-size:16px;">${icon}</span>
-                                    <span style="font-size:12px; font-weight:700; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${isSelected ? '✓ ' : ''}${p.name}</span>
+                               <span style="display:flex; align-items:center; gap:8px; width:100%;">
+                                    <span style="font-size:16px; flex-shrink:0;">${icon}</span>
+                                    <span style="font-size:12px; font-weight:700; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1; min-width:0;">${p.name}</span>
+                                    <span class="ovr-check" style="width:14px; flex-shrink:0; text-align:center; color:#22d3ee; font-size:12px; font-weight:900; visibility:${isSelected ? 'visible' : 'hidden'};">✓</span>
                                 </span>
                                 <span style="display:flex; gap:10px; width:100%; font-size:9px; font-weight:800; flex-wrap:nowrap; overflow:hidden;">
                                     <span style="color:#22d3ee; flex-shrink:0;">${p.exercises.length} EX</span>
@@ -1347,8 +1348,8 @@ function setOverrideSilent(dateStr, programId) {
             btn.style.setProperty('justify-content', 'flex-start', 'important');
             btn.style.setProperty('text-align', 'left', 'important');
             btn.style.color = 'var(--text)';
-            const nameSpan = btn.querySelector('span > span:last-child');
-            if (nameSpan && btn.dataset.name) nameSpan.textContent = btn.dataset.name;
+            const checkSpan = btn.querySelector('.ovr-check');
+            if (checkSpan) checkSpan.style.visibility = 'hidden';
             const accentMap = ['#f59e0b', '#ef4444', '#fbbf24', '#3b82f6'];
             const idx = btn.dataset.idx ? parseInt(btn.dataset.idx) : 0;
             btn.style.setProperty('border-left', `3px solid ${accentMap[idx % 4]}`, 'important');
@@ -1368,8 +1369,8 @@ function setOverrideSilent(dateStr, programId) {
                 selectedBtn.style.setProperty('justify-content', 'flex-start', 'important');
                 selectedBtn.style.setProperty('text-align', 'left', 'important');
                 selectedBtn.style.color = 'var(--primary)';
-                const nameSpan = selectedBtn.querySelector('span > span:last-child');
-                if (nameSpan) nameSpan.textContent = '✓ ' + (selectedBtn.dataset.name || nameSpan.textContent);
+                const checkSpan = selectedBtn.querySelector('.ovr-check');
+                if (checkSpan) checkSpan.style.visibility = 'visible';
                 selectedBtn.style.setProperty('border-left', '3px solid #22d3ee', 'important');
             }
         }
