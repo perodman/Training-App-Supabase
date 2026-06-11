@@ -1137,7 +1137,6 @@ if (isOngoing && typeof activeDraft !== 'undefined' && activeDraft) {
                 <div style="position:absolute; top:0; left:0; right:0; height:1px; background: linear-gradient(90deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.05) 100%);"></div>
                 <div style="position:absolute; bottom:0; left:0; right:0; height:1px; background: linear-gradient(90deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.05) 100%);"></div>
                 <div style="position:absolute; top:0; right:0; bottom:0; width:1px; background: linear-gradient(180deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 100%);"></div>
-
                 <div onclick="toggleDayManagerGroup('${g.id}')" style="
                     display: flex; align-items: center; justify-content: space-between;
                     padding: 13px 16px; cursor: pointer;
@@ -1157,60 +1156,57 @@ if (isOngoing && typeof activeDraft !== 'undefined' && activeDraft) {
                     </div>
                     <span id="dm-arrow-${g.id}" style="color:${isUngrouped ? 'rgba(255,255,255,0.2)' : 'rgba(34,211,238,0.5)'}; font-size:12px; transition: transform 0.3s ease;">▼</span>
                 </div>
-
             <div id="${sectionId}" style="
-                            height: 0; overflow: hidden;
-                            opacity: 0;
-                            display: none;
-            ">
-                <div style="padding: 6px 10px 10px 10px; background: rgba(0,0,0,0.2);">
-                    <div style="font-size:10px; color:var(--text-light); opacity:0.7; text-align:center; padding: 4px 0 6px 0; font-weight:600; letter-spacing:0.3px;">
-                        💡 Hold to preview exercises
+                                height: 0; overflow: hidden;
+                                opacity: 0;
+                                display: none;
+                ">
+                    <div style="padding: 6px 10px 10px 10px; background: rgba(0,0,0,0.2);">
+                        <div style="font-size:10px; color:var(--text-light); opacity:0.7; text-align:center; padding: 4px 0 6px 0; font-weight:600; letter-spacing:0.3px;">
+                            💡 Hold to preview exercises
+                        </div>
+                        ${(() => {
+                            const { visible, hasMore } = getVisiblePassesForGroup(g.id, passes);
+                            const buttonsHtml = visible.map(p => {
+                                const isSelected = planned && p.id === planned.id;
+                                const cardStyle = `margin:0 !important; padding:10px 12px !important; font-size:13px !important; border-radius:12px !important; font-weight:600 !important;
+                                    width:100% !important; height:auto !important; min-height:0 !important;
+                                    display:flex !important; flex-direction:row !important; align-items:center !important; justify-content:space-between !important;
+                                    text-align:left !important;
+                                    background:#1e293b !important;
+                                    border:1px solid ${isSelected ? '#22d3ee' : 'rgba(255,255,255,0.08)'} !important;
+                                    border-left:3px solid ${isSelected ? '#22d3ee' : groupAccent} !important;
+                                    box-shadow:0 4px 10px rgba(0,0,0,0.4) !important;
+                                    color:${isSelected ? 'var(--primary)' : 'var(--text)'} !important;
+                                    outline:none !important;
+                                    user-select:none; -webkit-user-select:none;`;
+                                return `
+                                <button class="mode-btn plan-override-btn plan-override-btn-v2"
+                                    id="btn-ovr-${p.id}"
+                                    data-name="${p.name}"
+                                    data-accent="${groupAccent}"
+                                    data-compact="true"
+                                    onclick="if(!isLongPress) { setOverrideSilent('${dateStr}', '${p.id}'); cancelPress(); }"
+                                    onmousedown="startPress(${programData.routine.indexOf(p)}, event)"
+                                    onmouseup="if(!isLongPress && !hasScrolled) setOverrideSilent('${dateStr}', '${p.id}'); cancelPress();"
+                                    onmouseleave="cancelPress();"
+                                    ontouchstart="startPress(${programData.routine.indexOf(p)}, event)"
+                                    ontouchend="handleTouchEnd(${programData.routine.indexOf(p)}, '${dateStr}', '${p.id}', event)"
+                                    ontouchmove="handleTouchMove(event)"
+                                    style="${cardStyle}">
+                                   ${renderOverrideBtnContentCompact(p, isSelected)}
+                                </button>`;
+                            }).join('');
+                            const browseLink = hasMore ? `
+                                <button onclick="enterWorkoutSelectionMode('${dateStr}', '${g.id}')"
+                                    style="margin-top:8px; width:100%; padding:10px; border-radius:12px;
+                                    border:1px dashed rgba(34,211,238,0.4); background:rgba(34,211,238,0.04);
+                                    color:var(--primary); font-size:12px; font-weight:700; cursor:pointer;">
+                                    Choose from all ${passes.length} workouts in Workout Programs →
+                                </button>` : '';
+                            return `<div style="display:grid; grid-template-columns:1fr; gap:8px;">${buttonsHtml}</div>${browseLink}`;
+                        })()}
                     </div>
-                    ${(() => {
-                        const { visible, hasMore } = getVisiblePassesForGroup(g.id, passes);
-                        const buttonsHtml = visible.map(p => {
-                            const isSelected = planned && p.id === planned.id;
-                            const idx = programData.routine.indexOf(p) % 4;
-                            const accentColor = groupAccent;
-                           const cardStyle = `margin:0; padding:10px 12px; font-size:13px; border-radius:12px; font-weight:600;
-                                width:100%; display:flex;
-                                background:#1e293b;
-                                border:1px solid ${isSelected ? '#22d3ee' : 'rgba(255,255,255,0.08)'};
-                                border-left:3px solid ${isSelected ? '#22d3ee' : accentColor};
-                                box-shadow:0 4px 10px rgba(0,0,0,0.4);
-                                color:${isSelected ? 'var(--primary)' : 'var(--text)'};`;
-                            return `
-                            <button class="mode-btn plan-override-btn plan-override-btn-v2"
-                                id="btn-ovr-${p.id}"
-                                data-name="${p.name}"
-                                data-idx="${idx}"
-                                data-accent="${accentColor}"
-                                data-compact="true"
-                                onclick="if(!isLongPress) { setOverrideSilent('${dateStr}', '${p.id}'); cancelPress(); }"
-                                onmousedown="startPress(${programData.routine.indexOf(p)}, event)"
-                                onmouseup="if(!isLongPress && !hasScrolled) setOverrideSilent('${dateStr}', '${p.id}'); cancelPress();"
-                                onmouseleave="cancelPress();"
-                                ontouchstart="startPress(${programData.routine.indexOf(p)}, event)"
-                                ontouchend="handleTouchEnd(${programData.routine.indexOf(p)}, '${dateStr}', '${p.id}', event)"
-                                ontouchmove="handleTouchMove(event)"
-                                style="${cardStyle} width:100% !important; height:auto !important; min-height:0 !important;
-                                text-align:left !important; display:flex !important;
-                                flex-direction:row !important; align-items:center !important; justify-content:space-between !important;
-                                outline: none !important;
-                                user-select:none; -webkit-user-select:none;">
-                               ${renderOverrideBtnContentCompact(p, isSelected)}
-                            </button>`;
-                        }).join('');
-                        const browseLink = hasMore ? `
-                            <button onclick="enterWorkoutSelectionMode('${dateStr}', '${g.id}')"
-                                style="margin-top:8px; width:100%; padding:10px; border-radius:12px;
-                                border:1px dashed rgba(34,211,238,0.4); background:rgba(34,211,238,0.04);
-                                color:var(--primary); font-size:12px; font-weight:700; cursor:pointer;">
-                                Choose from all ${passes.length} workouts in Workout Programs →
-                            </button>` : '';
-                        return `<div style="display:grid; grid-template-columns:1fr; gap:8px;">${buttonsHtml}</div>${browseLink}`;
-                    })()}
                 </div>
             </div>`;
         };
@@ -1394,18 +1390,18 @@ function setOverrideSilent(dateStr, programId) {
     document.querySelectorAll('.plan-override-btn').forEach(btn => {
         btn.classList.remove('active-choice');
         if (!btn.classList.contains('override-rest-btn')) {
+            const accent = btn.dataset.accent || '#22d3ee';
             btn.style.setProperty('background', '#1e293b', 'important');
             btn.style.setProperty('border', '1px solid rgba(255,255,255,0.08)', 'important');
-            btn.style.color = 'var(--text)';
-           const passId = btn.id.replace('btn-ovr-', '');
+            btn.style.setProperty('border-left', `3px solid ${accent}`, 'important');
+            btn.style.setProperty('color', 'var(--text)', 'important');
+            const passId = btn.id.replace('btn-ovr-', '');
             const passObj = programData.routine.find(x => x.id === passId);
             if (passObj) {
                 btn.innerHTML = btn.dataset.compact === 'true'
                     ? renderOverrideBtnContentCompact(passObj, false)
                     : renderOverrideBtnContent(passObj, false);
             }
-            const accent = btn.dataset.accent || '#22d3ee';
-            btn.style.setProperty('border-left', `3px solid ${accent}`, 'important');
         }
     });
     // Markera den valda knappen
@@ -1417,8 +1413,8 @@ function setOverrideSilent(dateStr, programId) {
             if (selectedBtn) {
                 selectedBtn.classList.remove('active-choice');
                 selectedBtn.style.setProperty('background', 'rgba(34,211,238,0.1)', 'important');
-                selectedBtn.style.setProperty('border', '1px solid #22d3ee', 'important');
-                selectedBtn.style.color = 'var(--primary)';
+              selectedBtn.style.setProperty('border', '1px solid #22d3ee', 'important');
+                selectedBtn.style.setProperty('color', 'var(--primary)', 'important');
                 const passObj = programData.routine.find(x => x.id === programId);
                 if (passObj) {
                     selectedBtn.innerHTML = selectedBtn.dataset.compact === 'true'
