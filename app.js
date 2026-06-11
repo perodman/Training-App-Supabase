@@ -1146,6 +1146,8 @@ if (isOngoing && typeof activeDraft !== 'undefined' && activeDraft) {
                         </div>
                         ${passes.map(p => {
                             const isSelected = planned && p.id === planned.id;
+                            const passIcons = [' ⚡ ', ' 🔥 ', ' 🏆 ', ' 💎 '];
+                            const icon = passIcons[programData.routine.indexOf(p) % 4];
                             return `
                             <button class="mode-btn plan-override-btn ${isSelected ? 'active-choice' : ''}"
                                 id="btn-ovr-${p.id}"
@@ -1157,14 +1159,17 @@ if (isOngoing && typeof activeDraft !== 'undefined' && activeDraft) {
                                 ontouchstart="startPress(${programData.routine.indexOf(p)}, event)"
                                 ontouchend="handleTouchEnd(${programData.routine.indexOf(p)}, '${dateStr}', '${p.id}', event)"
                                 ontouchmove="handleTouchMove(event)"
-                                style="margin:0; padding:12px 14px; font-size:13px; border-radius:10px; font-weight:600;
-                                text-overflow:ellipsis; overflow:hidden; white-space:nowrap; width:100%; text-align:left;
-                                background: ${isSelected ? 'rgba(34,211,238,0.12)' : 'rgba(255,255,255,0.04)'} !important;
-                                border: 1px solid ${isSelected ? 'rgba(34,211,238,0.4)' : 'rgba(255,255,255,0.06)'} !important;
-                                border-top: 1px solid ${isSelected ? 'rgba(34,211,238,0.6)' : 'rgba(255,255,255,0.12)'} !important;
+                                style="margin:0; padding:10px 14px; font-size:13px; border-radius:14px; font-weight:600;
+                                width:100%; text-align:left; display:flex; align-items:center; gap:14px;
+                                background: ${isSelected ? 'rgba(34,211,238,0.1)' : '#1e293b'} !important;
+                                border: 1px solid ${isSelected ? 'rgba(34,211,238,1)' : 'rgba(255,255,255,0.08)'} !important;
                                 color: ${isSelected ? 'var(--primary)' : 'var(--text)'} !important;
                                 user-select:none; -webkit-user-select:none;">
-                                ${isSelected ? '✓ ' : ''}${p.name}
+                                <span style="width:36px; height:36px; border-radius:50%; background:${isSelected ? 'rgba(34,211,238,0.2)' : 'rgba(255,255,255,0.05)'}; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0;">${icon}</span>
+                                <span style="display:flex; flex-direction:column; gap:1px; min-width:0;">
+                                    <span style="font-size:13px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${isSelected ? '✓ ' : ''}${p.name}</span>
+                                    <span style="font-size:9px; font-weight:800; text-transform:uppercase; opacity:${isSelected ? '0.7' : '0.5'}; color:${isSelected ? 'var(--primary)' : 'var(--text-light)'};">${p.exercises.length} ${p.exercises.length === 1 ? 'exercise' : 'exercises'}${isSelected ? ' • Selected' : ''}</span>
+                                </span>
                             </button>`;
                         }).join('')}
                     </div>
@@ -1320,17 +1325,22 @@ function setOverrideSilent(dateStr, programId) {
         }
     }
 
-    // Nollställ alla pass-knappar — återställ till originalnamnet via data-name
+    // Nollställ alla pass-knappar till "ej vald"-utseende
     document.querySelectorAll('.plan-override-btn').forEach(btn => {
         btn.classList.remove('active-choice');
         if (!btn.classList.contains('override-rest-btn')) {
-            btn.style.setProperty('background', 'rgba(255,255,255,0.04)', 'important');
-            btn.style.setProperty('border', '1px solid rgba(255,255,255,0.06)', 'important');
-            btn.style.setProperty('border-top', '1px solid rgba(255,255,255,0.12)', 'important');
+            btn.style.setProperty('background', '#1e293b', 'important');
+            btn.style.setProperty('border', '1px solid rgba(255,255,255,0.08)', 'important');
             btn.style.color = 'var(--text)';
-            // Återställ alltid till originalnamnet
-            if (btn.dataset.name) {
-                btn.textContent = btn.dataset.name;
+            const iconCircle = btn.querySelector('span');
+            const nameSpan = btn.querySelector('span > span:first-child');
+            const subSpan = btn.querySelector('span > span:last-child');
+            if (iconCircle) iconCircle.style.background = 'rgba(255,255,255,0.05)';
+            if (nameSpan && btn.dataset.name) nameSpan.textContent = btn.dataset.name;
+            if (subSpan) {
+                subSpan.style.opacity = '0.5';
+                subSpan.style.color = 'var(--text-light)';
+                subSpan.textContent = subSpan.textContent.replace(' • Selected', '');
             }
         }
     });
@@ -1342,13 +1352,21 @@ function setOverrideSilent(dateStr, programId) {
             const selectedBtn = document.getElementById(`btn-ovr-${programId}`);
             if (selectedBtn) {
                 selectedBtn.classList.add('active-choice');
-                selectedBtn.style.setProperty('background', 'rgba(34,211,238,0.12)', 'important');
-                selectedBtn.style.setProperty('border', '1px solid rgba(34,211,238,0.4)', 'important');
-                selectedBtn.style.setProperty('border-top', '1px solid rgba(34,211,238,0.6)', 'important');
+                selectedBtn.style.setProperty('background', 'rgba(34,211,238,0.1)', 'important');
+                selectedBtn.style.setProperty('border', '1px solid rgba(34,211,238,1)', 'important');
                 selectedBtn.style.color = 'var(--primary)';
-                // Sätt alltid ✓ + originalnamnet
-                const name = selectedBtn.dataset.name || selectedBtn.textContent.trim();
-                selectedBtn.textContent = '✓ ' + name;
+                const iconCircle = selectedBtn.querySelector('span');
+                const nameSpan = selectedBtn.querySelector('span > span:first-child');
+                const subSpan = selectedBtn.querySelector('span > span:last-child');
+                if (iconCircle) iconCircle.style.background = 'rgba(34,211,238,0.2)';
+                if (nameSpan) nameSpan.textContent = '✓ ' + (selectedBtn.dataset.name || nameSpan.textContent);
+                if (subSpan) {
+                    subSpan.style.opacity = '0.7';
+                    subSpan.style.color = 'var(--primary)';
+                    if (!subSpan.textContent.includes('Selected')) {
+                        subSpan.textContent += ' • Selected';
+                    }
+                }
             }
         }
     
