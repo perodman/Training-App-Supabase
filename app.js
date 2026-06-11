@@ -1111,22 +1111,32 @@ if (isOngoing && typeof activeDraft !== 'undefined' && activeDraft) {
                 <span style="font-size:13px; font-weight:700; color:#fff; letter-spacing:0.3px;">Tap a group to change workout</span>
             </div>
         </div>
-        <div id="day-manager-group-container" style="display: flex; flex-direction: column; gap: 8px;">`;
+        <div id="day-manager-group-container" style="display: flex; flex-direction: column; gap: 12px; border-left: none;">`;
 
+        const GROUP_COLORS = {
+            fullbody: '#f59e0b',
+            upperbody: '#fbbf24',
+            lowerbody: '#3b82f6',
+            pushbody: '#ef4444',
+            pullbody: '#a78bfa',
+            superset: '#22c55e',
+            __other__: 'rgba(255,255,255,0.2)'
+        };
         const renderGroupSection = (g, passes, isUngrouped = false) => {
             const sectionId = `dm-group-${g.id}`;
+            const groupAccent = GROUP_COLORS[g.id] || '#22d3ee';
             return `
             <div style="
                 border-radius: 16px; overflow: hidden;
                 position: relative;
                 background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
                 border: none;
-                border-left: 4px solid ${isUngrouped ? 'rgba(255,255,255,0.1)' : 'rgba(34,211,238,0.4)'};
+                border-left: 4px solid ${isUngrouped ? 'rgba(255,255,255,0.15)' : groupAccent};
                 box-shadow: 0 4px 12px rgba(0,0,0,0.3);
             ">
-                <div style="position:absolute; top:0; left:0; right:0; height:1px; background: linear-gradient(90deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 100%);"></div>
-                <div style="position:absolute; bottom:0; left:0; right:0; height:1px; background: linear-gradient(90deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%);"></div>
-                <div style="position:absolute; top:0; right:0; bottom:0; width:1px; background: linear-gradient(180deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 100%);"></div>
+                <div style="position:absolute; top:0; left:0; right:0; height:1px; background: linear-gradient(90deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.05) 100%);"></div>
+                <div style="position:absolute; bottom:0; left:0; right:0; height:1px; background: linear-gradient(90deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.05) 100%);"></div>
+                <div style="position:absolute; top:0; right:0; bottom:0; width:1px; background: linear-gradient(180deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 100%);"></div>
 
                 <div onclick="toggleDayManagerGroup('${g.id}')" style="
                     display: flex; align-items: center; justify-content: space-between;
@@ -1161,10 +1171,9 @@ if (isOngoing && typeof activeDraft !== 'undefined' && activeDraft) {
                         ${passes.map(p => {
                             const isSelected = planned && p.id === planned.id;
                             const passIcons = [' ⚡ ', ' 🔥 ', ' 🏆 ', ' 💎 '];
-                            const iconColors = ['#f59e0b', '#ef4444', '#fbbf24', '#3b82f6'];
                             const idx = programData.routine.indexOf(p) % 4;
                             const icon = passIcons[idx];
-                            const accentColor = iconColors[idx];
+                            const accentColor = groupAccent;
                             return `
                             <button class="mode-btn plan-override-btn plan-override-btn-v2"
                                 id="btn-ovr-${p.id}"
