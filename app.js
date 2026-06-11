@@ -1172,7 +1172,8 @@ if (isOngoing && typeof activeDraft !== 'undefined' && activeDraft) {
                                 border: none !important;
                                 border-left: 3px solid ${isSelected ? '#22d3ee' : accentColor} !important;
                                 box-shadow: 0 4px 10px rgba(0,0,0,0.4) !important;
-                                color: ${isSelected ? 'var(--primary)' : 'var(--text)'} !important;
+                              color: ${isSelected ? 'var(--primary)' : 'var(--text)'} !important;
+                                outline: none !important;
                                 user-select:none; -webkit-user-select:none;">
                                <span style="display:flex; align-items:center; gap:8px; width:100%;">
                                     <span class="ovr-check" style="width:22px; height:22px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:900; border:2px solid ${isSelected ? '#22d3ee' : 'rgba(255,255,255,0.2)'}; background:${isSelected ? '#22d3ee' : 'transparent'}; color:${isSelected ? '#0f172a' : 'transparent'};">✓</span>
@@ -1264,6 +1265,9 @@ function toggleDayManagerGroup(groupId) {
 
 // --- SYNKRONISERADE OCH LIVE-UPPDATERANDE OVERRIDES ---
 function setOverrideSilent(dateStr, programId) {
+    if (document.activeElement && typeof document.activeElement.blur === 'function') {
+        document.activeElement.blur();
+    }
     // 1. Uppdatera det lokala tillståndet OMEDELBART
     if (programId === "none" || programId === "") {
         calendarOverrides[dateStr] = "none";
