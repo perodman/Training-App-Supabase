@@ -1352,10 +1352,7 @@ function setOverrideSilent(dateStr, programId) {
         btn.classList.remove('active-choice');
         if (!btn.classList.contains('override-rest-btn')) {
             btn.style.setProperty('background', '#1e293b', 'important');
-            btn.style.setProperty('border', '1px solid rgba(255,255,255,0.08)', 'important');
-            btn.style.setProperty('flex-direction', 'row', 'important');
-            btn.style.setProperty('justify-content', 'flex-start', 'important');
-            btn.style.setProperty('text-align', 'left', 'important');
+            btn.style.setProperty('border', 'none', 'important');
             btn.style.color = 'var(--text)';
             const passId = btn.id.replace('btn-ovr-', '');
             const passObj = programData.routine.find(x => x.id === passId);
@@ -1374,10 +1371,7 @@ function setOverrideSilent(dateStr, programId) {
             if (selectedBtn) {
                 selectedBtn.classList.remove('active-choice');
                 selectedBtn.style.setProperty('background', 'rgba(34,211,238,0.1)', 'important');
-                selectedBtn.style.setProperty('border', '1px solid rgba(34,211,238,1)', 'important');
-                selectedBtn.style.setProperty('flex-direction', 'row', 'important');
-                selectedBtn.style.setProperty('justify-content', 'flex-start', 'important');
-                selectedBtn.style.setProperty('text-align', 'left', 'important');
+                selectedBtn.style.setProperty('border', 'none', 'important');
                 selectedBtn.style.color = 'var(--primary)';
                 const passObj = programData.routine.find(x => x.id === programId);
                 if (passObj) selectedBtn.innerHTML = renderOverrideBtnContent(passObj, true);
