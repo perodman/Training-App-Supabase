@@ -894,7 +894,7 @@ function renderOverrideBtnContent(p, isSelected) {
             <span style="font-size:12px; font-weight:700; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1; min-width:0;">${p.name}</span>
         </span>
         <span style="display:flex; gap:10px; width:100%; font-size:9px; font-weight:800; flex-wrap:nowrap; overflow:hidden;">
-            <span style="color:#22d3ee; flex-shrink:0;">${p.exercises.length} EX</span>
+            <span style="color:#22d3ee; flex-shrink:0;">${p.exercises.length} EXERCISES</span>
             ${p.duration ? `<span style="color:#f59e0b; flex-shrink:0; white-space:nowrap;">⏱️ ~${p.duration} MIN</span>` : ''}
         </span>
     `;
@@ -1168,27 +1168,24 @@ if (isOngoing && typeof activeDraft !== 'undefined' && activeDraft) {
                         💡 Hold to preview exercises
                     </div>
                     ${(() => {
-                        const isCompactList = passes.length > PASS_COMPACT_THRESHOLD;
-                        const gridCols = isCompactList ? '1fr' : 'repeat(2,1fr)';
-                        const visiblePasses = isCompactList ? passes.slice(0, PASS_COMPACT_THRESHOLD) : passes;
-                        const buttonsHtml = visiblePasses.map(p => {
+                        const { visible, hasMore } = getVisiblePassesForGroup(g.id, passes);
+                        const buttonsHtml = visible.map(p => {
                             const isSelected = planned && p.id === planned.id;
-                            const passIcons = [' ⚡ ', ' 🔥 ', ' 🏆 ', ' 💎 '];
                             const idx = programData.routine.indexOf(p) % 4;
-                            const icon = passIcons[idx];
                             const accentColor = groupAccent;
-                            const contentHtml = isCompactList
-                                ? renderOverrideBtnContentCompact(p, isSelected)
-                                : renderOverrideBtnContent(p, isSelected);
-                            const flexStyles = isCompactList
-                                ? `flex-direction:row !important; align-items:center !important; justify-content:space-between !important; padding:8px 12px;`
-                                : `flex-direction:column !important; align-items:flex-start !important; justify-content:flex-start !important; gap:6px; padding:10px 12px;`;
+                            const cardStyle = `margin:0; flex-direction:column; align-items:flex-start; justify-content:flex-start; gap:6px; padding:10px 12px; font-size:13px; border-radius:12px; font-weight:600;
+                                width:100%; display:flex;
+                                background:#1e293b;
+                                border:1px solid ${isSelected ? '#22d3ee' : 'rgba(255,255,255,0.08)'};
+                                border-left:3px solid ${isSelected ? '#22d3ee' : accentColor};
+                                box-shadow:0 4px 10px rgba(0,0,0,0.4);
+                                color:${isSelected ? 'var(--primary)' : 'var(--text)'};`;
                             return `
                             <button class="mode-btn plan-override-btn plan-override-btn-v2"
                                 id="btn-ovr-${p.id}"
                                 data-name="${p.name}"
                                 data-idx="${idx}"
-                                data-compact="${isCompactList}"
+                                data-compact="false"
                                 onclick="if(!isLongPress) { setOverrideSilent('${dateStr}', '${p.id}'); cancelPress(); }"
                                 onmousedown="startPress(${programData.routine.indexOf(p)}, event)"
                                 onmouseup="if(!isLongPress && !hasScrolled) setOverrideSilent('${dateStr}', '${p.id}'); cancelPress();"
@@ -1196,27 +1193,22 @@ if (isOngoing && typeof activeDraft !== 'undefined' && activeDraft) {
                                 ontouchstart="startPress(${programData.routine.indexOf(p)}, event)"
                                 ontouchend="handleTouchEnd(${programData.routine.indexOf(p)}, '${dateStr}', '${p.id}', event)"
                                 ontouchmove="handleTouchMove(event)"
-                                style="margin:0; ${flexStyles} font-size:13px; border-radius:12px; font-weight:600;
-                                width:100% !important; height:auto !important; min-height:0 !important;
+                                style="${cardStyle} width:100% !important; height:auto !important; min-height:0 !important;
                                 text-align:left !important; display:flex !important;
-                                background: #1e293b !important;
-                                border: 1px solid ${isSelected ? '#22d3ee' : 'rgba(255,255,255,0.08)'} !important;
-                                border-left: 3px solid ${isSelected ? '#22d3ee' : accentColor} !important;
-                                box-shadow: 0 4px 10px rgba(0,0,0,0.4) !important;
-                                color: ${isSelected ? 'var(--primary)' : 'var(--text)'} !important;
+                                flex-direction:column !important; align-items:flex-start !important; justify-content:flex-start !important;
                                 outline: none !important;
                                 user-select:none; -webkit-user-select:none;">
-                               ${contentHtml}
+                               ${renderOverrideBtnContent(p, isSelected)}
                             </button>`;
                         }).join('');
-                        const browseLink = isCompactList ? `
-                            <button onclick="goToWorkoutProgramsGroup('${g.id}')"
+                        const browseLink = hasMore ? `
+                            <button onclick="enterWorkoutSelectionMode('${dateStr}', '${g.id}')"
                                 style="margin-top:8px; width:100%; padding:10px; border-radius:12px;
                                 border:1px dashed rgba(34,211,238,0.4); background:rgba(34,211,238,0.04);
                                 color:var(--primary); font-size:12px; font-weight:700; cursor:pointer;">
-                                Browse all ${passes.length} workouts in Workout Programs →
+                                Choose from all ${passes.length} workouts in Workout Programs →
                             </button>` : '';
-                        return `<div style="display:grid; grid-template-columns:${gridCols}; gap:8px;">${buttonsHtml}</div>${browseLink}`;
+                        return `<div style="display:grid; grid-template-columns:1fr; gap:8px;">${buttonsHtml}</div>${browseLink}`;
                     })()}
                 </div>
             </div>`;
@@ -1320,6 +1312,9 @@ function toggleDayManagerGroup(groupId) {
 function setOverrideSilent(dateStr, programId) {
     if (document.activeElement && typeof document.activeElement.blur === 'function') {
         document.activeElement.blur();
+    }
+    if (programId !== "none" && programId !== "") {
+        recordRecentlyUsedPass(programId);
     }
     // 1. Uppdatera det lokala tillståndet OMEDELBART
     if (programId === "none" || programId === "") {
@@ -1553,6 +1548,77 @@ const PREDEFINED_GROUPS = [
     { id: "superset", name: "Superset", icon: "🔥" }
 ];
 
+let recentPassesByGroup = JSON.parse(localStorage.getItem("recentPassesByGroup") || "{}");
+window._selectionModeDate = null;
+
+function recordRecentlyUsedPass(passId) {
+    const pass = programData.routine.find(p => p.id === passId);
+    if (!pass || !Array.isArray(pass.groups)) return;
+    pass.groups.forEach(gId => {
+        if (!recentPassesByGroup[gId]) recentPassesByGroup[gId] = [];
+        recentPassesByGroup[gId] = recentPassesByGroup[gId].filter(id => id !== passId);
+        recentPassesByGroup[gId].unshift(passId);
+        recentPassesByGroup[gId] = recentPassesByGroup[gId].slice(0, 10);
+    });
+    localStorage.setItem("recentPassesByGroup", JSON.stringify(recentPassesByGroup));
+}
+
+function getVisiblePassesForGroup(groupId, passes) {
+    const THRESHOLD = 4;
+    if (passes.length <= THRESHOLD) return { visible: passes, hasMore: false };
+    const recentIds = recentPassesByGroup[groupId] || [];
+    const recentPasses = recentIds.map(id => passes.find(p => p.id === id)).filter(Boolean);
+    const remaining = passes.filter(p => !recentIds.includes(p.id));
+    const visible = [...recentPasses, ...remaining].slice(0, THRESHOLD);
+    return { visible, hasMore: true };
+}
+
+function reopenDayManagerForDate(dateStr) {
+    const hasWorkouts = workoutHistory.filter(w => w.date === dateStr);
+    const isOngoing = activeDraft && activeDraft.date === dateStr && activeDraft.isStarted;
+    const override = calendarOverrides[dateStr];
+    let displayPass = null;
+    if (override && override !== "none") {
+        displayPass = programData.routine.find(p => p.id === override) || null;
+    } else if (override !== "none") {
+        const dateObj = new Date(dateStr + 'T00:00:00');
+        const dayOfWeek = dateObj.getDay();
+        const isAutoDay = [1, 3, 5].includes(dayOfWeek);
+        if (isAutoDay && programData && programData.routine.length > 0) {
+            const d = dateObj.getDate();
+            displayPass = programData.routine[d % programData.routine.length];
+        }
+    }
+    openDayManager(dateStr, displayPass, hasWorkouts, isOngoing);
+}
+
+window.enterWorkoutSelectionMode = (dateStr, groupId) => {
+    window._selectionModeDate = dateStr;
+    closeModal();
+    const targetId = groupId === '__other__' ? '__ungrouped__' : groupId;
+    renderPassesInGroup(targetId);
+};
+
+window.cancelWorkoutSelection = () => {
+    const dateStr = window._selectionModeDate;
+    window._selectionModeDate = null;
+    if (dateStr) reopenDayManagerForDate(dateStr);
+};
+
+window.selectWorkoutForDate = (passId) => {
+    const dateStr = window._selectionModeDate;
+    if (!dateStr) return;
+    calendarOverrides[dateStr] = passId;
+    localStorage.setItem("calendarOverrides", JSON.stringify(calendarOverrides));
+    recordRecentlyUsedPass(passId);
+    if (typeof renderCalendar === "function") renderCalendar();
+    setTimeout(() => { if (typeof saveAll === 'function') saveAll(); }, 0);
+    window._selectionModeDate = null;
+    reopenDayManagerForDate(dateStr);
+};
+
+
+
 function renderLargePassCard(pass, passIdx, icons, selector) {
     const passCard = document.createElement("div");
     passCard.className = "prog-card";
@@ -1596,10 +1662,15 @@ function renderAccordionPassCard(pass, passIdx, icons, selector, layoutMode) {
         ${isCompact ? 'min-height:60px; padding:12px 15px; display:flex; align-items:center; gap:12px; flex-wrap:wrap;' : 'min-height:120px;'}
     `;
 
-    const editPencil = `
+   const editPencil = `
         <div onclick="event.stopPropagation(); openEditProgramModal(${passIdx})"
             style="position: absolute; top: 6px; right: 6px; font-size: 12px; opacity: 0.6; cursor: pointer; padding: 2px 6px; border-radius: 6px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); z-index:2;">✏️</div>
     `;
+    const selectBtn = window._selectionModeDate ? `
+        <button onclick="event.stopPropagation(); selectWorkoutForDate('${pass.id}')"
+            style="position:absolute; bottom:8px; right:8px; padding:6px 14px; border-radius:8px; border:none; background:var(--primary); color:#0f172a; font-size:11px; font-weight:800; cursor:pointer; z-index:2;">
+            Select
+        </button>` : '';
 
     if (isCompact) {
         passCard.innerHTML = `
@@ -1610,7 +1681,7 @@ function renderAccordionPassCard(pass, passIdx, icons, selector, layoutMode) {
                 <h4 style="font-size:13px; margin:0; line-height:1.3;">${pass.name}</h4>
                 <div style="font-size:9px; color:var(--primary); font-weight:800;">${pass.exercises.length} ${pass.exercises.length === 1 ? 'EXERCISE' : 'EXERCISES'}</div>
             </div>
-            ${editPencil}
+            ${editPencil}${selectBtn}
         `;
     } else {
         passCard.innerHTML = `
@@ -1621,7 +1692,7 @@ function renderAccordionPassCard(pass, passIdx, icons, selector, layoutMode) {
             <h4 style="font-size:14px; margin:8px 0 4px 0; line-height:1.3;">${pass.name}</h4>
             <div style="font-size:10px; color:var(--primary); font-weight:800;">${pass.exercises.length} ${pass.exercises.length === 1 ? 'EXERCISE' : 'EXERCISES'}</div>
             ${pass.duration ? `<div style="position:absolute; top:8px; left:10px; font-size:10px; color:#f59e0b; font-weight:600; background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.2); padding: 3px 7px; border-radius: 8px;">⏱️ ~${pass.duration} min</div>` : ''}
-            ${editPencil}
+            ${editPencil}${selectBtn}
         `;
     }
 
@@ -1752,7 +1823,10 @@ function showChipsDetail(passesInGroup, activePass, selector, icons) {
                     ${activePass.duration ? `<span style="font-size:12px; color:#f59e0b; font-weight:800;">⏱️ ~${activePass.duration} min</span>` : ''}
                 </div>
             </div>
-            <span onclick="event.stopPropagation(); openEditProgramModal(${passIdx})" style="font-size:14px; opacity:0.7; cursor:pointer; padding:4px 8px; border-radius:6px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.1);">✏️</span>
+           <span style="display:flex; gap:8px; flex-shrink:0;">
+                ${window._selectionModeDate ? `<button onclick="event.stopPropagation(); selectWorkoutForDate('${activePass.id}')" style="padding:6px 14px; border-radius:8px; border:none; background:var(--primary); color:#0f172a; font-size:11px; font-weight:800; cursor:pointer;">Select</button>` : ''}
+                <span onclick="event.stopPropagation(); openEditProgramModal(${passIdx})" style="font-size:14px; opacity:0.7; cursor:pointer; padding:4px 8px; border-radius:6px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.1); height:fit-content;">✏️</span>
+            </span>
         </div>
         ${activePass.exercises.map((e, i) => `
         <div style="display:grid; grid-template-columns: 1fr 70px 12px 70px; align-items:center; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.03);">
@@ -2087,6 +2161,14 @@ function renderPassesInGroup(groupId) {
             }, 300);
         };
         const icons = [' ⚡ ', ' 🔥 ', ' 🏆 ', ' 💎 '];
+
+        if (window._selectionModeDate) {
+            const banner = document.createElement("div");
+            banner.style.cssText = "grid-column: 1 / -1; display:flex; justify-content:space-between; align-items:center; padding:10px 14px; margin-bottom:4px; background:rgba(34,211,238,0.08); border:1px solid rgba(34,211,238,0.25); border-radius:12px;";
+            banner.innerHTML = `<span style="font-size:12px; color:var(--primary); font-weight:700;">Select a workout for your plan</span><button onclick="cancelWorkoutSelection()" style="font-size:12px; font-weight:700; color:var(--text-light); background:none; border:none; cursor:pointer;">Cancel</button>`;
+            selector.appendChild(banner);
+        }
+
         if (layoutMode === 'compact') {
             renderChipsLayout(passesInGroup, selector, icons);
         } else {
