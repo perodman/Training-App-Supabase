@@ -1166,7 +1166,7 @@ if (isOngoing && typeof activeDraft !== 'undefined' && activeDraft) {
                             const icon = passIcons[idx];
                             const accentColor = iconColors[idx];
                             return `
-                            <button class="mode-btn plan-override-btn plan-override-btn-v2 ${isSelected ? 'active-choice' : ''}"
+                            <button class="mode-btn plan-override-btn plan-override-btn-v2"
                                 id="btn-ovr-${p.id}"
                                 data-name="${p.name}"
                                 data-idx="${idx}"
@@ -1372,7 +1372,7 @@ function setOverrideSilent(dateStr, programId) {
     } else {
             const selectedBtn = document.getElementById(`btn-ovr-${programId}`);
             if (selectedBtn) {
-                selectedBtn.classList.add('active-choice');
+                selectedBtn.classList.remove('active-choice');
                 selectedBtn.style.setProperty('background', 'rgba(34,211,238,0.1)', 'important');
                 selectedBtn.style.setProperty('border', '1px solid rgba(34,211,238,1)', 'important');
                 selectedBtn.style.setProperty('flex-direction', 'row', 'important');
