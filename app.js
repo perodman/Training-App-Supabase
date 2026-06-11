@@ -833,9 +833,15 @@ function openProgramPreviewModal(idx) {
     previewModal.innerHTML = `
         <div id="preview-modal-card" class="card glass" style="width: 90%; max-width: 400px; padding: 20px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); background: rgba(15, 23, 42, 0.95); margin-top: 40px;
             transition: all 0.2s ease-out; transform: scale(0.95); opacity: 0;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.08);">
-                <h3 style="margin: 0; font-size: 20px; color: #fff;">${pass.name}</h3>
-                <button onclick="closePreviewModal()" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--text-light); cursor: pointer; font-size: 14px; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;"> ✖ </button>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.08);">
+                <div>
+                    <h3 style="margin: 0; font-size: 18px; color: #fff;">${pass.name}</h3>
+                    <div style="display:flex; gap:10px; margin-top:4px; align-items:center;">
+                        <span style="font-size:10px; color:var(--primary); font-weight:800; text-transform:uppercase;">${pass.exercises.length} ${pass.exercises.length === 1 ? 'EXERCISE' : 'EXERCISES'}</span>
+                        ${pass.duration ? `<span style="font-size:14px; color:#f59e0b; font-weight:800;">⏱️ ~${pass.duration} min</span>` : ''}
+                    </div>
+                </div>
+                <button onclick="closePreviewModal()" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--text-light); cursor: pointer; font-size: 14px; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink:0;"> ✖ </button>
             </div>
             <div style="max-height: 65vh; overflow-y: auto; display: flex; flex-direction: column; gap: 2px;">
                 ${pass.exercises.map((e, i) => `
