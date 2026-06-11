@@ -2144,7 +2144,7 @@ function confirmAndAddAllSelectedExercisesForEdit(idx) {
     window.temporarySelectedExercisesForEdit.forEach(exId => {
         const ex = masterExercises.find(e => e.id == exId);
         if (ex) {
-            pass.exercises.push({ id: ex.id, name: ex.name, target: ex.target });
+            pass.exercises.push({ id: ex.id, name: ex.name, target: ex.target, subtarget: ex.subtarget || null });
         }
     });
     window.temporarySelectedExercisesForEdit = [];
@@ -2221,7 +2221,7 @@ async function addExerciseToPassDirectly(pIdx, exId) {
     const ex = masterExercises.find(e => e.id == exId);
     if (!ex) return;
 
-    programData.routine[pIdx].exercises.push({ name: ex.name, target: ex.target, defaultSets: 3 });
+    programData.routine[pIdx].exercises.push({ name: ex.name, target: ex.target, subtarget: ex.subtarget || null, defaultSets: 3 });
 
     if (typeof saveCustomProgramToSupabase === 'function') {
         saveCustomProgramToSupabase();
@@ -2456,8 +2456,7 @@ function renderExercisePickerForEdit(idx, category = "Ben", subtarget = null) {
 // Central hjälpfunktion för att spara det aktiva pågående träningspasset (activeDraft)
 async function createNewExForPass(pIdx) {
     await openCreateExerciseModal(async (newEx) => {
-        programData.routine[pIdx].exercises.push({ name: newEx.name, target: newEx.target, defaultSets: 3 });
-
+        programData.routine[pIdx].exercises.push({ name: newEx.name, target: newEx.target, subtarget: newEx.subtarget || null, defaultSets: 3 });
         // Sparar omedelbart till både localStorage och Supabase
         await saveCustomProgramToSupabase();
         await openEditProgramModal(pIdx);
