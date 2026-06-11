@@ -1173,7 +1173,7 @@ if (isOngoing && typeof activeDraft !== 'undefined' && activeDraft) {
                             const isSelected = planned && p.id === planned.id;
                             const idx = programData.routine.indexOf(p) % 4;
                             const accentColor = groupAccent;
-                            const cardStyle = `margin:0; flex-direction:column; align-items:flex-start; justify-content:flex-start; gap:6px; padding:10px 12px; font-size:13px; border-radius:12px; font-weight:600;
+                           const cardStyle = `margin:0; padding:10px 12px; font-size:13px; border-radius:12px; font-weight:600;
                                 width:100%; display:flex;
                                 background:#1e293b;
                                 border:1px solid ${isSelected ? '#22d3ee' : 'rgba(255,255,255,0.08)'};
@@ -1185,7 +1185,7 @@ if (isOngoing && typeof activeDraft !== 'undefined' && activeDraft) {
                                 id="btn-ovr-${p.id}"
                                 data-name="${p.name}"
                                 data-idx="${idx}"
-                                data-compact="false"
+                                data-compact="true"
                                 onclick="if(!isLongPress) { setOverrideSilent('${dateStr}', '${p.id}'); cancelPress(); }"
                                 onmousedown="startPress(${programData.routine.indexOf(p)}, event)"
                                 onmouseup="if(!isLongPress && !hasScrolled) setOverrideSilent('${dateStr}', '${p.id}'); cancelPress();"
@@ -1195,10 +1195,10 @@ if (isOngoing && typeof activeDraft !== 'undefined' && activeDraft) {
                                 ontouchmove="handleTouchMove(event)"
                                 style="${cardStyle} width:100% !important; height:auto !important; min-height:0 !important;
                                 text-align:left !important; display:flex !important;
-                                flex-direction:column !important; align-items:flex-start !important; justify-content:flex-start !important;
+                                flex-direction:row !important; align-items:center !important; justify-content:space-between !important;
                                 outline: none !important;
                                 user-select:none; -webkit-user-select:none;">
-                               ${renderOverrideBtnContent(p, isSelected)}
+                               ${renderOverrideBtnContentCompact(p, isSelected)}
                             </button>`;
                         }).join('');
                         const browseLink = hasMore ? `
@@ -1254,7 +1254,7 @@ function renderOverrideBtnContentCompact(p, isSelected) {
             <span style="font-size:12px; font-weight:700; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${p.name}</span>
         </span>
         <span style="display:flex; gap:10px; flex-shrink:0; font-size:9px; font-weight:800;">
-            <span style="color:#22d3ee;">${p.exercises.length} EX</span>
+           <span style="color:#22d3ee;">${p.exercises.length} EXERCISES</span>
             ${p.duration ? `<span style="color:#f59e0b; white-space:nowrap;">⏱️ ~${p.duration} MIN</span>` : ''}
         </span>
     `;
@@ -1666,9 +1666,9 @@ function renderAccordionPassCard(pass, passIdx, icons, selector, layoutMode) {
         <div onclick="event.stopPropagation(); openEditProgramModal(${passIdx})"
             style="position: absolute; top: 6px; right: 6px; font-size: 12px; opacity: 0.6; cursor: pointer; padding: 2px 6px; border-radius: 6px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); z-index:2;">✏️</div>
     `;
-    const selectBtn = window._selectionModeDate ? `
+   const selectBtn = window._selectionModeDate ? `
         <button onclick="event.stopPropagation(); selectWorkoutForDate('${pass.id}')"
-            style="position:absolute; bottom:8px; right:8px; padding:6px 14px; border-radius:8px; border:none; background:var(--primary); color:#0f172a; font-size:11px; font-weight:800; cursor:pointer; z-index:2;">
+            style="position:absolute; bottom:6px; right:6px; padding:3px 9px; border-radius:6px; border:none; background:var(--primary); color:#0f172a; font-size:9px; font-weight:800; cursor:pointer; z-index:2;">
             Select
         </button>` : '';
 
@@ -2118,6 +2118,11 @@ function renderPassesInGroup(groupId) {
         });
         layoutBar.querySelector('#layout-settings-btn').onclick = openLayoutPickerModal;
         layoutBar.style.display = 'flex';
+
+        if (window._selectionModeDate) {
+            backBtn.innerHTML = `← Back to Day Manager`;
+            backBtn.onclick = () => cancelWorkoutSelection();
+        } else {
         backBtn.onclick = () => {
             backBtn.style.transition = 'opacity 0.25s ease';
             backBtn.style.opacity = '0';
@@ -2160,7 +2165,7 @@ function renderPassesInGroup(groupId) {
                 }, 30);
             }, 300);
         };
-        const icons = [' ⚡ ', ' 🔥 ', ' 🏆 ', ' 💎 '];
+        }
 
         if (window._selectionModeDate) {
             const banner = document.createElement("div");
@@ -2169,6 +2174,7 @@ function renderPassesInGroup(groupId) {
             selector.appendChild(banner);
         }
 
+        const icons = [' ⚡ ', ' 🔥 ', ' 🏆 ', ' 💎 '];
         if (layoutMode === 'compact') {
             renderChipsLayout(passesInGroup, selector, icons);
         } else {
