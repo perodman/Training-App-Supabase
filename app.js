@@ -1109,7 +1109,7 @@ if (isOngoing && typeof activeDraft !== 'undefined' && activeDraft) {
         </div>
         <div style="text-align:center;">
             <div class="hint-bubble hint-centered" style="position:relative !important; right:auto !important; display:inline-flex !important; margin:0 auto 8px auto !important;">
-                <span style="font-size:13px; font-weight:700; color:#fff; letter-spacing:0.3px;">Tap a group to change workout</span>
+                <span style="font-size:13px; font-weight:700; color:#fff; letter-spacing:0.3px;">${!planned ? 'Tap a group to add workout' : 'Tap a group to change workout'}</span>
             </div>
         </div>
        <div id="day-manager-group-container" style="display: flex; flex-direction: column; gap: 18px; border-left: none;">`;
