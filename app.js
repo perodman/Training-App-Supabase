@@ -5314,10 +5314,8 @@ async function saveProgramEdit(idx) {
     const savedGroups = programData.routine[idx].groups;
     if (Array.isArray(savedGroups) && savedGroups.length > 0) {
         const groupId = savedGroups[0];
+        accordionOpenPassIdx = idx;
         renderPassesInGroup(groupId);
-        setTimeout(() => {
-            showProgramDetails(idx);
-        }, 400);
     } else {
         renderGroupsView();
     }
