@@ -1344,6 +1344,13 @@ function setOverrideSilent(dateStr, programId) {
         nextPlannedProgram = programData.routine.find(p => p.id === programId) || null;
     }
 
+// Uppdatera "Tap a group..."-hinten beroende på om något pass nu är planerat
+    const editPlanHint = document.querySelector('#day-manager-group-container')?.parentElement.querySelector('.hint-bubble span');
+    if (editPlanHint) {
+        const isRestNow = (programId === "none" || programId === "");
+        editPlanHint.textContent = isRestNow ? 'Tap a group to add workout' : 'Tap a group to change workout';
+    }
+
     // Uppdatera texten för planerad status
     const plannedLabel = document.getElementById("current-planned-label");
     if (plannedLabel) {
