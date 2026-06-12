@@ -949,9 +949,9 @@ const safeCompleted = Array.isArray(completed) ? completed : [];
                     </div>
                    <div style="display: flex; gap: 6px;">
                         ${w.programName === "Free Workout" ? `
-                        <button onclick="openSaveFreeWorkoutModal(getHistoryExercisesForLog('${dateStr}', ${idx}), () => reopenDayManagerForDate('${dateStr}'))" style="background: rgba(34,211,238,0.08); border: 1px solid rgba(34,211,238,0.2); color: var(--primary); cursor: pointer; font-size: 13px; width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">💾</button>
-                        <button onclick="openRepeatWorkoutModal(getHistoryExercisesForLog('${dateStr}', ${idx}))" style="background: rgba(34,211,238,0.08); border: 1px solid rgba(34,211,238,0.2); color: var(--primary); cursor: pointer; font-size: 13px; width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">🔁</button>
+                        <button onclick="openSaveFreeWorkoutModalForLog('${dateStr}', ${idx})" style="background: rgba(34,211,238,0.08); border: 1px solid rgba(34,211,238,0.2); color: var(--primary); cursor: pointer; font-size: 13px; width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">💾</button>
                         ` : ''}
+                        <button onclick="openRepeatWorkoutModalForLog('${dateStr}', ${idx})" style="background: rgba(34,211,238,0.08); border: 1px solid rgba(34,211,238,0.2); color: var(--primary); cursor: pointer; font-size: 13px; width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">🔁</button>
                         <button onclick="editLoggedWorkout('${dateStr}', ${idx})" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--primary); cursor: pointer; font-size: 14px; width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">✏️</button>
                         <button onclick="openConfirmDeleteModal('${dateStr}', ${idx})" style="background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); color: var(--danger); cursor: pointer; font-size: 12px; width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">✖</button>
                     </div>
@@ -1656,16 +1656,78 @@ function getHistoryExercisesForLog(dateStr, idx) {
     return w ? (w.exercises || []) : [];
 }
 
-function openSaveFreeWorkoutModal(exercises, onSaved) {
+function roundDurationToNearest5(totalTimeStr) {
+    if (!totalTimeStr) return null;
+    const parts = totalTimeStr.split(':').map(Number);
+    if (parts.length < 2) return null;
+    const totalMinutes = (parts[0] || 0) * 60 + (parts[1] || 0) + (parts[2] || 0) / 60;
+    return Math.round(totalMinutes / 5) * 5;
+}
+
+async function renameSingleWorkoutInHistory(workoutId, newName) {
+    if (!workoutId) return;
+    const entry = workoutHistory.find(w => w.id === workoutId);
+    if (entry) entry.programName = newName;
+    localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
+    if (typeof currentUser !== 'undefined' && currentUser && typeof supabaseClient !== 'undefined') {
+        try {
+            const { data, error } = await supabaseClient
+                .from('workout_history')
+                .select('id, workout_data')
+                .eq('user_id', currentUser.id)
+                .eq('id', workoutId)
+                .maybeSingle();
+            if (!error && data && data.workout_data) {
+                data.workout_data.programName = newName;
+                await supabaseClient
+                    .from('workout_history')
+                    .update({ workout_data: data.workout_data })
+                    .eq('id', workoutId)
+                    .eq('user_id', currentUser.id);
+            }
+        } catch (e) {
+            console.error("renameSingleWorkoutInHistory:", e);
+        }
+    }
+}
+
+function openSaveFreeWorkoutModalForLog(dateStr, idx) {
+    const filtered = workoutHistory.filter(w => w.date === dateStr);
+    const entry = filtered[idx];
+    if (!entry) return;
+    openSaveFreeWorkoutModal(entry.exercises || [], () => reopenDayManagerForDate(dateStr), {
+        workoutId: entry.id,
+        oldName: entry.programName,
+        totalTime: entry.totalTime
+    });
+}
+
+function openRepeatWorkoutModalForLog(dateStr, idx) {
+    const filtered = workoutHistory.filter(w => w.date === dateStr);
+    const entry = filtered[idx];
+    if (!entry) return;
+    openRepeatWorkoutModal(entry.exercises || []);
+}
+
+function openSaveFreeWorkoutModal(exercises, onSaved, meta = {}) {
     if (typeof hideDefaultCloseButton === 'function') hideDefaultCloseButton(true);
     const body = document.getElementById("modal-body");
     const customGroups = programData.customGroups || [];
     const ALL_GROUPS = [...PREDEFINED_GROUPS, ...customGroups];
     let selectedGroups = [];
+    const roundedDuration = roundDurationToNearest5(meta.totalTime);
     body.innerHTML = `
-        <h3 style="text-align:center; margin-bottom:8px;">Save as program</h3>
+        <h3 style="text-align:center; margin-bottom:8px;">Save as Workout program</h3>
         <p style="text-align:center; font-size:12px; color:var(--text-light); margin-bottom:20px;">Give this workout a name to reuse it later</p>
         <input type="text" id="save-free-name" class="log-input" placeholder="e.g. Saturday Push Day" style="text-align:center;">
+        <p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin:16px 0 10px; letter-spacing:1px;">Estimated Duration</p>
+        <div style="display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:6px;">
+            <span style="font-size:20px;">⏱️</span>
+            <input type="number" id="save-free-duration" class="log-input" placeholder="e.g. 60" value="${roundedDuration || ''}"
+                style="margin:0; text-align:center; width:80px; -moz-appearance: textfield;"
+                onfocus="handleInputFocus(this)" onblur="handleInputBlur(this)">
+            <span style="font-size:12px; color:var(--text-light); font-weight:700;">min</span>
+        </div>
         <p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin:16px 0 10px; letter-spacing:1px;">Add to group (optional)</p>
         <div id="save-free-groups" style="display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin-bottom:20px;">
             ${ALL_GROUPS.map(g => `
@@ -1694,14 +1756,20 @@ function openSaveFreeWorkoutModal(exercises, onSaved) {
     document.getElementById("save-free-confirm-btn").onclick = async () => {
         const name = document.getElementById("save-free-name").value.trim();
         if (!name) { alert("Please enter a name"); return; }
+        const durationInput = document.getElementById("save-free-duration");
+        const duration = durationInput && durationInput.value ? parseInt(durationInput.value) : null;
         const newPass = {
             id: "pass-" + Date.now(),
             name,
             exercises: getExerciseTemplatesFromLog(exercises),
-            groups: selectedGroups
+            groups: selectedGroups,
+            duration: duration
         };
         programData.routine.push(newPass);
         await saveCustomProgramToSupabase();
+        if (meta.workoutId && meta.oldName && meta.oldName !== name) {
+            await renameSingleWorkoutInHistory(meta.workoutId, name);
+        }
         hideDefaultCloseButton(false);
         closeModal();
         if (typeof onSaved === 'function') onSaved();
@@ -1732,20 +1800,22 @@ function openRepeatWorkoutModal(exercises) {
         for (let d = 1; d <= daysInMonth; d++) {
             const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
             const isToday = dateStr === todayStr;
-            cells += `<div onclick="window.confirmRepeatDate('${dateStr}')" class="calendar-cell ${isToday ? 'today' : ''}" style="cursor:pointer;"><span>${d}</span></div>`;
+            cells += `<div onclick="window.selectRepeatDate(this, '${dateStr}')" class="calendar-cell ${isToday ? 'today' : ''}"><span>${d}</span></div>`;
         }
         body.innerHTML = `
             <h3 style="text-align:center; margin-bottom:8px;">Repeat workout on...</h3>
             <p style="text-align:center; font-size:12px; color:var(--text-light); margin-bottom:16px;">Choose a date to schedule this workout</p>
             <div class="calendar-nav">
                 <button class="nav-arrow" onclick="window.repeatPickerChangeMonth(-1)">❮</button>
-                <h2>${monthLabel}</h2>
+                <h2 id="repeat-month-label" style="margin:0; font-size:1.1rem; font-weight:700; letter-spacing:0.5px; color:var(--text); background:rgba(255,255,255,0.05); padding:8px 16px; border-radius:12px; border:1px solid var(--glass-border);">${monthLabel}</h2>
                 <button class="nav-arrow" onclick="window.repeatPickerChangeMonth(1)">❯</button>
             </div>
-            <div class="calendar-weekdays"><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div><div>Sun</div></div>
-            <div class="calendar-grid">${cells}</div>
+            <div class="card calendar-card glass-light">
+                <div class="calendar-weekdays"><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div><div>Sun</div></div>
+                <div class="calendar-grid">${cells}</div>
+            </div>
             <button class="mode-btn glass-border" onclick="hideDefaultCloseButton(false); closeModal();"
-                style="width:100%; margin-top:20px; background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.05) 100%); border: 1px solid rgba(255,255,255,0.25); border-top: 1px solid rgba(255,255,255,0.45);">
+                style="width:100%; margin-top:10px; background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.05) 100%); border: 1px solid rgba(255,255,255,0.25); border-top: 1px solid rgba(255,255,255,0.45);">
                 Cancel
             </button>
         `;
@@ -1753,6 +1823,11 @@ function openRepeatWorkoutModal(exercises) {
     window.repeatPickerChangeMonth = (delta) => {
         pickerDate.setMonth(pickerDate.getMonth() + delta);
         render();
+    };
+    window.selectRepeatDate = (el, dateStr) => {
+        document.querySelectorAll('#workout-modal .calendar-cell').forEach(c => c.classList.remove('cell-planned'));
+        el.classList.add('cell-planned');
+        window.confirmRepeatDate(dateStr);
     };
     window.confirmRepeatDate = async (dateStr) => {
         const newPass = {
@@ -1766,9 +1841,11 @@ function openRepeatWorkoutModal(exercises) {
         calendarOverrides[dateStr] = newPass.id;
         await saveCustomProgramToSupabase();
         await saveAll();
-        hideDefaultCloseButton(false);
-        closeModal();
-        if (typeof renderCalendar === 'function') renderCalendar();
+        setTimeout(() => {
+            hideDefaultCloseButton(false);
+            closeModal();
+            if (typeof renderCalendar === 'function') renderCalendar();
+        }, 250);
     };
     render();
     openModal();
@@ -4538,6 +4615,10 @@ async function finishWorkout(e) {
             setTimeout(() => showFireworks(), 200);
             openSaveFreeWorkoutModal(log.exercises, () => {
                 openDayManager(todayStr, null, todayWorkouts, false);
+            }, {
+                workoutId: log.id,
+                oldName: log.programName,
+                totalTime: finalTime
             });
         } else {
             window._showFireworksOnOpen = true;
