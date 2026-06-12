@@ -1712,7 +1712,7 @@ function openRepeatWorkoutModalForLog(dateStr, idx) {
     const filtered = workoutHistory.filter(w => w.date === dateStr);
     const entry = filtered[idx];
     if (!entry) return;
-    openRepeatWorkoutModal(entry.exercises || []);
+    openRepeatWorkoutModal(entry.exercises || [], entry.programName);
 }
 
 function openSaveFreeWorkoutModal(exercises, onSaved, meta = {}) {
@@ -1791,7 +1791,7 @@ function openSaveFreeWorkoutModal(exercises, onSaved, meta = {}) {
     openModal();
 }
 
-function openRepeatWorkoutModal(exercises) {
+function openRepeatWorkoutModal(exercises, sourceName = "Free Workout") {
     if (typeof hideDefaultCloseButton === 'function') hideDefaultCloseButton(true);
     const body = document.getElementById("modal-body");
     body.style.display = "";
@@ -1857,9 +1857,9 @@ function openRepeatWorkoutModal(exercises) {
         window.confirmRepeatDate(dateStr);
     };
     window.confirmRepeatDate = async (dateStr) => {
-        const newPass = {
+const newPass = {
             id: "freecopy-" + Date.now(),
-            name: "Free Workout",
+            name: sourceName,
             exercises: getExerciseTemplatesFromLog(exercises),
             groups: [],
             _isFreeCopy: true
@@ -4570,6 +4570,11 @@ async function finishWorkout(e) {
             return;
         }
  
+        console.log("🚀 [SPÅRNING] STEG 1.5: Täcker skärmen direkt.");
+        const modalBodyEl = document.getElementById("modal-body");
+        if (modalBodyEl) modalBodyEl.innerHTML = "";
+        if (typeof openModal === 'function') openModal(true);
+
         console.log("🚀 [SPÅRNING] STEG 2: Stoppar timers och bygger logg-objektet.");
         if (typeof stopTimer === 'function') stopTimer();
         if (typeof pauseTimer === 'function') pauseTimer(); 
@@ -4629,12 +4634,7 @@ async function finishWorkout(e) {
             await supabaseClient.from('active_draft').delete().eq('user_id', currentUser.id);
         }
  
-        console.log("🚀 [SPÅRNING] STEG 6: Täcker skärmen innan vybyte.");
-        const modalBodyEl = document.getElementById("modal-body");
-        if (modalBodyEl) modalBodyEl.innerHTML = "";
-        if (typeof openModal === 'function') openModal(true);
-
-        console.log("🚀 [SPÅRNING] STEG 7: Byter till kalendervyn bakom overlayn.");
+       console.log("🚀 [SPÅRNING] STEG 7: Byter till kalendervyn bakom overlayn.");
         showView("calendar-view");
         renderCalendar(false);
         const todayStr = log.date;
