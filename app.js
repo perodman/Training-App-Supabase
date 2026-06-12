@@ -926,8 +926,9 @@ function openDayManager(dateStr, planned, completed, isOngoing) {
         </div>
     `;
 
-    const safeCompleted = Array.isArray(completed) ? completed : [];
+const safeCompleted = Array.isArray(completed) ? completed : [];
     const hasCompleted = safeCompleted.length > 0;
+    let autoOpenGroupId = null;
 
  // 1. Workout History
    if (hasCompleted) {
@@ -1211,7 +1212,6 @@ if (isOngoing && typeof activeDraft !== 'undefined' && activeDraft) {
             </div>`;
         };
 
-        let autoOpenGroupId = null;
         if (planned) {
             const plannedGroup = groupsWithPasses.find(g => groupMap[g.id].some(p => p.id === planned.id));
             if (plannedGroup) {
@@ -1248,7 +1248,7 @@ if (isOngoing && typeof activeDraft !== 'undefined' && activeDraft) {
         window._showFireworksOnOpen = false;
         setTimeout(() => showFireworks(), 200);
     }
-    if (typeof autoOpenGroupId !== 'undefined' && autoOpenGroupId) {
+    if (autoOpenGroupId) {
         setTimeout(() => toggleDayManagerGroup(autoOpenGroupId), 50);
     }
 }
