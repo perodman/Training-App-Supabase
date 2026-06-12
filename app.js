@@ -1202,7 +1202,7 @@ if (isOngoing && typeof activeDraft !== 'undefined' && activeDraft) {
                                     style="margin-top:8px; width:100%; padding:10px; border-radius:12px;
                                     border:1px dashed rgba(34,211,238,0.4); background:rgba(34,211,238,0.04);
                                     color:var(--primary); font-size:12px; font-weight:700; cursor:pointer;">
-                                    Choose from all ${passes.length} workouts in Workout Programs →
+                                  Choose from all ${passes.length} workouts →
                                 </button>` : '';
                             return `<div style="display:grid; grid-template-columns:1fr; gap:8px;">${buttonsHtml}</div>${browseLink}`;
                         })()}
@@ -1211,10 +1211,18 @@ if (isOngoing && typeof activeDraft !== 'undefined' && activeDraft) {
             </div>`;
         };
 
+        let autoOpenGroupId = null;
+        if (planned) {
+            const plannedGroup = groupsWithPasses.find(g => groupMap[g.id].some(p => p.id === planned.id));
+            if (plannedGroup) {
+                autoOpenGroupId = plannedGroup.id;
+            } else if (ungrouped.some(p => p.id === planned.id)) {
+                autoOpenGroupId = '__other__';
+            }
+        }
         groupsWithPasses.forEach(g => {
             html += renderGroupSection(g, groupMap[g.id]);
         });
-
         if (ungrouped.length > 0) {
             html += renderGroupSection({ id: '__other__', name: 'Other', icon: '📁' }, ungrouped, true);
         }
@@ -1239,6 +1247,9 @@ if (isOngoing && typeof activeDraft !== 'undefined' && activeDraft) {
     if (hasCompleted && window._showFireworksOnOpen) {
         window._showFireworksOnOpen = false;
         setTimeout(() => showFireworks(), 200);
+    }
+    if (typeof autoOpenGroupId !== 'undefined' && autoOpenGroupId) {
+        setTimeout(() => toggleDayManagerGroup(autoOpenGroupId), 50);
     }
 }
 
