@@ -1664,26 +1664,31 @@ function roundDurationToNearest5(totalTimeStr) {
     return Math.round(totalMinutes / 5) * 5;
 }
 
-async function renameSingleWorkoutInHistory(workoutId, newName) {
+async function renameSingleWorkoutInHistory(workoutId, newName, dateStr, oldName) {
     if (!workoutId) return;
     const entry = workoutHistory.find(w => w.id === workoutId);
     if (entry) entry.programName = newName;
     localStorage.setItem("workoutHistory", JSON.stringify(workoutHistory));
     if (typeof currentUser !== 'undefined' && currentUser && typeof supabaseClient !== 'undefined') {
         try {
-            const { data, error } = await supabaseClient
+            let query = supabaseClient
                 .from('workout_history')
                 .select('id, workout_data')
-                .eq('user_id', currentUser.id)
-                .eq('id', workoutId)
-                .maybeSingle();
-            if (!error && data && data.workout_data) {
-                data.workout_data.programName = newName;
-                await supabaseClient
-                    .from('workout_history')
-                    .update({ workout_data: data.workout_data })
-                    .eq('id', workoutId)
-                    .eq('user_id', currentUser.id);
+                .eq('user_id', currentUser.id);
+            if (dateStr) query = query.eq('workout_date', dateStr);
+            const { data, error } = await query;
+            if (!error && Array.isArray(data)) {
+                const targetRow = data.find(row =>
+                    row.workout_data && (row.workout_data.id === workoutId || row.workout_data.programName === oldName)
+                );
+                if (targetRow) {
+                    targetRow.workout_data.programName = newName;
+                    await supabaseClient
+                        .from('workout_history')
+                        .update({ workout_data: targetRow.workout_data })
+                        .eq('id', targetRow.id)
+                        .eq('user_id', currentUser.id);
+                }
             }
         } catch (e) {
             console.error("renameSingleWorkoutInHistory:", e);
@@ -1698,6 +1703,7 @@ function openSaveFreeWorkoutModalForLog(dateStr, idx) {
     openSaveFreeWorkoutModal(entry.exercises || [], () => reopenDayManagerForDate(dateStr), {
         workoutId: entry.id,
         oldName: entry.programName,
+        date: dateStr,
         totalTime: entry.totalTime
     });
 }
@@ -1771,7 +1777,7 @@ function openSaveFreeWorkoutModal(exercises, onSaved, meta = {}) {
         programData.routine.push(newPass);
         await saveCustomProgramToSupabase();
         if (meta.workoutId && meta.oldName && meta.oldName !== name) {
-            await renameSingleWorkoutInHistory(meta.workoutId, name);
+            await renameSingleWorkoutInHistory(meta.workoutId, name, meta.date, meta.oldName);
         }
         hideDefaultCloseButton(false);
         closeModal();
@@ -1808,7 +1814,20 @@ function openRepeatWorkoutModal(exercises) {
         for (let d = 1; d <= daysInMonth; d++) {
             const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
             const isToday = dateStr === todayStr;
-            cells += `<div onclick="window.selectRepeatDate(this, '${dateStr}')" class="calendar-cell ${isToday ? 'today' : ''}"><span>${d}</span></div>`;
+            const hasWorkouts = workoutHistory.filter(w => w.date === dateStr);
+            const isOngoing = activeDraft && activeDraft.date === dateStr && activeDraft.isStarted;
+            const dayOfWeek = new Date(year, month, d).getDay();
+            const isAutoDay = [1, 3, 5].includes(dayOfWeek);
+            const override = calendarOverrides[dateStr];
+            let displayPass = null;
+            if (override && override !== "none") displayPass = programData.routine.find(p => p.id === override);
+            else if (isAutoDay && override !== "none" && programData && programData.routine.length > 0) displayPass = programData.routine[d % programData.routine.length];
+            let extraClass = '';
+            let info = '';
+            if (hasWorkouts.length > 0) { extraClass = 'cell-completed'; info = '✓'; }
+            else if (isOngoing) { extraClass = 'cell-ongoing'; info = displayPass ? displayPass.name.split(" ").pop() : '🔥'; }
+            else if (displayPass) { extraClass = 'cell-planned'; info = displayPass.name.split(" ").pop(); }
+            cells += `<div onclick="window.selectRepeatDate(this, '${dateStr}')" class="calendar-cell ${isToday ? 'today' : ''} ${extraClass}"><span>${d}</span><div class="cell-info">${info}</div></div>`;
         }
         body.innerHTML = `
             <h3 style="text-align:center; margin-bottom:8px;">Repeat workout on...</h3>
@@ -4610,10 +4629,12 @@ async function finishWorkout(e) {
             await supabaseClient.from('active_draft').delete().eq('user_id', currentUser.id);
         }
  
-        console.log("🚀 [SPÅRNING] STEG 6: Förbereder kalendervyn.");
-        if (typeof renderCalendar === 'function') renderCalendar(false);
- 
-        console.log("🚀 [SPÅRNING] STEG 7: Tvingar fram kalendervyn.");
+        console.log("🚀 [SPÅRNING] STEG 6: Täcker skärmen innan vybyte.");
+        const modalBodyEl = document.getElementById("modal-body");
+        if (modalBodyEl) modalBodyEl.innerHTML = "";
+        if (typeof openModal === 'function') openModal(true);
+
+        console.log("🚀 [SPÅRNING] STEG 7: Byter till kalendervyn bakom overlayn.");
         showView("calendar-view");
         renderCalendar(false);
         const todayStr = log.date;
