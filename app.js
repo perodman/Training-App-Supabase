@@ -2054,11 +2054,26 @@ function renderPassesInGroup(groupId) {
     const ALL_GROUPS = [...PREDEFINED_GROUPS, ...customGroups];
     const groupDef = ALL_GROUPS.find(g => g.id === groupId) || { id: groupId, name: groupId === '__ungrouped__' ? 'Other' : groupId, icon: groupId === '__ungrouped__' ? '📁' : '📁' };
     currentViewGroupId = groupId;
-    const hint = document.getElementById('groups-hint-bubble');
+    const hintText = window._selectionModeDate
+        ? 'Select a workout for your plan'
+        : 'Tap a workout to see its exercises';
+    let hint = document.getElementById('groups-hint-bubble');
     if (hint) {
-        hint.querySelector('span').textContent = window._selectionModeDate
-            ? 'Select a workout for your plan'
-            : 'Tap a workout to see its exercises';
+        hint.querySelector('span').textContent = hintText;
+    } else {
+        const programsView = document.getElementById("programs-view");
+        let hintWrap = document.getElementById('groups-hint-wrap');
+        if (!hintWrap) {
+            hintWrap = document.createElement('div');
+            hintWrap.id = 'groups-hint-wrap';
+            hintWrap.style.cssText = 'text-align:center; width:100%; margin-bottom:12px;';
+            programsView.insertBefore(hintWrap, selector);
+        }
+        hint = document.createElement('div');
+        hint.id = 'groups-hint-bubble';
+        hint.className = 'hint-bubble hint-centered';
+        hint.innerHTML = `<span style="font-size:13px; font-weight:700; color:#fff; letter-spacing:0.3px;">${hintText}</span>`;
+        hintWrap.appendChild(hint);
     }
     const passesInGroup = groupId === '__ungrouped__'
         ? programData.routine.filter(p => !Array.isArray(p.groups) || p.groups.length === 0)
@@ -2133,10 +2148,11 @@ function renderPassesInGroup(groupId) {
         layoutBar.style.display = 'flex';
 
         if (window._selectionModeDate) {
-            layoutBar.innerHTML = `
-                <button onclick="cancelWorkoutSelection()" style="padding:8px 14px; border-radius:10px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.05); color:var(--text-light); font-size:12px; font-weight:700; cursor:pointer;">
-                    Cancel
-                </button>`;
+            const cancelBtn = document.createElement("button");
+            cancelBtn.onclick = () => cancelWorkoutSelection();
+            cancelBtn.style.cssText = "padding:8px 14px; border-radius:10px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.05); color:var(--text-light); font-size:12px; font-weight:700; cursor:pointer;";
+            cancelBtn.textContent = "Cancel";
+            layoutBar.appendChild(cancelBtn);
         }
 
         if (window._selectionModeDate) {
