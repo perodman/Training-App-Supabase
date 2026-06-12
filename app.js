@@ -3539,8 +3539,7 @@ function renderActiveWorkout() {
                     const showArrow = !isDone && isOpen && sIdx === firstUnconfirmed;
                     setsHtml += `
                     <div style="display:grid; grid-template-columns: 40px 1fr 1fr 1fr 30px; gap:8px; margin-bottom:8px; align-items:center; opacity: ${showSuccess ? '1' : isCurrent ? '1' : '0.35'}; transition: opacity 0.2s ease; position:relative; overflow:visible;">
-                        ${showArrow ? '<div class="set-arrow">➔</div>' : ''}
-                       <div class="${showArrow ? 'pulse-ring' : ''}" onclick="${isLocked && !isDone ? '' : `confirmSet(${i}, ${sIdx})`}"
+                       <div class="${isCurrent ? 'pulse-ring' : ''}" onclick="${isLocked && !isDone ? '' : `confirmSet(${i}, ${sIdx})`}"
                             style="width:32px; height:32px; border-radius:50%; border:2px solid ${circleColor}; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:10px; font-weight:800; background: ${showSuccess ? 'rgba(34, 197, 94, 0.2)' : (isCurrent ? 'rgba(250, 204, 21, 0.15)' : 'rgba(245, 158, 11, 0.05)')}; color: ${circleColor}; opacity: 1;">
                             ${statusContent}
                         </div>
@@ -3568,7 +3567,7 @@ function renderActiveWorkout() {
                         <small style="color: ${isDone ? '#22c55e' : 'var(--primary)'}; font-size: 10px;">${isDone ? 'DONE  ✅ ' : `${completedSets}/${totalSets} set`}</small>
                     </div>
                     <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0; margin-left: 10px;">
-                        <button onclick="event.stopPropagation(); toggleExerciseNote(${i})" style="background:none; border:none; font-size:14px; padding:5px; opacity: ${exerciseData.note ? '1' : '0.5'}; position:relative;">
+                        <button onclick="event.stopPropagation(); toggleExerciseNote(${i})" style="background:none; border:none; font-size:14px; padding:5px; opacity: 1; position:relative;">
                             📝${exerciseData.note ? '<span style="position:absolute; top:2px; right:2px; width:6px; height:6px; background:#fde047; border-radius:50%;"></span>' : ''}
                         </button>
                         <button onclick="event.stopPropagation(); openReplaceExerciseModal(${i})" style="background:none; border:none; font-size:14px; padding:5px; opacity: 0.7;" ${isDone ? 'disabled' : ''}> 🔄 </button>
@@ -4299,8 +4298,7 @@ function updateSingleExerciseCard(exIdx) {
             const showArrow = !isDone && isOpen && sIdx === firstUnconfirmed;
             setsHtml += `
             <div style="display:grid; grid-template-columns: 40px 1fr 1fr 1fr 30px; gap:8px; margin-bottom:8px; align-items:center; opacity: ${showSuccess ? '1' : isCurrent ? '1' : '0.35'}; transition: opacity 0.2s ease; position:relative; overflow:visible;">
-                ${showArrow ? '<div class="set-arrow">➔</div>' : ''}
-                <div class="${showArrow ? 'pulse-ring' : ''}" onclick="${isLocked && !isDone ? '' : `confirmSet(${exIdx}, ${sIdx})`}"
+                <div class="${isCurrent ? 'pulse-ring' : ''}" onclick="${isLocked && !isDone ? '' : `confirmSet(${exIdx}, ${sIdx})`}"
                     style="width:32px; height:32px; border-radius:50%; border:2px solid ${circleColor}; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:10px; font-weight:800; background: ${showSuccess ? 'rgba(34, 197, 94, 0.2)' : (isCurrent ? 'rgba(250, 204, 21, 0.15)' : 'rgba(245, 158, 11, 0.05)')}; color: ${circleColor}; opacity: 1;">
                     ${statusContent}
                 </div>
@@ -4328,7 +4326,7 @@ function updateSingleExerciseCard(exIdx) {
                 <small style="color: ${isDone ? '#22c55e' : 'var(--primary)'}; font-size: 10px;">${isDone ? 'DONE ✅' : `${completedSets}/${totalSets} set`}</small>
             </div>
             <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0; margin-left: 10px;">
-                <button onclick="event.stopPropagation(); toggleExerciseNote(${exIdx})" style="background:none; border:none; font-size:14px; padding:5px; opacity: ${exerciseData.note ? '1' : '0.5'}; position:relative;">
+                <button onclick="event.stopPropagation(); toggleExerciseNote(${exIdx})" style="background:none; border:none; font-size:14px; padding:5px; opacity: 1; position:relative;">
                     📝${exerciseData.note ? '<span style="position:absolute; top:2px; right:2px; width:6px; height:6px; background:#fde047; border-radius:50%;"></span>' : ''}
                 </button>
                 <button onclick="event.stopPropagation(); openReplaceExerciseModal(${exIdx})" style="background:none; border:none; font-size:14px; padding:5px; opacity: 0.7;" ${isDone ? 'disabled' : ''}> 🔄 </button>
