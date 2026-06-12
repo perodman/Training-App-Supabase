@@ -851,7 +851,7 @@ function openProgramPreviewModal(idx) {
                         ${e.name}
                     </span>
                     <span style="font-weight:800; text-transform:uppercase; font-size:9px; color:var(--primary); text-align:right;">${CATEGORY_DISPLAY[e.target] || e.target}</span>
-                    <span style="height:100%; display:flex; justify-content:center;">${e.subtarget ? '<span style="width:1px; height:14px; background:rgba(255,255,255,0.15);"></span>' : ''}</span>
+                    <span style="align-self:stretch; display:flex; justify-content:center;">${e.subtarget ? '<span style="width:1px; align-self:stretch; min-height:14px; background:rgba(255,255,255,0.15);"></span>' : ''}</span>
                     <span style="font-weight:800; text-transform:uppercase; font-size:9px; color:var(--text-light); opacity:0.6;">${e.subtarget || ''}</span>
                 </div>
                 `).join("")}
@@ -1748,7 +1748,7 @@ function renderAccordionPassCard(pass, passIdx, icons, selector, layoutMode) {
                         ${e.name}
                     </span>
                     <span style="font-weight:800; text-transform:uppercase; font-size:9px; color:var(--primary); text-align:right;">${CATEGORY_DISPLAY[e.target] || e.target}</span>
-                    <span style="height:100%; display:flex; justify-content:center;">${e.subtarget ? '<span style="width:1px; height:14px; background:rgba(255,255,255,0.15);"></span>' : ''}</span>
+                    <span style="align-self:stretch; display:flex; justify-content:center;">${e.subtarget ? '<span style="width:1px; align-self:stretch; min-height:14px; background:rgba(255,255,255,0.15);"></span>' : ''}</span>
                     <span style="font-weight:800; text-transform:uppercase; font-size:9px; color:var(--text-light); opacity:0.6;">${e.subtarget || ''}</span>
                 </div>
                 `).join("")}
@@ -1864,7 +1864,7 @@ function showChipsDetail(passesInGroup, activePass, selector, icons) {
                 ${e.name}
             </span>
             <span style="font-weight:800; text-transform:uppercase; font-size:9px; color:var(--primary); text-align:right;">${CATEGORY_DISPLAY[e.target] || e.target}</span>
-            <span style="height:100%; display:flex; justify-content:center;">${e.subtarget ? '<span style="width:1px; height:14px; background:rgba(255,255,255,0.15);"></span>' : ''}</span>
+            <span style="align-self:stretch; display:flex; justify-content:center;">${e.subtarget ? '<span style="width:1px; align-self:stretch; min-height:14px; background:rgba(255,255,255,0.15);"></span>' : ''}</span>
             <span style="font-weight:800; text-transform:uppercase; font-size:9px; color:var(--text-light); opacity:0.6;">${e.subtarget || ''}</span>
         </div>
         `).join("")}
@@ -2407,7 +2407,7 @@ function showProgramDetails(idx) {
         <div style="display:grid; grid-template-columns: 1fr 70px 12px 70px; align-items:center; padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.03); gap:0;">
          <span style="font-weight:600;">${e.name}</span>
          <span style="font-weight:800; text-transform:uppercase; font-size:9px; color:var(--primary); text-align:right;">${CATEGORY_DISPLAY[e.target] || e.target}</span>
-         <span style="height:100%; display:flex; justify-content:center;">${e.subtarget ? '<span style="width:1px; height:14px; background:rgba(255,255,255,0.15);"></span>' : ''}</span>
+         <span style="align-self:stretch; display:flex; justify-content:center;">${e.subtarget ? '<span style="width:1px; align-self:stretch; min-height:14px; background:rgba(255,255,255,0.15);"></span>' : ''}</span>
          <span style="font-weight:800; text-transform:uppercase; font-size:10px; color:var(--text-light); opacity:0.6;">${e.subtarget || ''}</span>
         </div>
         `).join("")}
