@@ -830,6 +830,10 @@ function openProgramPreviewModal(idx) {
 
     previewModal.style.opacity = "0";
     previewModal.style.display = "flex";
+    previewModal.style.pointerEvents = "none";
+    setTimeout(() => {
+        previewModal.style.pointerEvents = "auto";
+    }, 350);
 
     previewModal.innerHTML = `
         <div id="preview-modal-card" class="card glass" style="width: 90%; max-width: 400px; padding: 20px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); background: rgba(15, 23, 42, 0.95); margin-top: 40px;
