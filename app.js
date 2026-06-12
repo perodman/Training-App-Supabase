@@ -3532,7 +3532,7 @@ function renderActiveWorkout() {
             if (exerciseData.sets_data) {
                 exerciseData.sets_data.forEach((set, sIdx) => {
                     const isLocked = isDone;
-                    const isCurrent = !set.userConfirmed && !isDone;
+                    const isCurrent = !set.userConfirmed && !isDone && sIdx === firstUnconfirmed;
                     const showSuccess = set.userConfirmed || isDone;
                     const circleColor = showSuccess ? '#22c55e' : (isCurrent ? '#facc15' : '#f59e0b');
                     const statusContent = showSuccess ? ' ✅ ' : `#${sIdx + 1}`;
@@ -4291,7 +4291,7 @@ function updateSingleExerciseCard(exIdx) {
     if (exerciseData.sets_data) {
         exerciseData.sets_data.forEach((set, sIdx) => {
             const isLocked = isDone;
-            const isCurrent = !set.userConfirmed && !isDone;
+            const isCurrent = !set.userConfirmed && !isDone && sIdx === firstUnconfirmed;
             const showSuccess = set.userConfirmed || isDone;
             const circleColor = showSuccess ? '#22c55e' : (isCurrent ? '#facc15' : '#f59e0b');
             const statusContent = showSuccess ? ' ✅ ' : `#${sIdx + 1}`;
