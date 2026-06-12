@@ -1753,9 +1753,12 @@ function openSaveFreeWorkoutModal(exercises, onSaved, meta = {}) {
             if (btn) { btn.style.border = '1px solid var(--primary)'; btn.style.background = 'rgba(34,211,238,0.15)'; btn.style.color = 'var(--primary)'; }
         }
     };
+    let isSaving = false;
     document.getElementById("save-free-confirm-btn").onclick = async () => {
+        if (isSaving) return;
         const name = document.getElementById("save-free-name").value.trim();
         if (!name) { alert("Please enter a name"); return; }
+        isSaving = true;
         const durationInput = document.getElementById("save-free-duration");
         const duration = durationInput && durationInput.value ? parseInt(durationInput.value) : null;
         const newPass = {
@@ -1807,12 +1810,12 @@ function openRepeatWorkoutModal(exercises) {
             <p style="text-align:center; font-size:12px; color:var(--text-light); margin-bottom:16px;">Choose a date to schedule this workout</p>
             <div class="calendar-nav">
                 <button class="nav-arrow" onclick="window.repeatPickerChangeMonth(-1)">❮</button>
-                <h2 id="repeat-month-label" style="margin:0; font-size:1.1rem; font-weight:700; letter-spacing:0.5px; color:var(--text); background:rgba(255,255,255,0.05); padding:8px 16px; border-radius:12px; border:1px solid var(--glass-border);">${monthLabel}</h2>
+                <h2 id="month-label" style="margin:0;">${monthLabel}</h2>
                 <button class="nav-arrow" onclick="window.repeatPickerChangeMonth(1)">❯</button>
             </div>
             <div class="card calendar-card glass-light">
                 <div class="calendar-weekdays"><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div><div>Sun</div></div>
-                <div class="calendar-grid">${cells}</div>
+                <div class="calendar-grid" id="calendar-grid">${cells}</div>
             </div>
             <button class="mode-btn glass-border" onclick="hideDefaultCloseButton(false); closeModal();"
                 style="width:100%; margin-top:10px; background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.05) 100%); border: 1px solid rgba(255,255,255,0.25); border-top: 1px solid rgba(255,255,255,0.45);">
@@ -4611,19 +4614,8 @@ async function finishWorkout(e) {
         renderCalendar(false);
         const todayStr = log.date;
         const todayWorkouts = workoutHistory.filter(w => w.date === todayStr);
-        if (log.programName === "Free Workout" && Array.isArray(log.exercises) && log.exercises.length > 0) {
-            setTimeout(() => showFireworks(), 200);
-            openSaveFreeWorkoutModal(log.exercises, () => {
-                openDayManager(todayStr, null, todayWorkouts, false);
-            }, {
-                workoutId: log.id,
-                oldName: log.programName,
-                totalTime: finalTime
-            });
-        } else {
-            window._showFireworksOnOpen = true;
-            openDayManager(todayStr, null, todayWorkouts, false);
-        }
+        window._showFireworksOnOpen = true;
+        openDayManager(todayStr, null, todayWorkouts, false);
          
         if (typeof window.currentView !== 'undefined') window.currentView = "calendar-view";
         document.body.setAttribute("data-current-view", "calendar-view");
