@@ -1248,11 +1248,11 @@ function renderOverrideBtnContentCompact(p, isSelected) {
     return `
         <span style="display:flex; align-items:center; gap:8px; flex:1; min-width:0;">
             <span class="ovr-check" style="width:20px; height:20px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:900; border:2px solid ${isSelected ? '#22d3ee' : 'rgba(255,255,255,0.2)'}; background:${isSelected ? '#22d3ee' : 'transparent'}; color:${isSelected ? '#0f172a' : 'transparent'};">✓</span>
-            <span style="font-size:12px; font-weight:700; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${p.name}</span>
+            <span style="font-size:12px; font-weight:700; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1; min-width:0;">${p.name}</span>
         </span>
-       <span style="display:flex; gap:10px; flex-shrink:0; font-size:11px; font-weight:800;">
+        <span style="display:flex; gap:6px; flex-shrink:0; font-size:9px; font-weight:800; white-space:nowrap;">
             <span style="color:#22d3ee;">${p.exercises.length} EXERCISES</span>
-            ${p.duration ? `<span style="color:#f59e0b; white-space:nowrap;">⏱️ ~${p.duration} MIN</span>` : ''}
+            ${p.duration ? `<span style="color:#f59e0b;">⏱️ ~${p.duration} MIN</span>` : ''}
         </span>
     `;
 }
@@ -1570,6 +1570,8 @@ function getVisiblePassesForGroup(groupId, passes) {
 }
 
 function reopenDayManagerForDate(dateStr) {
+    if (typeof showView === 'function') showView("calendar-view");
+    if (typeof renderCalendar === 'function') renderCalendar();
     const hasWorkouts = workoutHistory.filter(w => w.date === dateStr);
     const isOngoing = activeDraft && activeDraft.date === dateStr && activeDraft.isStarted;
     const override = calendarOverrides[dateStr];
@@ -1590,7 +1592,8 @@ function reopenDayManagerForDate(dateStr) {
 
 window.enterWorkoutSelectionMode = (dateStr, groupId) => {
     window._selectionModeDate = dateStr;
-    closeModal();
+    document.getElementById("workout-modal").classList.add("hidden");
+    if (typeof hideDefaultCloseButton === 'function') hideDefaultCloseButton(false);
     const targetId = groupId === '__other__' ? '__ungrouped__' : groupId;
     renderPassesInGroup(targetId);
 };
@@ -1663,7 +1666,7 @@ function renderAccordionPassCard(pass, passIdx, icons, selector, layoutMode) {
             style="position: absolute; top: 6px; right: 6px; font-size: 12px; opacity: 0.6; cursor: pointer; padding: 2px 6px; border-radius: 6px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); z-index:2;">✏️</div>
     `;
    const selectBtn = window._selectionModeDate ? `
-        <button onclick="event.stopPropagation(); selectWorkoutForDate('${pass.id}')"
+        <button class="dm-select-btn" onclick="event.stopPropagation(); selectWorkoutForDate('${pass.id}')"
             style="position:absolute; bottom:6px; right:6px; padding:3px 9px; border-radius:6px; border:none; background:var(--primary); color:#0f172a; font-size:9px; font-weight:800; cursor:pointer; z-index:2;">
             Select
         </button>` : '';
@@ -1732,17 +1735,29 @@ function renderAccordionPassCard(pass, passIdx, icons, selector, layoutMode) {
                 </div>
                 `).join("")}
             `;
-            passCard.appendChild(list);
+           passCard.appendChild(list);
             void list.offsetHeight; // tvingar fram reflow så transitionen verkligen triggas
             requestAnimationFrame(() => {
                 list.style.maxHeight = (pass.exercises.length * 44 + 70) + "px";
                 list.style.opacity = "1";
             });
-        } else {
+            const selBtn = passCard.querySelector('.dm-select-btn');
+            if (selBtn) {
+                selBtn.style.bottom = 'auto';
+                selBtn.style.top = '6px';
+                selBtn.style.right = '34px';
+            }
+       } else {
             accordionOpenPassIdx = null;
             document.querySelectorAll("#pass-selector-list .prog-card").forEach(c => {
                 c.style.opacity = "1";
             });
+            const selBtn = passCard.querySelector('.dm-select-btn');
+            if (selBtn) {
+                selBtn.style.top = 'auto';
+                selBtn.style.bottom = '6px';
+                selBtn.style.right = '6px';
+            }
         }
     };
 
@@ -2041,7 +2056,9 @@ function renderPassesInGroup(groupId) {
     currentViewGroupId = groupId;
     const hint = document.getElementById('groups-hint-bubble');
     if (hint) {
-        hint.querySelector('span').textContent = 'Tap a workout to see its exercises';
+        hint.querySelector('span').textContent = window._selectionModeDate
+            ? 'Select a workout for your plan'
+            : 'Tap a workout to see its exercises';
     }
     const passesInGroup = groupId === '__ungrouped__'
         ? programData.routine.filter(p => !Array.isArray(p.groups) || p.groups.length === 0)
@@ -2116,6 +2133,13 @@ function renderPassesInGroup(groupId) {
         layoutBar.style.display = 'flex';
 
         if (window._selectionModeDate) {
+            layoutBar.innerHTML = `
+                <button onclick="cancelWorkoutSelection()" style="padding:8px 14px; border-radius:10px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.05); color:var(--text-light); font-size:12px; font-weight:700; cursor:pointer;">
+                    Cancel
+                </button>`;
+        }
+
+        if (window._selectionModeDate) {
             backBtn.innerHTML = `← Back to Day Manager`;
             backBtn.onclick = () => cancelWorkoutSelection();
         } else {
@@ -2161,13 +2185,6 @@ function renderPassesInGroup(groupId) {
                 }, 30);
             }, 300);
         };
-        }
-
-        if (window._selectionModeDate) {
-            const banner = document.createElement("div");
-            banner.style.cssText = "grid-column: 1 / -1; display:flex; justify-content:space-between; align-items:center; padding:10px 14px; margin-bottom:4px; background:rgba(34,211,238,0.08); border:1px solid rgba(34,211,238,0.25); border-radius:12px;";
-            banner.innerHTML = `<span style="font-size:12px; color:var(--primary); font-weight:700;">Select a workout for your plan</span><button onclick="cancelWorkoutSelection()" style="font-size:12px; font-weight:700; color:var(--text-light); background:none; border:none; cursor:pointer;">Cancel</button>`;
-            selector.appendChild(banner);
         }
 
         const icons = [' ⚡ ', ' 🔥 ', ' 🏆 ', ' 💎 '];
