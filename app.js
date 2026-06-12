@@ -1788,6 +1788,11 @@ function openSaveFreeWorkoutModal(exercises, onSaved, meta = {}) {
 function openRepeatWorkoutModal(exercises) {
     if (typeof hideDefaultCloseButton === 'function') hideDefaultCloseButton(true);
     const body = document.getElementById("modal-body");
+    body.style.display = "";
+    body.style.flexDirection = "";
+    body.style.justifyContent = "";
+    body.style.alignItems = "";
+    body.style.gap = "";
     let pickerDate = new Date();
     const render = () => {
         const year = pickerDate.getFullYear();
@@ -4605,8 +4610,7 @@ async function finishWorkout(e) {
             await supabaseClient.from('active_draft').delete().eq('user_id', currentUser.id);
         }
  
-        console.log("🚀 [SPÅRNING] STEG 6: Stänger modaler och förbereder kalendervyn.");
-        if (typeof closeModal === 'function') closeModal();
+        console.log("🚀 [SPÅRNING] STEG 6: Förbereder kalendervyn.");
         if (typeof renderCalendar === 'function') renderCalendar(false);
  
         console.log("🚀 [SPÅRNING] STEG 7: Tvingar fram kalendervyn.");
