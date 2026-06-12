@@ -947,7 +947,11 @@ const safeCompleted = Array.isArray(completed) ? completed : [];
                         <strong style="font-size: 15px; color: var(--text); display: block;">${w.programName}</strong>
                         <span style="font-size: 11px; color: #22c55e; font-weight: 600;">${timeStr || 'Completed ✅'}</span>
                     </div>
-                    <div style="display: flex; gap: 6px;">
+                   <div style="display: flex; gap: 6px;">
+                        ${w.programName === "Free Workout" ? `
+                        <button onclick="openSaveFreeWorkoutModal(getHistoryExercisesForLog('${dateStr}', ${idx}), () => reopenDayManagerForDate('${dateStr}'))" style="background: rgba(34,211,238,0.08); border: 1px solid rgba(34,211,238,0.2); color: var(--primary); cursor: pointer; font-size: 13px; width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">💾</button>
+                        <button onclick="openRepeatWorkoutModal(getHistoryExercisesForLog('${dateStr}', ${idx}))" style="background: rgba(34,211,238,0.08); border: 1px solid rgba(34,211,238,0.2); color: var(--primary); cursor: pointer; font-size: 13px; width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">🔁</button>
+                        ` : ''}
                         <button onclick="editLoggedWorkout('${dateStr}', ${idx})" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--primary); cursor: pointer; font-size: 14px; width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">✏️</button>
                         <button onclick="openConfirmDeleteModal('${dateStr}', ${idx})" style="background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); color: var(--danger); cursor: pointer; font-size: 12px; width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">✖</button>
                     </div>
@@ -1099,7 +1103,7 @@ if (isOngoing && typeof activeDraft !== 'undefined' && activeDraft) {
         });
 
         const groupsWithPasses = ALL_GROUPS.filter(g => groupMap[g.id] && groupMap[g.id].length > 0);
-        const ungrouped = programData.routine.filter(p => !Array.isArray(p.groups) || p.groups.length === 0);
+        const ungrouped = programData.routine.filter(p => (!Array.isArray(p.groups) || p.groups.length === 0) && !p._isFreeCopy);
 
        html += `
         <div style="display: flex; align-items: center; gap: 10px; margin-top: 12px;">
@@ -1634,7 +1638,141 @@ window.selectWorkoutForDate = (passId) => {
     reopenDayManagerForDate(dateStr);
 };
 
+function getExerciseTemplatesFromLog(exercises) {
+    return (exercises || []).map(ex => {
+        const master = masterExercises.find(m => m.name === ex.name);
+        return {
+            name: ex.name,
+            target: master ? master.target : '',
+            subtarget: master ? (master.subtarget || null) : null,
+            defaultSets: 3
+        };
+    });
+}
 
+function getHistoryExercisesForLog(dateStr, idx) {
+    const filtered = workoutHistory.filter(w => w.date === dateStr);
+    const w = filtered[idx];
+    return w ? (w.exercises || []) : [];
+}
+
+function openSaveFreeWorkoutModal(exercises, onSaved) {
+    if (typeof hideDefaultCloseButton === 'function') hideDefaultCloseButton(true);
+    const body = document.getElementById("modal-body");
+    const customGroups = programData.customGroups || [];
+    const ALL_GROUPS = [...PREDEFINED_GROUPS, ...customGroups];
+    let selectedGroups = [];
+    body.innerHTML = `
+        <h3 style="text-align:center; margin-bottom:8px;">Save as program</h3>
+        <p style="text-align:center; font-size:12px; color:var(--text-light); margin-bottom:20px;">Give this workout a name to reuse it later</p>
+        <input type="text" id="save-free-name" class="log-input" placeholder="e.g. Saturday Push Day" style="text-align:center;">
+        <p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin:16px 0 10px; letter-spacing:1px;">Add to group (optional)</p>
+        <div id="save-free-groups" style="display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin-bottom:20px;">
+            ${ALL_GROUPS.map(g => `
+            <button data-gid="${g.id}" onclick="window.toggleSaveFreeGroup('${g.id}')"
+                style="padding:8px 14px; border-radius:12px; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.04); color:var(--text-light); font-size:12px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:6px;">
+                <span>${g.icon}</span>${g.name}
+            </button>`).join('')}
+        </div>
+        <button class="mode-btn blue" id="save-free-confirm-btn" style="width:100%; margin-bottom:10px;">Save Program</button>
+        <button class="mode-btn glass-border" id="save-free-skip-btn"
+            style="width:100%; background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.05) 100%); border: 1px solid rgba(255,255,255,0.25); border-top: 1px solid rgba(255,255,255,0.45);">
+            Skip
+        </button>
+    `;
+    window.toggleSaveFreeGroup = (gid) => {
+        const btn = document.querySelector(`#save-free-groups [data-gid="${gid}"]`);
+        const idx = selectedGroups.indexOf(gid);
+        if (idx > -1) {
+            selectedGroups.splice(idx, 1);
+            if (btn) { btn.style.border = '1px solid rgba(255,255,255,0.1)'; btn.style.background = 'rgba(255,255,255,0.04)'; btn.style.color = 'var(--text-light)'; }
+        } else {
+            selectedGroups.push(gid);
+            if (btn) { btn.style.border = '1px solid var(--primary)'; btn.style.background = 'rgba(34,211,238,0.15)'; btn.style.color = 'var(--primary)'; }
+        }
+    };
+    document.getElementById("save-free-confirm-btn").onclick = async () => {
+        const name = document.getElementById("save-free-name").value.trim();
+        if (!name) { alert("Please enter a name"); return; }
+        const newPass = {
+            id: "pass-" + Date.now(),
+            name,
+            exercises: getExerciseTemplatesFromLog(exercises),
+            groups: selectedGroups
+        };
+        programData.routine.push(newPass);
+        await saveCustomProgramToSupabase();
+        hideDefaultCloseButton(false);
+        closeModal();
+        if (typeof onSaved === 'function') onSaved();
+    };
+    document.getElementById("save-free-skip-btn").onclick = () => {
+        hideDefaultCloseButton(false);
+        closeModal();
+        if (typeof onSaved === 'function') onSaved();
+    };
+    openModal();
+}
+
+function openRepeatWorkoutModal(exercises) {
+    if (typeof hideDefaultCloseButton === 'function') hideDefaultCloseButton(true);
+    const body = document.getElementById("modal-body");
+    let pickerDate = new Date();
+    const render = () => {
+        const year = pickerDate.getFullYear();
+        const month = pickerDate.getMonth();
+        const monthLabel = pickerDate.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+        const firstDay = new Date(year, month, 1).getDay();
+        const offset = firstDay === 0 ? 6 : firstDay - 1;
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const now = new Date();
+        const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+        let cells = '';
+        for (let i = 0; i < offset; i++) cells += `<div></div>`;
+        for (let d = 1; d <= daysInMonth; d++) {
+            const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+            const isToday = dateStr === todayStr;
+            cells += `<div onclick="window.confirmRepeatDate('${dateStr}')" class="calendar-cell ${isToday ? 'today' : ''}" style="cursor:pointer;"><span>${d}</span></div>`;
+        }
+        body.innerHTML = `
+            <h3 style="text-align:center; margin-bottom:8px;">Repeat workout on...</h3>
+            <p style="text-align:center; font-size:12px; color:var(--text-light); margin-bottom:16px;">Choose a date to schedule this workout</p>
+            <div class="calendar-nav">
+                <button class="nav-arrow" onclick="window.repeatPickerChangeMonth(-1)">❮</button>
+                <h2>${monthLabel}</h2>
+                <button class="nav-arrow" onclick="window.repeatPickerChangeMonth(1)">❯</button>
+            </div>
+            <div class="calendar-weekdays"><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div><div>Sun</div></div>
+            <div class="calendar-grid">${cells}</div>
+            <button class="mode-btn glass-border" onclick="hideDefaultCloseButton(false); closeModal();"
+                style="width:100%; margin-top:20px; background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.05) 100%); border: 1px solid rgba(255,255,255,0.25); border-top: 1px solid rgba(255,255,255,0.45);">
+                Cancel
+            </button>
+        `;
+    };
+    window.repeatPickerChangeMonth = (delta) => {
+        pickerDate.setMonth(pickerDate.getMonth() + delta);
+        render();
+    };
+    window.confirmRepeatDate = async (dateStr) => {
+        const newPass = {
+            id: "freecopy-" + Date.now(),
+            name: "Free Workout",
+            exercises: getExerciseTemplatesFromLog(exercises),
+            groups: [],
+            _isFreeCopy: true
+        };
+        programData.routine.push(newPass);
+        calendarOverrides[dateStr] = newPass.id;
+        await saveCustomProgramToSupabase();
+        await saveAll();
+        hideDefaultCloseButton(false);
+        closeModal();
+        if (typeof renderCalendar === 'function') renderCalendar();
+    };
+    render();
+    openModal();
+}
 
 function renderLargePassCard(pass, passIdx, icons, selector) {
     const passCard = document.createElement("div");
@@ -2022,7 +2160,7 @@ function renderGroupsView() {
         selector.appendChild(groupCard);
     });
     // Utan grupp
-    const ungroupedPasses = programData.routine.filter(p => !Array.isArray(p.groups) || p.groups.length === 0);
+   const ungroupedPasses = programData.routine.filter(p => (!Array.isArray(p.groups) || p.groups.length === 0) && !p._isFreeCopy);
     if (true) {
         const ungroupedCard = document.createElement("div");
         ungroupedCard.style.cssText = `
@@ -2094,7 +2232,7 @@ function renderPassesInGroup(groupId) {
         hintWrap.appendChild(hint);
     }
     const passesInGroup = groupId === '__ungrouped__'
-        ? programData.routine.filter(p => !Array.isArray(p.groups) || p.groups.length === 0)
+        ? programData.routine.filter(p => (!Array.isArray(p.groups) || p.groups.length === 0) && !p._isFreeCopy)
         : programData.routine.filter(p => Array.isArray(p.groups) && p.groups.includes(groupId));
     selector.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
     selector.style.transform = 'translateX(30px)';
@@ -4396,8 +4534,15 @@ async function finishWorkout(e) {
         renderCalendar(false);
         const todayStr = log.date;
         const todayWorkouts = workoutHistory.filter(w => w.date === todayStr);
-        window._showFireworksOnOpen = true;
-        openDayManager(todayStr, null, todayWorkouts, false);
+        if (log.programName === "Free Workout" && Array.isArray(log.exercises) && log.exercises.length > 0) {
+            setTimeout(() => showFireworks(), 200);
+            openSaveFreeWorkoutModal(log.exercises, () => {
+                openDayManager(todayStr, null, todayWorkouts, false);
+            });
+        } else {
+            window._showFireworksOnOpen = true;
+            openDayManager(todayStr, null, todayWorkouts, false);
+        }
          
         if (typeof window.currentView !== 'undefined') window.currentView = "calendar-view";
         document.body.setAttribute("data-current-view", "calendar-view");
