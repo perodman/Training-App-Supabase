@@ -719,11 +719,12 @@ function renderCalendar(isFromStartBtn = false) {
         grid.appendChild(cell);
     }
 
-    //  ✅   Ä NDRAT: Visa bara om den inte redan  ä r dold
+//  ✅   Ä NDRAT: Visa bara om den inte redan  ä r dold
     const calendarView = document.getElementById("calendar-view");
     if (calendarView && calendarView.style.display !== "none") {
         showView("calendar-view");
     }
+    initCalendarSwipe();
 }
 
 // GLOBALA VARIABLER FÖR LÅNGTRYCK OCH SCROLL-ACCURACY
@@ -4691,8 +4692,62 @@ function renderStats() {
 
 // ÄNDRING: Säkerställd med asynkron sparning mot tabellen public.calendar_overrides
 async function changeMonth(off) {
-    currentViewDate.setMonth(currentViewDate.getMonth() + off);
-    renderCalendar();
+    const grid = document.getElementById("calendar-grid");
+    if (grid) {
+        grid.style.transition = 'transform 0.18s ease, opacity 0.18s ease';
+        grid.style.transform = `translateX(${off > 0 ? '-24px' : '24px'})`;
+        grid.style.opacity = '0';
+    }
+    setTimeout(() => {
+        currentViewDate.setMonth(currentViewDate.getMonth() + off);
+        renderCalendar();
+        const newGrid = document.getElementById("calendar-grid");
+        if (newGrid) {
+            newGrid.style.transition = 'none';
+            newGrid.style.transform = `translateX(${off > 0 ? '24px' : '-24px'})`;
+            newGrid.style.opacity = '0';
+            requestAnimationFrame(() => {
+                newGrid.style.transition = 'transform 0.22s ease, opacity 0.22s ease';
+                newGrid.style.transform = 'translateX(0)';
+                newGrid.style.opacity = '1';
+            });
+        }
+    }, 160);
+}
+
+function initCalendarSwipe() {
+    const grid = document.getElementById("calendar-grid");
+    if (!grid) return;
+    const container = grid.parentElement;
+    if (!container || container.dataset.swipeInit) return;
+    container.dataset.swipeInit = "true";
+    let startX = 0, startY = 0, isHorizontal = null;
+    container.addEventListener('touchstart', (e) => {
+        const t = e.touches[0];
+        startX = t.clientX;
+        startY = t.clientY;
+        isHorizontal = null;
+    }, { passive: true });
+    container.addEventListener('touchmove', (e) => {
+        const t = e.touches[0];
+        const dx = t.clientX - startX;
+        const dy = t.clientY - startY;
+        if (isHorizontal === null && (Math.abs(dx) > 8 || Math.abs(dy) > 8)) {
+            isHorizontal = Math.abs(dx) > Math.abs(dy);
+        }
+        if (isHorizontal && e.cancelable) {
+            e.preventDefault();
+        }
+    }, { passive: false });
+    container.addEventListener('touchend', (e) => {
+        if (!isHorizontal) return;
+        const t = e.changedTouches[0];
+        const dx = t.clientX - startX;
+        if (Math.abs(dx) > 50) {
+            changeMonth(dx < 0 ? 1 : -1);
+        }
+        isHorizontal = null;
+    });
 }
 
 function setOverride(date, val) {
