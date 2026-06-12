@@ -4204,7 +4204,10 @@ document.getElementById("global-home").addEventListener("click", () => {
 document.getElementById("start-new-btn").onclick = () => renderCalendar(true);
 document.getElementById("calendar-mode").onclick = () => renderCalendar(false);
 document.getElementById("view-exercises-btn").onclick = () => { showView("exercises-view"); filterExercises(currentExerciseCategory); };
-document.getElementById("view-programs-btn").onclick = () => renderGroupsView();
+document.getElementById("view-programs-btn").onclick = () => {
+    window._selectionModeDate = null;
+    renderGroupsView();
+};
 document.getElementById("stats-mode").onclick = renderStats;
 document.getElementById("add-custom-pass-btn").onclick = openCreateProgramModal;
 document.getElementById("add-custom-group-btn").onclick = openCreateGroupModal;
@@ -4215,6 +4218,7 @@ document.getElementById("add-custom-group-btn").onclick = openCreateGroupModal;
 function renderHome() {
     // 🛡️ Om järnridån är aktiv, totalvägra att köra startsidans logik överhuvudtaget!
     if (window.blockAllSync) return;
+    window._selectionModeDate = null;
  
     // Scrolla till toppen (mobil + desktop)
     window.scrollTo(0, 0);
