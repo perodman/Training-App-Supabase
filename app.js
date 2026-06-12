@@ -942,24 +942,22 @@ const safeCompleted = Array.isArray(completed) ? completed : [];
         safeCompleted.forEach((w, idx) => {
             const timeStr = w.totalTime ? `⏱️ ${w.totalTime}` : "";
             html += `
-            <div class="history-swipe-wrapper" style="position:relative; border-radius:16px; overflow:hidden;">
-                <div class="history-swipe-actions" style="position:absolute; top:0; right:0; bottom:0; display:flex; align-items:center; gap:6px; padding:0 12px; background:rgba(15,23,42,0.95); z-index:0;">
-                    ${w.programName === "Free Workout" ? `
-                    <button onclick="openSaveFreeWorkoutModalForLog('${dateStr}', ${idx})" style="background: rgba(34,211,238,0.08); border: 1px solid rgba(34,211,238,0.2); color: var(--primary); cursor: pointer; font-size: 13px; width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">💾</button>
-                    ` : ''}
-                    <button onclick="openRepeatWorkoutModalForLog('${dateStr}', ${idx})" style="background: rgba(34,211,238,0.08); border: 1px solid rgba(34,211,238,0.2); color: var(--primary); cursor: pointer; font-size: 13px; width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">🔁</button>
-                    <button onclick="editLoggedWorkout('${dateStr}', ${idx})" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--primary); cursor: pointer; font-size: 14px; width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">✏️</button>
-                    <button onclick="openConfirmDeleteModal('${dateStr}', ${idx})" style="background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); color: var(--danger); cursor: pointer; font-size: 12px; width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">✖</button>
-                </div>
-                <div class="history-swipe-content" data-open="false" style="position:relative; background: rgba(16,185,129,0.06); border: 1px solid rgba(16,185,129,0.2); border-left: 3px solid #22c55e; border-radius: 16px; padding: 14px; transition: transform 0.25s ease; z-index:1;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                        <div>
-                            <strong style="font-size: 15px; color: var(--text); display: block;">${w.programName}</strong>
-                            <span style="font-size: 11px; color: #22c55e; font-weight: 600;">${timeStr || 'Completed ✅'}</span>
-                        </div>
-                        <span style="font-size:10px; color:var(--text-light); opacity:0.4; font-weight:700;">← swipe</span>
+            <div style="background: rgba(16,185,129,0.06); border: 1px solid rgba(16,185,129,0.2); border-left: 3px solid #22c55e; border-radius: 16px; padding: 14px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <div>
+                        <strong style="font-size: 15px; color: var(--text); display: block;">${w.programName}</strong>
+                        <span style="font-size: 11px; color: #22c55e; font-weight: 600;">${timeStr || 'Completed ✅'}</span>
                     </div>
-                    <div style="display: flex; flex-direction: column; gap: 12px;">`;
+                   <div style="display: flex; gap: 6px;">
+                        ${w.programName === "Free Workout" ? `
+                        <button onclick="openSaveFreeWorkoutModalForLog('${dateStr}', ${idx})" style="background: rgba(34,211,238,0.08); border: 1px solid rgba(34,211,238,0.2); color: var(--primary); cursor: pointer; font-size: 13px; width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">💾</button>
+                        ` : ''}
+                        <button onclick="openRepeatWorkoutModalForLog('${dateStr}', ${idx})" style="background: rgba(34,211,238,0.08); border: 1px solid rgba(34,211,238,0.2); color: var(--primary); cursor: pointer; font-size: 13px; width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">🔁</button>
+                        <button onclick="editLoggedWorkout('${dateStr}', ${idx})" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--primary); cursor: pointer; font-size: 14px; width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">✏️</button>
+                        <button onclick="openConfirmDeleteModal('${dateStr}', ${idx})" style="background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); color: var(--danger); cursor: pointer; font-size: 12px; width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">✖</button>
+                    </div>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 12px;">`;
             if (Array.isArray(w.exercises)) {
                 w.exercises.forEach((ex, exIdx) => {
                     html += `
@@ -1006,7 +1004,7 @@ const safeCompleted = Array.isArray(completed) ? completed : [];
                     html += `</div>`;
                 });
             }
-           html += `</div></div></div>`;
+            html += `</div></div>`;
         });
     }
 
@@ -1255,11 +1253,8 @@ if (isOngoing && typeof activeDraft !== 'undefined' && activeDraft) {
         window._showFireworksOnOpen = false;
         setTimeout(() => showFireworks(), 200);
     }
-if (autoOpenGroupId) {
+    if (autoOpenGroupId) {
         setTimeout(() => toggleDayManagerGroup(autoOpenGroupId), 50);
-    }
-    if (hasCompleted) {
-        setTimeout(() => initHistorySwipeActions(), 50);
     }
 }
 
@@ -1660,62 +1655,6 @@ function getHistoryExercisesForLog(dateStr, idx) {
     const filtered = workoutHistory.filter(w => w.date === dateStr);
     const w = filtered[idx];
     return w ? (w.exercises || []) : [];
-}
-
-function initHistorySwipeActions() {
-    document.querySelectorAll('.history-swipe-wrapper').forEach(wrapper => {
-        const content = wrapper.querySelector('.history-swipe-content');
-        const actions = wrapper.querySelector('.history-swipe-actions');
-        if (!content || !actions) return;
-        const actionsWidth = actions.offsetWidth;
-        let startX = 0, startY = 0, currentX = 0, isHorizontal = null, isOpen = false;
-        const closeAll = (except) => {
-            document.querySelectorAll('.history-swipe-content').forEach(c => {
-                if (c !== except) {
-                    c.style.transition = 'transform 0.25s ease';
-                    c.style.transform = 'translateX(0)';
-                    c.dataset.open = 'false';
-                }
-            });
-        };
-        content.addEventListener('touchstart', (e) => {
-            const t = e.touches[0];
-            startX = t.clientX;
-            startY = t.clientY;
-            isHorizontal = null;
-            isOpen = content.dataset.open === 'true';
-            content.style.transition = 'none';
-        }, { passive: true });
-        content.addEventListener('touchmove', (e) => {
-            const t = e.touches[0];
-            const dx = t.clientX - startX;
-            const dy = t.clientY - startY;
-            if (isHorizontal === null && (Math.abs(dx) > 8 || Math.abs(dy) > 8)) {
-                isHorizontal = Math.abs(dx) > Math.abs(dy);
-                if (isHorizontal) closeAll(content);
-            }
-            if (!isHorizontal) return;
-            if (e.cancelable) e.preventDefault();
-            const base = isOpen ? -actionsWidth : 0;
-            currentX = Math.max(-actionsWidth, Math.min(0, base + dx));
-            content.style.transform = `translateX(${currentX}px)`;
-        }, { passive: false });
-        content.addEventListener('touchend', () => {
-            if (!isHorizontal) {
-                if (isOpen) {
-                    content.style.transition = 'transform 0.25s ease';
-                    content.style.transform = 'translateX(0)';
-                    content.dataset.open = 'false';
-                }
-                return;
-            }
-            content.style.transition = 'transform 0.25s ease';
-            const shouldOpen = currentX < -actionsWidth / 2;
-            content.style.transform = shouldOpen ? `translateX(${-actionsWidth}px)` : 'translateX(0)';
-            content.dataset.open = shouldOpen ? 'true' : 'false';
-            isHorizontal = null;
-        });
-    });
 }
 
 function roundDurationToNearest5(totalTimeStr) {
@@ -5375,8 +5314,10 @@ async function saveProgramEdit(idx) {
     const savedGroups = programData.routine[idx].groups;
     if (Array.isArray(savedGroups) && savedGroups.length > 0) {
         const groupId = savedGroups[0];
-        accordionOpenPassIdx = idx;
         renderPassesInGroup(groupId);
+        setTimeout(() => {
+            showProgramDetails(idx);
+        }, 400);
     } else {
         renderGroupsView();
     }
