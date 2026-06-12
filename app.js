@@ -1049,7 +1049,7 @@ if (isOngoing && typeof activeDraft !== 'undefined' && activeDraft) {
             <div style="position:absolute; bottom:0; left:0; right:0; height:1px; background: linear-gradient(90deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 100%);"></div>
             <div style="position:absolute; top:0; right:0; bottom:0; width:1px; background: linear-gradient(180deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 100%);"></div>
 
-            <div id="current-planned-label" style="display:flex; align-items:center; justify-content:space-between; margin-bottom: ${planned ? '16px' : '0'};">
+            <div id="current-planned-label" style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 16px;">
                 <div style="display:flex; align-items:center; gap:14px;">
                     <div style="width:44px; height:44px; border-radius:14px; background:${isRest ? 'rgba(253,224,71,0.1)' : 'rgba(34,211,238,0.1)'}; border:1px solid ${isRest ? 'rgba(253,224,71,0.3)' : 'rgba(34,211,238,0.3)'}; display:flex; align-items:center; justify-content:center; font-size:22px;">${isRest ? '🧘' : '📋'}</div>
                     <div style="display:flex; flex-direction:column; gap:2px;">
