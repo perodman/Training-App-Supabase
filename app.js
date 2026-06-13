@@ -828,12 +828,19 @@ function openProgramPreviewModal(idx) {
         document.body.appendChild(previewModal);
     }
 
-    previewModal.style.opacity = "0";
+   previewModal.style.opacity = "0";
     previewModal.style.display = "flex";
     previewModal.style.pointerEvents = "none";
-    setTimeout(() => {
-        previewModal.style.pointerEvents = "auto";
-    }, 350);
+    const unblockModal = () => {
+        setTimeout(() => {
+            previewModal.style.pointerEvents = "auto";
+        }, 50);
+        document.removeEventListener('touchend', unblockModal, true);
+        document.removeEventListener('mouseup', unblockModal, true);
+    };
+    document.addEventListener('touchend', unblockModal, true);
+    document.addEventListener('mouseup', unblockModal, true);
+    setTimeout(unblockModal, 1500);
 
     previewModal.innerHTML = `
         <div id="preview-modal-card" class="card glass" style="width: 90%; max-width: 400px; padding: 20px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); background: rgba(15, 23, 42, 0.95); margin-top: 40px;
