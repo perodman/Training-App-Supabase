@@ -4655,7 +4655,7 @@ function updateHomeNextWorkoutCard() {
         nameEl.textContent = displayPass.name.toUpperCase();
         let statsHtml = `<span class="stat-ex">${displayPass.exercises.length} EXERCISES</span>`;
         if (displayPass.duration) {
-            statsHtml += `<span class="stat-time"><i class="ti ti-clock" aria-hidden="true" style="font-size:11px;"></i>~${displayPass.duration} MIN</span>`;
+            statsHtml += `<span class="stat-time"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>~${displayPass.duration} MIN</span>`;
         }
         statsEl.innerHTML = statsHtml;
     } else {
