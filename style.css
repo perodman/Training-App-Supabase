@@ -1250,3 +1250,7 @@ body:has(.bottom-bar.hidden) { padding-bottom: 0; }
     align-items: center;
     gap: 3px;
 }
+
+.main-action.next-workout .btn-text-container {
+    flex: 1;
+}
