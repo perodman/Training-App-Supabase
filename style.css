@@ -1191,6 +1191,18 @@ body:has(.bottom-bar.hidden) { padding-bottom: 0; }
     color: var(--primary);
 }
 
+.consistency-text {
+    color: var(--text-light);
+    font-size: 10px;
+    font-weight: 600;
+    margin-top: 4px;
+    opacity: 0.75;
+}
+.consistency-text strong {
+    color: #fde68a;
+    font-weight: 800;
+}
+
 @keyframes homeShimmer {
     0% { background-position: 150% 0; }
     100% { background-position: -150% 0; }
