@@ -6026,6 +6026,8 @@ function openProfilePanel() {
     }, 10);
     document.querySelectorAll("#bottom-bar .bar-item").forEach(el => el.classList.remove("active"));
     document.getElementById("bar-profile-item").classList.add("active");
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    document.body.setAttribute('data-theme', savedTheme);
     if (typeof currentUser !== 'undefined' && currentUser) {
         const email = currentUser.email || "";
         const initials = email.substring(0, 2).toUpperCase();
