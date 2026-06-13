@@ -40,6 +40,8 @@ const SUBCATEGORIES = {
 
 // --- INIT ---
 async function initApp() {
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    document.body.setAttribute('data-theme', savedTheme);
     // 1. Om vi redan har ett sparat program i localStorage, använd det direkt för snabb start
     if (window.programData && window.programData.routine && window.programData.routine.length > 0) {
         console.log(" 📦  Initierar appen med lokalt sparat custom-program.");
@@ -6036,6 +6038,50 @@ function openProfilePanel() {
         document.getElementById("profile-email").textContent = email;
     }
 }
+
+function openThemePanel() {
+    closeProfilePanel();
+    const body = document.getElementById("modal-body");
+    if (!body) return;
+    const current = localStorage.getItem('theme') || 'dark';
+    body.innerHTML = `
+        <h3 style="text-align:center; margin-bottom:20px;">Theme & Layout</h3>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+            <div onclick="window.applyTheme('dark')" style="display:flex; align-items:center; gap:14px; padding:16px; border-radius:16px; cursor:pointer;
+                border:2px solid ${current === 'dark' ? 'var(--primary)' : 'rgba(255,255,255,0.1)'};
+                background:${current === 'dark' ? 'rgba(34,211,238,0.08)' : 'rgba(255,255,255,0.03)'};">
+                <div style="width:40px; height:40px; border-radius:12px; background:#0f172a; border:1px solid rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                </div>
+                <div>
+                    <div style="font-weight:800; font-size:14px; color:#fff;">Dark</div>
+                    <div style="font-size:11px; color:var(--text-light);">Current default</div>
+                </div>
+                ${current === 'dark' ? '<span style="margin-left:auto; color:var(--primary); font-size:18px;">✓</span>' : ''}
+            </div>
+            <div onclick="window.applyTheme('light')" style="display:flex; align-items:center; gap:14px; padding:16px; border-radius:16px; cursor:pointer;
+                border:2px solid ${current === 'light' ? 'var(--primary)' : 'rgba(255,255,255,0.1)'};
+                background:${current === 'light' ? 'rgba(34,211,238,0.08)' : 'rgba(255,255,255,0.03)'};">
+                <div style="width:40px; height:40px; border-radius:12px; background:#e2e8f0; border:1px solid rgba(0,0,0,0.1); display:flex; align-items:center; justify-content:center;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                </div>
+                <div>
+                    <div style="font-weight:800; font-size:14px; color:#fff;">Light</div>
+                    <div style="font-size:11px; color:var(--text-light);">Clean & bright</div>
+                </div>
+                ${current === 'light' ? '<span style="margin-left:auto; color:var(--primary); font-size:18px;">✓</span>' : ''}
+            </div>
+        </div>
+    `;
+    openModal();
+}
+
+window.applyTheme = function(theme) {
+    document.body.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+    closeModal();
+};
+
 function closeProfilePanel() {
     const overlay = document.getElementById("profile-overlay");
     const panel = document.getElementById("profile-panel");
