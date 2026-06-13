@@ -1025,7 +1025,7 @@ body, html {
     flex: 1;
     cursor: pointer;
 }
-.bottom-bar .bar-item i { font-size: 20px; }
+.bottom-bar .bar-item svg { margin-bottom: 2px; }
 .bottom-bar .bar-item.active { color: #22d3ee; }
 
 .fab-wrap {
@@ -1048,8 +1048,8 @@ body, html {
     cursor: pointer;
     transition: transform 0.2s ease;
 }
-.fab i { font-size: 22px; color: #fff; transition: transform 0.25s ease; }
-.fab.open i { transform: rotate(45deg); }
+.fab svg { color: #fff; transition: transform 0.25s ease; }
+.fab.open svg { transform: rotate(45deg); }
 
 .quick-menu {
     position: fixed;
@@ -1075,7 +1075,7 @@ body, html {
     cursor: pointer;
     animation: quickItemIn 0.2s ease;
 }
-.quick-item i { font-size: 20px; color: #22d3ee; }
+.quick-item svg { color: #22d3ee; flex-shrink: 0; }
 .quick-item span { color: #fff; font-size: 13px; font-weight: 700; }
 @keyframes quickItemIn {
     from { opacity: 0; transform: translateY(10px); }
@@ -1142,13 +1142,13 @@ body, html {
     margin-bottom: 10px;
     cursor: pointer;
 }
-.panel-row i { font-size: 20px; color: #22d3ee; width: 24px; text-align: center; }
+.panel-row svg { color: #22d3ee; flex-shrink: 0; }
 .panel-row span { color: #fff; font-size: 13px; font-weight: 700; }
 .panel-row.logout-row {
     border-left: 3px solid #ef4444;
     margin-top: 20px;
 }
-.panel-row.logout-row i { color: #ef4444; }
+.panel-row.logout-row svg { color: #ef4444; }
 .panel-row.logout-row span { color: #fca5a5; }
 
 body { padding-bottom: 70px; }
