@@ -4504,6 +4504,7 @@ function renderHome() {
 
     updateHomeWeekCard();
     updateHomeNextWorkoutCard();
+    updateHomeConsistency();
 
     const homeView = document.getElementById("home-view");
     const headerP = homeView.querySelector("header p");
@@ -4561,6 +4562,50 @@ function getMondayOfCurrentWeek() {
     monday.setDate(now.getDate() + diff);
     monday.setHours(0,0,0,0);
     return monday;
+}
+
+function updateHomeConsistency() {
+    const el = document.getElementById("home-consistency");
+    if (!el) return;
+
+    if (!workoutHistory || workoutHistory.length === 0) {
+        el.textContent = "";
+        return;
+    }
+
+    const allDates = workoutHistory
+        .map(w => w.date)
+        .filter(Boolean)
+        .sort();
+    const earliestDate = new Date(allDates[0] + "T00:00:00");
+
+    const currentMonday = getMondayOfCurrentWeek();
+    const earliestMonday = new Date(earliestDate);
+    const dayOfWeek = earliestMonday.getDay();
+    const diffToMonday = (dayOfWeek === 0 ? -6 : 1 - dayOfWeek);
+    earliestMonday.setDate(earliestMonday.getDate() + diffToMonday);
+    earliestMonday.setHours(0,0,0,0);
+
+    const msPerWeek = 7 * 24 * 60 * 60 * 1000;
+    let weeksAvailable = Math.round((currentMonday - earliestMonday) / msPerWeek) + 1;
+    if (weeksAvailable < 1) weeksAvailable = 1;
+
+    const weeksToUse = Math.min(8, weeksAvailable);
+
+    const rangeStart = new Date(currentMonday);
+    rangeStart.setDate(rangeStart.getDate() - (weeksToUse - 1) * 7);
+
+    const totalWorkouts = workoutHistory.filter(w => {
+        if (!w.date) return false;
+        const d = new Date(w.date + "T00:00:00");
+        return d >= rangeStart;
+    }).length;
+
+    const avg = (totalWorkouts / weeksToUse);
+    const avgRounded = Math.round(avg * 10) / 10;
+
+    const weekLabel = weeksToUse === 1 ? "1 week" : `${weeksToUse} weeks`;
+    el.innerHTML = `Avg <strong>${avgRounded}</strong> workouts/week (last ${weekLabel})`;
 }
 
 function updateHomeWeekCard() {
