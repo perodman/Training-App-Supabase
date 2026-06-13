@@ -997,3 +997,160 @@ body, html {
     display: none !important;
     content: none !important;
 }
+
+.bottom-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 70px;
+    background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+    border-top: 1px solid rgba(255,255,255,0.08);
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding: 0 6px;
+    z-index: 500;
+}
+.bottom-bar .bar-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    color: #64748b;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    flex: 1;
+    cursor: pointer;
+}
+.bottom-bar .bar-item i { font-size: 20px; }
+.bottom-bar .bar-item.active { color: #22d3ee; }
+
+.fab-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+}
+.fab {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #22c55e 0%, #15803d 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 6px 16px rgba(34,197,94,0.4);
+    margin-top: -22px;
+    border: 3px solid #0f172a;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+.fab i { font-size: 22px; color: #fff; transition: transform 0.25s ease; }
+.fab.open i { transform: rotate(45deg); }
+
+.quick-menu {
+    position: fixed;
+    bottom: 78px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+    z-index: 501;
+}
+.quick-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(30,41,59,0.97);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px;
+    padding: 12px 20px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+    width: 220px;
+    cursor: pointer;
+    animation: quickItemIn 0.2s ease;
+}
+.quick-item i { font-size: 20px; color: #22d3ee; }
+.quick-item span { color: #fff; font-size: 13px; font-weight: 700; }
+@keyframes quickItemIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.profile-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 600;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+}
+.profile-overlay.visible { opacity: 1; }
+
+.profile-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 80%;
+    max-width: 320px;
+    background: #0f172a;
+    border-left: 1px solid rgba(255,255,255,0.08);
+    z-index: 601;
+    padding: 30px 20px;
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+    overflow-y: auto;
+}
+.profile-panel.open { transform: translateX(0); }
+
+.profile-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 24px;
+}
+.avatar {
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #22d3ee, #0891b2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #0f172a;
+    font-size: 20px;
+    font-weight: 900;
+    flex-shrink: 0;
+}
+.profile-name { color: #fff; font-size: 15px; font-weight: 900; }
+.profile-email { color: #64748b; font-size: 11px; margin-top: 2px; word-break: break-all; }
+
+.panel-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border: 1px solid rgba(255,255,255,0.08);
+    margin-bottom: 10px;
+    cursor: pointer;
+}
+.panel-row i { font-size: 20px; color: #22d3ee; width: 24px; text-align: center; }
+.panel-row span { color: #fff; font-size: 13px; font-weight: 700; }
+.panel-row.logout-row {
+    border-left: 3px solid #ef4444;
+    margin-top: 20px;
+}
+.panel-row.logout-row i { color: #ef4444; }
+.panel-row.logout-row span { color: #fca5a5; }
+
+body { padding-bottom: 70px; }
+.bottom-bar.hidden { display: none; }
+body:has(.bottom-bar.hidden) { padding-bottom: 0; }
