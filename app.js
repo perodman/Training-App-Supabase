@@ -4605,22 +4605,53 @@ function updateHomeWeekCard() {
 function updateHomeNextWorkoutCard() {
     const nameEl = document.getElementById("home-next-pass-name");
     const statsEl = document.getElementById("home-next-pass-stats");
+    const labelEl = document.querySelector("#start-new-btn .label-sub");
     if (!nameEl || !statsEl) return;
 
-    const now = new Date();
-    const dateStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
-    const override = calendarOverrides[dateStr];
     let displayPass = null;
-    if (override && override !== "none") {
-        displayPass = programData?.routine?.find(p => p.id === override) || null;
-    } else if (override !== "none") {
-        const dayOfWeek = now.getDay();
-        if ([1,3,5].includes(dayOfWeek) && programData?.routine?.length > 0) {
-            displayPass = programData.routine[now.getDate() % programData.routine.length];
+    let foundDateStr = null;
+    const today = new Date();
+    today.setHours(0,0,0,0);
+
+    for (let i = 0; i < 60; i++) {
+        const d = new Date(today);
+        d.setDate(today.getDate() + i);
+        const dateStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+        const override = calendarOverrides[dateStr];
+
+        let pass = null;
+        if (override && override !== "none") {
+            pass = programData?.routine?.find(p => p.id === override) || null;
+        } else if (override !== "none") {
+            const dayOfWeek = d.getDay();
+            if ([1,3,5].includes(dayOfWeek) && programData?.routine?.length > 0) {
+                pass = programData.routine[d.getDate() % programData.routine.length];
+            }
+        }
+
+        if (pass) {
+            displayPass = pass;
+            foundDateStr = dateStr;
+            break;
         }
     }
 
     if (displayPass) {
+        if (labelEl) {
+            const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+            const tomorrow = new Date(today);
+            tomorrow.setDate(today.getDate() + 1);
+            const tomorrowStr = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth()+1).padStart(2,'0')}-${String(tomorrow.getDate()).padStart(2,'0')}`;
+            if (foundDateStr === todayStr) {
+                labelEl.textContent = "Next workout · Today";
+            } else if (foundDateStr === tomorrowStr) {
+                labelEl.textContent = "Next workout · Tomorrow";
+            } else {
+                const d = new Date(foundDateStr + "T00:00:00");
+                const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
+                labelEl.textContent = `Next workout · ${dayName}`;
+            }
+        }
         nameEl.textContent = displayPass.name.toUpperCase();
         let statsHtml = `<span class="stat-ex">${displayPass.exercises.length} EXERCISES</span>`;
         if (displayPass.duration) {
@@ -4628,6 +4659,7 @@ function updateHomeNextWorkoutCard() {
         }
         statsEl.innerHTML = statsHtml;
     } else {
+        if (labelEl) labelEl.textContent = "Next workout";
         nameEl.textContent = "REST DAY";
         statsEl.innerHTML = `<span class="stat-time">Tap to start a free workout</span>`;
     }
