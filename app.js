@@ -153,6 +153,11 @@ function showView(id) {
 
     const target = document.getElementById(id);
     if(!target) return;
+
+    const bottomBar = document.getElementById("bottom-bar");
+    if (bottomBar) {
+        bottomBar.classList.toggle("hidden", id === "workout-view");
+    }
     
     // 🔍 OPTIMERING: Om vyn redan är synlig, gör absolut ingenting. 
     // Detta förhindrar att CSS-animationer nollställs och blinkar till i onödan.
@@ -5832,4 +5837,77 @@ function updateExerciseNote(exIdx) {
     if (!ta) return;
     activeDraft.data[exIdx].note = ta.value;
     debouncedPersistActiveWorkout();
+}
+
+function toggleQuickMenu() {
+    const menu = document.getElementById("quick-menu");
+    const fab = document.querySelector(".fab");
+    const isHidden = menu.classList.contains("hidden");
+    if (isHidden) {
+        menu.classList.remove("hidden");
+        fab.classList.add("open");
+    } else {
+        menu.classList.add("hidden");
+        fab.classList.remove("open");
+    }
+}
+function closeQuickMenu() {
+    document.getElementById("quick-menu").classList.add("hidden");
+    document.querySelector(".fab").classList.remove("open");
+}
+
+function openProfilePanel() {
+    const overlay = document.getElementById("profile-overlay");
+    const panel = document.getElementById("profile-panel");
+    overlay.classList.remove("hidden");
+    setTimeout(() => {
+        overlay.classList.add("visible");
+        panel.classList.add("open");
+    }, 10);
+    document.querySelectorAll("#bottom-bar .bar-item").forEach(el => el.classList.remove("active"));
+    document.getElementById("bar-profile-item").classList.add("active");
+    if (typeof currentUser !== 'undefined' && currentUser) {
+        const email = currentUser.email || "";
+        const initials = email.substring(0, 2).toUpperCase();
+        document.getElementById("profile-avatar").textContent = initials;
+        document.getElementById("profile-name").textContent = email.split("@")[0];
+        document.getElementById("profile-email").textContent = email;
+    }
+}
+function closeProfilePanel() {
+    const overlay = document.getElementById("profile-overlay");
+    const panel = document.getElementById("profile-panel");
+    overlay.classList.remove("visible");
+    panel.classList.remove("open");
+    document.getElementById("bar-profile-item").classList.remove("active");
+    setTimeout(() => overlay.classList.add("hidden"), 250);
+}
+
+function triggerLogout() {
+    closeProfilePanel();
+    const oldLogoutBtn = document.getElementById("global-logout");
+    if (oldLogoutBtn) {
+        oldLogoutBtn.click();
+    } else {
+        console.warn("Kunde inte hitta global-logout-knappen för att trigga utloggning.");
+    }
+}
+
+function openInfoModal() {
+    const body = document.getElementById("modal-body");
+    if (!body) return;
+    body.innerHTML = `
+        <div style="text-align:center; padding:10px;">
+            <div style="width:56px; height:56px; border-radius:16px; background:rgba(34,211,238,0.1);
+                border:1px solid rgba(34,211,238,0.3); display:flex; align-items:center;
+                justify-content:center; font-size:26px; margin:0 auto 16px auto;">
+                <i class="ti ti-info-circle" style="color:#22d3ee;"></i>
+            </div>
+            <h3 style="margin:0 0 10px 0; font-size:20px; font-weight:900; color:#fff;">LIFT Tracker Pro</h3>
+            <p style="color:var(--text-light); font-size:14px; line-height:1.5;">
+                Workout tracking made simple.
+            </p>
+        </div>
+    `;
+    openModal();
 }
