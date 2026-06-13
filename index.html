@@ -258,5 +258,63 @@
 <script src="supabase-data.js"></script>
  
 <script src="app.js?v=2.0.0"></script>
+
+<div id="bottom-bar" class="bottom-bar">
+    <div class="bar-item" onclick="renderCalendar(); showView('calendar-view')">
+        <i class="ti ti-calendar" aria-hidden="true"></i>
+        <span>Schema</span>
+    </div>
+    <div class="bar-item" onclick="window._selectionModeDate=null; renderGroupsView();">
+        <i class="ti ti-barbell" aria-hidden="true"></i>
+        <span>Pass</span>
+    </div>
+    <div class="fab-wrap">
+        <div class="fab" onclick="toggleQuickMenu()">
+            <i class="ti ti-plus" id="fab-icon" aria-hidden="true"></i>
+        </div>
+    </div>
+    <div class="bar-item" onclick="openInfoModal()">
+        <i class="ti ti-info-circle" aria-hidden="true"></i>
+        <span>Information</span>
+    </div>
+    <div class="bar-item" id="bar-profile-item" onclick="openProfilePanel()">
+        <i class="ti ti-user" aria-hidden="true"></i>
+        <span>Profil</span>
+    </div>
+</div>
+
+<div id="quick-menu" class="quick-menu hidden">
+    <div class="quick-item" onclick="closeQuickMenu(); openCreateExerciseModal();">
+        <i class="ti ti-barbell" aria-hidden="true"></i>
+        <span>Create new exercise</span>
+    </div>
+    <div class="quick-item" onclick="closeQuickMenu(); openCreateProgramModal();">
+        <i class="ti ti-clipboard-list" aria-hidden="true"></i>
+        <span>Create new workout</span>
+    </div>
+</div>
+
+<div id="profile-overlay" class="profile-overlay hidden" onclick="closeProfilePanel()"></div>
+<div id="profile-panel" class="profile-panel">
+    <div class="profile-header">
+        <div class="avatar" id="profile-avatar">--</div>
+        <div>
+            <div class="profile-name" id="profile-name">-</div>
+            <div class="profile-email" id="profile-email">-</div>
+        </div>
+    </div>
+    <div class="panel-row" onclick="alert('Settings coming soon')">
+        <i class="ti ti-settings" aria-hidden="true"></i>
+        <span>Settings</span>
+    </div>
+    <div class="panel-row" onclick="alert('Theme & layout coming soon')">
+        <i class="ti ti-palette" aria-hidden="true"></i>
+        <span>Theme &amp; layout</span>
+    </div>
+    <div class="panel-row logout-row" onclick="triggerLogout()">
+        <i class="ti ti-logout" aria-hidden="true"></i>
+        <span>Log out</span>
+    </div>
+</div>
 </body>
 </html>
