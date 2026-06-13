@@ -4590,7 +4590,7 @@ function updateHomeConsistency() {
     let weeksAvailable = Math.round((currentMonday - earliestMonday) / msPerWeek) + 1;
     if (weeksAvailable < 1) weeksAvailable = 1;
 
-    const weeksToUse = Math.min(8, weeksAvailable);
+    const weeksToUse = Math.min(4, weeksAvailable);
 
     const rangeStart = new Date(currentMonday);
     rangeStart.setDate(rangeStart.getDate() - (weeksToUse - 1) * 7);
