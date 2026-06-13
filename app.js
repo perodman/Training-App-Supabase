@@ -4501,7 +4501,10 @@ function renderHome() {
     document.documentElement.scrollTop = 0;
  
     showView("home-view");
-    
+
+    updateHomeWeekCard();
+    updateHomeNextWorkoutCard();
+
     const homeView = document.getElementById("home-view");
     const headerP = homeView.querySelector("header p");
     
@@ -4547,6 +4550,86 @@ function renderHome() {
     } else {
         if (startNewBtnEl) startNewBtnEl.classList.remove("hidden");
         if (draftAlertEl) draftAlertEl.classList.add("hidden");
+    }
+}
+
+function getMondayOfCurrentWeek() {
+    const now = new Date();
+    const day = now.getDay();
+    const diff = (day === 0 ? -6 : 1 - day);
+    const monday = new Date(now);
+    monday.setDate(now.getDate() + diff);
+    monday.setHours(0,0,0,0);
+    return monday;
+}
+
+function updateHomeWeekCard() {
+    const doneEl = document.getElementById("home-week-done");
+    const goalEl = document.getElementById("home-week-goal");
+    const percentEl = document.getElementById("home-week-percent");
+    const ringEl = document.getElementById("home-week-ring");
+    if (!doneEl || !goalEl || !percentEl || !ringEl) return;
+
+    const monday = getMondayOfCurrentWeek();
+    const weekDates = [];
+    for (let i = 0; i < 7; i++) {
+        const d = new Date(monday);
+        d.setDate(monday.getDate() + i);
+        weekDates.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`);
+    }
+
+    let goal = 0;
+    weekDates.forEach((dateStr, idx) => {
+        const override = calendarOverrides[dateStr];
+        if (override && override !== "none") {
+            goal++;
+        } else if (override !== "none") {
+            const dayOfWeek = idx;
+            if ([0,2,4].includes(dayOfWeek) && programData?.routine?.length > 0) {
+                goal++;
+            }
+        }
+    });
+    if (goal === 0) goal = 6;
+
+    const done = weekDates.filter(dateStr => workoutHistory.some(w => w.date === dateStr)).length;
+    const percent = Math.min(100, Math.round((done / goal) * 100));
+
+    doneEl.textContent = done;
+    goalEl.textContent = goal;
+    percentEl.textContent = `${percent}%`;
+    const circumference = 125.6;
+    ringEl.setAttribute("stroke-dashoffset", circumference - (circumference * percent / 100));
+}
+
+function updateHomeNextWorkoutCard() {
+    const nameEl = document.getElementById("home-next-pass-name");
+    const statsEl = document.getElementById("home-next-pass-stats");
+    if (!nameEl || !statsEl) return;
+
+    const now = new Date();
+    const dateStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+    const override = calendarOverrides[dateStr];
+    let displayPass = null;
+    if (override && override !== "none") {
+        displayPass = programData?.routine?.find(p => p.id === override) || null;
+    } else if (override !== "none") {
+        const dayOfWeek = now.getDay();
+        if ([1,3,5].includes(dayOfWeek) && programData?.routine?.length > 0) {
+            displayPass = programData.routine[now.getDate() % programData.routine.length];
+        }
+    }
+
+    if (displayPass) {
+        nameEl.textContent = displayPass.name.toUpperCase();
+        let statsHtml = `<span class="stat-ex">${displayPass.exercises.length} EXERCISES</span>`;
+        if (displayPass.duration) {
+            statsHtml += `<span class="stat-time"><i class="ti ti-clock" aria-hidden="true" style="font-size:11px;"></i>~${displayPass.duration} MIN</span>`;
+        }
+        statsEl.innerHTML = statsHtml;
+    } else {
+        nameEl.textContent = "REST DAY";
+        statsEl.innerHTML = `<span class="stat-time">Tap to start a free workout</span>`;
     }
 }
 
