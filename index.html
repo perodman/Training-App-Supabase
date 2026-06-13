@@ -6,6 +6,7 @@
     <title>LIFT Tracker Pro</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@800;900&family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/@tabler/icons-webfont/2.47.0/tabler-icons.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/Draggable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/Flip.min.js"></script>
@@ -87,83 +88,53 @@
                 </button>
             </div>
 
+           <div class="week-card" id="home-week-card">
+                <div>
+                    <div class="week-label">This week</div>
+                    <div class="week-value"><span id="home-week-done">0</span> / <span id="home-week-goal">6</span> workouts</div>
+                </div>
+                <div style="position:relative; width:48px; height:48px; flex-shrink:0;">
+                    <svg width="48" height="48" viewBox="0 0 48 48">
+                        <circle cx="24" cy="24" r="20" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="5"/>
+                        <circle id="home-week-ring" cx="24" cy="24" r="20" fill="none" stroke="#22d3ee" stroke-width="5" stroke-linecap="round" stroke-dasharray="125.6" stroke-dashoffset="125.6" transform="rotate(-90 24 24)"/>
+                    </svg>
+                    <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#22d3ee; font-size:11px; font-weight:900;" id="home-week-percent">0%</div>
+                </div>
+            </div>
+
             <div class="menu-grid">
 
-
-                
-        <button id="start-new-btn" class="mode-btn" style="
-    display: flex;
-    position: relative;
-    grid-column: span 2; 
-    flex-direction: row; 
-    align-items: center;
-    justify-content: space-between; 
-    padding: 18px 24px;
-    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-    border: none;
-    border-left: 4px solid #22d3ee;
-    border-radius: 22px;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.4);
-    width: 100%;
-    overflow: hidden;
-">
-    
-    <!-- HÄR BÖRJAR ÖVRE LINJEN -->
-    <div style="
-        position: absolute;
-        top: 0; left: 0; right: 0; height: 1px;
-        background: linear-gradient(90deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 100%);
-    "></div>
-
-    <!-- HÄR BÖRJAR UNDRE LINJEN -->
-    <div style="
-        position: absolute;
-        bottom: 0; left: 0; right: 0; height: 1px;
-        background: linear-gradient(90deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 100%);
-    "></div>
-
-    <!-- HÄR BÖRJAR HÖGRA LINJEN -->
-    <div style="
-        position: absolute;
-        top: 0; right: 0; bottom: 0; width: 1px;
-        background: linear-gradient(180deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 100%);
-    "></div>
-
-    <div style="display: flex; align-items: center; gap: 14px;">
-        <div style="width: 44px; height: 44px; border-radius: 14px; background: rgba(34,211,238,0.1); border: 1px solid rgba(34,211,238,0.3); display: flex; align-items: center; justify-content: center; font-size: 22px;">🏋️</div>
-        <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 2px;">
-            <span style="font-size: 16px; font-weight: 900; color: #fff; text-transform: uppercase; letter-spacing: 0.5px;">Start Workout</span>
-            <span style="font-size: 9px; color: #22d3ee; text-transform: uppercase; letter-spacing: 2px; font-weight: 700;">Tap to begin</span>
-        </div>
-    </div>
-    <span style="color: rgba(34,211,238,0.6); font-size: 25px;">→</span>
-</button>
-                
+        <button id="start-new-btn" class="mode-btn main-action next-workout">
+            <div class="btn-icon"><i class="ti ti-flame" aria-hidden="true"></i></div>
+            <div class="btn-text-container">
+                <span class="label-sub">Next workout</span>
+                <span class="btn-main-text" id="home-next-pass-name">REST DAY</span>
+                <div class="stats-row" id="home-next-pass-stats"></div>
+            </div>
+            <span style="color: rgba(255,255,255,0.7); font-size: 22px; position: relative; z-index: 2;">→</span>
+        </button>
 
                 <button id="view-exercises-btn" class="mode-btn glass home-card">
-                    <span class="btn-icon">🏋️</span>
+                    <div class="btn-icon"><i class="ti ti-barbell" style="color:#fb923c;" aria-hidden="true"></i></div>
                     <span class="btn-main-text">EXERCISES</span>
                     <span class="btn-sub-text">Library</span>
                 </button>
-
                 <button id="view-programs-btn" class="mode-btn glass home-card">
-                    <span class="btn-icon">📋</span>
+                    <div class="btn-icon"><i class="ti ti-list-details" style="color:#60a5fa;" aria-hidden="true"></i></div>
                     <span class="btn-main-text">WORKOUT PROGRAMS</span>
                     <span class="btn-sub-text">My Workouts</span>
                 </button>
-
                 <button id="calendar-mode" class="mode-btn glass home-card">
-                    <span class="btn-icon">📅</span>
+                    <div class="btn-icon"><i class="ti ti-calendar" style="color:#c084fc;" aria-hidden="true"></i></div>
                     <span class="btn-main-text">WORKOUT LOG</span>
                     <span class="btn-sub-text">Planner</span>
                 </button>
-
                 <button id="stats-mode" class="mode-btn glass home-card">
-                    <span class="btn-icon">📊</span>
+                    <div class="btn-icon"><i class="ti ti-chart-bar" style="color:#34d399;" aria-hidden="true"></i></div>
                     <span class="btn-main-text">STATISTICS</span>
                     <span class="btn-sub-text">Progress</span>
                 </button>
-            </div> 
+            </div>
         </div>
 
         <div id="calendar-view" class="view hidden">
