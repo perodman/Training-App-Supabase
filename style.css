@@ -1269,3 +1269,54 @@ body:has(.bottom-bar.hidden) { padding-bottom: 0; }
 .main-action.next-workout .btn-text-container {
     flex: 1;
 }
+
+body[data-theme="light"] {
+    --primary: #0891b2;
+    --secondary: #6366f1;
+    --success: #059669;
+    --warning: #d97706;
+    --danger: #dc2626;
+    --card: rgba(255,255,255,0.85);
+    --card-light: rgba(255,255,255,0.95);
+    --glass-border: rgba(0,0,0,0.08);
+    --text: #0f172a;
+    --text-light: #475569;
+    background: #e2e8f0;
+}
+body[data-theme="light"] .app-container { background: #e2e8f0; }
+body[data-theme="light"] .glass { background: rgba(255,255,255,0.85); border-color: rgba(0,0,0,0.08); }
+body[data-theme="light"] .glass-light { background: rgba(255,255,255,0.95); border-color: rgba(0,0,0,0.1); }
+body[data-theme="light"] .modal-content { background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%); }
+body[data-theme="light"] .main-title { background: linear-gradient(to bottom, #0f172a 40%, rgba(15,23,42,0.5)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+body[data-theme="light"] .subtitle { color: #0891b2; }
+body[data-theme="light"] .separator { background: linear-gradient(90deg, transparent, #0891b2, transparent); }
+body[data-theme="light"] .mode-btn { background: rgba(255,255,255,0.85); border-color: rgba(0,0,0,0.08); color: #0f172a; }
+body[data-theme="light"] .mode-btn:active { background: rgba(0,0,0,0.06); }
+body[data-theme="light"] #home-view .mode-btn.home-card { background: rgba(255,255,255,0.9) !important; border: 1px solid rgba(0,0,0,0.1) !important; box-shadow: 0 4px 15px rgba(0,0,0,0.08) !important; }
+body[data-theme="light"] #home-view .mode-btn.home-card::after { background: linear-gradient(135deg, transparent 20%, rgba(255,255,255,0.6) 50%, transparent 80%) !important; }
+body[data-theme="light"] .btn-main-text { color: #0f172a; }
+body[data-theme="light"] .btn-sub-text { color: #0891b2; }
+body[data-theme="light"] .week-card { background: linear-gradient(160deg, rgba(8,145,178,0.08) 0%, rgba(255,255,255,0.9) 55%); border-color: rgba(0,0,0,0.08); }
+body[data-theme="light"] .main-action.next-workout { background: linear-gradient(135deg, #15803d 0%, #22c55e 100%) !important; }
+body[data-theme="light"] .bottom-bar { background: linear-gradient(180deg, #f1f5f9 0%, #e2e8f0 100%); border-top: 1px solid rgba(0,0,0,0.08); }
+body[data-theme="light"] .bottom-bar .bar-item { color: #94a3b8; }
+body[data-theme="light"] .bottom-bar .bar-item.active { color: #0891b2; }
+body[data-theme="light"] .fab { border-color: #e2e8f0; }
+body[data-theme="light"] .quick-item { background: rgba(255,255,255,0.97); border-color: rgba(0,0,0,0.08); box-shadow: 0 8px 20px rgba(0,0,0,0.12); }
+body[data-theme="light"] .quick-item span { color: #0f172a; }
+body[data-theme="light"] .profile-panel { background: #f1f5f9; border-left-color: rgba(0,0,0,0.08); }
+body[data-theme="light"] .panel-row { background: linear-gradient(135deg, #fff 0%, #f8fafc 100%); border-color: rgba(0,0,0,0.08); }
+body[data-theme="light"] .panel-row span { color: #0f172a; }
+body[data-theme="light"] .profile-name { color: #0f172a; }
+body[data-theme="light"] .profile-email { color: #475569; }
+body[data-theme="light"] .nav-arrow { background: rgba(255,255,255,0.85); border-color: rgba(0,0,0,0.08); color: #0f172a; }
+body[data-theme="light"] #month-label { background: rgba(255,255,255,0.85); border-color: rgba(0,0,0,0.08); color: #0f172a; }
+body[data-theme="light"] .calendar-cell { background: rgba(255,255,255,0.7) !important; border-color: rgba(0,0,0,0.06) !important; color: #0f172a; }
+body[data-theme="light"] .calendar-card { background: rgba(255,255,255,0.8); }
+body[data-theme="light"] .log-input { background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.1); color: #0f172a; }
+body[data-theme="light"] .week-label { color: #475569; }
+body[data-theme="light"] .week-value { color: #0f172a; }
+body[data-theme="light"] .consistency-text { color: #475569; }
+body[data-theme="light"] .modern-header { background: linear-gradient(to right, #0f172a, #0891b2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+body[data-theme="light"] .profile-overlay { background: rgba(0,0,0,0.3); }
+body[data-theme="light"] .card { background: rgba(255,255,255,0.85); border-color: rgba(0,0,0,0.08); }
