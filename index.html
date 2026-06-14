@@ -57,13 +57,7 @@
     </div>
 </div>
     <div class="global-header hidden" id="global-header" style="position: relative; width: 100%;">
-        <div id="global-logout" class="circle-ctrl" style="position: absolute; right: 15px; top: 15px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 50%; cursor: pointer; transition: all 0.2s ease;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-                <polyline points="16 17 21 12 16 7"/>
-                <line x1="21" y1="12" x2="9" y2="12"/>
-            </svg>
-        </div>
+        <div id="global-logout" class="circle-ctrl" style="display:none;"></div>
         <div id="global-home" class="circle-ctrl" style="position: absolute; left: 15px; top: 15px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">🏠</div>
     </div>
 
@@ -241,26 +235,26 @@
 <script src="app.js?v=2.0.0"></script>
 
 <div id="bottom-bar" class="bottom-bar">
+    <div class="bar-item" onclick="renderHome(); showView('home-view');">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span>Hem</span>
+    </div>
     <div class="bar-item" onclick="renderCalendar(); showView('calendar-view')">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        <span>Log</span>
-    </div>
-    <div class="bar-item" onclick="window._selectionModeDate=null; renderGroupsView();">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h2M4 8v8M6 6v12M9 9v6M15 9v6M18 6v12M20 8v8M22 12h-2"/></svg>
-        <span>Workouts</span>
+        <span>Schema</span>
     </div>
     <div class="fab-wrap">
         <div class="fab" onclick="toggleQuickMenu()">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" id="fab-icon"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         </div>
     </div>
-    <div class="bar-item" onclick="openInfoModal()">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><circle cx="12" cy="8" r="0.5" fill="currentColor"/></svg>
-        <span>Information</span>
+    <div class="bar-item" onclick="window._selectionModeDate=null; renderGroupsView();">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h2M4 8v8M6 6v12M9 9v6M15 9v6M18 6v12M20 8v8M22 12h-2"/></svg>
+        <span>Pass</span>
     </div>
     <div class="bar-item" id="bar-profile-item" onclick="openProfilePanel()">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-3 4-5 8-5s8 2 8 5"/></svg>
-        <span>Profile</span>
+        <span>Profil</span>
     </div>
 </div>
 
