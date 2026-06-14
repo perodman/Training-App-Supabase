@@ -3532,7 +3532,10 @@ function renderActiveWorkout() {
         footer.style.alignItems = "center";
         footer.style.gap = "12px";
         footer.innerHTML = `
-            <button id="pause-workout-btn" class="mode-btn save-draft-btn" onclick="saveDraftAndGoHome()" style="flex: 1;">Save draft  💾 </button>
+            <button onclick="saveDraftAndGoHome()" style="flex-shrink:0; width:44px; height:44px; border-radius:13px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:#94a3b8; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            </button>
+            <button id="pause-workout-btn" class="mode-btn save-draft-btn" onclick="saveDraftAndGoHome()" style="flex: 1;">Save draft  💾</button>
             <button class="mode-btn green" onclick="finishWorkout()" style="flex: 1; font-weight: bold;">Finish Workout  ✅</button>
         `;
     }
