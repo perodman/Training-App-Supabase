@@ -1585,6 +1585,34 @@ const PREDEFINED_GROUPS = [
     { id: "superset", name: "Superset", icon: "🔥" }
 ];
 
+const EXERCISE_SVG_MAP = {
+    'Ben': {
+        small: `<svg width="30" height="34" viewBox="0 0 52 52" fill="none"><circle cx="26" cy="8" r="5" fill="none" stroke="#22d3ee" stroke-width="1.5"/><line x1="26" y1="13" x2="26" y2="26" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/><line x1="20" y1="17" x2="32" y2="17" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/><line x1="26" y1="26" x2="18" y2="36" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/><line x1="26" y1="26" x2="34" y2="36" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/><line x1="18" y1="36" x2="16" y2="44" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/><line x1="34" y1="36" x2="36" y2="44" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/><line x1="12" y1="32" x2="40" y2="32" stroke="#22d3ee" stroke-width="1.8" stroke-linecap="round"/><circle cx="10" cy="32" r="3" fill="none" stroke="#22d3ee" stroke-width="1.2"/><circle cx="42" cy="32" r="3" fill="none" stroke="#22d3ee" stroke-width="1.2"/></svg>`,
+        large: `<svg width="100" height="100" viewBox="0 0 52 52" fill="none"><circle cx="26" cy="8" r="5" fill="none" stroke="#22d3ee" stroke-width="1.5"/><line x1="26" y1="13" x2="26" y2="26" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/><line x1="20" y1="17" x2="32" y2="17" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/><line x1="26" y1="26" x2="18" y2="36" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/><line x1="26" y1="26" x2="34" y2="36" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/><line x1="18" y1="36" x2="16" y2="44" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/><line x1="34" y1="36" x2="36" y2="44" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/><line x1="12" y1="32" x2="40" y2="32" stroke="#22d3ee" stroke-width="1.8" stroke-linecap="round"/><circle cx="10" cy="32" r="3" fill="none" stroke="#22d3ee" stroke-width="1.2"/><circle cx="42" cy="32" r="3" fill="none" stroke="#22d3ee" stroke-width="1.2"/></svg>`
+    },
+    'Bröst': {
+        small: `<svg width="30" height="34" viewBox="0 0 52 52" fill="none"><rect x="8" y="28" width="36" height="5" rx="2" fill="rgba(34,211,238,0.15)" stroke="#22d3ee" stroke-width="1.2"/><circle cx="26" cy="20" r="5" fill="none" stroke="#22d3ee" stroke-width="1.5"/><line x1="26" y1="25" x2="26" y2="33" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/><line x1="26" y1="29" x2="20" y2="26" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/><line x1="26" y1="29" x2="32" y2="26" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/><line x1="20" y1="26" x2="14" y2="27" stroke="#22d3ee" stroke-width="1.8" stroke-linecap="round"/><line x1="32" y1="26" x2="38" y2="27" stroke="#22d3ee" stroke-width="1.8" stroke-linecap="round"/><circle cx="13" cy="27" r="3" fill="none" stroke="#22d3ee" stroke-width="1.2"/><circle cx="39" cy="27" r="3" fill="none" stroke="#22d3ee" stroke-width="1.2"/><line x1="26" y1="33" x2="22" y2="40" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/><line x1="26" y1="33" x2="30" y2="40" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+        large: `<svg width="100" height="100" viewBox="0 0 52 52" fill="none"><rect x="8" y="28" width="36" height="5" rx="2" fill="rgba(34,211,238,0.15)" stroke="#22d3ee" stroke-width="1.2"/><circle cx="26" cy="20" r="5" fill="none" stroke="#22d3ee" stroke-width="1.5"/><line x1="26" y1="25" x2="26" y2="33" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/><line x1="26" y1="29" x2="20" y2="26" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/><line x1="26" y1="29" x2="32" y2="26" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/><line x1="20" y1="26" x2="14" y2="27" stroke="#22d3ee" stroke-width="1.8" stroke-linecap="round"/><line x1="32" y1="26" x2="38" y2="27" stroke="#22d3ee" stroke-width="1.8" stroke-linecap="round"/><circle cx="13" cy="27" r="3" fill="none" stroke="#22d3ee" stroke-width="1.2"/><circle cx="39" cy="27" r="3" fill="none" stroke="#22d3ee" stroke-width="1.2"/><line x1="26" y1="33" x2="22" y2="40" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/><line x1="26" y1="33" x2="30" y2="40" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/></svg>`
+    },
+    'Rygg': {
+        small: `<svg width="30" height="34" viewBox="0 0 52 52" fill="none"><circle cx="18" cy="10" r="5" fill="none" stroke="#22d3ee" stroke-width="1.5"/><line x1="18" y1="15" x2="20" y2="26" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/><line x1="20" y1="26" x2="14" y2="38" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/><line x1="20" y1="26" x2="24" y2="38" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/><line x1="18" y1="20" x2="38" y2="20" stroke="#22d3ee" stroke-width="1.8" stroke-linecap="round"/><circle cx="40" cy="20" r="3.5" fill="none" stroke="#22d3ee" stroke-width="1.2"/></svg>`,
+        large: `<svg width="100" height="100" viewBox="0 0 52 52" fill="none"><circle cx="18" cy="10" r="5" fill="none" stroke="#22d3ee" stroke-width="1.5"/><line x1="18" y1="15" x2="20" y2="26" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/><line x1="20" y1="26" x2="14" y2="38" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/><line x1="20" y1="26" x2="24" y2="38" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/><line x1="18" y1="20" x2="38" y2="20" stroke="#22d3ee" stroke-width="1.8" stroke-linecap="round"/><circle cx="40" cy="20" r="3.5" fill="none" stroke="#22d3ee" stroke-width="1.2"/></svg>`
+    },
+    'Axlar': {
+        small: `<svg width="30" height="34" viewBox="0 0 52 52" fill="none"><circle cx="26" cy="18" r="5" fill="none" stroke="#22d3ee" stroke-width="1.5"/><line x1="26" y1="23" x2="26" y2="34" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/><line x1="26" y1="27" x2="18" y2="24" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/><line x1="26" y1="27" x2="34" y2="24" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/><line x1="12" y1="10" x2="40" y2="10" stroke="#22d3ee" stroke-width="2" stroke-linecap="round"/><circle cx="10" cy="10" r="3.5" fill="none" stroke="#22d3ee" stroke-width="1.2"/><circle cx="42" cy="10" r="3.5" fill="none" stroke="#22d3ee" stroke-width="1.2"/><line x1="18" y1="24" x2="18" y2="12" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/><line x1="34" y1="24" x2="34" y2="12" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/><line x1="26" y1="34" x2="22" y2="44" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/><line x1="26" y1="34" x2="30" y2="44" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+        large: `<svg width="100" height="100" viewBox="0 0 52 52" fill="none"><circle cx="26" cy="18" r="5" fill="none" stroke="#22d3ee" stroke-width="1.5"/><line x1="26" y1="23" x2="26" y2="34" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/><line x1="26" y1="27" x2="18" y2="24" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/><line x1="26" y1="27" x2="34" y2="24" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/><line x1="12" y1="10" x2="40" y2="10" stroke="#22d3ee" stroke-width="2" stroke-linecap="round"/><circle cx="10" cy="10" r="3.5" fill="none" stroke="#22d3ee" stroke-width="1.2"/><circle cx="42" cy="10" r="3.5" fill="none" stroke="#22d3ee" stroke-width="1.2"/><line x1="18" y1="24" x2="18" y2="12" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/><line x1="34" y1="24" x2="34" y2="12" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/><line x1="26" y1="34" x2="22" y2="44" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/><line x1="26" y1="34" x2="30" y2="44" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/></svg>`
+    },
+    'default': {
+        small: `<svg width="30" height="34" viewBox="0 0 52 52" fill="none"><circle cx="26" cy="8" r="5" fill="none" stroke="#22d3ee" stroke-width="1.5"/><line x1="26" y1="13" x2="26" y2="26" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/><line x1="20" y1="18" x2="32" y2="18" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/><line x1="26" y1="26" x2="22" y2="38" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/><line x1="26" y1="26" x2="30" y2="38" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/><line x1="22" y1="38" x2="20" y2="46" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/><line x1="30" y1="38" x2="32" y2="46" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+        large: `<svg width="100" height="100" viewBox="0 0 52 52" fill="none"><circle cx="26" cy="8" r="5" fill="none" stroke="#22d3ee" stroke-width="1.5"/><line x1="26" y1="13" x2="26" y2="26" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/><line x1="20" y1="18" x2="32" y2="18" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/><line x1="26" y1="26" x2="22" y2="38" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/><line x1="26" y1="26" x2="30" y2="38" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/><line x1="22" y1="38" x2="20" y2="46" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/><line x1="30" y1="38" x2="32" y2="46" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/></svg>`
+    }
+};
+
+function getExSVG(target, size) {
+    const map = EXERCISE_SVG_MAP[target] || EXERCISE_SVG_MAP['default'];
+    return size === 'small' ? map.small : map.large;
+}
+
 let recentPassesByGroup = JSON.parse(localStorage.getItem("recentPassesByGroup") || "{}");
 window._selectionModeDate = null;
 
@@ -3635,8 +3663,22 @@ function renderActiveWorkout() {
         viewContainer.appendChild(discardContainer);
     }
     showView("workout-view");
-    renderRestTimer();
+renderRestTimer();
     setTimeout(() => initDragAndDrop(), 50);
+    const savedLayout = localStorage.getItem('workoutLayoutMode') || 'list';
+    const listBtn = document.getElementById('layout-list-btn');
+    const carouselBtn = document.getElementById('layout-carousel-btn');
+    if (listBtn) listBtn.classList.toggle('active', savedLayout === 'list');
+    if (carouselBtn) carouselBtn.classList.toggle('active', savedLayout === 'carousel');
+    if (savedLayout === 'carousel') {
+        const exerciseList = document.getElementById('exercise-list');
+        const carouselView = document.getElementById('carousel-view');
+        const restTimerBar = document.getElementById('rest-timer-bar');
+        if (exerciseList) exerciseList.style.display = 'none';
+        if (carouselView) carouselView.classList.remove('hidden');
+        if (restTimerBar) restTimerBar.style.display = 'none';
+        renderCarousel();
+    }
     if (isReturning && openExercises.length > 0 && !window._suppressAutoScroll) {
         const firstOpenIndex = openExercises.slice().sort((a, b) => a - b)[0];
         setTimeout(() => {
@@ -6118,4 +6160,285 @@ function openInfoModal() {
         </div>
     `;
     openModal();
+}
+
+
+let workoutLayoutMode = localStorage.getItem('workoutLayoutMode') || 'list';
+let carouselCurrentIndex = 0;
+let carouselRestActive = false;
+let carouselRestSeconds = 0;
+let carouselRestInterval = null;
+
+function setWorkoutLayout(mode) {
+    workoutLayoutMode = mode;
+    localStorage.setItem('workoutLayoutMode', mode);
+    const listBtn = document.getElementById('layout-list-btn');
+    const carouselBtn = document.getElementById('layout-carousel-btn');
+    const exerciseList = document.getElementById('exercise-list');
+    const carouselView = document.getElementById('carousel-view');
+    const restTimerBar = document.getElementById('rest-timer-bar');
+    if (listBtn) listBtn.classList.toggle('active', mode === 'list');
+    if (carouselBtn) carouselBtn.classList.toggle('active', mode === 'carousel');
+    if (mode === 'list') {
+        if (exerciseList) exerciseList.style.display = 'block';
+        if (carouselView) carouselView.classList.add('hidden');
+        if (restTimerBar) restTimerBar.style.display = 'block';
+        window._suppressAutoScroll = true;
+        renderActiveWorkout();
+    } else {
+        if (exerciseList) exerciseList.style.display = 'none';
+        if (carouselView) carouselView.classList.remove('hidden');
+        if (restTimerBar) restTimerBar.style.display = 'none';
+        carouselCurrentIndex = 0;
+        const firstUndone = activeDraft?.workout?.exercises?.findIndex((_, i) => !activeDraft.data[i]?.isCompleted);
+        if (firstUndone !== -1 && firstUndone !== undefined) carouselCurrentIndex = firstUndone;
+        renderCarousel();
+    }
+}
+
+function renderCarousel() {
+    const container = document.getElementById('carousel-view');
+    if (!container || !activeDraft) return;
+    const exercises = activeDraft.workout.exercises;
+    const data = activeDraft.data;
+    if (!exercises || exercises.length === 0) return;
+
+    const navHtml = exercises.map((ex, i) => {
+        const isDone = data[i]?.isCompleted;
+        const isActive = i === carouselCurrentIndex;
+        const svg = getExSVG(ex.target, 'small');
+        return `<div class="carousel-ex-thumb${isDone ? ' done' : isActive ? ' active' : ''}" onclick="carouselGoTo(${i})">
+            <div style="opacity:${isActive ? 1 : 0.5}">${svg}</div>
+            <div class="carousel-ex-thumb-name">${ex.name}</div>
+            ${isDone ? `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>` : ''}
+        </div>`;
+    }).join('');
+
+    const dotsHtml = exercises.map((_, i) => {
+        const isDone = data[i]?.isCompleted;
+        return `<div class="carousel-dot${isDone ? ' done' : i === carouselCurrentIndex ? ' active' : ''}"></div>`;
+    }).join('');
+
+    container.innerHTML = `
+        <div class="carousel-nav-bar">${navHtml}</div>
+        <div class="carousel-card-area" id="carousel-card-area">
+            <div class="carousel-ex-card" id="carousel-ex-card"></div>
+        </div>
+        <div class="carousel-nav-dots">
+            <div class="carousel-nav-arrow" onclick="carouselPrev()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+            </div>
+            <div class="carousel-dots">${dotsHtml}</div>
+            <div class="carousel-nav-arrow" onclick="carouselNext()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+            </div>
+        </div>`;
+
+    renderCarouselCard();
+    initCarouselSwipe();
+}
+
+function renderCarouselCard() {
+    const card = document.getElementById('carousel-ex-card');
+    if (!card || !activeDraft) return;
+    const i = carouselCurrentIndex;
+    const ex = activeDraft.workout.exercises[i];
+    const exData = activeDraft.data[i];
+    if (!ex || !exData) return;
+    const isDone = exData.isCompleted;
+    const firstUnconfirmed = exData.sets_data ? exData.sets_data.findIndex(s => !s.userConfirmed) : -1;
+    const completedSets = exData.sets_data ? exData.sets_data.filter(s => s.userConfirmed).length : 0;
+    const totalSets = exData.sets_data ? exData.sets_data.length : 0;
+    card.style.borderLeftColor = isDone ? '#22c55e' : '#22d3ee';
+
+    let setsHtml = `<div style="display:grid; grid-template-columns:30px 1fr 1fr 1fr; gap:5px; margin-bottom:5px;">
+        <small style="text-align:left; padding-left:2px; color:var(--text-light); font-size:9px; font-weight:700;">SET</small>
+        <small style="text-align:center; color:var(--text-light); font-size:9px;">KG</small>
+        <small style="text-align:center; color:var(--text-light); font-size:9px;">REPS</small>
+        <small style="text-align:center; color:var(--text-light); font-size:9px;">REST</small>
+    </div>`;
+
+    if (exData.sets_data) {
+        exData.sets_data.forEach((set, sIdx) => {
+            const isCurrent = !set.userConfirmed && !isDone && sIdx === firstUnconfirmed;
+            const showSuccess = set.userConfirmed || isDone;
+            const circleColor = showSuccess ? '#22c55e' : (isCurrent ? '#facc15' : '#f59e0b');
+            const opacity = showSuccess ? 1 : isCurrent ? 1 : 0.3;
+            setsHtml += `<div style="display:grid; grid-template-columns:30px 1fr 1fr 1fr; gap:5px; margin-bottom:6px; align-items:center; opacity:${opacity}; transition:opacity 0.2s;">
+                <div class="${isCurrent ? 'pulse-ring' : ''}" onclick="carouselConfirmSet(${i}, ${sIdx})"
+                    style="width:26px; height:26px; border-radius:50%; border:2px solid ${circleColor}; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:9px; font-weight:800; background:${showSuccess ? 'rgba(34,197,94,0.2)' : isCurrent ? 'rgba(250,204,21,0.15)' : 'rgba(245,158,11,0.05)'}; color:${circleColor}; opacity:1;">
+                    ${showSuccess ? '✅' : '#' + (sIdx + 1)}
+                </div>
+                <input type="text" inputmode="decimal" class="log-input" style="margin:0; padding:7px 3px; font-size:13px; text-align:center; opacity:${isCurrent ? 1 : 0.5};" value="${set.weight || ''}" placeholder="" ${isDone ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
+                <input type="text" inputmode="decimal" class="log-input" style="margin:0; padding:7px 3px; font-size:13px; text-align:center; opacity:${isCurrent ? 1 : 0.5};" value="${set.reps || ''}" placeholder="" ${isDone ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
+                ${sIdx < exData.sets_data.length - 1 
+                    ? `<input type="text" inputmode="decimal" class="log-input" style="margin:0; padding:7px 3px; font-size:12px; text-align:center; color:#f59e0b; border-color:rgba(52,152,219,0.3); opacity:${isCurrent ? 1 : 0.5};" value="${set.rest || '120'}" placeholder="" ${isDone ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`
+                    : '<div></div>'}
+            </div>`;
+        });
+    }
+
+    const noteOpen = activeDraft.ui_state?.openNotes?.includes(i);
+    const noteHtml = noteOpen ? `<div style="background:rgba(0,0,0,0.2); border:1px solid rgba(253,224,71,0.2); border-radius:10px; padding:8px 10px; margin-bottom:8px;">
+        <textarea class="log-input" placeholder="Add a note for this exercise..." oninput="updateExerciseNote(${i})"
+            style="width:100%; min-height:50px; background:transparent; border:none; color:#fde047; font-size:12px; padding:0; text-align:left; font-weight:400;">${exData.note || ''}</textarea>
+    </div>` : '';
+
+    const restHtml = carouselRestActive ? `<div class="carousel-rest-bar">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
+        <div>
+            <div style="font-size:8px; color:#92400e; font-weight:800; text-transform:uppercase; letter-spacing:1px;">Rest</div>
+            <div style="font-size:16px; font-weight:900; color:#f59e0b; font-family:monospace;" id="carousel-rest-time">${carouselRestSeconds}s</div>
+        </div>
+        <div style="display:flex; gap:5px; margin-left:auto; align-items:center;">
+            <button onclick="carouselRestSeconds=Math.max(0,carouselRestSeconds-15); document.getElementById('carousel-rest-time').textContent=carouselRestSeconds+'s';" style="font-size:9px; color:#f59e0b; background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.2); border-radius:6px; padding:2px 6px; cursor:pointer;">−15s</button>
+            <button onclick="carouselRestSeconds+=30; document.getElementById('carousel-rest-time').textContent=carouselRestSeconds+'s';" style="font-size:9px; color:#f59e0b; background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.2); border-radius:6px; padding:2px 6px; cursor:pointer;">+30s</button>
+            <button onclick="carouselStopRest()" style="font-size:9px; color:#64748b; font-weight:700; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); border-radius:7px; padding:3px 8px; cursor:pointer;">Skip</button>
+        </div>
+    </div>` : '';
+
+    const svg = getExSVG(ex.target, 'large');
+
+    card.innerHTML = `
+        <div class="carousel-anim-zone">
+            ${svg}
+            <div class="anim-placeholder-label">Animation coming soon</div>
+        </div>
+        <div class="carousel-card-body">
+            <div class="carousel-ex-header">
+                <div>
+                    <strong style="font-size:15px; color:${isDone ? 'var(--text-light)' : 'var(--text)'}; text-decoration:${isDone ? 'line-through' : 'none'}; display:block;">${ex.name}</strong>
+                    <small style="color:${isDone ? '#22c55e' : 'var(--primary)'}; font-size:10px;">${isDone ? 'DONE ✅' : `${completedSets}/${totalSets} sets`}</small>
+                </div>
+                <div class="carousel-action-btns">
+                    <button class="carousel-act-btn" onclick="toggleExerciseNote(${i})" style="opacity:${exData.note ? 1 : 0.5}; background:none; border:none; font-size:14px; padding:5px;">📝${exData.note ? '<span style="position:absolute; top:2px; right:2px; width:6px; height:6px; background:#fde047; border-radius:50%;"></span>' : ''}</button>
+                    <button class="carousel-act-btn cyan" onclick="openReplaceExerciseModal(${i})" ${isDone ? 'disabled' : ''}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.32"/></svg>
+                    </button>
+                    <button class="carousel-act-btn red" onclick="removeActiveExercise(${i})" ${isDone ? 'disabled' : ''}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                </div>
+            </div>
+            ${noteHtml}
+            ${setsHtml}
+            ${restHtml}
+            <button class="mode-border glass-border" style="padding:8px; font-size:11px; margin-top:6px; border-style:dashed; width:100%;" onclick="carouselAddSet(${i})" ${isDone ? 'disabled' : ''}>+ Add set</button>
+            <button class="mode-btn ${isDone ? 'blue' : 'green'}" style="padding:12px; font-size:13px; margin-top:8px; width:100%; font-weight:bold;" onclick="carouselToggleDone(${i})">
+                ${isDone ? 'Undo ↩️' : 'Mark as Complete ✅'}
+            </button>
+        </div>`;
+}
+
+async function carouselConfirmSet(exIdx, setIdx) {
+    flushFocusedInputs();
+    const vInp = document.getElementById(`v-${exIdx}-${setIdx}`);
+    if (vInp) activeDraft.data[exIdx].sets_data[setIdx].rest = vInp.value;
+    const currentState = activeDraft.data[exIdx].sets_data[setIdx].userConfirmed;
+    activeDraft.data[exIdx].sets_data[setIdx].userConfirmed = !currentState;
+    const isNowConfirmed = activeDraft.data[exIdx].sets_data[setIdx].userConfirmed;
+    const isLastSet = setIdx === activeDraft.data[exIdx].sets_data.length - 1;
+    if (isNowConfirmed && !isLastSet) {
+        const restVal = parseInt(activeDraft.data[exIdx].sets_data[setIdx].rest) || 120;
+        carouselStartRest(restVal);
+    } else if (!isNowConfirmed) {
+        carouselStopRest();
+    }
+    await persistActiveWorkout();
+    renderCarouselCard();
+}
+
+function carouselStartRest(seconds) {
+    clearInterval(carouselRestInterval);
+    carouselRestSeconds = seconds;
+    carouselRestActive = true;
+    renderCarouselCard();
+    carouselRestInterval = setInterval(() => {
+        carouselRestSeconds--;
+        const el = document.getElementById('carousel-rest-time');
+        if (el) el.textContent = carouselRestSeconds + 's';
+        if (carouselRestSeconds <= 0) {
+            clearInterval(carouselRestInterval);
+            carouselRestActive = false;
+            if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+            renderCarouselCard();
+        }
+    }, 1000);
+}
+
+function carouselStopRest() {
+    clearInterval(carouselRestInterval);
+    carouselRestActive = false;
+    carouselRestSeconds = 0;
+    renderCarouselCard();
+}
+
+async function carouselAddSet(exIdx) {
+    const lastSet = activeDraft.data[exIdx].sets_data[activeDraft.data[exIdx].sets_data.length - 1];
+    activeDraft.data[exIdx].sets_data.push({ weight: lastSet?.weight || '', reps: lastSet?.reps || '', userConfirmed: false });
+    await persistActiveWorkout();
+    renderCarouselCard();
+}
+
+async function carouselToggleDone(exIdx) {
+    activeDraft.data[exIdx].isCompleted = !activeDraft.data[exIdx].isCompleted;
+    if (activeDraft.data[exIdx].isCompleted) {
+        carouselStopRest();
+        await persistActiveWorkout();
+        renderCarousel();
+        const nextUndone = activeDraft.workout.exercises.findIndex((_, i) => i > exIdx && !activeDraft.data[i]?.isCompleted);
+        if (nextUndone !== -1) {
+            setTimeout(() => carouselGoTo(nextUndone), 350);
+        }
+    } else {
+        await persistActiveWorkout();
+        renderCarousel();
+    }
+}
+
+function carouselGoTo(i) {
+    if (i === carouselCurrentIndex) return;
+    const card = document.getElementById('carousel-ex-card');
+    if (!card) return;
+    const dir = i > carouselCurrentIndex ? -1 : 1;
+    card.style.transition = 'transform 0.22s ease, opacity 0.22s ease';
+    card.style.transform = `translateX(${dir * -40}px)`;
+    card.style.opacity = '0';
+    carouselStopRest();
+    setTimeout(() => {
+        carouselCurrentIndex = i;
+        card.style.transition = 'none';
+        card.style.transform = `translateX(${dir * 40}px)`;
+        card.style.opacity = '0';
+        renderCarousel();
+        setTimeout(() => {
+            const newCard = document.getElementById('carousel-ex-card');
+            if (newCard) {
+                newCard.style.transition = 'transform 0.25s ease, opacity 0.25s ease';
+                newCard.style.transform = 'translateX(0)';
+                newCard.style.opacity = '1';
+            }
+        }, 20);
+    }, 200);
+}
+
+function carouselNext() { if (carouselCurrentIndex < activeDraft.workout.exercises.length - 1) carouselGoTo(carouselCurrentIndex + 1); }
+function carouselPrev() { if (carouselCurrentIndex > 0) carouselGoTo(carouselCurrentIndex - 1); }
+
+function initCarouselSwipe() {
+    const ca = document.getElementById('carousel-card-area');
+    if (!ca || ca.dataset.swipeInit) return;
+    ca.dataset.swipeInit = 'true';
+    let sx = 0, sy = 0, isH = null;
+    ca.addEventListener('touchstart', e => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; isH = null; }, { passive: true });
+    ca.addEventListener('touchmove', e => {
+        if (isH === null) { const dx = Math.abs(e.touches[0].clientX - sx), dy = Math.abs(e.touches[0].clientY - sy); if (dx > 8 || dy > 8) isH = dx > dy; }
+        if (isH && e.cancelable) e.preventDefault();
+    }, { passive: false });
+    ca.addEventListener('touchend', e => {
+        if (!isH) return;
+        const dx = e.changedTouches[0].clientX - sx;
+        if (dx < -50) carouselNext(); else if (dx > 50) carouselPrev();
+        isH = null;
+    });
 }
