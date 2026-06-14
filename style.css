@@ -1270,6 +1270,141 @@ body:has(.bottom-bar.hidden) { padding-bottom: 0; }
     flex: 1;
 }
 
+#layout-list-btn { color: #64748b; background: transparent; }
+#layout-list-btn.active { color: #22d3ee; background: rgba(34,211,238,0.1); }
+#layout-carousel-btn { color: #64748b; background: transparent; }
+#layout-carousel-btn.active { color: #22d3ee; background: rgba(34,211,238,0.1); }
+
+.carousel-nav-bar {
+    display: flex;
+    gap: 7px;
+    padding: 0 15px 10px;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+.carousel-nav-bar::-webkit-scrollbar { display: none; }
+
+.carousel-ex-thumb {
+    flex-shrink: 0;
+    width: 64px;
+    border-radius: 14px;
+    border: 1.5px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.04);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 7px 4px 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    gap: 4px;
+}
+.carousel-ex-thumb.active {
+    border-color: #22d3ee;
+    background: rgba(34,211,238,0.1);
+}
+.carousel-ex-thumb.done {
+    border-color: rgba(34,197,94,0.5);
+    background: rgba(34,197,94,0.08);
+}
+.carousel-ex-thumb-name {
+    font-size: 8px;
+    font-weight: 800;
+    color: #64748b;
+    text-align: center;
+    line-height: 1.2;
+}
+.carousel-ex-thumb.active .carousel-ex-thumb-name { color: #22d3ee; }
+.carousel-ex-thumb.done .carousel-ex-thumb-name { color: #22c55e; }
+
+.carousel-card-area {
+    padding: 0 15px 8px;
+    touch-action: pan-y;
+}
+.carousel-ex-card {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-left: 4px solid #22d3ee;
+    border-radius: 18px;
+    overflow: hidden;
+    transition: transform 0.28s ease, opacity 0.28s ease;
+}
+.carousel-anim-zone {
+    height: 140px;
+    background: rgba(0,0,0,0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    position: relative;
+}
+.carousel-anim-zone .anim-placeholder-label {
+    position: absolute;
+    bottom: 8px;
+    right: 10px;
+    font-size: 8px;
+    color: rgba(34,211,238,0.25);
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+.carousel-card-body { padding: 12px 14px; }
+.carousel-ex-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+.carousel-action-btns { display: flex; gap: 5px; }
+.carousel-act-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: none;
+    background: rgba(255,255,255,0.05);
+    color: #94a3b8;
+    font-size: 14px;
+}
+.carousel-act-btn.cyan { background: rgba(34,211,238,0.08); color: #22d3ee; }
+.carousel-act-btn.red { background: rgba(239,68,68,0.08); color: #ef4444; }
+
+.carousel-nav-dots {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 15px 10px;
+}
+.carousel-dots { display: flex; gap: 4px; align-items: center; }
+.carousel-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.12);
+    transition: all 0.2s;
+}
+.carousel-dot.active { background: #22d3ee; width: 16px; border-radius: 3px; }
+.carousel-dot.done { background: #22c55e; }
+.carousel-nav-arrow {
+    width: 34px; height: 34px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: #94a3b8;
+}
+
+.carousel-rest-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(245,158,11,0.06);
+    border: 1px solid rgba(245,158,11,0.2);
+    border-radius: 12px;
+    padding: 8px 12px;
+    margin-top: 8px;
+}
+
 body[data-theme="light"] {
     --primary: #0891b2;
     --secondary: #6366f1;
@@ -1320,3 +1455,5 @@ body[data-theme="light"] .consistency-text { color: #475569; }
 body[data-theme="light"] .modern-header { background: linear-gradient(to right, #0f172a, #0891b2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 body[data-theme="light"] .profile-overlay { background: rgba(0,0,0,0.3); }
 body[data-theme="light"] .card { background: rgba(255,255,255,0.85); border-color: rgba(0,0,0,0.08); }
+
+
