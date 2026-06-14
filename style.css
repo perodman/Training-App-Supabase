@@ -1270,9 +1270,16 @@ body:has(.bottom-bar.hidden) { padding-bottom: 0; }
     flex: 1;
 }
 
-#layout-list-btn { color: #64748b; background: transparent; }
+#workout-layout-toggle {
+    display: flex;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+#layout-list-btn { color: #64748b; background: transparent; padding: 7px 11px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 0.2s; }
 #layout-list-btn.active { color: #22d3ee; background: rgba(34,211,238,0.1); }
-#layout-carousel-btn { color: #64748b; background: transparent; }
+#layout-carousel-btn { color: #64748b; background: transparent; padding: 7px 11px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 0.2s; }
 #layout-carousel-btn.active { color: #22d3ee; background: rgba(34,211,238,0.1); }
 
 .carousel-nav-bar {
