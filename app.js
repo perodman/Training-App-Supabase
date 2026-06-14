@@ -160,6 +160,10 @@ function showView(id) {
     if (bottomBar) {
         bottomBar.classList.toggle("hidden", id === "workout-view");
     }
+    const globalHome = document.getElementById("global-home");
+    if (globalHome) {
+        globalHome.style.display = id === "workout-view" ? "none" : "flex";
+    }
     
     // 🔍 OPTIMERING: Om vyn redan är synlig, gör absolut ingenting. 
     // Detta förhindrar att CSS-animationer nollställs och blinkar till i onödan.
@@ -6170,6 +6174,7 @@ let carouselRestSeconds = 0;
 let carouselRestInterval = null;
 
 function setWorkoutLayout(mode) {
+    flushFocusedInputs();
     workoutLayoutMode = mode;
     localStorage.setItem('workoutLayoutMode', mode);
     const listBtn = document.getElementById('layout-list-btn');
@@ -6199,6 +6204,7 @@ function setWorkoutLayout(mode) {
 function renderCarousel() {
     const container = document.getElementById('carousel-view');
     if (!container || !activeDraft) return;
+    const prevScrollLeft = document.getElementById('carousel-nav-bar-inner')?.scrollLeft || 0;
     const exercises = activeDraft.workout.exercises;
     const data = activeDraft.data;
     if (!exercises || exercises.length === 0) return;
@@ -6219,8 +6225,8 @@ function renderCarousel() {
         return `<div class="carousel-dot${isDone ? ' done' : i === carouselCurrentIndex ? ' active' : ''}"></div>`;
     }).join('');
 
-    container.innerHTML = `
-        <div class="carousel-nav-bar">${navHtml}</div>
+container.innerHTML = `
+        <div class="carousel-nav-bar" id="carousel-nav-bar-inner">${navHtml}</div>
         <div class="carousel-card-area" id="carousel-card-area">
             <div class="carousel-ex-card" id="carousel-ex-card"></div>
         </div>
@@ -6236,6 +6242,18 @@ function renderCarousel() {
 
     renderCarouselCard();
     initCarouselSwipe();
+    setTimeout(() => {
+        const navBar = document.getElementById('carousel-nav-bar-inner');
+        if (!navBar) return;
+        const activeThumb = navBar.children[carouselCurrentIndex];
+        if (!activeThumb) return;
+        const barRect = navBar.getBoundingClientRect();
+        const thumbRect = activeThumb.getBoundingClientRect();
+        const isVisible = thumbRect.left >= barRect.left && thumbRect.right <= barRect.right;
+        if (!isVisible) {
+            activeThumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+        }
+    }, 50);
 }
 
 function renderCarouselCard() {
