@@ -6246,58 +6246,73 @@ function renderCarouselCard() {
     const exData = activeDraft.data[i];
     if (!ex || !exData) return;
     const isDone = exData.isCompleted;
-    const firstUnconfirmed = exData.sets_data ? exData.sets_data.findIndex(s => !s.userConfirmed) : -1;
+    const svg = getExSVG(ex.target, 'large');
+    const noteOpen = activeDraft.ui_state?.openNotes?.includes(i);
+
+    card.style.borderLeftColor = isDone ? '#22c55e' : '#22d3ee';
+    card.style.boxShadow = isDone ? '0 4px 12px rgba(34,197,94,0.08)' : '0 4px 12px rgba(34,211,238,0.08)';
+
     const completedSets = exData.sets_data ? exData.sets_data.filter(s => s.userConfirmed).length : 0;
     const totalSets = exData.sets_data ? exData.sets_data.length : 0;
-    card.style.borderLeftColor = isDone ? '#22c55e' : '#22d3ee';
+    const firstUnconfirmed = exData.sets_data ? exData.sets_data.findIndex(s => !s.userConfirmed) : -1;
 
-    let setsHtml = `<div style="display:grid; grid-template-columns:30px 1fr 1fr 1fr; gap:5px; margin-bottom:5px;">
-        <small style="text-align:left; padding-left:2px; color:var(--text-light); font-size:9px; font-weight:700;">SET</small>
-        <small style="text-align:center; color:var(--text-light); font-size:9px;">KG</small>
-        <small style="text-align:center; color:var(--text-light); font-size:9px;">REPS</small>
-        <small style="text-align:center; color:var(--text-light); font-size:9px;">REST</small>
-    </div>`;
+    let setsHtml = `<div style="margin-top:10px;">
+        <div style="display:grid; grid-template-columns: 40px 1fr 1fr 1fr 30px; gap:8px; margin-bottom:5px; align-items:center;">
+            <small style="text-align:left; padding-left:5px; color:var(--text-light); font-size:9px; font-weight:700;">SET</small>
+            <small style="text-align:center; color:var(--text-light); font-size:9px;">KG</small>
+            <small style="text-align:center; color:var(--text-light); font-size:9px;">REPS</small>
+            <small style="text-align:center; color:var(--text-light); font-size:9px;">REST (S)</small>
+            <span></span>
+        </div>`;
 
     if (exData.sets_data) {
         exData.sets_data.forEach((set, sIdx) => {
+            const isLocked = isDone;
             const isCurrent = !set.userConfirmed && !isDone && sIdx === firstUnconfirmed;
             const showSuccess = set.userConfirmed || isDone;
             const circleColor = showSuccess ? '#22c55e' : (isCurrent ? '#facc15' : '#f59e0b');
-            const opacity = showSuccess ? 1 : isCurrent ? 1 : 0.3;
-            setsHtml += `<div style="display:grid; grid-template-columns:30px 1fr 1fr 1fr; gap:5px; margin-bottom:6px; align-items:center; opacity:${opacity}; transition:opacity 0.2s;">
-                <div class="${isCurrent ? 'pulse-ring' : ''}" onclick="carouselConfirmSet(${i}, ${sIdx})"
-                    style="width:26px; height:26px; border-radius:50%; border:2px solid ${circleColor}; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:9px; font-weight:800; background:${showSuccess ? 'rgba(34,197,94,0.2)' : isCurrent ? 'rgba(250,204,21,0.15)' : 'rgba(245,158,11,0.05)'}; color:${circleColor}; opacity:1;">
-                    ${showSuccess ? '✅' : '#' + (sIdx + 1)}
+            const statusContent = showSuccess ? '✅' : `#${sIdx + 1}`;
+
+            setsHtml += `
+            <div style="display:grid; grid-template-columns: 40px 1fr 1fr 1fr 30px; gap:8px; margin-bottom:8px; align-items:center; opacity: ${showSuccess ? '1' : isCurrent ? '1' : '0.35'}; transition: opacity 0.2s ease; position:relative; overflow:visible;">
+                <div class="${isCurrent ? 'pulse-ring' : ''}" onclick="${isLocked && !isDone ? '' : `carouselConfirmSet(${i}, ${sIdx})`}"
+                    style="width:32px; height:32px; border-radius:50%; border:2px solid ${circleColor}; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:10px; font-weight:800; background: ${showSuccess ? 'rgba(34, 197, 94, 0.2)' : (isCurrent ? 'rgba(250, 204, 21, 0.15)' : 'rgba(245, 158, 11, 0.05)')}; color: ${circleColor}; opacity: 1;">
+                    ${statusContent}
                 </div>
-                <input type="text" inputmode="decimal" class="log-input" style="margin:0; padding:7px 3px; font-size:13px; text-align:center; opacity:${isCurrent ? 1 : 0.5};" value="${set.weight || ''}" placeholder="" ${isDone ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
-                <input type="text" inputmode="decimal" class="log-input" style="margin:0; padding:7px 3px; font-size:13px; text-align:center; opacity:${isCurrent ? 1 : 0.5};" value="${set.reps || ''}" placeholder="" ${isDone ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
-                ${sIdx < exData.sets_data.length - 1 
-                    ? `<input type="text" inputmode="decimal" class="log-input" style="margin:0; padding:7px 3px; font-size:12px; text-align:center; color:#f59e0b; border-color:rgba(52,152,219,0.3); opacity:${isCurrent ? 1 : 0.5};" value="${set.rest || '120'}" placeholder="" ${isDone ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`
+                <input type="text" inputmode="decimal" id="w-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'};" value="${set.weight || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
+                <input type="text" inputmode="decimal" id="r-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'};" value="${set.reps || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
+                ${sIdx < exData.sets_data.length - 1
+                    ? `<input type="text" inputmode="decimal" id="v-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'}; border-color: rgba(52, 152, 219, 0.3);" value="${set.rest || '120'}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`
                     : '<div></div>'}
+                <button onclick="removeSetFromExercise(${i}, ${sIdx})" style="background:none; border:none; color:var(--danger); font-size:16px; opacity: ${showSuccess ? '0.1' : isCurrent ? '0.8' : '0.4'};" ${showSuccess ? 'disabled' : ''}>×</button>
             </div>`;
+
+            if (isCurrent && sIdx === firstUnconfirmed) {
+                setsHtml += `
+                <div style="grid-column: 2 / span 3; margin:-4px 0 8px 0; padding-left:2px; opacity:0.8; font-size:10px; color:var(--primary); font-weight:600; letter-spacing:0.3px;">
+                    💡 Select ${statusContent} to lock & continue
+                </div>`;
+            }
         });
     }
+    setsHtml += `</div>`;
 
-    const noteOpen = activeDraft.ui_state?.openNotes?.includes(i);
-    const noteHtml = noteOpen ? `<div style="background:rgba(0,0,0,0.2); border:1px solid rgba(253,224,71,0.2); border-radius:10px; padding:8px 10px; margin-bottom:8px;">
-        <textarea class="log-input" placeholder="Add a note for this exercise..." oninput="updateExerciseNote(${i})"
-            style="width:100%; min-height:50px; background:transparent; border:none; color:#fde047; font-size:12px; padding:0; text-align:left; font-weight:400;">${exData.note || ''}</textarea>
-    </div>` : '';
-
-    const restHtml = carouselRestActive ? `<div class="carousel-rest-bar">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
-        <div>
-            <div style="font-size:8px; color:#92400e; font-weight:800; text-transform:uppercase; letter-spacing:1px;">Rest</div>
-            <div style="font-size:16px; font-weight:900; color:#f59e0b; font-family:monospace;" id="carousel-rest-time">${carouselRestSeconds}s</div>
-        </div>
-        <div style="display:flex; gap:5px; margin-left:auto; align-items:center;">
-            <button onclick="carouselRestSeconds=Math.max(0,carouselRestSeconds-15); document.getElementById('carousel-rest-time').textContent=carouselRestSeconds+'s';" style="font-size:9px; color:#f59e0b; background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.2); border-radius:6px; padding:2px 6px; cursor:pointer;">−15s</button>
-            <button onclick="carouselRestSeconds+=30; document.getElementById('carousel-rest-time').textContent=carouselRestSeconds+'s';" style="font-size:9px; color:#f59e0b; background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.2); border-radius:6px; padding:2px 6px; cursor:pointer;">+30s</button>
-            <button onclick="carouselStopRest()" style="font-size:9px; color:#64748b; font-weight:700; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); border-radius:7px; padding:3px 8px; cursor:pointer;">Skip</button>
-        </div>
-    </div>` : '';
-
-    const svg = getExSVG(ex.target, 'large');
+    const restHtml = carouselRestActive ? `
+        <div style="background:linear-gradient(135deg,#1a1200 0%,#0f0a00 100%); border-left:4px solid #f59e0b; border-radius:16px; padding:12px 16px; display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; overflow:hidden; position:relative;">
+            <div style="position:absolute; top:0; left:4px; right:0; height:1px; background:linear-gradient(90deg,rgba(245,158,11,0.6) 0%,rgba(245,158,11,0.1) 100%);"></div>
+            <div style="display:flex; align-items:center; gap:10px;">
+                <span style="font-size:16px;">⏱️</span>
+                <div>
+                    <div style="font-size:9px; color:#92400e; text-transform:uppercase; letter-spacing:1px; font-weight:700;">Rest</div>
+                    <div style="font-size:22px; font-weight:900; color:${carouselRestSeconds <= 10 ? '#ef4444' : '#f59e0b'}; line-height:1; font-family:monospace;" id="carousel-rest-time">${formatRestTime(carouselRestSeconds)}</div>
+                </div>
+            </div>
+            <div style="display:flex; gap:5px; align-items:center;">
+                <button onclick="carouselRestSeconds=Math.max(0,carouselRestSeconds-15); document.getElementById('carousel-rest-time').textContent=formatRestTime(carouselRestSeconds);" style="background:rgba(245,158,11,0.06); border:1px solid rgba(245,158,11,0.15); border-radius:8px; padding:5px 8px; font-size:11px; color:#92400e; cursor:pointer;">−15s</button>
+                <button onclick="carouselRestSeconds+=30; document.getElementById('carousel-rest-time').textContent=formatRestTime(carouselRestSeconds);" style="background:rgba(245,158,11,0.06); border:1px solid rgba(245,158,11,0.15); border-radius:8px; padding:5px 8px; font-size:11px; color:#92400e; cursor:pointer;">+30s</button>
+                <button onclick="carouselStopRest()" style="padding:5px 10px; font-size:11px; font-weight:700; cursor:pointer; border:none; background:transparent; color:rgba(255,255,255,0.25);">Skip</button>
+            </div>
+        </div>` : '';
 
     card.innerHTML = `
         <div class="carousel-anim-zone">
@@ -6305,29 +6320,39 @@ function renderCarouselCard() {
             <div class="anim-placeholder-label">Animation coming soon</div>
         </div>
         <div class="carousel-card-body">
-            <div class="carousel-ex-header">
-                <div>
-                    <strong style="font-size:15px; color:${isDone ? 'var(--text-light)' : 'var(--text)'}; text-decoration:${isDone ? 'line-through' : 'none'}; display:block;">${ex.name}</strong>
-                    <small style="color:${isDone ? '#22c55e' : 'var(--primary)'}; font-size:10px;">${isDone ? 'DONE ✅' : `${completedSets}/${totalSets} sets`}</small>
+            <div style="position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0.08) 100%); pointer-events:none;"></div>
+            <div style="display:flex; align-items:center; cursor:pointer; padding-bottom:10px; border-bottom:1px solid rgba(255,255,255,0.05); margin-bottom:4px;">
+                <div style="width:8px; flex-shrink:0;"></div>
+                <div style="display:flex; flex-direction:column; min-width:0; flex-grow:1;">
+                    <strong style="font-size:14px; color:${isDone ? 'var(--text-light)' : 'var(--text)'}; text-decoration:${isDone ? 'line-through' : 'none'};">${ex.name}</strong>
+                    <small style="color:${isDone ? '#22c55e' : 'var(--primary)'}; font-size:10px;">${isDone ? 'DONE ✅' : `${completedSets}/${totalSets} set`}</small>
                 </div>
-                <div class="carousel-action-btns">
-                    <button class="carousel-act-btn" onclick="toggleExerciseNote(${i})" style="opacity:${exData.note ? 1 : 0.5}; background:none; border:none; font-size:14px; padding:5px;">📝${exData.note ? '<span style="position:absolute; top:2px; right:2px; width:6px; height:6px; background:#fde047; border-radius:50%;"></span>' : ''}</button>
-                    <button class="carousel-act-btn cyan" onclick="openReplaceExerciseModal(${i})" ${isDone ? 'disabled' : ''}>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.32"/></svg>
+                <div style="display:flex; align-items:center; gap:8px; flex-shrink:0; margin-left:10px;">
+                    <button onclick="toggleExerciseNote(${i})" style="background:none; border:none; font-size:14px; padding:5px; opacity:${exData.note ? '1' : '1'}; position:relative;">
+                        📝${exData.note ? '<span style="position:absolute; top:2px; right:2px; width:6px; height:6px; background:#fde047; border-radius:50%;"></span>' : ''}
                     </button>
-                    <button class="carousel-act-btn red" onclick="removeActiveExercise(${i})" ${isDone ? 'disabled' : ''}>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                    </button>
+                    <button onclick="openReplaceExerciseModal(${i})" style="background:none; border:none; font-size:14px; padding:5px; opacity:0.7;" ${isDone ? 'disabled' : ''}>🔄</button>
+                    <button onclick="removeActiveExercise(${i})" style="background:none; border:none; font-size:14px; padding:5px; opacity:0.7;" ${isDone ? 'disabled' : ''}>✖</button>
                 </div>
             </div>
-            ${noteHtml}
-            ${setsHtml}
+            ${noteOpen ? `<div id="note-area-${i}" style="display:block; margin-bottom:10px;">
+                <textarea id="note-input-${i}" placeholder="Add a note for this exercise..." 
+                    oninput="updateExerciseNote(${i})"
+                    style="width:100%; min-height:60px; padding:10px; border-radius:10px; background:rgba(0,0,0,0.2); border:1px solid rgba(253,224,71,0.2); color:#fff; font-size:13px; font-family:inherit; resize:vertical;">${exData.note || ''}</textarea>
+            </div>` : `<div id="note-area-${i}" style="display:none;"></div>`}
             ${restHtml}
-            <button class="mode-border glass-border" style="padding:8px; font-size:11px; margin-top:6px; border-style:dashed; width:100%;" onclick="carouselAddSet(${i})" ${isDone ? 'disabled' : ''}>+ Add set</button>
-            <button class="mode-btn ${isDone ? 'blue' : 'green'}" style="padding:12px; font-size:13px; margin-top:8px; width:100%; font-weight:bold;" onclick="carouselToggleDone(${i})">
+            ${setsHtml}
+            <button class="mode-border glass-border" style="padding:8px; font-size:11px; margin-top:10px; border-style:dashed; width:100%;" onclick="carouselAddSet(${i})" ${isDone ? 'disabled' : ''}>+ Add set</button>
+            <button class="mode-btn ${isDone ? 'blue' : 'green'}" style="padding:12px; font-size:13px; margin-top:15px; width:100%; font-weight:bold;" onclick="carouselToggleDone(${i})">
                 ${isDone ? 'Undo ↩️' : 'Mark as Complete ✅'}
             </button>
         </div>`;
+}
+
+function formatRestTime(seconds) {
+    const mins = Math.floor(seconds / 60);
+    const secs = String(seconds % 60).padStart(2, '0');
+    return `${mins}:${secs}`;
 }
 
 async function carouselConfirmSet(exIdx, setIdx) {
@@ -6356,7 +6381,10 @@ function carouselStartRest(seconds) {
     carouselRestInterval = setInterval(() => {
         carouselRestSeconds--;
         const el = document.getElementById('carousel-rest-time');
-        if (el) el.textContent = carouselRestSeconds + 's';
+        if (el) {
+            el.textContent = formatRestTime(carouselRestSeconds);
+            el.style.color = carouselRestSeconds <= 10 ? '#ef4444' : '#f59e0b';
+        }
         if (carouselRestSeconds <= 0) {
             clearInterval(carouselRestInterval);
             carouselRestActive = false;
