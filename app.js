@@ -6193,23 +6193,53 @@ function setWorkoutLayout(mode) {
     } else {
         if (exerciseList) exerciseList.style.display = 'none';
         if (carouselView) carouselView.classList.remove('hidden');
-        if (restTimerBar) restTimerBar.style.display = 'none';
+        if (restTimerBar) restTimerBar.style.display = 'block';
         carouselCurrentIndex = 0;
-        const firstUndone = activeDraft?.workout?.exercises?.findIndex((_, i) => !activeDraft.data[i]?.isCompleted);
-        if (firstUndone !== -1 && firstUndone !== undefined) carouselCurrentIndex = firstUndone;
+        if (activeDraft?.workout?.exercises) {
+            const firstUndone = activeDraft.workout.exercises.findIndex((_, i) => !activeDraft.data[i]?.isCompleted);
+            if (firstUndone !== -1) carouselCurrentIndex = firstUndone;
+        }
         renderCarousel();
+        setTimeout(() => renderCarouselCard(), 50);
     }
 }
 
 function renderCarousel() {
     const container = document.getElementById('carousel-view');
     if (!container || !activeDraft) return;
-    const prevScrollLeft = document.getElementById('carousel-nav-bar-inner')?.scrollLeft || 0;
     const exercises = activeDraft.workout.exercises;
     const data = activeDraft.data;
     if (!exercises || exercises.length === 0) return;
 
-    const navHtml = exercises.map((ex, i) => {
+    container.innerHTML = `
+        <div class="carousel-nav-bar" id="carousel-nav-bar-inner"></div>
+        <div class="carousel-card-area" id="carousel-card-area">
+            <div class="carousel-ex-card" id="carousel-ex-card"></div>
+        </div>
+        <div class="carousel-nav-dots">
+            <div class="carousel-nav-arrow" onclick="carouselPrev()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+            </div>
+            <div class="carousel-dots" id="carousel-dots-container"></div>
+            <div class="carousel-nav-arrow" onclick="carouselNext()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+            </div>
+        </div>`;
+
+    renderCarouselNav();
+    renderCarouselDots();
+    renderCarouselCard();
+    initCarouselSwipe();
+    initCarouselDragAndDrop();
+}
+
+function renderCarouselNav() {
+    const navBar = document.getElementById('carousel-nav-bar-inner');
+    if (!navBar || !activeDraft) return;
+    const exercises = activeDraft.workout.exercises;
+    const data = activeDraft.data;
+
+    navBar.innerHTML = exercises.map((ex, i) => {
         const isDone = data[i]?.isCompleted;
         const isActive = i === carouselCurrentIndex;
         const svg = getExSVG(ex.target, 'small');
@@ -6221,41 +6251,21 @@ function renderCarousel() {
         </div>`;
     }).join('');
 
-    const dotsHtml = exercises.map((_, i) => {
-        const isDone = data[i]?.isCompleted;
+    setTimeout(() => {
+        const active = document.getElementById(`carousel-thumb-${carouselCurrentIndex}`);
+        if (active) active.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+    }, 50);
+
+    initCarouselDragAndDrop();
+}
+
+function renderCarouselDots() {
+    const dotsContainer = document.getElementById('carousel-dots-container');
+    if (!dotsContainer || !activeDraft) return;
+    dotsContainer.innerHTML = activeDraft.workout.exercises.map((_, i) => {
+        const isDone = activeDraft.data[i]?.isCompleted;
         return `<div class="carousel-dot${isDone ? ' done' : i === carouselCurrentIndex ? ' active' : ''}"></div>`;
     }).join('');
-
-container.innerHTML = `
-        <div class="carousel-nav-bar" id="carousel-nav-bar-inner">${navHtml}</div>
-        <div class="carousel-card-area" id="carousel-card-area">
-            <div class="carousel-ex-card" id="carousel-ex-card"></div>
-        </div>
-        <div class="carousel-nav-dots">
-            <div class="carousel-nav-arrow" onclick="carouselPrev()">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
-            </div>
-            <div class="carousel-dots">${dotsHtml}</div>
-            <div class="carousel-nav-arrow" onclick="carouselNext()">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-            </div>
-        </div>`;
-
-    renderCarouselCard();
-    initCarouselSwipe();
-    initCarouselDragAndDrop();
-    setTimeout(() => {
-        const navBar = document.getElementById('carousel-nav-bar-inner');
-        if (!navBar) return;
-        const activeThumb = navBar.children[carouselCurrentIndex];
-        if (!activeThumb) return;
-        const barRect = navBar.getBoundingClientRect();
-        const thumbRect = activeThumb.getBoundingClientRect();
-        const isVisible = thumbRect.left >= barRect.left && thumbRect.right <= barRect.right;
-        if (!isVisible) {
-            activeThumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
-        }
-    }, 50);
 }
 
 function renderCarouselCard() {
@@ -6317,24 +6327,7 @@ function renderCarouselCard() {
     }
     setsHtml += `</div>`;
 
-    const restHtml = carouselRestActive ? `
-        <div style="background:linear-gradient(135deg,#1a1200 0%,#0f0a00 100%); border-left:4px solid #f59e0b; border-radius:16px; padding:12px 16px; display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; overflow:hidden; position:relative;">
-            <div style="position:absolute; top:0; left:4px; right:0; height:1px; background:linear-gradient(90deg,rgba(245,158,11,0.6) 0%,rgba(245,158,11,0.1) 100%);"></div>
-            <div style="display:flex; align-items:center; gap:10px;">
-                <span style="font-size:16px;">⏱️</span>
-                <div>
-                    <div style="font-size:9px; color:#92400e; text-transform:uppercase; letter-spacing:1px; font-weight:700;">Rest</div>
-                    <div style="font-size:22px; font-weight:900; color:${carouselRestSeconds <= 10 ? '#ef4444' : '#f59e0b'}; line-height:1; font-family:monospace;" id="carousel-rest-time">${formatRestTime(carouselRestSeconds)}</div>
-                </div>
-            </div>
-            <div style="display:flex; gap:5px; align-items:center;">
-                <button onclick="carouselRestSeconds=Math.max(0,carouselRestSeconds-15); document.getElementById('carousel-rest-time').textContent=formatRestTime(carouselRestSeconds);" style="background:rgba(245,158,11,0.06); border:1px solid rgba(245,158,11,0.15); border-radius:8px; padding:5px 8px; font-size:11px; color:#92400e; cursor:pointer;">−15s</button>
-                <button onclick="carouselRestSeconds+=30; document.getElementById('carousel-rest-time').textContent=formatRestTime(carouselRestSeconds);" style="background:rgba(245,158,11,0.06); border:1px solid rgba(245,158,11,0.15); border-radius:8px; padding:5px 8px; font-size:11px; color:#92400e; cursor:pointer;">+30s</button>
-                <button onclick="carouselStopRest()" style="padding:5px 10px; font-size:11px; font-weight:700; cursor:pointer; border:none; background:transparent; color:rgba(255,255,255,0.25);">Skip</button>
-            </div>
-        </div>` : '';
-
-    card.innerHTML = `
+        card.innerHTML = `
         <div class="carousel-anim-zone">
             ${svg}
             <div class="anim-placeholder-label">Animation coming soon</div>
@@ -6360,7 +6353,6 @@ function renderCarouselCard() {
                     oninput="updateExerciseNote(${i})"
                     style="width:100%; min-height:60px; padding:10px; border-radius:10px; background:rgba(0,0,0,0.2); border:1px solid rgba(253,224,71,0.2); color:#fff; font-size:13px; font-family:inherit; resize:vertical;">${exData.note || ''}</textarea>
             </div>` : `<div id="note-area-${i}" style="display:none;"></div>`}
-            ${restHtml}
             ${setsHtml}
             <button class="mode-border glass-border" style="padding:8px; font-size:11px; margin-top:10px; border-style:dashed; width:100%;" onclick="carouselAddSet(${i})" ${isDone ? 'disabled' : ''}>+ Add set</button>
             <button class="mode-btn ${isDone ? 'blue' : 'green'}" style="padding:12px; font-size:13px; margin-top:15px; width:100%; font-weight:bold;" onclick="carouselToggleDone(${i})">
@@ -6386,6 +6378,7 @@ async function carouselConfirmSet(exIdx, setIdx) {
     if (isNowConfirmed && !isLastSet) {
         const restVal = parseInt(activeDraft.data[exIdx].sets_data[setIdx].rest) || 120;
         carouselStartRest(restVal);
+        startRestTimer(restVal, exIdx);
     } else if (!isNowConfirmed) {
         carouselStopRest();
     }
@@ -6433,14 +6426,18 @@ async function carouselToggleDone(exIdx) {
     if (activeDraft.data[exIdx].isCompleted) {
         carouselStopRest();
         await persistActiveWorkout();
-        renderCarousel();
+        renderCarouselNav();
+        renderCarouselDots();
+        renderCarouselCard();
         const nextUndone = activeDraft.workout.exercises.findIndex((_, i) => i > exIdx && !activeDraft.data[i]?.isCompleted);
         if (nextUndone !== -1) {
             setTimeout(() => carouselGoTo(nextUndone), 350);
         }
     } else {
         await persistActiveWorkout();
-        renderCarousel();
+        renderCarouselNav();
+        renderCarouselDots();
+        renderCarouselCard();
     }
 }
 
@@ -6449,28 +6446,45 @@ function carouselGoTo(i) {
     const card = document.getElementById('carousel-ex-card');
     if (!card) return;
     const dir = i > carouselCurrentIndex ? -1 : 1;
-    card.style.transition = 'transform 0.22s ease, opacity 0.22s ease';
-    card.style.transform = `translateX(${dir * -40}px)`;
+
+    card.style.transition = 'transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease';
+    card.style.transform = `translateX(${dir * -35}px)`;
     card.style.opacity = '0';
     carouselStopRest();
+
     setTimeout(() => {
         carouselCurrentIndex = i;
+
+        const prevActive = document.querySelector('.carousel-ex-thumb.active');
+        if (prevActive) prevActive.classList.remove('active');
+        const newActive = document.getElementById(`carousel-thumb-${i}`);
+        if (newActive) {
+            newActive.classList.add('active');
+            const nameEl = newActive.querySelector('.carousel-ex-thumb-name');
+            if (nameEl) nameEl.style.color = '#22d3ee';
+            newActive.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+        }
+
+        document.querySelectorAll('.carousel-ex-thumb').forEach((t, idx) => {
+            const svgWrap = t.querySelector('div:not(.carousel-drag-handle)');
+            if (svgWrap) svgWrap.style.opacity = idx === i ? '1' : '0.5';
+            const nameEl = t.querySelector('.carousel-ex-thumb-name');
+            if (nameEl) nameEl.style.color = idx === i ? '#22d3ee' : (activeDraft.data[idx]?.isCompleted ? '#22c55e' : '#64748b');
+        });
+
+        renderCarouselDots();
+        renderCarouselCard();
+
         card.style.transition = 'none';
-        card.style.transform = `translateX(${dir * 40}px)`;
+        card.style.transform = `translateX(${dir * 35}px)`;
         card.style.opacity = '0';
-        renderCarousel();
-        setTimeout(() => {
-            const newCard = document.getElementById('carousel-ex-card');
-            if (newCard) {
-                newCard.style.transition = 'transform 0.25s ease, opacity 0.25s ease';
-                newCard.style.transform = 'translateX(0)';
-                newCard.style.opacity = '1';
-            }
-            const navBar = document.getElementById('carousel-nav-bar-inner');
-            if (navBar && navBar.children[i]) {
-                navBar.children[i].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
-            }
-        }, 20);
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                card.style.transition = 'transform 0.28s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease';
+                card.style.transform = 'translateX(0)';
+                card.style.opacity = '1';
+            });
+        });
     }, 200);
 }
 
