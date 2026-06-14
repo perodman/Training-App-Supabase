@@ -1003,13 +1003,13 @@ body, html {
     bottom: 0;
     left: 0;
     right: 0;
-    height: 70px;
+    height: 88px;
     background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
     border-top: 1px solid rgba(255,255,255,0.08);
     display: flex;
     align-items: center;
     justify-content: space-around;
-    padding: 0 6px;
+    padding: 0 6px 14px 6px;
     z-index: 500;
 }
 .bottom-bar .bar-item {
@@ -1151,7 +1151,7 @@ body, html {
 .panel-row.logout-row svg { color: #ef4444; }
 .panel-row.logout-row span { color: #fca5a5; }
 
-body { padding-bottom: 70px; }
+body { padding-bottom: 88px; }
 .bottom-bar.hidden { display: none; }
 body:has(.bottom-bar.hidden) { padding-bottom: 0; }
 
