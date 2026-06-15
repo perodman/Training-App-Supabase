@@ -6239,7 +6239,6 @@ function renderCarousel() {
     const exercises = activeDraft.workout.exercises;
     const data = activeDraft.data;
     if (!exercises || exercises.length === 0) return;
-
     container.innerHTML = `
         <div class="carousel-nav-bar" id="carousel-nav-bar-inner"></div>
         <div class="carousel-card-area" id="carousel-card-area">
@@ -6254,12 +6253,15 @@ function renderCarousel() {
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
             </div>
         </div>`;
-
     renderCarouselNav();
     renderCarouselDots();
     renderCarouselCard();
     initCarouselSwipe();
     initCarouselDragAndDrop();
+    setTimeout(() => {
+        const active = document.getElementById(`carousel-thumb-${carouselCurrentIndex}`);
+        if (active) active.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+    }, 50);
 }
 
 function renderCarouselNav() {
@@ -6315,7 +6317,28 @@ function renderCarouselCard() {
     const totalSets = exData.sets_data ? exData.sets_data.length : 0;
     const firstUnconfirmed = exData.sets_data ? exData.sets_data.findIndex(s => !s.userConfirmed) : -1;
 
-    let setsHtml = `<div style="margin-top:10px;">
+    const catDisplay = CATEGORY_DISPLAY[ex.target] || ex.target || '';
+
+    // Action-bar pills
+    const actionBar = `
+        <div style="overflow-x:auto; scrollbar-width:none; margin-bottom:10px; -webkit-overflow-scrolling:touch;">
+            <div style="display:flex; gap:6px; padding:0 2px; min-width:max-content;">
+                <div onclick="toggleExerciseNote(${i})" style="display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:20px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);cursor:pointer;${exData.note ? 'border-color:rgba(253,224,71,0.4);background:rgba(253,224,71,0.06);' : ''}">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="${exData.note ? '#fde047' : '#94a3b8'}" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    <span style="font-size:10px;font-weight:700;color:${exData.note ? '#fde047' : '#94a3b8'};">Note</span>
+                </div>
+                <div onclick="openReplaceExerciseModal(${i})" style="display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:20px;background:rgba(34,211,238,0.08);border:1px solid rgba(34,211,238,0.2);cursor:pointer;${isDone ? 'opacity:0.3;pointer-events:none;' : ''}">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.32"/></svg>
+                    <span style="font-size:10px;font-weight:700;color:#22d3ee;">Swap</span>
+                </div>
+                <div onclick="removeActiveExercise(${i})" style="display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:20px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);cursor:pointer;${isDone ? 'opacity:0.3;pointer-events:none;' : ''}">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    <span style="font-size:10px;font-weight:700;color:#ef4444;">Remove</span>
+                </div>
+            </div>
+        </div>`;
+
+    let setsHtml = `<div style="margin-top:4px;">
         <div style="display:grid; grid-template-columns: 40px 1fr 1fr 1fr 30px; gap:8px; margin-bottom:5px; align-items:center;">
             <small style="text-align:left; padding-left:5px; color:var(--text-light); font-size:9px; font-weight:700;">SET</small>
             <small style="text-align:center; color:var(--text-light); font-size:9px;">KG</small>
@@ -6333,57 +6356,44 @@ function renderCarouselCard() {
             const statusContent = showSuccess ? '✅' : `#${sIdx + 1}`;
             const copyCall = sIdx === 0 ? `carouselCopySet0(${i});` : '';
             setsHtml += `
-            <div style="display:grid; grid-template-columns: 40px 1fr 1fr 1fr 30px; gap:8px; margin-bottom:8px; align-items:center; opacity: ${showSuccess ? '1' : isCurrent ? '1' : '0.35'}; transition: opacity 0.2s ease; position:relative; overflow:visible;">
+            <div style="display:grid; grid-template-columns: 40px 1fr 1fr 1fr 30px; gap:8px; margin-bottom:8px; align-items:center; opacity:${showSuccess ? '1' : isCurrent ? '1' : '0.35'}; transition:opacity 0.2s ease; position:relative; overflow:visible;">
                 <div class="${isCurrent ? 'pulse-ring' : ''}" onclick="${isLocked && !isDone ? '' : `carouselConfirmSet(${i}, ${sIdx})`}"
-                    style="width:32px; height:32px; border-radius:50%; border:2px solid ${circleColor}; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:10px; font-weight:800; background: ${showSuccess ? 'rgba(34, 197, 94, 0.2)' : (isCurrent ? 'rgba(250, 204, 21, 0.15)' : 'rgba(245, 158, 11, 0.05)')}; color: ${circleColor}; opacity: 1;">
+                    style="width:32px; height:32px; border-radius:50%; border:2px solid ${circleColor}; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:10px; font-weight:800; background:${showSuccess ? 'rgba(34,197,94,0.2)' : isCurrent ? 'rgba(250,204,21,0.15)' : 'rgba(245,158,11,0.05)'}; color:${circleColor}; opacity:1;">
                     ${statusContent}
                 </div>
-                <input type="text" inputmode="decimal" id="w-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'};" value="${set.weight || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx}); ${copyCall}" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
-                <input type="text" inputmode="decimal" id="r-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'};" value="${set.reps || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx}); ${copyCall}" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
+                <input type="text" inputmode="decimal" id="w-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${isCurrent ? '1' : '0.3'};" value="${set.weight || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx}); ${copyCall}" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
+                <input type="text" inputmode="decimal" id="r-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${isCurrent ? '1' : '0.3'};" value="${set.reps || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx}); ${copyCall}" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
                 ${sIdx < exData.sets_data.length - 1
-                    ? `<input type="text" inputmode="decimal" id="v-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'}; border-color: rgba(52, 152, 219, 0.3);" value="${set.rest || '120'}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`
+                    ? `<input type="text" inputmode="decimal" id="v-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${isCurrent ? '1' : '0.3'}; border-color:rgba(52,152,219,0.3);" value="${set.rest || '120'}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`
                     : '<div></div>'}
-                <button onclick="removeSetFromExercise(${i}, ${sIdx})" style="background:none; border:none; color:var(--danger); font-size:16px; opacity: ${showSuccess ? '0.1' : isCurrent ? '0.8' : '0.4'};" ${showSuccess ? 'disabled' : ''}>×</button>
+                <button onclick="removeSetFromExercise(${i}, ${sIdx})" style="background:none; border:none; color:var(--danger); font-size:16px; opacity:${showSuccess ? '0.1' : isCurrent ? '0.8' : '0.4'};" ${showSuccess ? 'disabled' : ''}>×</button>
             </div>`;
             if (isCurrent && sIdx === firstUnconfirmed) {
-                setsHtml += `
-                <div style="grid-column: 2 / span 3; margin:-4px 0 8px 0; padding-left:2px; opacity:0.8; font-size:10px; color:var(--primary); font-weight:600; letter-spacing:0.3px;">
-                    💡 Select ${statusContent} to lock & continue
-                </div>`;
+                setsHtml += `<div style="margin:-4px 0 8px 44px; font-size:10px; color:var(--primary); font-weight:600; opacity:0.8;">💡 Confirm set to continue</div>`;
             }
         });
     }
     setsHtml += `</div>`;
 
-        card.innerHTML = `
+    card.innerHTML = `
         <div class="carousel-anim-zone">
             ${svg}
             <div class="anim-placeholder-label">Animation coming soon</div>
         </div>
+        <div style="padding:10px 14px 4px;">
+            <div style="font-size:16px; font-weight:900; color:${isDone ? 'var(--text-light)' : 'var(--text)'}; text-decoration:${isDone ? 'line-through' : 'none'};">${ex.name}</div>
+            <div style="font-size:10px; color:${isDone ? '#22c55e' : 'var(--primary)'}; font-weight:800; margin-top:1px;">${isDone ? 'DONE ✅' : `${catDisplay}${catDisplay ? ' · ' : ''}${completedSets}/${totalSets} sets`}</div>
+        </div>
         <div class="carousel-card-body">
-            <div style="position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0.08) 100%); pointer-events:none;"></div>
-            <div style="display:flex; align-items:center; cursor:pointer; padding-bottom:10px; border-bottom:1px solid rgba(255,255,255,0.05); margin-bottom:4px;">
-                <div style="width:8px; flex-shrink:0;"></div>
-                <div style="display:flex; flex-direction:column; min-width:0; flex-grow:1;">
-                    <strong style="font-size:14px; color:${isDone ? 'var(--text-light)' : 'var(--text)'}; text-decoration:${isDone ? 'line-through' : 'none'};">${ex.name}</strong>
-                    <small style="color:${isDone ? '#22c55e' : 'var(--primary)'}; font-size:10px;">${isDone ? 'DONE ✅' : `${completedSets}/${totalSets} set`}</small>
-                </div>
-                <div style="display:flex; align-items:center; gap:8px; flex-shrink:0; margin-left:10px;">
-                    <button onclick="toggleExerciseNote(${i})" style="background:none; border:none; font-size:14px; padding:5px; opacity:${exData.note ? '1' : '1'}; position:relative;">
-                        📝${exData.note ? '<span style="position:absolute; top:2px; right:2px; width:6px; height:6px; background:#fde047; border-radius:50%;"></span>' : ''}
-                    </button>
-                    <button onclick="openReplaceExerciseModal(${i})" style="background:none; border:none; font-size:14px; padding:5px; opacity:0.7;" ${isDone ? 'disabled' : ''}>🔄</button>
-                    <button onclick="removeActiveExercise(${i})" style="background:none; border:none; font-size:14px; padding:5px; opacity:0.7;" ${isDone ? 'disabled' : ''}>✖</button>
-                </div>
-            </div>
-            ${noteOpen ? `<div id="note-area-${i}" style="display:block; margin-bottom:10px;">
-                <textarea id="note-input-${i}" placeholder="Add a note for this exercise..." 
+            ${actionBar}
+            ${noteOpen ? `<div style="margin-bottom:10px;">
+                <textarea id="note-input-${i}" placeholder="Add a note for this exercise..."
                     oninput="updateExerciseNote(${i})"
                     style="width:100%; min-height:60px; padding:10px; border-radius:10px; background:rgba(0,0,0,0.2); border:1px solid rgba(253,224,71,0.2); color:#fff; font-size:13px; font-family:inherit; resize:vertical;">${exData.note || ''}</textarea>
-            </div>` : `<div id="note-area-${i}" style="display:none;"></div>`}
+            </div>` : ''}
             ${setsHtml}
-            <button class="mode-border glass-border" style="padding:8px; font-size:11px; margin-top:10px; border-style:dashed; width:100%;" onclick="carouselAddSet(${i})" ${isDone ? 'disabled' : ''}>+ Add set</button>
-            <button class="mode-btn ${isDone ? 'blue' : 'green'}" style="padding:12px; font-size:13px; margin-top:15px; width:100%; font-weight:bold;" onclick="carouselToggleDone(${i})">
+            <button style="padding:8px; font-size:11px; margin-top:10px; border-radius:12px; border:1px dashed rgba(34,211,238,0.35); background:rgba(34,211,238,0.03); color:var(--primary); font-weight:700; width:100%; cursor:pointer;" onclick="carouselAddSet(${i})" ${isDone ? 'disabled' : ''}>+ Add set</button>
+            <button class="mode-btn ${isDone ? 'blue' : 'green'}" style="padding:12px; font-size:13px; margin-top:10px; width:100%; font-weight:bold;" onclick="carouselToggleDone(${i})">
                 ${isDone ? 'Undo ↩️' : 'Mark as Complete ✅'}
             </button>
         </div>`;
