@@ -1417,6 +1417,22 @@ body:has(.bottom-bar.hidden) { padding-bottom: 0; }
     margin-top: 8px;
 }
 
+.carousel-ex-card {
+    border: none !important;
+    border-left: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+}
+.carousel-card-area {
+    padding: 0 !important;
+}
+.carousel-anim-zone {
+    border-radius: 0 !important;
+}
+.carousel-card-body {
+    padding: 10px 15px 12px !important;
+}
+
 body[data-theme="light"] {
     --primary: #0891b2;
     --secondary: #6366f1;
