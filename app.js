@@ -3493,11 +3493,11 @@ function renderActiveWorkout() {
     const startTimeStr = activeDraft.startTime 
         ? new Date(activeDraft.startTime).toLocaleTimeString('sv-SE', {hour: '2-digit', minute: '2-digit'})
         : '';
-    if (startTimeStr) {
+if (startTimeStr) {
         const startBadge = document.createElement("div");
         startBadge.id = "start-time-badge";
-        startBadge.style.cssText = "display:inline-flex; align-items:center; gap:6px; background:rgba(34,197,94,0.08); border:1px solid rgba(34,197,94,0.2); border-radius:20px; padding:4px 12px; margin: 0 0 16px 15px;";
-        startBadge.innerHTML = `<span style="font-size:14px;">⏱️</span><span style="font-size:11px; color:#22c55e; font-weight:600;">Workout Started ${startTimeStr}</span>`;
+        startBadge.style.cssText = "display:inline-flex; align-items:center; gap:6px; background:rgba(34,197,94,0.08); border:1px solid rgba(34,197,94,0.2); border-radius:20px; padding:4px 12px; margin: 6px 0 0 15px;";
+        startBadge.innerHTML = `<span style="font-size:12px;">⏱️</span><span style="font-size:11px; color:#22c55e; font-weight:600;">Started ${startTimeStr}</span>`;
         document.getElementById("active-title").insertAdjacentElement('afterend', startBadge);
     }
     const list = document.getElementById("exercise-list");
@@ -5903,7 +5903,6 @@ function renderRestTimer() {
     const isDisabled = activeDraft && activeDraft.restTimerDisabled;
     const mins = String(Math.floor(restTimerSeconds / 60)).padStart(1, '0');
     const secs = String(restTimerSeconds % 60).padStart(2, '0');
-
     const disabledHTML = `
         <div style="background:rgba(255,255,255,0.03); border-left:4px solid rgba(255,255,255,0.1); border-radius:16px; padding:8px 16px; display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
             <div style="display:flex; align-items:center; gap:8px;">
@@ -5916,7 +5915,6 @@ function renderRestTimer() {
                 <button style="padding:5px 12px; font-size:11px; font-weight:700; border:none; background:rgba(245,158,11,0.2); color:#f59e0b; cursor:default;">Off</button>
             </div>
         </div>`;
-
     const activeHTML = `
         <div style="background:linear-gradient(135deg,#1a1200 0%,#0f0a00 100%); border-left:4px solid #f59e0b; border-radius:16px; padding:12px 16px; display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; overflow:hidden; position:relative;">
             <div style="position:absolute; top:0; left:4px; right:0; height:1px; background:linear-gradient(90deg,rgba(245,158,11,0.6) 0%,rgba(245,158,11,0.1) 100%);"></div>
@@ -5937,7 +5935,6 @@ function renderRestTimer() {
                 </div>
             </div>
         </div>`;
-
     const idleHTML = `
         <div style="background:linear-gradient(135deg,#1a1200 0%,#0f0a00 100%); border-left:4px solid #f59e0b; border-radius:16px; padding:12px 16px; display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; overflow:hidden; position:relative; opacity:0.5;">
             <div style="position:absolute; top:0; left:4px; right:0; height:1px; background:linear-gradient(90deg,rgba(245,158,11,0.6) 0%,rgba(245,158,11,0.1) 100%);"></div>
@@ -5960,12 +5957,9 @@ function renderRestTimer() {
     if (oldMoving) oldMoving.remove();
 
     const staticBar = document.getElementById("rest-timer-bar");
-
     if (isDisabled) {
-        // Visa alltid grå statisk timer högst upp
         if (staticBar) staticBar.innerHTML = disabledHTML;
     } else if (restTimerActive && restTimerExIdx !== null) {
-        // Dölj statisk, visa rörlig ovanför aktiv övning
         if (staticBar) staticBar.innerHTML = '';
         const targetCard = document.getElementById(`exercise-card-${restTimerExIdx}`);
         if (targetCard) {
@@ -5975,8 +5969,24 @@ function renderRestTimer() {
             targetCard.insertAdjacentElement('beforebegin', movingBar);
         }
     } else {
-        // Ingen aktiv vila — visa idle-timer högst upp
         if (staticBar) staticBar.innerHTML = idleHTML;
+    }
+
+    // Uppdatera carousel-badge om den finns (utan att rendera om hela kortet)
+    const carouselBadgeTime = document.getElementById('carousel-rest-badge-time');
+    if (carouselBadgeTime) {
+        carouselBadgeTime.textContent = restTimerActive ? formatRestTime(restTimerSeconds) : 'Rest';
+        carouselBadgeTime.style.color = restTimerActive ? '#f59e0b' : '#64748b';
+        const badge = document.getElementById('carousel-rest-badge');
+        if (badge) {
+            badge.style.borderColor = restTimerActive ? 'rgba(245,158,11,0.4)' : 'rgba(255,255,255,0.08)';
+            badge.style.background = restTimerActive ? 'rgba(245,158,11,0.08)' : 'rgba(255,255,255,0.04)';
+        }
+    }
+    const carouselDdTime = document.getElementById('carousel-rest-dropdown-time');
+    if (carouselDdTime && restTimerActive) {
+        carouselDdTime.textContent = formatRestTime(restTimerSeconds);
+        carouselDdTime.style.color = restTimerSeconds <= 10 ? '#ef4444' : '#f59e0b';
     }
 }
 
@@ -6327,7 +6337,7 @@ function renderCarouselCard() {
     const actionBar = `
         <div style="overflow-x:auto; scrollbar-width:none; margin-bottom:10px; -webkit-overflow-scrolling:touch;">
             <div style="display:flex; gap:6px; padding:0 2px; min-width:max-content;">
-                <div onclick="toggleExerciseNote(${i})" style="display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:20px;background:rgba(255,255,255,0.06);border:1px solid ${exData.note ? 'rgba(253,224,71,0.4)' : 'rgba(255,255,255,0.1)'};background:${exData.note ? 'rgba(253,224,71,0.06)' : 'rgba(255,255,255,0.06)'};cursor:pointer;position:relative;">
+                <div onclick="carouselToggleNote(${i})" style="display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:20px;border:1px solid ${exData.note ? 'rgba(253,224,71,0.4)' : 'rgba(255,255,255,0.1)'};background:${exData.note ? 'rgba(253,224,71,0.06)' : 'rgba(255,255,255,0.06)'};cursor:pointer;position:relative;">
                     <span style="font-size:14px; position:relative;">📝${exData.note ? '<span style="position:absolute;top:-2px;right:-2px;width:6px;height:6px;background:#fde047;border-radius:50%;"></span>' : ''}</span>
                     <span style="font-size:10px;font-weight:700;color:${exData.note ? '#fde047' : '#94a3b8'};">Note</span>
                 </div>
@@ -6384,9 +6394,29 @@ function renderCarouselCard() {
             ${svg}
             <div class="anim-placeholder-label">Animation coming soon</div>
         </div>
-        <div style="padding:10px 14px 4px;">
-            <div style="font-size:16px; font-weight:900; color:${isDone ? 'var(--text-light)' : 'var(--text)'}; text-decoration:${isDone ? 'line-through' : 'none'};">${ex.name}</div>
-            <div style="font-size:10px; color:${isDone ? '#22c55e' : 'var(--primary)'}; font-weight:800; margin-top:1px;">${isDone ? 'DONE ✅' : `${catDisplay}${catDisplay ? ' · ' : ''}${completedSets}/${totalSets} sets`}</div>
+<div style="padding:10px 14px 4px; display:flex; align-items:center; justify-content:space-between; gap:8px;">
+            <div style="min-width:0; flex:1;">
+                <div style="font-size:16px; font-weight:900; color:${isDone ? 'var(--text-light)' : 'var(--text)'}; text-decoration:${isDone ? 'line-through' : 'none'}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${ex.name}</div>
+                <div style="font-size:10px; color:${isDone ? '#22c55e' : 'var(--primary)'}; font-weight:800; margin-top:1px;">${isDone ? 'DONE ✅' : `${catDisplay}${catDisplay ? ' · ' : ''}${completedSets}/${totalSets} sets`}</div>
+            </div>
+            <div id="carousel-rest-badge" onclick="carouselToggleRestBadge()" style="flex-shrink:0; display:flex; align-items:center; gap:5px; padding:5px 10px; border-radius:12px; cursor:pointer; border:1px solid ${restTimerActive ? 'rgba(245,158,11,0.4)' : 'rgba(255,255,255,0.08)'}; background:${restTimerActive ? 'rgba(245,158,11,0.08)' : 'rgba(255,255,255,0.04)'}; transition:all 0.2s;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="${restTimerActive ? '#f59e0b' : '#64748b'}" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
+                <span style="font-size:12px; font-weight:800; color:${restTimerActive ? '#f59e0b' : '#64748b'}; font-family:monospace;" id="carousel-rest-badge-time">${restTimerActive ? formatRestTime(restTimerSeconds) : 'Rest'}</span>
+            </div>
+        </div>
+        <div id="carousel-rest-dropdown" style="display:none; margin:0 14px 6px; background:rgba(245,158,11,0.06); border:1px solid rgba(245,158,11,0.2); border-radius:12px; padding:8px 12px;">
+            <div style="display:flex; align-items:center; justify-content:space-between;">
+                <div>
+                    <div style="font-size:8px; color:#92400e; font-weight:800; text-transform:uppercase; letter-spacing:1px;">Rest Timer</div>
+                    <div style="font-size:22px; font-weight:900; color:${restTimerActive && restTimerSeconds <= 10 ? '#ef4444' : '#f59e0b'}; font-family:monospace;" id="carousel-rest-dropdown-time">${restTimerActive ? formatRestTime(restTimerSeconds) : '2:00'}</div>
+                </div>
+                <div style="display:flex; gap:5px; align-items:center;">
+                    <button onclick="carouselRestAdjust(-15)" style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:8px;padding:4px 8px;font-size:10px;color:#f59e0b;cursor:pointer;">−15s</button>
+                    <button onclick="carouselRestAdjust(30)" style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:8px;padding:4px 8px;font-size:10px;color:#f59e0b;cursor:pointer;">+30s</button>
+                    <button onclick="carouselRestStart()" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);border-radius:8px;padding:4px 8px;font-size:10px;font-weight:700;color:#22c55e;cursor:pointer;">${restTimerActive ? 'Restart' : 'Start'}</button>
+                    <button onclick="carouselRestStop()" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:4px 8px;font-size:10px;color:#64748b;cursor:pointer;">Stop</button>
+                </div>
+            </div>
         </div>
         <div class="carousel-card-body">
             ${actionBar}
@@ -6625,4 +6655,47 @@ function initCarouselDragAndDrop() {
             }
         });
     });
+}
+
+function carouselToggleRestBadge() {
+    const dd = document.getElementById('carousel-rest-dropdown');
+    if (!dd) return;
+    dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
+}
+
+function carouselRestAdjust(delta) {
+    if (restTimerActive) {
+        restTimerSeconds = Math.max(0, restTimerSeconds + delta);
+    }
+    const ddTime = document.getElementById('carousel-rest-dropdown-time');
+    if (ddTime) ddTime.textContent = restTimerActive ? formatRestTime(restTimerSeconds) : formatRestTime(Math.max(0, (parseInt(ddTime.dataset.base || '120')) + delta));
+}
+
+function carouselRestStart() {
+    const firstUnconfirmed = activeDraft?.data[carouselCurrentIndex]?.sets_data?.findIndex(s => !s.userConfirmed && s.rest);
+    const restSecs = firstUnconfirmed !== -1 && firstUnconfirmed !== undefined
+        ? parseInt(activeDraft.data[carouselCurrentIndex].sets_data[firstUnconfirmed - 1]?.rest || '120')
+        : 120;
+    startRestTimer(restSecs, carouselCurrentIndex);
+    renderCarouselCard();
+}
+
+function carouselRestStop() {
+    stopRestTimer();
+    renderCarouselCard();
+}
+
+function carouselToggleNote(exIdx) {
+    if (!activeDraft.ui_state.openNotes) activeDraft.ui_state.openNotes = [];
+    const idx = activeDraft.ui_state.openNotes.indexOf(exIdx);
+    if (idx > -1) {
+        activeDraft.ui_state.openNotes.splice(idx, 1);
+    } else {
+        activeDraft.ui_state.openNotes.push(exIdx);
+    }
+    renderCarouselCard();
+    setTimeout(() => {
+        const ta = document.getElementById(`note-input-${exIdx}`);
+        if (ta && activeDraft.ui_state.openNotes.includes(exIdx)) ta.focus();
+    }, 50);
 }
