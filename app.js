@@ -3596,6 +3596,8 @@ function renderActiveWorkout() {
                             style="width:32px; height:32px; border-radius:50%; border:2px solid ${circleColor}; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:10px; font-weight:800; background: ${showSuccess ? 'rgba(34, 197, 94, 0.2)' : (isCurrent ? 'rgba(250, 204, 21, 0.15)' : 'rgba(245, 158, 11, 0.05)')}; color: ${circleColor}; opacity: 1;">
                             ${statusContent}
                         </div>
+<input type="text" inputmode="decimal" id="w-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'};" value="${set.weight || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
+                        <input type="text" inputmode="decimal" id="r-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'};" value="${set.reps || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
                         ${sIdx < exerciseData.sets_data.length - 1 ? `<input type="text" inputmode="decimal" id="v-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'}; border-color: rgba(52, 152, 219, 0.3);" value="${set.rest || '120'}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">` : `<div></div>`}
                         <button onclick="removeSetFromExercise(${i}, ${sIdx})" style="background:none; border:none; color:var(--danger); font-size:16px; opacity: ${showSuccess ? '0.1' : isCurrent ? '0.8' : '0.4'};" ${showSuccess ? 'disabled' : ''}>×</button>
                     </div>`;
@@ -4010,7 +4012,7 @@ function renderExercisePicker(category, replaceIndex = null) {
     html += `<p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin-bottom:10px;">Exercises (${CATEGORY_DISPLAY[category] || category}):</p>`;
     html += `<div style="max-height:280px; overflow-y:auto; padding-right:5px; background:rgba(0,0,0,0.2); border-radius:15px; padding:10px; margin-bottom:15px; display:flex; flex-direction:column; gap:8px;">`;
 
-    const filtered = masterExercises.filter(ex => category === "Armar" ? (ex.target === "Biceps" || ex.target === "Triceps") : ex.target === category);
+const filtered = masterExercises.filter(ex => category === "Armar" ? (ex.target === "Biceps" || ex.target === "Triceps" || ex.target === "Armar") : ex.target === category);
 
     if (filtered.length === 0) {
         html += `<p style="text-align:center; font-size:12px; color:var(--text-light); padding:10px;">Select category to view exercises.</p>`;
@@ -5132,9 +5134,11 @@ async function editLoggedWorkout(date, idx) {
     };
 
     // Strukturera om övningsdatan korrekt till en matris som matchar activeDraft-strukturen
-    const formattedDataArray = item.exercises.map(ex => {
+const formattedDataArray = item.exercises.map(ex => {
         if(ex.sets_data) {
-            return { sets_data: JSON.parse(JSON.stringify(ex.sets_data)), isCompleted: false, note: ex.note || null };
+            const setsCopy = JSON.parse(JSON.stringify(ex.sets_data));
+            const allConfirmed = setsCopy.length > 0 && setsCopy.every(s => s.userConfirmed === true);
+            return { sets_data: setsCopy, isCompleted: allConfirmed, note: ex.note || null };
         }
         return {
             sets_data: Array(parseInt(ex.sets || 1)).fill(null).map(() => ({ weight: ex.weight || "", reps: ex.reps || "" })),
@@ -6323,16 +6327,16 @@ function renderCarouselCard() {
     const actionBar = `
         <div style="overflow-x:auto; scrollbar-width:none; margin-bottom:10px; -webkit-overflow-scrolling:touch;">
             <div style="display:flex; gap:6px; padding:0 2px; min-width:max-content;">
-                <div onclick="toggleExerciseNote(${i})" style="display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:20px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);cursor:pointer;${exData.note ? 'border-color:rgba(253,224,71,0.4);background:rgba(253,224,71,0.06);' : ''}">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="${exData.note ? '#fde047' : '#94a3b8'}" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                <div onclick="toggleExerciseNote(${i})" style="display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:20px;background:rgba(255,255,255,0.06);border:1px solid ${exData.note ? 'rgba(253,224,71,0.4)' : 'rgba(255,255,255,0.1)'};background:${exData.note ? 'rgba(253,224,71,0.06)' : 'rgba(255,255,255,0.06)'};cursor:pointer;position:relative;">
+                    <span style="font-size:14px; position:relative;">📝${exData.note ? '<span style="position:absolute;top:-2px;right:-2px;width:6px;height:6px;background:#fde047;border-radius:50%;"></span>' : ''}</span>
                     <span style="font-size:10px;font-weight:700;color:${exData.note ? '#fde047' : '#94a3b8'};">Note</span>
                 </div>
-                <div onclick="openReplaceExerciseModal(${i})" style="display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:20px;background:rgba(34,211,238,0.08);border:1px solid rgba(34,211,238,0.2);cursor:pointer;${isDone ? 'opacity:0.3;pointer-events:none;' : ''}">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.32"/></svg>
+                <div onclick="${isDone ? '' : `openReplaceExerciseModal(${i})`}" style="display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:20px;background:rgba(34,211,238,0.08);border:1px solid rgba(34,211,238,0.2);cursor:pointer;${isDone ? 'opacity:0.3;pointer-events:none;' : ''}">
+                    <span style="font-size:14px;">🔄</span>
                     <span style="font-size:10px;font-weight:700;color:#22d3ee;">Swap</span>
                 </div>
-                <div onclick="removeActiveExercise(${i})" style="display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:20px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);cursor:pointer;${isDone ? 'opacity:0.3;pointer-events:none;' : ''}">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                <div onclick="${isDone ? '' : `removeActiveExercise(${i})`}" style="display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:20px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);cursor:pointer;${isDone ? 'opacity:0.3;pointer-events:none;' : ''}">
+                    <span style="font-size:14px;">✖</span>
                     <span style="font-size:10px;font-weight:700;color:#ef4444;">Remove</span>
                 </div>
             </div>
