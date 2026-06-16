@@ -6082,14 +6082,26 @@ function toggleExerciseNote(exIdx) {
     }, 50);
 }
 
-function updateExerciseNote(exIdx) {
-    const ta = document.getElementById(`note-input-${exIdx}`);
+function updateExerciseNote(textareaEl, exIdx) {
+    // Om funktionen anropas på det gamla sättet utan element (t.ex. från listvyn i fall den inte uppdaterats), sök via ID
+    const ta = (typeof textareaEl === 'object' && textareaEl !== null) ? textareaEl : document.getElementById(`note-input-${exIdx}`);
     if (!ta || !activeDraft) return;
     
-    activeDraft.data[exIdx].note = ta.value;
+    // Om det gamla sättet användes (där exIdx skickades som första argument), justera variablerna
+    const realExIdx = (typeof textareaEl === 'number') ? textareaEl : exIdx;
     
-    // Uppdatera pricken i carousel-vyn
-    const carouselNoteDiv = document.querySelector(`[onclick="carouselToggleNote(${exIdx})"]`);
+    activeDraft.data[realExIdx].note = ta.value;
+    
+    // Synka texten till den ANDRA vyn omedelbart så de matchar live på skärmen
+    const allNoteInputs = document.querySelectorAll(`.carousel-note-input[data-ex="${realExIdx}"], #note-input-${realExIdx}`);
+    allNoteInputs.forEach(input => {
+        if (input !== ta) {
+            input.value = ta.value;
+        }
+    });
+    
+    // Uppdatera pricken och rutan i carousel-vyn
+    const carouselNoteDiv = document.querySelector(`[onclick="carouselToggleNote(${realExIdx})"]`);
     if (carouselNoteDiv) {
         const noteSpan = carouselNoteDiv.querySelector('span:first-child');
         if (noteSpan) {
@@ -6102,7 +6114,7 @@ function updateExerciseNote(exIdx) {
     }
     
     // Uppdatera pricken i list-vyn
-    const listNoteBtn = document.querySelector(`#exercise-card-${exIdx} button[onclick*="toggleExerciseNote"]`);
+    const listNoteBtn = document.querySelector(`#exercise-card-${realExIdx} button[onclick*="toggleExerciseNote"]`);
     if (listNoteBtn) {
         listNoteBtn.innerHTML = `📝${ta.value ? '<span style="position:absolute; top:2px; right:2px; width:6px; height:6px; background:#fde047; border-radius:50%;"></span>' : ''}`;
     }
@@ -6372,15 +6384,14 @@ function renderCarouselCard() {
             </div>
         </div>`;
 
-  let setsHtml = `<div style="margin-top:4px;">
+    let setsHtml = `<div style="margin-top:4px;">
         <div style="display:grid; grid-template-columns: 40px 1fr 1fr 1fr 30px; gap:8px; margin-bottom:5px; align-items:center;">
             <small style="text-align:left; padding-left:5px; color:var(--text-light); font-size:9px; font-weight:700;">SET</small>
             <small style="text-align:center; color:var(--text-light); font-size:9px;">KG</small>
             <small style="text-align:center; color:var(--text-light); font-size:9px;">REPS</small>
             <small style="text-align:center; color:var(--text-light); font-size:9px;">REST (S)</small>
             <span></span>
-        </div>
-       `;
+        </div>`;
 
     if (exData.sets_data) {
         exData.sets_data.forEach((set, sIdx) => {
@@ -6395,8 +6406,8 @@ function renderCarouselCard() {
                     style="width:32px; height:32px; border-radius:50%; border:2px solid ${circleColor}; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:10px; font-weight:800; background:${showSuccess ? 'rgba(34,197,94,0.2)' : isCurrent ? 'rgba(250,204,21,0.15)' : 'rgba(245,158,11,0.05)'}; color:${circleColor}; opacity:1;">
                     ${statusContent}
                 </div>
-              <input type="text" inputmode="decimal" id="w-${i}-${sIdx}" class="log-input weight-input" data-ex="${i}" data-set="${sIdx}" style="margin:0; padding:12px; font-size:18px; opacity:${showSuccess ? '1' : isCurrent ? '1' : '0.35'};" value="${set.weight || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'weight')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
-<input type="text" inputmode="decimal" id="r-${i}-${sIdx}" class="log-input reps-input" data-ex="${i}" data-set="${sIdx}" style="margin:0; padding:12px; font-size:18px; opacity:${showSuccess ? '1' : isCurrent ? '1' : '0.35'};" value="${set.reps || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'reps')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
+                <input type="text" inputmode="decimal" id="w-${i}-${sIdx}" class="log-input weight-input" data-ex="${i}" data-set="${sIdx}" style="margin:0; padding:12px; font-size:18px; opacity:${showSuccess ? '1' : isCurrent ? '1' : '0.35'};" value="${set.weight || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'weight')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
+                <input type="text" inputmode="decimal" id="r-${i}-${sIdx}" class="log-input reps-input" data-ex="${i}" data-set="${sIdx}" style="margin:0; padding:12px; font-size:18px; opacity:${showSuccess ? '1' : isCurrent ? '1' : '0.35'};" value="${set.reps || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'reps')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
                 ${sIdx < exData.sets_data.length - 1
                     ? `<input type="text" inputmode="decimal" id="v-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${isCurrent ? '1' : '0.3'}; border-color:rgba(52,152,219,0.3);" value="${set.rest || '120'}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'rest')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`
                     : '<div></div>'}
@@ -6441,8 +6452,8 @@ function renderCarouselCard() {
         <div class="carousel-card-body">
             ${actionBar}
             ${noteOpen ? `<div style="margin-bottom:10px;">
-                <textarea id="note-input-${i}" placeholder="Add a note for this exercise..."
-                    oninput="updateExerciseNote(${i})"
+                <textarea id="note-input-${i}" class="carousel-note-input" data-ex="${i}" placeholder="Add a note for this exercise..."
+                    oninput="updateExerciseNote(this, ${i})"
                     style="width:100%; min-height:60px; padding:10px; border-radius:10px; background:rgba(0,0,0,0.2); border:1px solid rgba(253,224,71,0.2); color:#fff; font-size:13px; font-family:inherit; resize:vertical;">${exData.note || ''}</textarea>
             </div>` : ''}
             ${setsHtml}
@@ -6728,11 +6739,12 @@ function carouselRestStop() {
 function carouselToggleNote(exIdx) {
     if (!activeDraft.ui_state.openNotes) activeDraft.ui_state.openNotes = [];
 
-    // Spara eventuell befintlig nota innan vi ritar om
-   const existingTa = document.getElementById(`note-input-${exIdx}`);
+    // Spara eventuell befintlig nota innan vi ritar om via unika klasser/id
+    const existingTa = document.querySelector(`.carousel-note-input[data-ex="${exIdx}"], #note-input-${exIdx}`);
     if (existingTa) {
         activeDraft.data[exIdx].note = existingTa.value;
     }
+    
     // Uppdatera pricken direkt i DOM om den finns
     const noteSpan = document.querySelector(`[onclick="carouselToggleNote(${exIdx})"] span:first-child`);
     if (noteSpan) {
@@ -6747,11 +6759,12 @@ function carouselToggleNote(exIdx) {
         activeDraft.ui_state.openNotes.push(exIdx);
     }
 
-    // Uppdatera action-bar-pricken direkt utan full omritning om noten precis stängdes
+    // Uppdatera vyn
     renderCarouselCard();
 
     setTimeout(() => {
-        const ta = document.getElementById(`note-input-${exIdx}`);
+        // Sätt fokus på rätt textarea i karusellen efter omritning
+        const ta = document.querySelector(`.carousel-note-input[data-ex="${exIdx}"]`) || document.getElementById(`note-input-${exIdx}`);
         if (ta && activeDraft.ui_state.openNotes.includes(exIdx)) ta.focus();
     }, 50);
 }
