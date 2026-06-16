@@ -6086,31 +6086,22 @@ function toggleExerciseNote(exIdx) {
 }
 
 function updateExerciseNote(exIdx) {
-    const ta = document.getElementById(`note-input-${exIdx}`);
+    const ta = document.getElementById(note-input-${exIdx});
     if (!ta || !activeDraft) return;
-    
-    // Spara direkt till activeDraft synkront
     activeDraft.data[exIdx].note = ta.value;
-    
-    // Uppdatera pricken i carousel-vyn
-    const carouselNoteDiv = document.querySelector(`[onclick="carouselToggleNote(${exIdx})"]`);
-    if (carouselNoteDiv) {
-        const noteSpan = carouselNoteDiv.querySelector('span:first-child');
+    // Uppdatera pricken i action-baren direkt utan full omritning
+   const noteDiv = document.querySelector([onclick="carouselToggleNote(${exIdx})"]);
+    if (noteDiv) {
+        const noteSpan = noteDiv.querySelector('span:first-child');
         if (noteSpan) {
-            noteSpan.innerHTML = `📝${ta.value ? '<span style="position:absolute;top:-2px;right:-2px;width:6px;height:6px;background:#fde047;border-radius:50%;"></span>' : ''}`;
+            noteSpan.innerHTML = 📝${ta.value ? '<span style="position:absolute;top:-2px;right:-2px;width:6px;height:6px;background:#fde047;border-radius:50%;"></span>' : ''};
         }
-        carouselNoteDiv.style.border = `1px solid ${ta.value ? 'rgba(253,224,71,0.4)' : 'rgba(255,255,255,0.1)'}`;
-        carouselNoteDiv.style.background = ta.value ? 'rgba(253,224,71,0.06)' : 'rgba(255,255,255,0.06)';
-        const noteLabel = carouselNoteDiv.querySelector('span:last-child');
-        if (noteLabel) noteLabel.style.color = ta.value ? '#fde047' : '#94a3b8';
     }
-    
-    // Uppdatera pricken i list-vyn
-    const listNoteBtn = document.querySelector(`#exercise-card-${exIdx} button[onclick*="toggleExerciseNote"]`);
+    // Uppdatera list-vy noteknappen om den syns
+    const listNoteBtn = document.querySelector(#exercise-card-${exIdx} button[onclick*="toggleExerciseNote"]);
     if (listNoteBtn) {
-        listNoteBtn.innerHTML = `📝${ta.value ? '<span style="position:absolute; top:2px; right:2px; width:6px; height:6px; background:#fde047; border-radius:50%;"></span>' : ''}`;
+        listNoteBtn.innerHTML = 📝${ta.value ? '<span style="position:absolute; top:2px; right:2px; width:6px; height:6px; background:#fde047; border-radius:50%;"></span>' : ''};
     }
-    
     debouncedPersistActiveWorkout();
 }
 
