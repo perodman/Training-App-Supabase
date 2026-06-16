@@ -6082,26 +6082,41 @@ function toggleExerciseNote(exIdx) {
     }, 50);
 }
 
-function updateExerciseNote(textareaEl, exIdx) {
-    // Om funktionen anropas på det gamla sättet utan element (t.ex. från listvyn i fall den inte uppdaterats), sök via ID
-    const ta = (typeof textareaEl === 'object' && textareaEl !== null) ? textareaEl : document.getElementById(`note-input-${exIdx}`);
-    if (!ta || !activeDraft) return;
+function updateExerciseNote(firstArg, secondArg) {
+    if (!activeDraft) return;
+
+    let ta = null;
+    let exIdx = null;
+
+    // SCENARIO 1: Kallad från list-vyn -> updateExerciseNote(exIdx)
+    // Första argumentet är ett nummer (indexet)
+    if (typeof firstArg === 'number') {
+        exIdx = firstArg;
+        ta = document.getElementById(`note-input-${exIdx}`);
+    } 
+    // SCENARIO 2: Kallad från karusell-vyn -> updateExerciseNote(this, i)
+    // Första argumentet är ett HTML-element (textarea)
+    else if (typeof firstArg === 'object' && firstArg !== null) {
+        ta = firstArg;
+        exIdx = secondArg;
+    }
+
+    // Om vi inte hittade något textfält, avbryt för att undvika krasch
+    if (!ta) return;
     
-    // Om det gamla sättet användes (där exIdx skickades som första argument), justera variablerna
-    const realExIdx = (typeof textareaEl === 'number') ? textareaEl : exIdx;
+    // Uppdatera utkastet med texten
+    activeDraft.data[exIdx].note = ta.value;
     
-    activeDraft.data[realExIdx].note = ta.value;
-    
-    // Synka texten till den ANDRA vyn omedelbart så de matchar live på skärmen
-    const allNoteInputs = document.querySelectorAll(`.carousel-note-input[data-ex="${realExIdx}"], #note-input-${realExIdx}`);
+    // Synka texten till ALLA fält för denna övning som råkar finnas i DOM:en just nu
+    const allNoteInputs = document.querySelectorAll(`.carousel-note-input[data-ex="${exIdx}"], #note-input-${exIdx}`);
     allNoteInputs.forEach(input => {
         if (input !== ta) {
             input.value = ta.value;
         }
     });
     
-    // Uppdatera pricken och rutan i carousel-vyn
-    const carouselNoteDiv = document.querySelector(`[onclick="carouselToggleNote(${realExIdx})"]`);
+    // Uppdatera pricken och rutan i carousel-vyn (om vi är där)
+    const carouselNoteDiv = document.querySelector(`[onclick="carouselToggleNote(${exIdx})"]`);
     if (carouselNoteDiv) {
         const noteSpan = carouselNoteDiv.querySelector('span:first-child');
         if (noteSpan) {
@@ -6113,8 +6128,8 @@ function updateExerciseNote(textareaEl, exIdx) {
         if (noteLabel) noteLabel.style.color = ta.value ? '#fde047' : '#94a3b8';
     }
     
-    // Uppdatera pricken i list-vyn
-    const listNoteBtn = document.querySelector(`#exercise-card-${realExIdx} button[onclick*="toggleExerciseNote"]`);
+    // Uppdatera pricken i list-vyn (om vi är där)
+    const listNoteBtn = document.querySelector(`#exercise-card-${exIdx} button[onclick*="toggleExerciseNote"]`);
     if (listNoteBtn) {
         listNoteBtn.innerHTML = `📝${ta.value ? '<span style="position:absolute; top:2px; right:2px; width:6px; height:6px; background:#fde047; border-radius:50%;"></span>' : ''}`;
     }
