@@ -4301,22 +4301,19 @@ async function updateSetDataOnly(inputEl, exIdx, setIdx, fieldType) {
             }
         }
 
-        // Spara värdena i activeDraft-objektet efter debounce-timern slår i mål
-        clearTimeout(updateSetDataOnly._copyTimer);
-        updateSetDataOnly._copyTimer = setTimeout(() => {
-            for (let i = 1; i < setsArray.length; i++) {
-                setsArray[i] = Object.assign({}, setsArray[i] || {});
-                if (fieldType === 'weight' && shouldCopyWeight) {
-                    setsArray[i].weight = inputEl.value;
-                }
-                if (fieldType === 'reps' && shouldCopyReps) {
-                    setsArray[i].reps = inputEl.value;
-                }
-                if ((fieldType === 'weight' && shouldCopyWeight) || (fieldType === 'reps' && shouldCopyReps)) {
-                    setsArray[i].userConfirmed = false;
-                }
+       // Spara värdena direkt till activeDraft synkront
+        for (let i = 1; i < setsArray.length; i++) {
+            setsArray[i] = Object.assign({}, setsArray[i] || {});
+            if (fieldType === 'weight' && shouldCopyWeight) {
+                setsArray[i].weight = inputEl.value;
             }
-        }, 600);
+            if (fieldType === 'reps' && shouldCopyReps) {
+                setsArray[i].reps = inputEl.value;
+            }
+            if ((fieldType === 'weight' && shouldCopyWeight) || (fieldType === 'reps' && shouldCopyReps)) {
+                setsArray[i].userConfirmed = false;
+            }
+        }
     }
 
     debouncedPersistActiveWorkout();
