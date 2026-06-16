@@ -3473,6 +3473,8 @@ async function startWorkout(workout, data = null, date = null, isImmediateStart 
 // Global array för att hålla koll på valda övningar i modalen innan de sparas
 let temporarySelectedExercises = [];
 
+let isSyncingWithSupabase = false;
+
 function renderActiveWorkout() {
     if (!activeDraft || !activeDraft.workout) {
         console.warn(" ⚠️  Inget aktivt utkast tillgängligt.");
@@ -3492,17 +3494,17 @@ function renderActiveWorkout() {
         });
     }
     document.getElementById("active-title").textContent = activeDraft.workout.name;
-const container = document.getElementById("start-time-badge-container");
-if (container) container.innerHTML = "";
+    const container = document.getElementById("start-time-badge-container");
+    if (container) container.innerHTML = "";
     const startTimeStr = activeDraft.startTime 
         ? new Date(activeDraft.startTime).toLocaleTimeString('sv-SE', {hour: '2-digit', minute: '2-digit'})
         : '';
-if (startTimeStr) {
-    const container = document.getElementById("start-time-badge-container");
-    if (container) {
-        container.innerHTML = `<span style="display:inline-flex; align-items:center; gap:5px; background:rgba(34,197,94,0.08); border:1px solid rgba(34,197,94,0.2); border-radius:20px; padding:3px 10px; font-size:10px; color:#22c55e; font-weight:600;">⏱️ Started ${startTimeStr}</span>`;
+    if (startTimeStr) {
+        const container = document.getElementById("start-time-badge-container");
+        if (container) {
+            container.innerHTML = `<span style="display:inline-flex; align-items:center; gap:5px; background:rgba(34,197,94,0.08); border:1px solid rgba(34,197,94,0.2); border-radius:20px; padding:3px 10px; font-size:10px; color:#22c55e; font-weight:600;">⏱️ Started ${startTimeStr}</span>`;
+        }
     }
-}
     const list = document.getElementById("exercise-list");
     const footer = document.querySelector(".workout-footer");
     if (!list) return;
@@ -3592,14 +3594,13 @@ if (startTimeStr) {
                     const showSuccess = set.userConfirmed || isDone;
                     const circleColor = showSuccess ? '#22c55e' : (isCurrent ? '#facc15' : '#f59e0b');
                     const statusContent = showSuccess ? ' ✅ ' : `#${sIdx + 1}`;
-                    const showArrow = !isDone && isOpen && sIdx === firstUnconfirmed;
                     setsHtml += `
                     <div style="display:grid; grid-template-columns: 40px 1fr 1fr 1fr 30px; gap:8px; margin-bottom:8px; align-items:center; opacity: ${showSuccess ? '1' : isCurrent ? '1' : '0.35'}; transition: opacity 0.2s ease; position:relative; overflow:visible;">
                        <div class="${isCurrent ? 'pulse-ring' : ''}" onclick="${isLocked && !isDone ? '' : `confirmSet(${i}, ${sIdx})`}"
                             style="width:32px; height:32px; border-radius:50%; border:2px solid ${circleColor}; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:10px; font-weight:800; background: ${showSuccess ? 'rgba(34, 197, 94, 0.2)' : (isCurrent ? 'rgba(250, 204, 21, 0.15)' : 'rgba(245, 158, 11, 0.05)')}; color: ${circleColor}; opacity: 1;">
                             ${statusContent}
                         </div>
-<input type="text" inputmode="decimal" id="w-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'};" value="${set.weight || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
+                        <input type="text" inputmode="decimal" id="w-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'};" value="${set.weight || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
                         <input type="text" inputmode="decimal" id="r-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'};" value="${set.reps || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
                         ${sIdx < exerciseData.sets_data.length - 1 ? `<input type="text" inputmode="decimal" id="v-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'}; border-color: rgba(52, 152, 219, 0.3);" value="${set.rest || '120'}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">` : `<div></div>`}
                         <button onclick="removeSetFromExercise(${i}, ${sIdx})" style="background:none; border:none; color:var(--danger); font-size:16px; opacity: ${showSuccess ? '0.1' : isCurrent ? '0.8' : '0.4'};" ${showSuccess ? 'disabled' : ''}>×</button>
@@ -3673,7 +3674,7 @@ if (startTimeStr) {
         viewContainer.appendChild(discardContainer);
     }
     showView("workout-view");
-renderRestTimer();
+    renderRestTimer();
     setTimeout(() => initDragAndDrop(), 50);
     const savedLayout = localStorage.getItem('workoutLayoutMode') || 'list';
     const listBtn = document.getElementById('layout-list-btn');
@@ -4279,7 +4280,7 @@ async function updateSetDataOnly(exIdx, setIdx) {
     setsArray[setIdx] = Object.assign({}, setsArray[setIdx] || {});
     const setObj = setsArray[setIdx];
 
-setObj.weight = wInp.value;
+    setObj.weight = wInp.value;
     setObj.reps = rInp.value;
     const vInp2 = document.getElementById(`v-${exIdx}-${setIdx}`);
     if (vInp2) setObj.rest = vInp2.value;
@@ -4321,6 +4322,12 @@ setObj.weight = wInp.value;
                 if (shouldCopyWeight || shouldCopyReps) {
                     setsArray[i].userConfirmed = false;
                 }
+            }
+            
+            // FIX: Kontrollera om karusell-vyn är aktiv och uppdatera dess DOM om så är fallet
+            const savedLayout = localStorage.getItem('workoutLayoutMode') || 'list';
+            if (savedLayout === 'carousel' && typeof renderCarousel === 'function') {
+                renderCarousel();
             }
         }, 600);
     }
@@ -4366,6 +4373,13 @@ async function confirmSet(exIdx, setIdx) {
 }
 
 function updateSingleExerciseCard(exIdx) {
+    // Kontrollera om appen är i karusell-läge. Om den är det, ska vi köra renderCarousel istället för list-kort-logiken
+    const savedLayout = localStorage.getItem('workoutLayoutMode') || 'list';
+    if (savedLayout === 'carousel' && typeof renderCarousel === 'function') {
+        renderCarousel();
+        return;
+    }
+
     const exerciseData = activeDraft.data[exIdx];
     const ex = activeDraft.workout.exercises[exIdx];
     const isDone = exerciseData.isCompleted;
@@ -4393,17 +4407,16 @@ function updateSingleExerciseCard(exIdx) {
             const showSuccess = set.userConfirmed || isDone;
             const circleColor = showSuccess ? '#22c55e' : (isCurrent ? '#facc15' : '#f59e0b');
             const statusContent = showSuccess ? ' ✅ ' : `#${sIdx + 1}`;
-            const showArrow = !isDone && isOpen && sIdx === firstUnconfirmed;
             setsHtml += `
             <div style="display:grid; grid-template-columns: 40px 1fr 1fr 1fr 30px; gap:8px; margin-bottom:8px; align-items:center; opacity: ${showSuccess ? '1' : isCurrent ? '1' : '0.35'}; transition: opacity 0.2s ease; position:relative; overflow:visible;">
                 <div class="${isCurrent ? 'pulse-ring' : ''}" onclick="${isLocked && !isDone ? '' : `confirmSet(${exIdx}, ${sIdx})`}"
-                            style="width:32px; height:32px; border-radius:50%; border:2px solid ${circleColor}; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:10px; font-weight:800; background: ${showSuccess ? 'rgba(34, 197, 94, 0.2)' : (isCurrent ? 'rgba(250, 204, 21, 0.15)' : 'rgba(245, 158, 11, 0.05)')}; color: ${circleColor}; opacity: 1;">
+                        style="width:32px; height:32px; border-radius:50%; border:2px solid ${circleColor}; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:10px; font-weight:800; background: ${showSuccess ? 'rgba(34, 197, 94, 0.2)' : (isCurrent ? 'rgba(250, 204, 21, 0.15)' : 'rgba(245, 158, 11, 0.05)')}; color: ${circleColor}; opacity: 1;">
                             ${statusContent}
-                        </div>
-<input type="text" inputmode="decimal" id="w-${exIdx}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'};" value="${set.weight || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${exIdx}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
-                       <input type="text" inputmode="decimal" id="r-${exIdx}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'};" value="${set.reps || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${exIdx}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
-                        ${sIdx < exerciseData.sets_data.length - 1 ? `<input type="text" inputmode="decimal" id="v-${exIdx}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'}; border-color: rgba(52, 152, 219, 0.3);" value="${set.rest || '120'}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${exIdx}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">` : `<div></div>`}
-                        <button onclick="removeSetFromExercise(${exIdx}, ${sIdx})" style="background:none; border:none; color:var(--danger); font-size:16px; opacity: ${showSuccess ? '0.1' : isCurrent ? '0.8' : '0.4'};" ${showSuccess ? 'disabled' : ''}>×</button>
+                </div>
+                <input type="text" inputmode="decimal" id="w-${exIdx}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'};" value="${set.weight || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${exIdx}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
+                <input type="text" inputmode="decimal" id="r-${exIdx}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'};" value="${set.reps || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${exIdx}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
+                ${sIdx < exerciseData.sets_data.length - 1 ? `<input type="text" inputmode="decimal" id="v-${exIdx}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'}; border-color: rgba(52, 152, 219, 0.3);" value="${set.rest || '120'}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${exIdx}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">` : `<div></div>`}
+                <button onclick="removeSetFromExercise(${exIdx}, ${sIdx})" style="background:none; border:none; color:var(--danger); font-size:16px; opacity: ${showSuccess ? '0.1' : isCurrent ? '0.8' : '0.4'};" ${showSuccess ? 'disabled' : ''}>×</button>
             </div>`;
             if (isCurrent && sIdx === firstUnconfirmed) {
                 setsHtml += `
@@ -4447,8 +4460,6 @@ function updateSingleExerciseCard(exIdx) {
     restoreRestTimerIfActive();
 }
 
-// Vi skapar en global flagga längst upp (utanför funktionen)
-let isSyncingWithSupabase = false;
 
 async function persistActiveWorkout() {
     // SÄKERHETSSPÄRR: Om activeDraft inte finns eller inte är startat, avbryt omedelbart
