@@ -3600,9 +3600,9 @@ function renderActiveWorkout() {
                             style="width:32px; height:32px; border-radius:50%; border:2px solid ${circleColor}; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:10px; font-weight:800; background: ${showSuccess ? 'rgba(34, 197, 94, 0.2)' : (isCurrent ? 'rgba(250, 204, 21, 0.15)' : 'rgba(245, 158, 11, 0.05)')}; color: ${circleColor}; opacity: 1;">
                             ${statusContent}
                         </div>
-                        <input type="text" inputmode="decimal" id="w-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'};" value="${set.weight || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
-                        <input type="text" inputmode="decimal" id="r-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'};" value="${set.reps || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
-                        ${sIdx < exerciseData.sets_data.length - 1 ? `<input type="text" inputmode="decimal" id="v-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'}; border-color: rgba(52, 152, 219, 0.3);" value="${set.rest || '120'}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">` : `<div></div>`}
+                        <input type="text" inputmode="decimal" id="w-${i}-${sIdx}" class="log-input weight-input" data-ex="${i}" data-set="${sIdx}" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'};" value="${set.weight || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'weight')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
+                        <input type="text" inputmode="decimal" id="r-${i}-${sIdx}" class="log-input reps-input" data-ex="${i}" data-set="${sIdx}" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'};" value="${set.reps || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'reps')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
+                        ${sIdx < exerciseData.sets_data.length - 1 ? `<input type="text" inputmode="decimal" id="v-${i}-${sIdx}" class="log-input rest-input" data-ex="${i}" data-set="${sIdx}" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'}; border-color: rgba(52, 152, 219, 0.3);" value="${set.rest || '120'}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'rest')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">` : `<div></div>`}
                         <button onclick="removeSetFromExercise(${i}, ${sIdx})" style="background:none; border:none; color:var(--danger); font-size:16px; opacity: ${showSuccess ? '0.1' : isCurrent ? '0.8' : '0.4'};" ${showSuccess ? 'disabled' : ''}>×</button>
                     </div>`;
                     if (isCurrent && sIdx === firstUnconfirmed) {
@@ -4269,62 +4269,53 @@ function flushFocusedInputs() {
     });
 }
 
-async function updateSetDataOnly(exIdx, setIdx) {
-    const wInp = document.getElementById(`w-${exIdx}-${setIdx}`);
-    const rInp = document.getElementById(`r-${exIdx}-${setIdx}`);
-    if (!wInp || !rInp) return;
-
+async function updateSetDataOnly(inputEl, exIdx, setIdx, fieldType) {
+    if (!inputEl) return;
     if (!activeDraft || !activeDraft.data || !activeDraft.data[exIdx]) return;
+    
     const setsArray = activeDraft.data[exIdx].sets_data || [];
-
     setsArray[setIdx] = Object.assign({}, setsArray[setIdx] || {});
     const setObj = setsArray[setIdx];
 
-    setObj.weight = wInp.value;
-    setObj.reps = rInp.value;
-    const vInp2 = document.getElementById(`v-${exIdx}-${setIdx}`);
-    if (vInp2) setObj.rest = vInp2.value;
+    // Spara det aktuella värdet som användaren skriver in
+    if (fieldType === 'weight') setObj.weight = inputEl.value;
+    if (fieldType === 'reps') setObj.reps = inputEl.value;
+    if (fieldType === 'rest') setObj.rest = inputEl.value;
     if (typeof setObj.userConfirmed === "undefined") setObj.userConfirmed = false;
 
-    // Autofyll-logik: Kopiera direkt till DOM för omedelbar visuell feedback
+    // Om ändringen sker i Set 1 (index 0), kör autofyll/spegling
     if (setIdx === 0) {
-        const shouldCopyWeight = setsArray.slice(1).every(s => {
-            return (s.weight === "" || s.weight === null || s.weight === undefined);
-        });
+        const shouldCopyWeight = setsArray.slice(1).every(s => !s.weight);
+        const shouldCopyReps = setsArray.slice(1).every(s => !s.reps);
 
-        const shouldCopyReps = setsArray.slice(1).every(s => {
-            return (s.reps === "" || s.reps === null || s.reps === undefined);
-        });
-
-        // Uppdatera DOM omedelbart för de ANDRA fälten (index 1 och framåt)
+        // Autofyll DOM omedelbart i den aktiva vyn utan re-render
         for (let i = 1; i < setsArray.length; i++) {
-            if (shouldCopyWeight) {
-                const wEl = document.getElementById(`w-${exIdx}-${i}`);
-                if (wEl) wEl.value = wInp.value || "";
+            if (fieldType === 'weight' && shouldCopyWeight) {
+                // Letar upp viktfält för index i, oavsett om klassen är weight-input eller via id
+                const wEls = document.querySelectorAll(`.weight-input[data-ex="${exIdx}"][data-set="${i}"], [id$="w-${exIdx}-${i}"]`);
+                wEls.forEach(el => { el.value = inputEl.value || ""; });
             }
-            if (shouldCopyReps) {
-                const rEl = document.getElementById(`r-${exIdx}-${i}`);
-                if (rEl) rEl.value = rInp.value || "";
+            if (fieldType === 'reps' && shouldCopyReps) {
+                const rEls = document.querySelectorAll(`.reps-input[data-ex="${exIdx}"][data-set="${i}"], [id$="r-${exIdx}-${i}"]`);
+                rEls.forEach(el => { el.value = inputEl.value || ""; });
             }
         }
 
-        // Spara värdena i bakgrunden till vårt dataobjekt utan att störa fokuserat fält
+        // Spara värdena i activeDraft-objektet efter debounce-timern slår i mål
         clearTimeout(updateSetDataOnly._copyTimer);
         updateSetDataOnly._copyTimer = setTimeout(() => {
             for (let i = 1; i < setsArray.length; i++) {
                 setsArray[i] = Object.assign({}, setsArray[i] || {});
-                if (shouldCopyWeight) {
-                    setsArray[i].weight = wInp.value;
+                if (fieldType === 'weight' && shouldCopyWeight) {
+                    setsArray[i].weight = inputEl.value;
                 }
-                if (shouldCopyReps) {
-                    setsArray[i].reps = rInp.value;
+                if (fieldType === 'reps' && shouldCopyReps) {
+                    setsArray[i].reps = inputEl.value;
                 }
-                if (shouldCopyWeight || shouldCopyReps) {
+                if ((fieldType === 'weight' && shouldCopyWeight) || (fieldType === 'reps' && shouldCopyReps)) {
                     setsArray[i].userConfirmed = false;
                 }
             }
-            // VIKTIGT: Vi kör INTE renderCarousel() här längre! 
-            // Det sparar datan tyst i activeDraft utan att störa inputfältets fokus.
         }, 600);
     }
 
@@ -4369,12 +4360,8 @@ async function confirmSet(exIdx, setIdx) {
 }
 
 function updateSingleExerciseCard(exIdx) {
-    // Om vi är i karusell-läge, gör ingenting eller uppdatera bara textdetaljer utanför fälten.
-    // Att köra en total renderCarousel() här inifrån kraschar fokus om funktionen anropas vid fel tillfälle.
     const savedLayout = localStorage.getItem('workoutLayoutMode') || 'list';
     if (savedLayout === 'carousel') {
-        // Om du har små status-element (t.ex. "2/4 set") utanför karusellkortet som behöver uppdateras, 
-        // kan du rikta in dig på dem specifikt här via id, men undvik renderCarousel() under pågående inmatning.
         return;
     }
 
@@ -4411,9 +4398,9 @@ function updateSingleExerciseCard(exIdx) {
                         style="width:32px; height:32px; border-radius:50%; border:2px solid ${circleColor}; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:10px; font-weight:800; background: ${showSuccess ? 'rgba(34, 197, 94, 0.2)' : (isCurrent ? 'rgba(250, 204, 21, 0.15)' : 'rgba(245, 158, 11, 0.05)')}; color: ${circleColor}; opacity: 1;">
                             ${statusContent}
                 </div>
-                <input type="text" inputmode="decimal" id="w-${exIdx}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'};" value="${set.weight || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${exIdx}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
-                <input type="text" inputmode="decimal" id="r-${exIdx}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'};" value="${set.reps || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${exIdx}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
-                ${sIdx < exerciseData.sets_data.length - 1 ? `<input type="text" inputmode="decimal" id="v-${exIdx}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'}; border-color: rgba(52, 152, 219, 0.3);" value="${set.rest || '120'}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${exIdx}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">` : `<div></div>`}
+                <input type="text" inputmode="decimal" id="w-${exIdx}-${sIdx}" class="log-input weight-input" data-ex="${exIdx}" data-set="${sIdx}" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'};" value="${set.weight || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${exIdx}, ${sIdx}, 'weight')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
+                <input type="text" inputmode="decimal" id="r-${exIdx}-${sIdx}" class="log-input reps-input" data-ex="${exIdx}" data-set="${sIdx}" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'};" value="${set.reps || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${exIdx}, ${sIdx}, 'reps')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
+                ${sIdx < exerciseData.sets_data.length - 1 ? `<input type="text" inputmode="decimal" id="v-${exIdx}-${sIdx}" class="log-input rest-input" data-ex="${exIdx}" data-set="${sIdx}" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'}; border-color: rgba(52, 152, 219, 0.3);" value="${set.rest || '120'}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${exIdx}, ${sIdx}, 'rest')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">` : `<div></div>`}
                 <button onclick="removeSetFromExercise(${exIdx}, ${sIdx})" style="background:none; border:none; color:var(--danger); font-size:16px; opacity: ${showSuccess ? '0.1' : isCurrent ? '0.8' : '0.4'};" ${showSuccess ? 'disabled' : ''}>×</button>
             </div>`;
             if (isCurrent && sIdx === firstUnconfirmed) {
