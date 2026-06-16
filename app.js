@@ -6381,10 +6381,7 @@ function renderCarouselCard() {
             <small style="text-align:center; color:var(--text-light); font-size:9px;">REST (S)</small>
             <span></span>
         </div>
-        ${exData.sets_data && exData.sets_data.length > 1 && !isDone ? `
-        <div style="text-align:right; margin-bottom:6px;">
-            <button onclick="carouselCopySet0(${i})" style="background:rgba(34,211,238,0.08); border:1px solid rgba(34,211,238,0.2); border-radius:8px; padding:3px 10px; font-size:10px; font-weight:700; color:var(--primary); cursor:pointer;">Copy set 1 ↓</button>
-        </div>` : ''}`;
+       `;
 
     if (exData.sets_data) {
         exData.sets_data.forEach((set, sIdx) => {
@@ -6399,8 +6396,8 @@ function renderCarouselCard() {
                     style="width:32px; height:32px; border-radius:50%; border:2px solid ${circleColor}; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:10px; font-weight:800; background:${showSuccess ? 'rgba(34,197,94,0.2)' : isCurrent ? 'rgba(250,204,21,0.15)' : 'rgba(245,158,11,0.05)'}; color:${circleColor}; opacity:1;">
                     ${statusContent}
                 </div>
-               <input type="text" inputmode="decimal" id="w-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${showSuccess ? '1' : isCurrent ? '1' : '0.35'};" value="${set.weight || ''}" placeholder="${set.weight || '-'}" ${isLocked || (!isCurrent && !showSuccess) ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
-                <input type="text" inputmode="decimal" id="r-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${showSuccess ? '1' : isCurrent ? '1' : '0.35'};" value="${set.reps || ''}" placeholder="${set.reps || '-'}" ${isLocked || (!isCurrent && !showSuccess) ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
+               <input type="text" inputmode="decimal" id="w-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${showSuccess ? '1' : isCurrent ? '1' : '0.35'};" value="${set.weight || ''}" placeholder="${set.weight || '-'}" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
+                <input type="text" inputmode="decimal" id="r-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${showSuccess ? '1' : isCurrent ? '1' : '0.35'};" value="${set.reps || ''}" placeholder="${set.reps || '-'}" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
                 ${sIdx < exData.sets_data.length - 1
                     ? `<input type="text" inputmode="decimal" id="v-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${isCurrent ? '1' : '0.3'}; border-color:rgba(52,152,219,0.3);" value="${set.rest || '120'}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`
                     : '<div></div>'}
