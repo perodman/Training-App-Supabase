@@ -4286,8 +4286,7 @@ async function updateSetDataOnly(exIdx, setIdx) {
     if (vInp2) setObj.rest = vInp2.value;
     if (typeof setObj.userConfirmed === "undefined") setObj.userConfirmed = false;
 
-    // Autofyll-logik: Kopiera direkt till DOM för omedelbar visuell feedback,
-    // men spara till activeDraft först när användaren slutat skriva (via debounce-timern nedan)
+    // Autofyll-logik: Kopiera direkt till DOM för omedelbar visuell feedback
     if (setIdx === 0) {
         const shouldCopyWeight = setsArray.slice(1).every(s => {
             return (s.weight === "" || s.weight === null || s.weight === undefined);
@@ -4297,6 +4296,7 @@ async function updateSetDataOnly(exIdx, setIdx) {
             return (s.reps === "" || s.reps === null || s.reps === undefined);
         });
 
+        // Uppdatera DOM omedelbart för de ANDRA fälten (index 1 och framåt)
         for (let i = 1; i < setsArray.length; i++) {
             if (shouldCopyWeight) {
                 const wEl = document.getElementById(`w-${exIdx}-${i}`);
@@ -4308,7 +4308,7 @@ async function updateSetDataOnly(exIdx, setIdx) {
             }
         }
 
-        // Spara det slutgiltiga värdet till activeDraft efter att användaren slutat skriva
+        // Spara värdena i bakgrunden till vårt dataobjekt utan att störa fokuserat fält
         clearTimeout(updateSetDataOnly._copyTimer);
         updateSetDataOnly._copyTimer = setTimeout(() => {
             for (let i = 1; i < setsArray.length; i++) {
@@ -4323,12 +4323,8 @@ async function updateSetDataOnly(exIdx, setIdx) {
                     setsArray[i].userConfirmed = false;
                 }
             }
-            
-            // FIX: Kontrollera om karusell-vyn är aktiv och uppdatera dess DOM om så är fallet
-            const savedLayout = localStorage.getItem('workoutLayoutMode') || 'list';
-            if (savedLayout === 'carousel' && typeof renderCarousel === 'function') {
-                renderCarousel();
-            }
+            // VIKTIGT: Vi kör INTE renderCarousel() här längre! 
+            // Det sparar datan tyst i activeDraft utan att störa inputfältets fokus.
         }, 600);
     }
 
@@ -4373,10 +4369,12 @@ async function confirmSet(exIdx, setIdx) {
 }
 
 function updateSingleExerciseCard(exIdx) {
-    // Kontrollera om appen är i karusell-läge. Om den är det, ska vi köra renderCarousel istället för list-kort-logiken
+    // Om vi är i karusell-läge, gör ingenting eller uppdatera bara textdetaljer utanför fälten.
+    // Att köra en total renderCarousel() här inifrån kraschar fokus om funktionen anropas vid fel tillfälle.
     const savedLayout = localStorage.getItem('workoutLayoutMode') || 'list';
-    if (savedLayout === 'carousel' && typeof renderCarousel === 'function') {
-        renderCarousel();
+    if (savedLayout === 'carousel') {
+        // Om du har små status-element (t.ex. "2/4 set") utanför karusellkortet som behöver uppdateras, 
+        // kan du rikta in dig på dem specifikt här via id, men undvik renderCarousel() under pågående inmatning.
         return;
     }
 
