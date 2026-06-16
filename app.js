@@ -6095,9 +6095,12 @@ function updateExerciseNote(exIdx) {
     activeDraft.data[exIdx].note = ta.value;
 
     // Uppdatera pricken i action-baren direkt utan full omritning
-    const noteBtn = document.querySelector(`[onclick="carouselToggleNote(${exIdx})"] span:first-child`);
-    if (noteBtn) {
-        noteBtn.innerHTML = `📝${ta.value ? '<span style="position:absolute;top:-2px;right:-2px;width:6px;height:6px;background:#fde047;border-radius:50%;"></span>' : ''}`;
+   const noteDiv = document.querySelector(`[onclick="carouselToggleNote(${exIdx})"]`);
+    if (noteDiv) {
+        const noteSpan = noteDiv.querySelector('span:first-child');
+        if (noteSpan) {
+            noteSpan.innerHTML = `📝${ta.value ? '<span style="position:absolute;top:-2px;right:-2px;width:6px;height:6px;background:#fde047;border-radius:50%;"></span>' : ''}`;
+        }
     }
     // Uppdatera list-vy noteknappen om den syns
     const listNoteBtn = document.querySelector(`#exercise-card-${exIdx} button[onclick*="toggleExerciseNote"]`);
@@ -6730,9 +6733,15 @@ function carouselToggleNote(exIdx) {
     if (!activeDraft.ui_state.openNotes) activeDraft.ui_state.openNotes = [];
 
     // Spara eventuell befintlig nota innan vi ritar om
-    const existingTa = document.getElementById(`note-input-${exIdx}`);
+   const existingTa = document.getElementById(`note-input-${exIdx}`);
     if (existingTa) {
         activeDraft.data[exIdx].note = existingTa.value;
+    }
+    // Uppdatera pricken direkt i DOM om den finns
+    const noteSpan = document.querySelector(`[onclick="carouselToggleNote(${exIdx})"] span:first-child`);
+    if (noteSpan) {
+        const hasNote = !!(activeDraft.data[exIdx].note && activeDraft.data[exIdx].note.trim());
+        noteSpan.innerHTML = `📝${hasNote ? '<span style="position:absolute;top:-2px;right:-2px;width:6px;height:6px;background:#fde047;border-radius:50%;"></span>' : ''}`;
     }
 
     const idx = activeDraft.ui_state.openNotes.indexOf(exIdx);
