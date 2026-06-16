@@ -3427,6 +3427,10 @@ function getExerciseHistory(exerciseName) {
 }
 
 async function startWorkout(workout, data = null, date = null, isImmediateStart = false) {
+    // Nollställ alltid vilotimern när ett nytt pass startas
+    stopRestTimer();
+    if (typeof carouselStopRest === 'function') carouselStopRest();
+
     if(!activeDraft || !activeDraft.secondsElapsed) {
         secondsElapsed = 0;
     } else {
@@ -3494,12 +3498,17 @@ function renderActiveWorkout() {
         ? new Date(activeDraft.startTime).toLocaleTimeString('sv-SE', {hour: '2-digit', minute: '2-digit'})
         : '';
 if (startTimeStr) {
-        const startBadge = document.createElement("div");
-        startBadge.id = "start-time-badge";
-        startBadge.style.cssText = "display:inline-flex; align-items:center; gap:5px; background:rgba(34,197,94,0.08); border:1px solid rgba(34,197,94,0.2); border-radius:20px; padding:3px 10px; margin: 8px 0 8px 15px;";
-        startBadge.innerHTML = `<span style="font-size:11px;">⏱️</span><span style="font-size:10px; color:#22c55e; font-weight:600;">Started ${startTimeStr}</span>`;
-        document.getElementById("active-title").insertAdjacentElement('afterend', startBadge);
-    }
+    const startBadge = document.createElement("div");
+    startBadge.id = "start-time-badge";
+    startBadge.style.cssText = "display:inline-flex; align-items:center; gap:5px; background:rgba(34,197,94,0.08); border:1px solid rgba(34,197,94,0.2); border-radius:20px; padding:3px 10px; margin: 4px 0 10px 15px;";
+    startBadge.innerHTML = `<span style="font-size:11px;">⏱️</span><span style="font-size:10px; color:#22c55e; font-weight:600;">Started ${startTimeStr}</span>`;
+    // Lägg badgen FÖRE title-raden istället, som en ny rad under header-raden
+    const titleEl = document.getElementById("active-title");
+    titleEl.style.whiteSpace = "normal";
+    titleEl.style.overflow = "visible";
+    titleEl.style.fontSize = "0.95rem";
+    titleEl.insertAdjacentElement('afterend', startBadge);
+}
     const list = document.getElementById("exercise-list");
     const footer = document.querySelector(".workout-footer");
     if (!list) return;
@@ -4327,31 +4336,33 @@ setObj.weight = wInp.value;
 
 async function confirmSet(exIdx, setIdx) {
     flushFocusedInputs();
+
+    // Läs alltid REST-värdet direkt från DOM och spara till draft INNAN state ändras
     const vInp = document.getElementById(`v-${exIdx}-${setIdx}`);
-    if (vInp) activeDraft.data[exIdx].sets_data[setIdx].rest = vInp.value;
+    const restVal = vInp ? (parseInt(vInp.value) || 120) : 120;
+    activeDraft.data[exIdx].sets_data[setIdx].rest = String(restVal);
+
     const currentState = activeDraft.data[exIdx].sets_data[setIdx].userConfirmed;
     activeDraft.data[exIdx].sets_data[setIdx].userConfirmed = !currentState;
-    // Starta vila-timer om setet bekräftades (inte avbekräftades) och det finns en nästa set
+
     const isNowConfirmed = activeDraft.data[exIdx].sets_data[setIdx].userConfirmed;
-    const restValue = parseInt(activeDraft.data[exIdx].sets_data[setIdx].rest) || 120;
     const isLastSet = setIdx === activeDraft.data[exIdx].sets_data.length - 1;
-if (isNowConfirmed && !isLastSet) {
+
+    if (isNowConfirmed && !isLastSet) {
         stopRestTimer();
-        startRestTimer(restValue, exIdx);
-    } else if (isNowConfirmed && isLastSet) {
-        stopRestTimer();
-    } else if (!isNowConfirmed) {
+        startRestTimer(restVal, exIdx);
+    } else {
+        // Sista set, avbekräftning — stoppa alltid
         stopRestTimer();
     }
+
     await persistActiveWorkout();
 
-    // Spara handtaget innan omritning
     const targetCard = document.getElementById(`exercise-card-${exIdx}`);
     const existingHandle = targetCard ? targetCard.querySelector('.drag-handle') : null;
-    
+
     updateSingleExerciseCard(exIdx);
-    
-    // Återlägg det sparade handtaget direkt utan att skapa nytt
+
     if (existingHandle) {
         const updatedHeader = targetCard.querySelector('div[onclick^="toggleExercise"]');
         if (updatedHeader && !updatedHeader.querySelector('.drag-handle')) {
@@ -6086,8 +6097,20 @@ function toggleExerciseNote(exIdx) {
 
 function updateExerciseNote(exIdx) {
     const ta = document.getElementById(`note-input-${exIdx}`);
-    if (!ta) return;
+    if (!ta || !activeDraft) return;
     activeDraft.data[exIdx].note = ta.value;
+
+    // Uppdatera pricken i action-baren direkt utan full omritning
+    const noteBtn = document.querySelector(`[onclick="carouselToggleNote(${exIdx})"] span:first-child`);
+    if (noteBtn) {
+        noteBtn.innerHTML = `📝${ta.value ? '<span style="position:absolute;top:-2px;right:-2px;width:6px;height:6px;background:#fde047;border-radius:50%;"></span>' : ''}`;
+    }
+    // Uppdatera list-vy noteknappen om den syns
+    const listNoteBtn = document.querySelector(`#exercise-card-${exIdx} button[onclick*="toggleExerciseNote"]`);
+    if (listNoteBtn) {
+        listNoteBtn.innerHTML = `📝${ta.value ? '<span style="position:absolute; top:2px; right:2px; width:6px; height:6px; background:#fde047; border-radius:50%;"></span>' : ''}`;
+    }
+
     debouncedPersistActiveWorkout();
 }
 
@@ -6376,8 +6399,8 @@ function renderCarouselCard() {
                     style="width:32px; height:32px; border-radius:50%; border:2px solid ${circleColor}; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:10px; font-weight:800; background:${showSuccess ? 'rgba(34,197,94,0.2)' : isCurrent ? 'rgba(250,204,21,0.15)' : 'rgba(245,158,11,0.05)'}; color:${circleColor}; opacity:1;">
                     ${statusContent}
                 </div>
-                <input type="text" inputmode="decimal" id="w-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${showSuccess ? '1' : isCurrent ? '1' : '0.35'};" value="${set.weight || ''}" placeholder="" ${isLocked || (!isCurrent && !showSuccess) ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx}); ${copyCall}" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
-                <input type="text" inputmode="decimal" id="r-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${showSuccess ? '1' : isCurrent ? '1' : '0.35'};" value="${set.reps || ''}" placeholder="" ${isLocked || (!isCurrent && !showSuccess) ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx}); ${copyCall}" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
+                <input type="text" inputmode="decimal" id="w-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${showSuccess ? '1' : isCurrent ? '1' : '0.35'};" value="${set.weight || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx}); ${copyCall}" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
+<input type="text" inputmode="decimal" id="r-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${showSuccess ? '1' : isCurrent ? '1' : '0.35'};" value="${set.reps || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx}); ${copyCall}" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
                 ${sIdx < exData.sets_data.length - 1
                     ? `<input type="text" inputmode="decimal" id="v-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${isCurrent ? '1' : '0.3'}; border-color:rgba(52,152,219,0.3);" value="${set.rest || '120'}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`
                     : '<div></div>'}
@@ -6409,7 +6432,7 @@ function renderCarouselCard() {
             <div style="display:flex; align-items:center; justify-content:space-between;">
                 <div>
                     <div style="font-size:8px; color:#92400e; font-weight:800; text-transform:uppercase; letter-spacing:1px;">Rest Timer</div>
-                    <div style="font-size:22px; font-weight:900; color:${restTimerActive && restTimerSeconds <= 10 ? '#ef4444' : '#f59e0b'}; font-family:monospace;" id="carousel-rest-dropdown-time">${restTimerActive ? formatRestTime(restTimerSeconds) : '2:00'}</div>
+                    <div style="font-size:22px; font-weight:900; color:${restTimerActive && restTimerSeconds <= 10 ? '#ef4444' : '#f59e0b'}; font-family:monospace;" id="carousel-rest-dropdown-time">${restTimerActive ? formatRestTime(restTimerSeconds) : formatRestTime(parseInt(activeDraft?.data?.[carouselCurrentIndex]?.sets_data?.find(s => !s.userConfirmed)?.rest || 120))}</div>
                 </div>
                 <div style="display:flex; gap:5px; align-items:center;">
                     <button onclick="carouselRestAdjust(-15)" style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:8px;padding:4px 8px;font-size:10px;color:#f59e0b;cursor:pointer;">−15s</button>
@@ -6699,18 +6722,23 @@ function carouselRestStop() {
 
 function carouselToggleNote(exIdx) {
     if (!activeDraft.ui_state.openNotes) activeDraft.ui_state.openNotes = [];
+
     // Spara eventuell befintlig nota innan vi ritar om
     const existingTa = document.getElementById(`note-input-${exIdx}`);
     if (existingTa) {
         activeDraft.data[exIdx].note = existingTa.value;
     }
+
     const idx = activeDraft.ui_state.openNotes.indexOf(exIdx);
     if (idx > -1) {
         activeDraft.ui_state.openNotes.splice(idx, 1);
     } else {
         activeDraft.ui_state.openNotes.push(exIdx);
     }
+
+    // Uppdatera action-bar-pricken direkt utan full omritning om noten precis stängdes
     renderCarouselCard();
+
     setTimeout(() => {
         const ta = document.getElementById(`note-input-${exIdx}`);
         if (ta && activeDraft.ui_state.openNotes.includes(exIdx)) ta.focus();
