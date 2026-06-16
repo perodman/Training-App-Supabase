@@ -6255,7 +6255,7 @@ function setWorkoutLayout(mode) {
         if (exerciseList) exerciseList.style.display = 'none';
         if (carouselView) carouselView.classList.remove('hidden');
         if (restTimerBar) restTimerBar.style.display = 'block';
-        carouselCurrentIndex = 0;
+        caroselCurrentIndex = 0;
         if (activeDraft?.workout?.exercises) {
             const firstUndone = activeDraft.workout.exercises.findIndex((_, i) => !activeDraft.data[i]?.isCompleted);
             if (firstUndone !== -1) carouselCurrentIndex = firstUndone;
@@ -6370,14 +6370,18 @@ function renderCarouselCard() {
             </div>
         </div>`;
 
-    let setsHtml = `<div style="margin-top:4px;">
+  let setsHtml = `<div style="margin-top:4px;">
         <div style="display:grid; grid-template-columns: 40px 1fr 1fr 1fr 30px; gap:8px; margin-bottom:5px; align-items:center;">
             <small style="text-align:left; padding-left:5px; color:var(--text-light); font-size:9px; font-weight:700;">SET</small>
             <small style="text-align:center; color:var(--text-light); font-size:9px;">KG</small>
             <small style="text-align:center; color:var(--text-light); font-size:9px;">REPS</small>
             <small style="text-align:center; color:var(--text-light); font-size:9px;">REST (S)</small>
             <span></span>
-        </div>`;
+        </div>
+        ${exData.sets_data && exData.sets_data.length > 1 && !isDone ? `
+        <div style="text-align:right; margin-bottom:6px;">
+            <button onclick="carouselCopySet0(${i})" style="background:rgba(34,211,238,0.08); border:1px solid rgba(34,211,238,0.2); border-radius:8px; padding:3px 10px; font-size:10px; font-weight:700; color:var(--primary); cursor:pointer;">Copy set 1 ↓</button>
+        </div>` : ''}`;
 
     if (exData.sets_data) {
         exData.sets_data.forEach((set, sIdx) => {
@@ -6386,15 +6390,14 @@ function renderCarouselCard() {
             const showSuccess = set.userConfirmed || isDone;
             const circleColor = showSuccess ? '#22c55e' : (isCurrent ? '#facc15' : '#f59e0b');
             const statusContent = showSuccess ? '✅' : `#${sIdx + 1}`;
-            const copyCall = '';
             setsHtml += `
             <div style="display:grid; grid-template-columns: 40px 1fr 1fr 1fr 30px; gap:8px; margin-bottom:8px; align-items:center; opacity:${showSuccess ? '1' : isCurrent ? '1' : '0.35'}; transition:opacity 0.2s ease; position:relative; overflow:visible;">
                 <div class="${isCurrent ? 'pulse-ring' : ''}" onclick="${isLocked && !isDone ? '' : `carouselConfirmSet(${i}, ${sIdx})`}"
                     style="width:32px; height:32px; border-radius:50%; border:2px solid ${circleColor}; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:10px; font-weight:800; background:${showSuccess ? 'rgba(34,197,94,0.2)' : isCurrent ? 'rgba(250,204,21,0.15)' : 'rgba(245,158,11,0.05)'}; color:${circleColor}; opacity:1;">
                     ${statusContent}
                 </div>
-                <input type="text" inputmode="decimal" id="w-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${showSuccess ? '1' : isCurrent ? '1' : '0.35'};" value="${set.weight || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
-<input type="text" inputmode="decimal" id="r-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${showSuccess ? '1' : isCurrent ? '1' : '0.35'};" value="${set.reps || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
+               <input type="text" inputmode="decimal" id="w-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${showSuccess ? '1' : isCurrent ? '1' : '0.35'};" value="${set.weight || ''}" placeholder="${set.weight || '-'}" ${isLocked || (!isCurrent && !showSuccess) ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
+                <input type="text" inputmode="decimal" id="r-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${showSuccess ? '1' : isCurrent ? '1' : '0.35'};" value="${set.reps || ''}" placeholder="${set.reps || '-'}" ${isLocked || (!isCurrent && !showSuccess) ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
                 ${sIdx < exData.sets_data.length - 1
                     ? `<input type="text" inputmode="decimal" id="v-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${isCurrent ? '1' : '0.3'}; border-color:rgba(52,152,219,0.3);" value="${set.rest || '120'}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`
                     : '<div></div>'}
@@ -6458,44 +6461,40 @@ function formatRestTime(seconds) {
 }
 
 async function carouselConfirmSet(exIdx, setIdx) {
-    flushFocusedInputs();
-    // Läs rest-värdet från DOM innan vi ändrar state
-    const vInp = document.getElementById(`v-${exIdx}-${setIdx}`);
-    const restVal = vInp ? (parseInt(vInp.value) || 120) : 120;
-    activeDraft.data[exIdx].sets_data[setIdx].rest = String(restVal);
-    
+    // Spara ALLA inputs för denna övning till draft FÖRST (innan flush/omritning)
+    const allInputs = document.querySelectorAll(`[id^="w-${exIdx}-"], [id^="r-${exIdx}-"], [id^="v-${exIdx}-"]`);
+    allInputs.forEach(inp => {
+        const parts = inp.id.split('-');
+        const sIdx2 = parseInt(parts[parts.length - 1]);
+        const type = parts[0];
+        if (!isNaN(sIdx2) && activeDraft.data[exIdx]?.sets_data?.[sIdx2]) {
+            if (type === 'w') activeDraft.data[exIdx].sets_data[sIdx2].weight = inp.value;
+            if (type === 'r') activeDraft.data[exIdx].sets_data[sIdx2].reps = inp.value;
+            if (type === 'v') activeDraft.data[exIdx].sets_data[sIdx2].rest = inp.value;
+        }
+    });
+
+    const restVal = parseInt(activeDraft.data[exIdx].sets_data[setIdx].rest) || 120;
+
     const currentState = activeDraft.data[exIdx].sets_data[setIdx].userConfirmed;
     activeDraft.data[exIdx].sets_data[setIdx].userConfirmed = !currentState;
     const isNowConfirmed = activeDraft.data[exIdx].sets_data[setIdx].userConfirmed;
     const isLastSet = setIdx === activeDraft.data[exIdx].sets_data.length - 1;
-    
+
     if (isNowConfirmed && !isLastSet) {
         stopRestTimer();
         carouselStopRest();
         startRestTimer(restVal, exIdx);
     } else if (isNowConfirmed && isLastSet) {
-        // Sista set – stoppa vilotimern
         stopRestTimer();
         carouselStopRest();
     } else if (!isNowConfirmed) {
         stopRestTimer();
         carouselStopRest();
     }
-flushFocusedInputs();
-// Säkerställ att alla input-värden är sparade till draft innan omritning
-const allInputs = document.querySelectorAll(`[id^="w-${exIdx}-"], [id^="r-${exIdx}-"], [id^="v-${exIdx}-"]`);
-allInputs.forEach(inp => {
-    const parts = inp.id.split('-');
-    const sIdx2 = parseInt(parts[parts.length - 1]);
-    const type = parts[0];
-    if (!isNaN(sIdx2) && activeDraft.data[exIdx]?.sets_data?.[sIdx2]) {
-        if (type === 'w') activeDraft.data[exIdx].sets_data[sIdx2].weight = inp.value;
-        if (type === 'r') activeDraft.data[exIdx].sets_data[sIdx2].reps = inp.value;
-        if (type === 'v') activeDraft.data[exIdx].sets_data[sIdx2].rest = inp.value;
-    }
-});
-await persistActiveWorkout();
-renderCarouselCard();
+
+    await persistActiveWorkout();
+    renderCarouselCard();
 }
 
 function carouselStartRest(seconds) {
