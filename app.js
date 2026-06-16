@@ -3701,28 +3701,21 @@ renderRestTimer();
 function carouselCopySet0(exIdx) {
     const exData = activeDraft?.data?.[exIdx];
     if (!exData?.sets_data || exData.sets_data.length < 2) return;
-
     const wEl = document.getElementById(`w-${exIdx}-0`);
     const rEl = document.getElementById(`r-${exIdx}-0`);
     if (!wEl || !rEl) return;
-
     const wVal = wEl.value !== '' ? wEl.value : (wEl.placeholder || '');
     const rVal = rEl.value !== '' ? rEl.value : (rEl.placeholder || '');
-
     for (let sIdx = 1; sIdx < exData.sets_data.length; sIdx++) {
         if (exData.sets_data[sIdx].userConfirmed) continue;
-
+        // Uppdatera alltid activeDraft (oavsett readonly-status på input)
+        exData.sets_data[sIdx].weight = wVal;
+        exData.sets_data[sIdx].reps = rVal;
+        // Uppdatera DOM om elementet finns
         const wTarget = document.getElementById(`w-${exIdx}-${sIdx}`);
         const rTarget = document.getElementById(`r-${exIdx}-${sIdx}`);
-
-        if (wTarget && !wTarget.readOnly) {
-            wTarget.value = wVal;
-            exData.sets_data[sIdx].weight = wVal;
-        }
-        if (rTarget && !rTarget.readOnly) {
-            rTarget.value = rVal;
-            exData.sets_data[sIdx].reps = rVal;
-        }
+        if (wTarget) wTarget.value = wVal;
+        if (rTarget) rTarget.value = rVal;
     }
 }
 
