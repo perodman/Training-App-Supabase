@@ -4285,8 +4285,8 @@ async function updateSetDataOnly(inputEl, exIdx, setIdx, fieldType) {
 
     // Om ändringen sker i Set 1 (index 0), kör autofyll/spegling
     if (setIdx === 0) {
-const shouldCopyWeight = setsArray.slice(1).every(s => !s.userConfirmed && (!s.weight || s.weight === setsArray[0].weight));
-        const shouldCopyReps = setsArray.slice(1).every(s => !s.userConfirmed && (!s.reps || s.reps === setsArray[0].reps));
+const shouldCopyWeight = setsArray.slice(1).every(s => !s.userConfirmed && (!s.weight || s.weight === inputEl.value.slice(0, -1)));
+        const shouldCopyReps = setsArray.slice(1).every(s => !s.userConfirmed && (!s.reps || s.reps === inputEl.value.slice(0, -1)));
 
         // Autofyll DOM omedelbart i den aktiva vyn utan re-render
         for (let i = 1; i < setsArray.length; i++) {
