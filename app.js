@@ -3500,7 +3500,8 @@ function renderActiveWorkout() {
 if (startTimeStr) {
     const startBadge = document.createElement("div");
     startBadge.id = "start-time-badge";
-    startBadge.style.cssText = "display:inline-flex; align-items:center; gap:5px; background:rgba(34,197,94,0.08); border:1px solid rgba(34,197,94,0.2); border-radius:20px; padding:3px 10px; margin: 4px 0 10px 15px;";
+    startBadge.style.cssText = "display:inline-flex; align-items:center; gap:5px; background:rgba(34,197,94,0.08); border:1px solid rgba(34,197,94,0.2); border-radius:20px; padding:3px 10px; margin: 4px 0 10px 0; font-size:11px;";
+startBadge.style.width = "fit-content";
     startBadge.innerHTML = `<span style="font-size:11px;">⏱️</span><span style="font-size:10px; color:#22c55e; font-weight:600;">Started ${startTimeStr}</span>`;
     // Lägg badgen FÖRE title-raden istället, som en ny rad under header-raden
     const titleEl = document.getElementById("active-title");
@@ -6392,15 +6393,15 @@ function renderCarouselCard() {
             const showSuccess = set.userConfirmed || isDone;
             const circleColor = showSuccess ? '#22c55e' : (isCurrent ? '#facc15' : '#f59e0b');
             const statusContent = showSuccess ? '✅' : `#${sIdx + 1}`;
-            const copyCall = sIdx === 0 ? `carouselCopySet0(${i});` : '';
+            const copyCall = '';
             setsHtml += `
             <div style="display:grid; grid-template-columns: 40px 1fr 1fr 1fr 30px; gap:8px; margin-bottom:8px; align-items:center; opacity:${showSuccess ? '1' : isCurrent ? '1' : '0.35'}; transition:opacity 0.2s ease; position:relative; overflow:visible;">
                 <div class="${isCurrent ? 'pulse-ring' : ''}" onclick="${isLocked && !isDone ? '' : `carouselConfirmSet(${i}, ${sIdx})`}"
                     style="width:32px; height:32px; border-radius:50%; border:2px solid ${circleColor}; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:10px; font-weight:800; background:${showSuccess ? 'rgba(34,197,94,0.2)' : isCurrent ? 'rgba(250,204,21,0.15)' : 'rgba(245,158,11,0.05)'}; color:${circleColor}; opacity:1;">
                     ${statusContent}
                 </div>
-                <input type="text" inputmode="decimal" id="w-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${showSuccess ? '1' : isCurrent ? '1' : '0.35'};" value="${set.weight || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx}); ${copyCall}" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
-<input type="text" inputmode="decimal" id="r-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${showSuccess ? '1' : isCurrent ? '1' : '0.35'};" value="${set.reps || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx}); ${copyCall}" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
+                <input type="text" inputmode="decimal" id="w-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${showSuccess ? '1' : isCurrent ? '1' : '0.35'};" value="${set.weight || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
+<input type="text" inputmode="decimal" id="r-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${showSuccess ? '1' : isCurrent ? '1' : '0.35'};" value="${set.reps || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
                 ${sIdx < exData.sets_data.length - 1
                     ? `<input type="text" inputmode="decimal" id="v-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${isCurrent ? '1' : '0.3'}; border-color:rgba(52,152,219,0.3);" value="${set.rest || '120'}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`
                     : '<div></div>'}
@@ -6487,8 +6488,21 @@ async function carouselConfirmSet(exIdx, setIdx) {
         stopRestTimer();
         carouselStopRest();
     }
-    await persistActiveWorkout();
-    renderCarouselCard();
+flushFocusedInputs();
+// Säkerställ att alla input-värden är sparade till draft innan omritning
+const allInputs = document.querySelectorAll(`[id^="w-${exIdx}-"], [id^="r-${exIdx}-"], [id^="v-${exIdx}-"]`);
+allInputs.forEach(inp => {
+    const parts = inp.id.split('-');
+    const sIdx2 = parseInt(parts[parts.length - 1]);
+    const type = parts[0];
+    if (!isNaN(sIdx2) && activeDraft.data[exIdx]?.sets_data?.[sIdx2]) {
+        if (type === 'w') activeDraft.data[exIdx].sets_data[sIdx2].weight = inp.value;
+        if (type === 'r') activeDraft.data[exIdx].sets_data[sIdx2].reps = inp.value;
+        if (type === 'v') activeDraft.data[exIdx].sets_data[sIdx2].rest = inp.value;
+    }
+});
+await persistActiveWorkout();
+renderCarouselCard();
 }
 
 function carouselStartRest(seconds) {
