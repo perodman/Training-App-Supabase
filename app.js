@@ -3496,8 +3496,8 @@ function renderActiveWorkout() {
 if (startTimeStr) {
         const startBadge = document.createElement("div");
         startBadge.id = "start-time-badge";
-        startBadge.style.cssText = "display:inline-flex; align-items:center; gap:6px; background:rgba(34,197,94,0.08); border:1px solid rgba(34,197,94,0.2); border-radius:20px; padding:4px 12px; margin: 6px 0 0 15px;";
-        startBadge.innerHTML = `<span style="font-size:12px;">⏱️</span><span style="font-size:11px; color:#22c55e; font-weight:600;">Started ${startTimeStr}</span>`;
+        startBadge.style.cssText = "display:inline-flex; align-items:center; gap:5px; background:rgba(34,197,94,0.08); border:1px solid rgba(34,197,94,0.2); border-radius:20px; padding:3px 10px; margin: 8px 0 8px 15px;";
+        startBadge.innerHTML = `<span style="font-size:11px;">⏱️</span><span style="font-size:10px; color:#22c55e; font-weight:600;">Started ${startTimeStr}</span>`;
         document.getElementById("active-title").insertAdjacentElement('afterend', startBadge);
     }
     const list = document.getElementById("exercise-list");
@@ -5423,9 +5423,12 @@ function confirmDiscardActiveWorkout() {
                 }
             }
         }
+        stopRestTimer();
+        clearInterval(carouselRestInterval);
+        carouselRestActive = false;
+        carouselRestSeconds = 0;
         activeDraft = null;
         localStorage.removeItem("activeWorkoutDraft");
-
         if (typeof stopTimer === 'function') stopTimer();
         secondsElapsed = 0;
         if (currentUser !== 'undefined' && currentUser) {
@@ -6375,8 +6378,8 @@ function renderCarouselCard() {
                     style="width:32px; height:32px; border-radius:50%; border:2px solid ${circleColor}; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:10px; font-weight:800; background:${showSuccess ? 'rgba(34,197,94,0.2)' : isCurrent ? 'rgba(250,204,21,0.15)' : 'rgba(245,158,11,0.05)'}; color:${circleColor}; opacity:1;">
                     ${statusContent}
                 </div>
-                <input type="text" inputmode="decimal" id="w-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${isCurrent ? '1' : '0.3'};" value="${set.weight || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx}); ${copyCall}" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
-                <input type="text" inputmode="decimal" id="r-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${isCurrent ? '1' : '0.3'};" value="${set.reps || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx}); ${copyCall}" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
+                <input type="text" inputmode="decimal" id="w-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${showSuccess ? '1' : isCurrent ? '1' : '0.35'};" value="${set.weight || ''}" placeholder="" ${isLocked || (!isCurrent && !showSuccess) ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx}); ${copyCall}" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
+                <input type="text" inputmode="decimal" id="r-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${showSuccess ? '1' : isCurrent ? '1' : '0.35'};" value="${set.reps || ''}" placeholder="" ${isLocked || (!isCurrent && !showSuccess) ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx}); ${copyCall}" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
                 ${sIdx < exData.sets_data.length - 1
                     ? `<input type="text" inputmode="decimal" id="v-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${isCurrent ? '1' : '0.3'}; border-color:rgba(52,152,219,0.3);" value="${set.rest || '120'}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`
                     : '<div></div>'}
@@ -6441,17 +6444,26 @@ function formatRestTime(seconds) {
 
 async function carouselConfirmSet(exIdx, setIdx) {
     flushFocusedInputs();
+    // Läs rest-värdet från DOM innan vi ändrar state
     const vInp = document.getElementById(`v-${exIdx}-${setIdx}`);
-    if (vInp) activeDraft.data[exIdx].sets_data[setIdx].rest = vInp.value;
+    const restVal = vInp ? (parseInt(vInp.value) || 120) : 120;
+    activeDraft.data[exIdx].sets_data[setIdx].rest = String(restVal);
+    
     const currentState = activeDraft.data[exIdx].sets_data[setIdx].userConfirmed;
     activeDraft.data[exIdx].sets_data[setIdx].userConfirmed = !currentState;
     const isNowConfirmed = activeDraft.data[exIdx].sets_data[setIdx].userConfirmed;
     const isLastSet = setIdx === activeDraft.data[exIdx].sets_data.length - 1;
+    
     if (isNowConfirmed && !isLastSet) {
-        const restVal = parseInt(activeDraft.data[exIdx].sets_data[setIdx].rest) || 120;
-        carouselStartRest(restVal);
+        stopRestTimer();
+        carouselStopRest();
         startRestTimer(restVal, exIdx);
+    } else if (isNowConfirmed && isLastSet) {
+        // Sista set – stoppa vilotimern
+        stopRestTimer();
+        carouselStopRest();
     } else if (!isNowConfirmed) {
+        stopRestTimer();
         carouselStopRest();
     }
     await persistActiveWorkout();
@@ -6495,7 +6507,8 @@ async function carouselAddSet(exIdx) {
 
 async function carouselToggleDone(exIdx) {
     activeDraft.data[exIdx].isCompleted = !activeDraft.data[exIdx].isCompleted;
-    if (activeDraft.data[exIdx].isCompleted) {
+        if (activeDraft.data[exIdx].isCompleted) {
+        stopRestTimer();
         carouselStopRest();
         await persistActiveWorkout();
         renderCarouselNav();
@@ -6523,6 +6536,7 @@ function carouselGoTo(i) {
     card.style.transform = `translateX(${dir * -35}px)`;
     card.style.opacity = '0';
     carouselStopRest();
+    stopRestTimer();
 
     setTimeout(() => {
         carouselCurrentIndex = i;
@@ -6687,6 +6701,11 @@ function carouselRestStop() {
 
 function carouselToggleNote(exIdx) {
     if (!activeDraft.ui_state.openNotes) activeDraft.ui_state.openNotes = [];
+    // Spara eventuell befintlig nota innan vi ritar om
+    const existingTa = document.getElementById(`note-input-${exIdx}`);
+    if (existingTa) {
+        activeDraft.data[exIdx].note = existingTa.value;
+    }
     const idx = activeDraft.ui_state.openNotes.indexOf(exIdx);
     if (idx > -1) {
         activeDraft.ui_state.openNotes.splice(idx, 1);
