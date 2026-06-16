@@ -3500,15 +3500,9 @@ function renderActiveWorkout() {
 if (startTimeStr) {
     const startBadge = document.createElement("div");
     startBadge.id = "start-time-badge";
-    startBadge.style.cssText = "display:inline-flex; align-items:center; gap:5px; background:rgba(34,197,94,0.08); border:1px solid rgba(34,197,94,0.2); border-radius:20px; padding:3px 10px; margin: 4px 0 10px 0; font-size:11px;";
-startBadge.style.width = "fit-content";
+    startBadge.style.cssText = "display:inline-flex; align-items:center; gap:5px; background:rgba(34,197,94,0.08); border:1px solid rgba(34,197,94,0.2); border-radius:20px; padding:3px 10px; margin: 6px 0 6px 15px; font-size:11px;";
     startBadge.innerHTML = `<span style="font-size:11px;">⏱️</span><span style="font-size:10px; color:#22c55e; font-weight:600;">Started ${startTimeStr}</span>`;
-    // Lägg badgen FÖRE title-raden istället, som en ny rad under header-raden
-    const titleEl = document.getElementById("active-title");
-    titleEl.style.whiteSpace = "normal";
-    titleEl.style.overflow = "visible";
-    titleEl.style.fontSize = "0.95rem";
-    titleEl.insertAdjacentElement('afterend', startBadge);
+    document.getElementById("active-title").insertAdjacentElement('afterend', startBadge);
 }
     const list = document.getElementById("exercise-list");
     const footer = document.querySelector(".workout-footer");
