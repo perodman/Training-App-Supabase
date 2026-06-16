@@ -6338,11 +6338,15 @@ function renderCarouselCard() {
     const card = document.getElementById('carousel-ex-card');
     if (!card || !activeDraft) return;
     const i = carouselCurrentIndex;
+    
+    // Säkerställ att strukturen i activeDraft faktiskt finns
+    if (!activeDraft.workout || !activeDraft.workout.exercises || !activeDraft.workout.exercises[i]) return;
+    if (!activeDraft.data || !activeDraft.data[i]) return;
+
     const ex = activeDraft.workout.exercises[i];
     const exData = activeDraft.data[i];
-    if (!ex || !exData) return;
     const isDone = exData.isCompleted;
-    const svg = getExSVG(ex.target, 'large');
+    const svg = getExSVG ? getExSVG(ex.target, 'large') : '';
     const noteOpen = activeDraft.ui_state?.openNotes?.includes(i);
 
     card.style.borderLeftColor = isDone ? '#22c55e' : '#22d3ee';
@@ -6352,7 +6356,8 @@ function renderCarouselCard() {
     const totalSets = exData.sets_data ? exData.sets_data.length : 0;
     const firstUnconfirmed = exData.sets_data ? exData.sets_data.findIndex(s => !s.userConfirmed) : -1;
 
-    const catDisplay = CATEGORY_DISPLAY[ex.target] || ex.target || '';
+    // Säkerställ att CATEGORY_DISPLAY existerar
+    const catDisplay = (typeof CATEGORY_DISPLAY !== 'undefined' && CATEGORY_DISPLAY[ex.target]) || ex.target || '';
 
     // Action-bar pills
     const actionBar = `
@@ -6389,7 +6394,7 @@ function renderCarouselCard() {
             const circleColor = showSuccess ? '#22c55e' : (isCurrent ? '#facc15' : '#f59e0b');
             const statusContent = showSuccess ? '✅' : `#${sIdx + 1}`;
             
-            // Fixat klick-logik: Om övningen är klar (isDone), gör ingenting vid klick.
+            // Om övningen är klar blockerar vi klick, annars kör vi bekräftelse
             const clickAction = isDone ? '' : `carouselConfirmSet(${i}, ${sIdx})`;
 
             setsHtml += `
@@ -6398,8 +6403,10 @@ function renderCarouselCard() {
                     style="width:32px; height:32px; border-radius:50%; border:2px solid ${circleColor}; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:10px; font-weight:800; background:${showSuccess ? 'rgba(34,197,94,0.2)' : isCurrent ? 'rgba(250,204,21,0.15)' : 'rgba(245,158,11,0.05)'}; color:${circleColor}; opacity:1;">
                     ${statusContent}
                 </div>
-                <input type="text" inputmode="decimal" id="w-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${showSuccess ? '1' : isCurrent ? '1' : '0.35'};" value="${showSuccess ? set.weight || '' : sIdx === 0 ? set.weight || '' : ''}" placeholder="${set.weight || '-'}" ${isDone ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
-                <input type="text" inputmode="decimal" id="r-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${showSuccess ? '1' : isCurrent ? '1' : '0.35'};" value="${showSuccess ? set.reps || '' : sIdx === 0 ? set.reps || '' : ''}" placeholder="${set.reps || '-'}" ${isDone ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
+                
+                <input type="text" inputmode="decimal" id="w-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${showSuccess ? '1' : isCurrent ? '1' : '0.35'};" value="${set.weight || ''}" placeholder="-" ${isDone ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
+                <input type="text" inputmode="decimal" id="r-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${showSuccess ? '1' : isCurrent ? '1' : '0.35'};" value="${set.reps || ''}" placeholder="-" ${isDone ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
+                
                 ${sIdx < exData.sets_data.length - 1
                     ? `<input type="text" inputmode="decimal" id="v-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${isCurrent ? '1' : '0.3'}; border-color:rgba(52,152,219,0.3);" value="${set.rest || '120'}" placeholder="" ${isDone ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`
                     : '<div></div>'}
@@ -6413,6 +6420,11 @@ function renderCarouselCard() {
     }
     setsHtml += `</div>`;
 
+    // Säkra upp timer-variabler så de inte kraschar appen om de saknas
+    const isTimerActive = typeof restTimerActive !== 'undefined' && restTimerActive;
+    const currentTimerSeconds = typeof restTimerSeconds !== 'undefined' ? restTimerSeconds : 0;
+    const formattedTime = typeof formatRestTime === 'function' ? formatRestTime(currentTimerSeconds) : 'Rest';
+
     card.innerHTML = `
         <div class="carousel-anim-zone">
             ${svg}
@@ -6423,21 +6435,21 @@ function renderCarouselCard() {
                 <div style="font-size:16px; font-weight:900; color:${isDone ? 'var(--text-light)' : 'var(--text)'}; text-decoration:${isDone ? 'line-through' : 'none'}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${ex.name}</div>
                 <div style="font-size:10px; color:${isDone ? '#22c55e' : 'var(--primary)'}; font-weight:800; margin-top:1px;">${isDone ? 'DONE ✅' : `${catDisplay}${catDisplay ? ' · ' : ''}${completedSets}/${totalSets} sets`}</div>
             </div>
-            <div id="carousel-rest-badge" onclick="carouselToggleRestBadge()" style="flex-shrink:0; display:flex; align-items:center; gap:5px; padding:5px 10px; border-radius:12px; cursor:pointer; border:1px solid ${typeof restTimerActive !== 'undefined' && restTimerActive ? 'rgba(245,158,11,0.4)' : 'rgba(255,255,255,0.08)'}; background:${typeof restTimerActive !== 'undefined' && restTimerActive ? 'rgba(245,158,11,0.08)' : 'rgba(255,255,255,0.04)'}; transition:all 0.2s;">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="${typeof restTimerActive !== 'undefined' && restTimerActive ? '#f59e0b' : '#64748b'}" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
-                <span style="font-size:12px; font-weight:800; color:${typeof restTimerActive !== 'undefined' && restTimerActive ? '#f59e0b' : '#64748b'}; font-family:monospace;" id="carousel-rest-badge-time">${typeof restTimerActive !== 'undefined' && restTimerActive ? formatRestTime(restTimerSeconds) : 'Rest'}</span>
+            <div id="carousel-rest-badge" onclick="carouselToggleRestBadge()" style="flex-shrink:0; display:flex; align-items:center; gap:5px; padding:5px 10px; border-radius:12px; cursor:pointer; border:1px solid ${isTimerActive ? 'rgba(245,158,11,0.4)' : 'rgba(255,255,255,0.08)'}; background:${isTimerActive ? 'rgba(245,158,11,0.08)' : 'rgba(255,255,255,0.04)'}; transition:all 0.2s;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="${isTimerActive ? '#f59e0b' : '#64748b'}" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
+                <span style="font-size:12px; font-weight:800; color:${isTimerActive ? '#f59e0b' : '#64748b'}; font-family:monospace;" id="carousel-rest-badge-time">${formattedTime}</span>
             </div>
         </div>
         <div id="carousel-rest-dropdown" style="display:none; margin:0 14px 6px; background:rgba(245,158,11,0.06); border:1px solid rgba(245,158,11,0.2); border-radius:12px; padding:8px 12px;">
             <div style="display:flex; align-items:center; justify-content:space-between;">
                 <div>
                     <div style="font-size:8px; color:#92400e; font-weight:800; text-transform:uppercase; letter-spacing:1px;">Rest Timer</div>
-                    <div style="font-size:22px; font-weight:900; color:${typeof restTimerActive !== 'undefined' && restTimerActive && restTimerSeconds <= 10 ? '#ef4444' : '#f59e0b'}; font-family:monospace;" id="carousel-rest-dropdown-time">${typeof restTimerActive !== 'undefined' && restTimerActive ? formatRestTime(restTimerSeconds) : formatRestTime(parseInt(activeDraft?.data?.[carouselCurrentIndex]?.sets_data?.find(s => !s.userConfirmed)?.rest || 120))}</div>
+                    <div style="font-size:22px; font-weight:900; color:${isTimerActive && currentTimerSeconds <= 10 ? '#ef4444' : '#f59e0b'}; font-family:monospace;" id="carousel-rest-dropdown-time">${isTimerActive ? formattedTime : (typeof formatRestTime === 'function' ? formatRestTime(parseInt(activeDraft?.data?.[i]?.sets_data?.find(s => !s.userConfirmed)?.rest || 120)) : '120')}</div>
                 </div>
                 <div style="display:flex; gap:5px; align-items:center;">
                     <button onclick="carouselRestAdjust(-15)" style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:8px;padding:4px 8px;font-size:10px;color:#f59e0b;cursor:pointer;">−15s</button>
                     <button onclick="carouselRestAdjust(30)" style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:8px;padding:4px 8px;font-size:10px;color:#f59e0b;cursor:pointer;">+30s</button>
-                    <button onclick="carouselRestStart()" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);border-radius:8px;padding:4px 8px;font-size:10px;font-weight:700;color:#22c55e;cursor:pointer;">${typeof restTimerActive !== 'undefined' && restTimerActive ? 'Restart' : 'Start'}</button>
+                    <button onclick="carouselRestStart()" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);border-radius:8px;padding:4px 8px;font-size:10px;font-weight:700;color:#22c55e;cursor:pointer;">${isTimerActive ? 'Restart' : 'Start'}</button>
                     <button onclick="carouselRestStop()" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:4px 8px;font-size:10px;color:#64748b;cursor:pointer;">Stop</button>
                 </div>
             </div>
