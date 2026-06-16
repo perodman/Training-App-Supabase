@@ -3492,18 +3492,16 @@ function renderActiveWorkout() {
         });
     }
     document.getElementById("active-title").textContent = activeDraft.workout.name;
-    const oldBadge = document.getElementById("start-time-badge");
-    if (oldBadge) oldBadge.remove();
+const container = document.getElementById("start-time-badge-container");
+if (container) container.innerHTML = "";
     const startTimeStr = activeDraft.startTime 
         ? new Date(activeDraft.startTime).toLocaleTimeString('sv-SE', {hour: '2-digit', minute: '2-digit'})
         : '';
 if (startTimeStr) {
-    const startBadge = document.createElement("div");
-    startBadge.id = "start-time-badge";
-    startBadge.style.cssText = "display:block; width:100%; padding:2px 15px 6px 15px; box-sizing:border-box;";
-    startBadge.innerHTML = `<span style="display:inline-flex; align-items:center; gap:5px; background:rgba(34,197,94,0.08); border:1px solid rgba(34,197,94,0.2); border-radius:20px; padding:3px 10px; font-size:10px; color:#22c55e; font-weight:600;">⏱️ Started ${startTimeStr}</span>`;
-    const headerRow = document.getElementById("active-title").closest("div");
-    headerRow.insertAdjacentElement('afterend', startBadge);
+    const container = document.getElementById("start-time-badge-container");
+    if (container) {
+        container.innerHTML = `<span style="display:inline-flex; align-items:center; gap:5px; background:rgba(34,197,94,0.08); border:1px solid rgba(34,197,94,0.2); border-radius:20px; padding:3px 10px; font-size:10px; color:#22c55e; font-weight:600;">⏱️ Started ${startTimeStr}</span>`;
+    }
 }
     const list = document.getElementById("exercise-list");
     const footer = document.querySelector(".workout-footer");
