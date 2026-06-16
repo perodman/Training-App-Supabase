@@ -6373,41 +6373,36 @@ function renderCarouselCard() {
             </div>
         </div>`;
 
-    let setsHtml = `<div style="margin-top:4px;">
+  let setsHtml = `<div style="margin-top:4px;">
         <div style="display:grid; grid-template-columns: 40px 1fr 1fr 1fr 30px; gap:8px; margin-bottom:5px; align-items:center;">
             <small style="text-align:left; padding-left:5px; color:var(--text-light); font-size:9px; font-weight:700;">SET</small>
             <small style="text-align:center; color:var(--text-light); font-size:9px;">KG</small>
             <small style="text-align:center; color:var(--text-light); font-size:9px;">REPS</small>
             <small style="text-align:center; color:var(--text-light); font-size:9px;">REST (S)</small>
             <span></span>
-        </div>`;
+        </div>
+       `;
 
     if (exData.sets_data) {
         exData.sets_data.forEach((set, sIdx) => {
+            const isLocked = isDone;
             const isCurrent = !set.userConfirmed && !isDone && sIdx === firstUnconfirmed;
             const showSuccess = set.userConfirmed || isDone;
             const circleColor = showSuccess ? '#22c55e' : (isCurrent ? '#facc15' : '#f59e0b');
             const statusContent = showSuccess ? '✅' : `#${sIdx + 1}`;
-            
-            // Fixat: Enkel klickhantering utan trasig logik
-            const clickAction = isDone ? '' : `carouselConfirmSet(${i}, ${sIdx})`;
-
             setsHtml += `
             <div style="display:grid; grid-template-columns: 40px 1fr 1fr 1fr 30px; gap:8px; margin-bottom:8px; align-items:center; opacity:${showSuccess ? '1' : isCurrent ? '1' : '0.35'}; transition:opacity 0.2s ease; position:relative; overflow:visible;">
-                <div class="${isCurrent ? 'pulse-ring' : ''}" onclick="${clickAction}"
+                <div class="${isCurrent ? 'pulse-ring' : ''}" onclick="${isLocked && !isDone ? '' : `carouselConfirmSet(${i}, ${sIdx})`}"
                     style="width:32px; height:32px; border-radius:50%; border:2px solid ${circleColor}; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:10px; font-weight:800; background:${showSuccess ? 'rgba(34,197,94,0.2)' : isCurrent ? 'rgba(250,204,21,0.15)' : 'rgba(245,158,11,0.05)'}; color:${circleColor}; opacity:1;">
                     ${statusContent}
                 </div>
-                
-                <input type="text" inputmode="decimal" id="w-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${showSuccess ? '1' : isCurrent ? '1' : '0.35'};" value="${set.weight || ''}" placeholder="${set.weight || '-'}" ${isDone ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
-                <input type="text" inputmode="decimal" id="r-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${showSuccess ? '1' : isCurrent ? '1' : '0.35'};" value="${set.reps || ''}" placeholder="${set.reps || '-'}" ${isDone ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
-                
+              <input type="text" inputmode="decimal" id="w-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${showSuccess ? '1' : isCurrent ? '1' : '0.35'};" value="${set.weight || ''}" placeholder="${set.weight || '-'}" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
+              <input type="text" inputmode="decimal" id="r-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${showSuccess ? '1' : isCurrent ? '1' : '0.35'};" value="${set.reps || ''}" placeholder="${set.reps || '-'}" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
                 ${sIdx < exData.sets_data.length - 1
-                    ? `<input type="text" inputmode="decimal" id="v-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${isCurrent ? '1' : '0.3'}; border-color:rgba(52,152,219,0.3);" value="${set.rest || '120'}" placeholder="" ${isDone ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`
+                    ? `<input type="text" inputmode="decimal" id="v-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${isCurrent ? '1' : '0.3'}; border-color:rgba(52,152,219,0.3);" value="${set.rest || '120'}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(${i}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`
                     : '<div></div>'}
                 <button onclick="removeSetFromExercise(${i}, ${sIdx})" style="background:none; border:none; color:var(--danger); font-size:16px; opacity:${showSuccess ? '0.1' : isCurrent ? '0.8' : '0.4'};" ${showSuccess ? 'disabled' : ''}>×</button>
             </div>`;
-            
             if (isCurrent && sIdx === firstUnconfirmed) {
                 setsHtml += `<div style="margin:-4px 0 8px 44px; font-size:10px; color:var(--primary); font-weight:600; opacity:0.8;">💡 Confirm set to continue</div>`;
             }
