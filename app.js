@@ -3949,7 +3949,7 @@ async function removeSetFromExercise(exIdx, setIdx) {
 async function toggleExerciseDone(exIdx) {
     const scrollPos = window.scrollY;
     activeDraft.data[exIdx].isCompleted = !activeDraft.data[exIdx].isCompleted;
-        if (activeDraft.data[exIdx].isCompleted) {
+    if (activeDraft.data[exIdx].isCompleted) {
         stopRestTimer();
     }
 
@@ -3969,6 +3969,19 @@ async function toggleExerciseDone(exIdx) {
 
     window.scrollTo(0, scrollPos);
     await persistActiveWorkout();
+
+    // Uppdatera den globala set-räknaren i headern om man klarmarkerar en hel övning
+    if (typeof updateWorkoutProgress === 'function' && activeDraft.data) {
+        let totalWorkoutCompletedSets = 0;
+        let totalWorkoutSets = 0;
+        activeDraft.data.forEach(exerciseData => {
+            if (exerciseData && exerciseData.sets_data) {
+                totalWorkoutSets += exerciseData.sets_data.length;
+                totalWorkoutCompletedSets += exerciseData.sets_data.filter(s => s.userConfirmed).length;
+            }
+        });
+        updateWorkoutProgress(totalWorkoutCompletedSets, totalWorkoutSets);
+    }
 }
 
 async function actuallyStartWorkout() {
@@ -4375,6 +4388,19 @@ async function confirmSet(exIdx, setIdx) {
         if (updatedHeader && !updatedHeader.querySelector('.drag-handle')) {
             updatedHeader.insertBefore(existingHandle, updatedHeader.firstChild);
         }
+    }
+
+    // Uppdatera den globala set-räknaren i headern direkt vid klick
+    if (typeof updateWorkoutProgress === 'function' && activeDraft.data) {
+        let totalWorkoutCompletedSets = 0;
+        let totalWorkoutSets = 0;
+        activeDraft.data.forEach(exerciseData => {
+            if (exerciseData && exerciseData.sets_data) {
+                totalWorkoutSets += exerciseData.sets_data.length;
+                totalWorkoutCompletedSets += exerciseData.sets_data.filter(s => s.userConfirmed).length;
+            }
+        });
+        updateWorkoutProgress(totalWorkoutCompletedSets, totalWorkoutSets);
     }
 }
 
