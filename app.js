@@ -4575,7 +4575,7 @@ function updateSingleExerciseCard(exIdx) {
                             <span style="font-size:12px;">📝</span>${exerciseData.note ? '<span style="position:absolute; top:2px; right:2px; width:6px; height:6px; background:#fde047; border-radius:50%;"></span>' : ''}<span style="color:#f8fafc;">Note</span>
                         </button>
                         <button onclick="event.stopPropagation(); openReplaceExerciseModal(${exIdx})" style="background:#1a3040;border:1px solid #22d3ee;color:#22d3ee;border-radius:20px;padding:5px 10px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:5px;" ${isDone ? 'disabled' : ''}>
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16V4m0 0L3 8m4-4l4 4"/><path d="M17 8v12m0 0l4-4m-4 4l-4-4"/></svg> Swap
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16V4m0 0L3 8m4-4l4 4"/><path d="M17 8v12m0 0l4-4m-4 4l-4-4"/></svg> Swap
                         </button>
                         <button onclick="event.stopPropagation(); removeActiveExercise(${exIdx})" style="background:#2d1a1a;border:1px solid #7f1d1d;color:#ef4444;border-radius:20px;padding:5px 10px;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;" ${isDone ? 'disabled' : ''}>
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
