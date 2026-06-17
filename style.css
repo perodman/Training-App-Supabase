@@ -1283,6 +1283,15 @@ body:has(.bottom-bar.hidden) { padding-bottom: 0; }
 #layout-carousel-btn { color: #64748b; background: transparent; padding: 7px 11px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 0.2s; }
 #layout-carousel-btn.active { color: #22d3ee; background: rgba(34,211,238,0.1); }
 
+.workout-footer {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px 0 20px 0;
+    width: 100%;
+    box-sizing: border-box;
+}
+
 .carousel-nav-bar {
     display: flex;
     gap: 7px;
