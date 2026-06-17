@@ -5158,6 +5158,17 @@ async function deleteLoggedWorkout(date, idx) {
         } catch(e) { console.error(e); }
     }
 
+    // LÖSNING PÅ SPÖK-MINNET: Innan vi sätter activeDraft till null, 
+    // nollställer vi karusellens index och tömmer listvyns sparade tillstånd helt.
+    carouselCurrentIndex = 0;
+    if (activeDraft) {
+        activeDraft.ui_state = {
+            activeView: 'list',
+            currentExerciseIndex: 0,
+            openExercises: []
+        };
+    }
+
     activeDraft = null;
     await saveAll();
     closeModal();
@@ -6415,26 +6426,29 @@ function switchView(view) {
         btnCarousel.classList.add('active');
         btnList.classList.remove('active');
 
-        // SYNK: Innan karusellen ritas upp, tvingar vi den att använda indexet från listvyn
-        if (typeof activeDraft.ui_state.currentExerciseIndex === 'number') {
+        // SYNK (Från lista till karusell): Tvinga karusellen att använda 
+        // det index som sparades när du klickade runt i listvyn
+        if (activeDraft.ui_state && typeof activeDraft.ui_state.currentExerciseIndex === 'number') {
             carouselCurrentIndex = activeDraft.ui_state.currentExerciseIndex;
+        } else {
+            carouselCurrentIndex = 0;
         }
 
-        renderCarousel(); // Ritar upp karusellen med rätt övning i fokus
+        renderCarousel(); // Ritar upp karusellvyn med rätt övning centrerad
     } else {
         listView.style.display = 'block';
         carouselView.style.display = 'none';
         btnList.classList.add('active');
         btnCarousel.classList.remove('active');
 
-        // SYNK: När vi går tillbaka till listan, se till att listvyns array för öppna 
-        // övningar (openExercises) innehåller exakt den övning vi just tittade på i karusellen
+        // SYNK (Från karusell till lista): Det här fungerade redan bra för dig,
+        // men vi behåller det för att säkerställa att det blir en tvåvägs-gata.
         if (typeof carouselCurrentIndex === 'number') {
             activeDraft.ui_state.currentExerciseIndex = carouselCurrentIndex;
             activeDraft.ui_state.openExercises = [carouselCurrentIndex];
         }
 
-        renderActiveWorkout(); // Ritar om listvyn så rätt kort blir expanderat
+        renderActiveWorkout(); 
     }
     
     persistActiveWorkout();
@@ -6450,28 +6464,31 @@ function toggleExerciseExpand(exIdx) {
     const index = activeDraft.ui_state.openExercises.indexOf(exIdx);
     
     if (index > -1) {
+        // Om användaren stänger kortet
         activeDraft.ui_state.openExercises.splice(index, 1);
+        
+        // Om det var det här kortet som var aktivt, backa till det senast öppnade kortet som är kvar
         if (activeDraft.ui_state.currentExerciseIndex === exIdx) {
             activeDraft.ui_state.currentExerciseIndex = activeDraft.ui_state.openExercises.length > 0 
                 ? activeDraft.ui_state.openExercises[activeDraft.ui_state.openExercises.length - 1] 
-                : null;
+                : 0; // Fallback till första om inget är öppet
         }
     } else {
+        // Om användaren öppnar kortet
         activeDraft.ui_state.openExercises.push(exIdx);
         
-        // SYNK: Detta är den absolut viktigaste raden för listvyn!
-        // Varje gång användaren expanderar eller interagerar med en övning i listan,
-        // stämplar vi detta index som det "senast valda" så karusellen vet om det.
+        // SYNK: Här sätter vi direkt vilket index som är det senast expanderade.
+        // Det är detta som gör att karusellen fattar vilken övning den ska visa när du byter vy!
         activeDraft.ui_state.currentExerciseIndex = exIdx;
     }
+
+    // Synka även den globala karusellvariabeln direkt så att den är redo
+    carouselCurrentIndex = activeDraft.ui_state.currentExerciseIndex;
 
     persistActiveWorkout();
     renderActiveWorkout();
 }
 
-// =========================================================================
-// 3. DIN KARUSELL-FUNKTION: Rensad och redo att läsa det sparade indexet
-// =========================================================================
 function renderCarousel() {
     const container = document.getElementById('carousel-view');
     if (!container || !activeDraft) return;
