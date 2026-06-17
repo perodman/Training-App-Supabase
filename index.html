@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>LIFT Tracker Pro</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@800;900&family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght=800;900&family=Inter:wght=300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/Draggable.min.js"></script>
@@ -208,53 +208,56 @@
 
         <div id="workout-view" class="view hidden">
             <div style="
-                background: #12110e; 
-                padding: 24px 20px 20px 20px; 
-                border-radius: 24px 24px 0 0; 
-                margin: 10px 15px 20px 15px;
-                box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+                background: #18181b; 
+                padding: 16px 18px 14px 18px; 
+                border-radius: 20px; 
+                margin: 12px auto;
+                max-width: 480px;
+                width: calc(100% - 30px);
+                box-shadow: 0 4px 20px rgba(0,0,0,0.25);
                 position: relative;
                 overflow: hidden;
                 font-family: system-ui, -apple-system, sans-serif;
+                box-sizing: border-box;
             ">
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; gap: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; gap: 12px;">
                     <div>
-                        <div style="font-size: 10px; font-weight: 800; color: #d97706; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 4px;">
+                        <div style="font-size: 10px; font-weight: 800; color: #d97706; text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 2px;">
                             Active Workout
                         </div>
-                        <h2 id="active-title" style="margin: 0; font-size: 28px; font-weight: 800; color: #ffffff; letter-spacing: -0.5px; line-height: 1.2;"></h2>
+                        <h2 id="active-title" style="margin: 0; font-size: 24px; font-weight: 800; color: #ffffff; letter-spacing: -0.3px; line-height: 1.2;">Full Body C</h2>
                     </div>
 
-                    <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0;">
-                        <span style="font-size: 11px; font-weight: 700; color: #78716c; letter-spacing: 0.3px;">
+                    <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 5px; flex-shrink: 0;">
+                        <span style="font-size: 10px; font-weight: 700; color: #71717a; letter-spacing: 0.2px;">
                             Choose layout
                         </span>
-                        <div id="workout-layout-toggle" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 3px; display: flex; gap: 4px;">
-                            <div id="layout-list-btn" onclick="setWorkoutLayout('list')" class="hdr-layout-btn" style="border-radius: 9px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; color: #a8a29e; cursor: pointer; transition: all 0.2s;">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><circle cx="3" cy="6" r="1" fill="currentColor"></circle><circle cx="3" cy="12" r="1" fill="currentColor"></circle><circle cx="3" cy="18" r="1" fill="currentColor"></circle></svg>
+                        <div id="workout-layout-toggle" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 10px; padding: 3px; display: flex; gap: 4px;">
+                            <div id="layout-list-btn" onclick="setWorkoutLayout('list')" class="hdr-layout-btn" style="border-radius: 7px; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; color: #71717a; cursor: pointer; transition: all 0.2s;">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><circle cx="3" cy="6" r="1" fill="currentColor"></circle><circle cx="3" cy="12" r="1" fill="currentColor"></circle><circle cx="3" cy="18" r="1" fill="currentColor"></circle></svg>
                             </div>
-                            <div id="layout-carousel-btn" onclick="setWorkoutLayout('carousel')" class="hdr-layout-btn active" style="border-radius: 9px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; color: #a8a29e; cursor: pointer; transition: all 0.2s;">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                            <div id="layout-carousel-btn" onclick="setWorkoutLayout('carousel')" class="hdr-layout-btn active" style="border-radius: 7px; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; color: #71717a; cursor: pointer; transition: all 0.2s;">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div style="display: flex; align-items: center; gap: 8px; background: rgba(217,119,6,0.06); border: 1px solid rgba(217,119,6,0.2); padding: 6px 14px; border-radius: 20px; font-size: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                    <div style="display: flex; align-items: center; gap: 6px; background: rgba(217,119,6,0.04); border: 1px solid rgba(217,119,6,0.15); padding: 5px 12px; border-radius: 16px; font-size: 11px;">
                         <div id="start-time-badge" style="color: #d97706; display: flex; align-items: center; gap: 4px; font-weight: 700;">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 2px;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                            Started Workout · <span id="active-start-time">--:--</span>
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: #d97706;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                            Started Workout · <span id="active-start-time">13:51</span>
                         </div>
-                        <span style="color: #78716c; font-weight: 600;">|</span>
-                        <span id="workout-duration-text" style="color: #78716c; font-weight: 700;">0 min</span>
+                        <span style="color: #3f3f46; font-weight: 600;">|</span>
+                        <span id="workout-duration-text" style="color: #a1a1aa; font-weight: 700;">20 min</span>
                     </div>
                     
-                    <div id="workout-sets-progress" style="font-size: 13px; font-weight: 800; color: #d97706; letter-spacing: 0.5px;">0 / 0 set</div>
+                    <div id="workout-sets-progress" style="font-size: 12px; font-weight: 800; color: #d97706; letter-spacing: 0.3px;">7 / 18 set</div>
                 </div>
 
-                <div style="position: absolute; bottom: 0; left: 0; width: 100%; height: 4px; background: rgba(255,255,255,0.05); overflow: hidden;">
-                    <div id="workout-progress-bar" style="width: 0%; height: 100%; background: #22d3ee; transition: width 0.3s ease;"></div>
+                <div style="position: absolute; bottom: 0; left: 0; width: 100%; height: 3px; background: rgba(255,255,255,0.03); overflow: hidden;">
+                    <div id="workout-progress-bar" style="width: 35%; height: 100%; background: #22d3ee; transition: width 0.3s ease;"></div>
                 </div>
             </div>
 
@@ -344,10 +347,10 @@
             border: 1px solid transparent;
         }
         .hdr-layout-btn:hover {
-            color: #78716c !important;
+            color: #a1a1aa !important;
         }
         .hdr-layout-btn.active {
-            background: rgba(217, 119, 6, 0.1) !important; 
+            background: rgba(217, 119, 6, 0.08) !important; 
             border: 1px solid #d97706 !important;
             color: #d97706 !important;
         }
