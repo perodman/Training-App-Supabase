@@ -3497,7 +3497,7 @@ function renderActiveWorkout() {
     const container = document.getElementById("start-time-badge-container");
     if (container) container.innerHTML = "";
     
-    // ÄNDRING: Formaterar tiden till "Started Workout 13:45"
+    // Formaterar tiden till "Started Workout 13:45"
     const startTimeStr = activeDraft.startTime 
         ? new Date(activeDraft.startTime).toLocaleTimeString('sv-SE', {hour: '2-digit', minute: '2-digit'})
         : '';
@@ -3690,10 +3690,14 @@ function renderActiveWorkout() {
     showView("workout-view");
     renderRestTimer();
     
-    // TIDTAGARE FIX: Tvinga texten till höger att visa rätt minuter direkt när vyn ritas om
+    // UTKAST TILL INDIREKT TID: Beräkna skillnaden mellan NU och STARTTID helt live
     const minutesEl = document.getElementById("workout-duration-minutes");
-    if (minutesEl && typeof secondsElapsed === 'number') {
-        minutesEl.textContent = `${Math.floor(secondsElapsed / 60)} min`;
+    if (minutesEl && activeDraft.startTime) {
+        const now = new Date();
+        const start = new Date(activeDraft.startTime);
+        const diffInMs = now - start;
+        const diffInMinutes = Math.floor(diffInMs / 1000 / 60); // Gör om millisekunder till minuter
+        minutesEl.textContent = `${diffInMinutes} min`;
     }
 
     setTimeout(() => initDragAndDrop(), 50);
@@ -4020,36 +4024,19 @@ async function toggleExerciseDone(exIdx) {
 function actuallyStartWorkout() {
     if (!activeDraft) return;
 
-    // Sätt starttiden till exakt just nu
+    // Sätt starttiden till exakt just nu (ISO-sträng)
     activeDraft.startTime = new Date().toISOString();
     activeDraft.isStarted = true;
-    secondsElapsed = 0;
 
     // Om ui_state inte finns, skapa det och öppna första övningen
     if (!activeDraft.ui_state) activeDraft.ui_state = {};
     activeDraft.ui_state.openExercises = [0];
     activeDraft.ui_state.hasInitializedOpen = true;
 
-    // Starta den globala tidtagaren (om du har en startTimer-funktion)
-    if (typeof startTimer === 'function') {
-        startTimer();
-    } else {
-        // Fallback: Om startTimer inte hittas, se till att sekundräknaren tickar
-        if (window.workoutInterval) clearInterval(window.workoutInterval);
-        window.workoutInterval = setInterval(() => {
-            secondsElapsed++;
-            // Uppdatera tidsdisplayen till höger live om det behövs
-            const minutesEl = document.getElementById("workout-duration-minutes"); // Justera ID om du har ett specifikt element för "0 min"
-            if (minutesEl) {
-                minutesEl.textContent = `${Math.floor(secondsElapsed / 60)} min`;
-            }
-        }, 1000);
-    }
-
     // Spara det nya startade läget till Supabase/localStorage
     if (typeof persistActiveWorkout === 'function') persistActiveWorkout();
 
-    // Rita om vyn så att träningspasset och alla övningar visas
+    // Rita om vyn så att träningspasset och den korrekta tiden visas direkt
     renderActiveWorkout();
 }
 
