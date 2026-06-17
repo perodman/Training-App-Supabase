@@ -5904,16 +5904,17 @@ function stopRestTimer() {
 }
 
 function renderRestTimer() {
-    // KOLLA OM ANVÄNDAREN ÄR I KARUSELL-LÄGE
-    const savedLayout = localStorage.getItem('workoutLayoutMode') || 'list';
-    if (savedLayout === 'carousel') {
-        // Göm eller rensa listvyns element så de inte ligger kvar som spöken
+    // SÄKERHETSSPÄRR: Om vi är i karuselläge, rör inte headern/listtimern över huvud taget
+    if (typeof workoutLayoutMode !== 'undefined' && workoutLayoutMode === 'carousel') {
         const staticBar = document.getElementById("rest-timer-bar");
-        if (staticBar) staticBar.innerHTML = '';
+        if (staticBar) {
+            staticBar.innerHTML = '';
+            staticBar.style.display = 'none';
+        }
         const oldMoving = document.getElementById("rest-timer-moving");
         if (oldMoving) oldMoving.remove();
 
-        // Uppdatera enbart karusellens egna kort-komponenter om de finns i DOM:en
+        // Synka enbart karusellens egna badge/dropdown om de existerar live i DOM:en
         const carouselBadgeTime = document.getElementById('carousel-rest-badge-time');
         if (carouselBadgeTime) {
             carouselBadgeTime.textContent = restTimerActive ? formatRestTime(restTimerSeconds) : 'Rest';
@@ -5929,11 +5930,10 @@ function renderRestTimer() {
             carouselDdTime.textContent = formatRestTime(restTimerSeconds);
             carouselDdTime.style.color = restTimerSeconds <= 10 ? '#ef4444' : '#f59e0b';
         }
-        
-        // Avbryt här så att inte listvyns HTML-mallar genereras eller trycks ut
-        return; 
+        return; // Avbryt direkt så att ingen list-HTML kan genereras i bakgrunden
     }
 
+    // --- Nedan körs ENDAST i vanliga Listvyn ---
     const isDisabled = activeDraft && activeDraft.restTimerDisabled;
     const mins = String(Math.floor(restTimerSeconds / 60)).padStart(1, '0');
     const secs = String(restTimerSeconds % 60).padStart(2, '0');
@@ -5986,7 +5986,6 @@ function renderRestTimer() {
             </div>
         </div>`;
 
-    // Rensa gamla rörliga timern
     const oldMoving = document.getElementById("rest-timer-moving");
     if (oldMoving) oldMoving.remove();
 
@@ -6004,23 +6003,6 @@ function renderRestTimer() {
         }
     } else {
         if (staticBar) staticBar.innerHTML = idleHTML;
-    }
-
-    // Uppdatera carousel-badge om den finns (utan att rendera om hela kortet)
-    const carouselBadgeTime = document.getElementById('carousel-rest-badge-time');
-    if (carouselBadgeTime) {
-        carouselBadgeTime.textContent = restTimerActive ? formatRestTime(restTimerSeconds) : 'Rest';
-        carouselBadgeTime.style.color = restTimerActive ? '#f59e0b' : '#64748b';
-        const badge = document.getElementById('carousel-rest-badge');
-        if (badge) {
-            badge.style.borderColor = restTimerActive ? 'rgba(245,158,11,0.4)' : 'rgba(255,255,255,0.08)';
-            badge.style.background = restTimerActive ? 'rgba(245,158,11,0.08)' : 'rgba(255,255,255,0.04)';
-        }
-    }
-    const carouselDdTime = document.getElementById('carousel-rest-dropdown-time');
-    if (carouselDdTime && restTimerActive) {
-        carouselDdTime.textContent = formatRestTime(restTimerSeconds);
-        carouselDdTime.style.color = restTimerSeconds <= 10 ? '#ef4444' : '#f59e0b';
     }
 }
 
@@ -6307,8 +6289,10 @@ function setWorkoutLayout(mode) {
     const exerciseList = document.getElementById('exercise-list');
     const carouselView = document.getElementById('carousel-view');
     const restTimerBar = document.getElementById('rest-timer-bar');
+    
     if (listBtn) listBtn.classList.toggle('active', mode === 'list');
     if (carouselBtn) carouselBtn.classList.toggle('active', mode === 'carousel');
+    
     if (mode === 'list') {
         if (exerciseList) exerciseList.style.display = 'block';
         if (carouselView) carouselView.classList.add('hidden');
@@ -6318,8 +6302,18 @@ function setWorkoutLayout(mode) {
     } else {
         if (exerciseList) exerciseList.style.display = 'none';
         if (carouselView) carouselView.classList.remove('hidden');
-        if (restTimerBar) restTimerBar.style.display = 'block';
-        caroselCurrentIndex = 0;
+        
+        // SÄKERHETSÅTGÄRD: Töm och dölj den fasta headertimern så den försvinner helt i karusellen
+        if (restTimerBar) {
+            restTimerBar.innerHTML = '';
+            restTimerBar.style.display = 'none';
+        }
+        
+        // SÄKERHETSÅTGÄRD: Radera listvyns rörliga timer direkt vid vybytet så den inte ligger kvar i DOM:en
+        const oldMoving = document.getElementById("rest-timer-moving");
+        if (oldMoving) oldMoving.remove();
+        
+        carouselCurrentIndex = 0;
         if (activeDraft?.workout?.exercises) {
             const firstUndone = activeDraft.workout.exercises.findIndex((_, i) => !activeDraft.data[i]?.isCompleted);
             if (firstUndone !== -1) carouselCurrentIndex = firstUndone;
