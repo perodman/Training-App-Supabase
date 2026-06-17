@@ -6395,6 +6395,83 @@ function setWorkoutLayout(mode) {
     }
 }
 
+// =========================================================================
+// 1. DIN VY-VÄXLINGSFUNKTION (Säkerställer att rätt index skickas med vid byte)
+// =========================================================================
+function switchView(view) {
+    const listView = document.getElementById('list-view');
+    const carouselView = document.getElementById('carousel-view');
+    const btnList = document.getElementById('btn-view-list');
+    const btnCarousel = document.getElementById('btn-view-carousel');
+
+    if (!listView || !carouselView || !btnList || !btnCarousel) return;
+
+    if (!activeDraft.ui_state) activeDraft.ui_state = {};
+    activeDraft.ui_state.activeView = view;
+
+    if (view === 'carousel') {
+        listView.style.display = 'none';
+        carouselView.style.display = 'block';
+        btnCarousel.classList.add('active');
+        btnList.classList.remove('active');
+
+        // SYNK: Innan karusellen ritas upp, tvingar vi den att använda indexet från listvyn
+        if (typeof activeDraft.ui_state.currentExerciseIndex === 'number') {
+            carouselCurrentIndex = activeDraft.ui_state.currentExerciseIndex;
+        }
+
+        renderCarousel(); // Ritar upp karusellen med rätt övning i fokus
+    } else {
+        listView.style.display = 'block';
+        carouselView.style.display = 'none';
+        btnList.classList.add('active');
+        btnCarousel.classList.remove('active');
+
+        // SYNK: När vi går tillbaka till listan, se till att listvyns array för öppna 
+        // övningar (openExercises) innehåller exakt den övning vi just tittade på i karusellen
+        if (typeof carouselCurrentIndex === 'number') {
+            activeDraft.ui_state.currentExerciseIndex = carouselCurrentIndex;
+            activeDraft.ui_state.openExercises = [carouselCurrentIndex];
+        }
+
+        renderActiveWorkout(); // Ritar om listvyn så rätt kort blir expanderat
+    }
+    
+    persistActiveWorkout();
+}
+
+// =========================================================================
+// 2. DIN LIST-FUNKTION: När man klickar/expanderar en övning i listvyn
+// =========================================================================
+function toggleExerciseExpand(exIdx) {
+    if (!activeDraft.ui_state) activeDraft.ui_state = {};
+    if (!activeDraft.ui_state.openExercises) activeDraft.ui_state.openExercises = [];
+
+    const index = activeDraft.ui_state.openExercises.indexOf(exIdx);
+    
+    if (index > -1) {
+        activeDraft.ui_state.openExercises.splice(index, 1);
+        if (activeDraft.ui_state.currentExerciseIndex === exIdx) {
+            activeDraft.ui_state.currentExerciseIndex = activeDraft.ui_state.openExercises.length > 0 
+                ? activeDraft.ui_state.openExercises[activeDraft.ui_state.openExercises.length - 1] 
+                : null;
+        }
+    } else {
+        activeDraft.ui_state.openExercises.push(exIdx);
+        
+        // SYNK: Detta är den absolut viktigaste raden för listvyn!
+        // Varje gång användaren expanderar eller interagerar med en övning i listan,
+        // stämplar vi detta index som det "senast valda" så karusellen vet om det.
+        activeDraft.ui_state.currentExerciseIndex = exIdx;
+    }
+
+    persistActiveWorkout();
+    renderActiveWorkout();
+}
+
+// =========================================================================
+// 3. DIN KARUSELL-FUNKTION: Rensad och redo att läsa det sparade indexet
+// =========================================================================
 function renderCarousel() {
     const container = document.getElementById('carousel-view');
     if (!container || !activeDraft) return;
@@ -6402,8 +6479,7 @@ function renderCarousel() {
     const data = activeDraft.data;
     if (!exercises || exercises.length === 0) return;
 
-    // SYNK: Om det finns en expanderad/aktiv övning från listvyn sparad i ui_state,
-    // se till att karusellen startar på exakt den övningen.
+    // SYNK: Läs av vilket index listvyn (eller tidigare karusellsession) lämnade efter sig
     if (activeDraft.ui_state && typeof activeDraft.ui_state.currentExerciseIndex === 'number') {
         carouselCurrentIndex = activeDraft.ui_state.currentExerciseIndex;
     }
@@ -6824,15 +6900,15 @@ function carouselGoTo(i) {
     carouselStopRest();
     stopRestTimer();
 
-    setTimeout(async () => { // Gick över till async här för att hantera persistActiveWorkout
+    setTimeout(async () => {
         carouselCurrentIndex = i;
 
-        // SYNK: Spara ner indexet i ditt befintliga ui_state så att listvyn vet var du är.
-        // Vi ser också till att hålla openExercises uppdaterat så listvyn expanderar rätt kort direkt.
+        // SYNK: När användaren bläddrar i karusellen, spara det direkt till ui_state.
+        // Vi sätter också openExercises till samma index så listvyn vet vilket kort som ska vara öppet.
         if (!activeDraft.ui_state) activeDraft.ui_state = {};
         activeDraft.ui_state.currentExerciseIndex = i;
         activeDraft.ui_state.openExercises = [i]; 
-        await persistActiveWorkout(); // Sparar det nya indexet i bakgrunden
+        await persistActiveWorkout();
 
         const prevActive = document.querySelector('.carousel-ex-thumb.active');
         if (prevActive) prevActive.classList.remove('active');
