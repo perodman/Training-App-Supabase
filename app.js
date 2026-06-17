@@ -4571,13 +4571,13 @@ function updateSingleExerciseCard(exIdx) {
                 <small style="color: ${isDone ? '#22c55e' : 'var(--primary)'}; font-size: 10px;">${isDone ? 'DONE ✅' : `${completedSets}/${totalSets} set`}</small>
             </div>
             <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0; margin-left: 6px; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch;">
-               <button onclick="event.stopPropagation(); toggleExerciseNote(${exIdx})" style="background:#1e2d3d;border:1px solid #2a3d52;color:#94a3b8;border-radius:20px;padding:4px 8px;font-size:11px;font-weight:700;display:flex;align-items:center;gap:4px;position:relative;">
+               <button onclick="event.stopPropagation(); toggleExerciseNote(${exIdx})" style="background:#1e2d3d;border:1px solid #2a3d52;color:#94a3b8;border-radius:20px;padding:5px 10px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:5px;position:relative;">
                             <span style="font-size:12px;">📝</span>${exerciseData.note ? '<span style="position:absolute; top:2px; right:2px; width:6px; height:6px; background:#fde047; border-radius:50%;"></span>' : ''}<span style="color:#f8fafc;">Note</span>
                         </button>
-                        <button onclick="event.stopPropagation(); openReplaceExerciseModal(${exIdx})" style="background:#1a3040;border:1px solid #22d3ee;color:#22d3ee;border-radius:20px;padding:4px 8px;font-size:11px;font-weight:700;display:flex;align-items:center;gap:4px;" ${isDone ? 'disabled' : ''}>
+                        <button onclick="event.stopPropagation(); openReplaceExerciseModal(${exIdx})" style="background:#1a3040;border:1px solid #22d3ee;color:#22d3ee;border-radius:20px;padding:5px 10px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:5px;" ${isDone ? 'disabled' : ''}>
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16V4m0 0L3 8m4-4l4 4"/><path d="M17 8v12m0 0l4-4m-4 4l-4-4"/></svg> Swap
                         </button>
-                        <button onclick="event.stopPropagation(); removeActiveExercise(${exIdx})" style="background:#2d1a1a;border:1px solid #7f1d1d;color:#ef4444;border-radius:20px;padding:4px 8px;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;" ${isDone ? 'disabled' : ''}>
+                        <button onclick="event.stopPropagation(); removeActiveExercise(${exIdx})" style="background:#2d1a1a;border:1px solid #7f1d1d;color:#ef4444;border-radius:20px;padding:5px 10px;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;" ${isDone ? 'disabled' : ''}>
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                         </button>
                         <span style="font-size: 10px; color: var(--text-light); margin-left: 5px; transform: ${isOpen ? 'rotate(180deg)' : 'rotate(0)'}; transition: 0.3s;"> ▼ </span>
