@@ -6732,7 +6732,7 @@ function renderCarouselCard() {
                 <button onclick="removeSetFromExercise(${i}, ${sIdx})" style="background:none; border:none; color:var(--danger); font-size:16px; opacity:${showSuccess ? '0.1' : isCurrent ? '0.8' : '0.4'};" ${showSuccess ? 'disabled' : ''}>×</button>
             </div>`;
             if (isCurrent && sIdx === firstUnconfirmed) {
-                setsHtml += `<div style="margin:-4px 0 8px 44px; font-size:10px; color:var(--primary); font-weight:600; opacity:0.8;">💡 Confirm set to continue</div>`;
+                setsHtml += `<div style="margin:-4px 0 8px 44px; font-size:10px; color:var(--primary); font-weight:600; opacity:0.8;">💡 Select ${statusContent} to lock & continue</div>`;
             }
         });
     }
