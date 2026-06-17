@@ -6706,8 +6706,18 @@ function renderCarouselCard() {
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16V4m0 0L3 8m4-4l4 4"/><path d="M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>
                     <span style="font-size:11px;font-weight:700;color:#22d3ee;">Swap</span>
                 </div>
+                <div onclick="const z=document.getElementById('anim-modal-${i}'); z.style.display=z.style.display==='flex'?'none':'flex';" style="display:flex;align-items:center;justify-content:center;padding:5px 10px;border-radius:20px;background:rgba(34,211,238,0.08);border:1px solid rgba(34,211,238,0.2);cursor:pointer;flex-shrink:0;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                </div>
                 <div onclick="${isDone ? '' : `removeActiveExercise(${i})`}" style="display:flex;align-items:center;justify-content:center;padding:5px 10px;border-radius:20px;background:#2d1a1a;border:1px solid #7f1d1d;cursor:pointer;${isDone ? 'opacity:0.3;pointer-events:none;' : ''}">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </div>
+                <div id="anim-modal-${i}" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:9999;align-items:center;justify-content:center;" onclick="this.style.display='none'">
+                    <div style="background:#1e293b;border-radius:16px;padding:20px;width:90%;max-width:400px;">
+                        <div style="font-size:12px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">Animation</div>
+                        ${svg}
+                        <div style="font-size:11px;color:#475569;text-align:center;margin-top:10px;">Animation coming soon</div>
+                    </div>
                 </div>
             </div>
         </div>`;
@@ -6759,16 +6769,6 @@ function renderCarouselCard() {
     setsHtml += `</div>`;
 
     card.innerHTML = `
-        <div style="border-bottom:1px solid rgba(255,255,255,0.05);">
-    <div onclick="const z=this.nextElementSibling; const a=this.querySelector('.anim-arrow'); const isOpen=z.style.maxHeight&&z.style.maxHeight!=='0px'; z.style.maxHeight=isOpen?'0px':'200px'; z.style.opacity=isOpen?'0':'1'; a.style.transform=isOpen?'rotate(0deg)':'rotate(180deg)';" style="display:flex; align-items:center; justify-content:space-between; padding:8px 14px; cursor:pointer;">
-        <span style="font-size:10px; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:1px;">Animation</span>
-        <span class="anim-arrow" style="color:#475569; font-size:12px; transition:transform 0.3s ease;">▼</span>
-    </div>
-    <div class="carousel-anim-zone" style="max-height:0px; opacity:0; overflow:hidden; transition:max-height 0.35s ease, opacity 0.3s ease; display:flex;">
-        ${svg}
-        <div class="anim-placeholder-label">Animation coming soon</div>
-    </div>
-</div>
         <div style="padding:10px 14px 4px; display:flex; align-items:center; justify-content:space-between; gap:8px;">
             <div style="min-width:0; flex:1;">
                 <div style="font-size:16px; font-weight:900; color:${isDone ? 'var(--text-light)' : 'var(--text)'}; text-decoration:${isDone ? 'line-through' : 'none'}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${ex.name}</div>
