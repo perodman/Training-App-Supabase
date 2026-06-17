@@ -3691,13 +3691,13 @@ function renderActiveWorkout() {
                 <div style="position:absolute; top:0; left:0; right:0; height:1px; background: linear-gradient(90deg, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0.08) 100%); pointer-events:none; z-index:2;"></div>
                 <div style="position:absolute; bottom:0; left:0; right:0; height:1px; background: linear-gradient(90deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.03) 100%); pointer-events:none; z-index:2;"></div>
                 <div style="position:absolute; top:0; right:0; bottom:0; width:1px; background: linear-gradient(180deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0) 100%); pointer-events:none; z-index:2;"></div>
-                <div onclick="toggleExercise(${i})" style="padding: 12px 15px; display: flex; align-items: center; cursor: pointer; background: ${isOpen ? 'rgba(250, 204, 21, 0.05)' : 'transparent'}">
+               <div onclick="toggleExercise(${i})" style="padding: 12px 15px; display: flex; align-items: center; cursor: pointer; background: ${isOpen ? 'rgba(250, 204, 21, 0.05)' : 'transparent'}; overflow: hidden;">
                     <div style="width: 8px; flex-shrink: 0;"></div>
                     <div style="display: flex; flex-direction: column; min-width:0; flex-grow:1;">
                         <strong style="font-size: 14px; color: ${isDone ? 'var(--text-light)' : 'var(--text)'}; text-decoration: ${isDone ? 'line-through' : 'none'}; white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">${ex.name}</strong>
                         <small style="color: ${isDone ? '#22c55e' : 'var(--primary)'}; font-size: 10px;">${isDone ? 'DONE  ✅ ' : `${completedSets}/${totalSets} set`}</small>
                     </div>
-                    <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0; margin-left: 10px;">
+                    <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0; margin-left: 6px; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch;">
                        <button onclick="event.stopPropagation(); toggleExerciseNote(${i})" style="background:#1e2d3d;border:1px solid #2a3d52;color:#94a3b8;border-radius:20px;padding:5px 10px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:5px;position:relative;">
                             <span style="font-size:13px;">📝</span>${exerciseData.note ? '<span style="position:absolute; top:2px; right:2px; width:6px; height:6px; background:#fde047; border-radius:50%;"></span>' : ''}<span style="color:#f8fafc;">Note</span>
                         </button>
@@ -4570,7 +4570,7 @@ function updateSingleExerciseCard(exIdx) {
                 <strong style="font-size: 14px; color: ${isDone ? 'var(--text-light)' : 'var(--text)'}; text-decoration: ${isDone ? 'line-through' : 'none'}; white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">${ex.name}</strong>
                 <small style="color: ${isDone ? '#22c55e' : 'var(--primary)'}; font-size: 10px;">${isDone ? 'DONE ✅' : `${completedSets}/${totalSets} set`}</small>
             </div>
-            <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0; margin-left: 10px;">
+            <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0; margin-left: 6px; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch;">
                 <button onclick="event.stopPropagation(); toggleExerciseNote(${exIdx})" style="background:none; border:none; font-size:14px; padding:5px; opacity: 1; position:relative;">
                     📝${exerciseData.note ? '<span style="position:absolute; top:2px; right:2px; width:6px; height:6px; background:#fde047; border-radius:50%;"></span>' : ''}
                 </button>
