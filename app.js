@@ -6339,7 +6339,7 @@ function updateExerciseNote(firstArg, secondArg) {
     // Uppdatera pricken i list-vyn (om vi är där)
     const listNoteBtn = document.querySelector(`#exercise-card-${exIdx} button[onclick*="toggleExerciseNote"]`);
     if (listNoteBtn) {
-        listNoteBtn.innerHTML = `📝${ta.value ? '<span style="position:absolute; top:2px; right:2px; width:6px; height:6px; background:#fde047; border-radius:50%;"></span>' : ''}`;
+        listNoteBtn.innerHTML = `<span style="font-size:12px;position:relative;">📝${ta.value ? '<span style="position:absolute;top:-2px;right:-2px;width:6px;height:6px;background:#fde047;border-radius:50%;"></span>' : ''}</span><span style="color:#f8fafc;">Note</span>`;
     }
     
     debouncedPersistActiveWorkout();
