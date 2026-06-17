@@ -6339,15 +6339,14 @@ function updateExerciseNote(firstArg, secondArg) {
     // Uppdatera pricken i list-vyn (om vi är där)
     const listNoteBtn = document.querySelector(`#exercise-card-${exIdx} button[onclick*="toggleExerciseNote"]`);
     if (listNoteBtn) {
-        let dot = listNoteBtn.querySelector('.note-dot');
-        if (ta.value && !dot) {
-            dot = document.createElement('span');
+        const existingDot = listNoteBtn.querySelector('.note-dot');
+        if (ta.value && !existingDot) {
+            const dot = document.createElement('span');
             dot.className = 'note-dot';
-            dot.style.cssText = 'position:absolute;top:2px;right:2px;width:6px;height:6px;background:#fde047;border-radius:50%;';
-            listNoteBtn.style.position = 'relative';
+            dot.style.cssText = 'position:absolute;top:2px;right:2px;width:6px;height:6px;background:#fde047;border-radius:50%;pointer-events:none;';
             listNoteBtn.appendChild(dot);
-        } else if (!ta.value && dot) {
-            dot.remove();
+        } else if (!ta.value && existingDot) {
+            existingDot.remove();
         }
     }
     
