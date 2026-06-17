@@ -3496,13 +3496,15 @@ function renderActiveWorkout() {
     document.getElementById("active-title").textContent = activeDraft.workout.name;
     const container = document.getElementById("start-time-badge-container");
     if (container) container.innerHTML = "";
+    
+    // ÄNDRING: Formaterar tiden till "Started Workout 13:45"
     const startTimeStr = activeDraft.startTime 
         ? new Date(activeDraft.startTime).toLocaleTimeString('sv-SE', {hour: '2-digit', minute: '2-digit'})
         : '';
     if (startTimeStr) {
         const container = document.getElementById("start-time-badge-container");
         if (container) {
-            container.innerHTML = `<span style="display:inline-flex; align-items:center; gap:5px; background:rgba(34,197,94,0.08); border:1px solid rgba(34,197,94,0.2); border-radius:20px; padding:3px 10px; font-size:10px; color:#22c55e; font-weight:600;">⏱️ Started ${startTimeStr}</span>`;
+            container.innerHTML = `<span style="display:inline-flex; align-items:center; gap:5px; background:rgba(34,197,94,0.08); border:1px solid rgba(34,197,94,0.2); border-radius:20px; padding:3px 10px; font-size:10px; color:#22c55e; font-weight:600;">⏱️ Started Workout ${startTimeStr}</span>`;
         }
     }
     const list = document.getElementById("exercise-list");
@@ -3513,7 +3515,7 @@ function renderActiveWorkout() {
         if (footer) footer.classList.add("hidden");
         list.innerHTML = `
         <div style="text-align:center; padding:20px 0;">
-            <button class="mode-btn green" style="width:100%; padding:20px; font-size:18px; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);" onclick="actuallyStartWorkout()">START WORKOUT  🔥 </button>
+            <button class="mode-btn green" style="width:100%; padding:20px; font-size:18px; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);" onclick="actuallyStartWorkout()">START WORKOUT   🔥 </button>
         </div>
         <p style="color:var(--text-light); font-size:13px; text-align:center; margin-top:10px;">Klicka på knappen ovan för att starta klockan.</p>
         `;
@@ -3557,7 +3559,6 @@ function renderActiveWorkout() {
     }
     const openExercises = activeDraft.ui_state.openExercises;
     
-    // Variabler för att ackumulera totalen för hela träningspasset
     let totalWorkoutCompletedSets = 0;
     let totalWorkoutSets = 0;
 
@@ -3584,7 +3585,6 @@ function renderActiveWorkout() {
             const completedSets = exerciseData.sets_data ? exerciseData.sets_data.filter(s => s.userConfirmed).length : 0;
             const totalSets = exerciseData.sets_data ? exerciseData.sets_data.length : 0;
             
-            // Addera den här övningens set till hela passets total
             totalWorkoutCompletedSets += completedSets;
             totalWorkoutSets += totalSets;
 
@@ -3662,7 +3662,6 @@ function renderActiveWorkout() {
         list.appendChild(emptyNotice);
     }
 
-    // ANROP: Uppdatera mätaren i headern med de ihopräknade värdena för hela passet
     if (typeof updateWorkoutProgress === 'function') {
         updateWorkoutProgress(totalWorkoutCompletedSets, totalWorkoutSets);
     }
@@ -3686,11 +3685,17 @@ function renderActiveWorkout() {
         discardBtn.innerHTML = "Delete Workout 🗑️";
         discardBtn.onclick = confirmDiscardActiveWorkout;
         discardContainer.appendChild(discardBtn);
-        discardContainer.appendChild(discardBtn);
         viewContainer.appendChild(discardContainer);
     }
     showView("workout-view");
     renderRestTimer();
+    
+    // TIDTAGARE FIX: Tvinga texten till höger att visa rätt minuter direkt när vyn ritas om
+    const minutesEl = document.getElementById("workout-duration-minutes");
+    if (minutesEl && typeof secondsElapsed === 'number') {
+        minutesEl.textContent = `${Math.floor(secondsElapsed / 60)} min`;
+    }
+
     setTimeout(() => initDragAndDrop(), 50);
     const savedLayout = localStorage.getItem('workoutLayoutMode') || 'list';
     const listBtn = document.getElementById('layout-list-btn');
@@ -4012,19 +4017,40 @@ async function toggleExerciseDone(exIdx) {
     }
 }
 
-async function actuallyStartWorkout() {
+function actuallyStartWorkout() {
+    if (!activeDraft) return;
+
+    // Sätt starttiden till exakt just nu
+    activeDraft.startTime = new Date().toISOString();
     activeDraft.isStarted = true;
-    activeDraft.wasTimerRunning = true;
-    
-    // Sätt starttiden till just NU om den inte redan har registrerats tidigare
-    if (!activeDraft.startTime) {
-        activeDraft.startTime = new Date().toISOString();
+    secondsElapsed = 0;
+
+    // Om ui_state inte finns, skapa det och öppna första övningen
+    if (!activeDraft.ui_state) activeDraft.ui_state = {};
+    activeDraft.ui_state.openExercises = [0];
+    activeDraft.ui_state.hasInitializedOpen = true;
+
+    // Starta den globala tidtagaren (om du har en startTimer-funktion)
+    if (typeof startTimer === 'function') {
+        startTimer();
+    } else {
+        // Fallback: Om startTimer inte hittas, se till att sekundräknaren tickar
+        if (window.workoutInterval) clearInterval(window.workoutInterval);
+        window.workoutInterval = setInterval(() => {
+            secondsElapsed++;
+            // Uppdatera tidsdisplayen till höger live om det behövs
+            const minutesEl = document.getElementById("workout-duration-minutes"); // Justera ID om du har ett specifikt element för "0 min"
+            if (minutesEl) {
+                minutesEl.textContent = `${Math.floor(secondsElapsed / 60)} min`;
+            }
+        }, 1000);
     }
 
-    // Aktiverar passet och tidtagningen i bakgrunden mot Supabase
-    await persistActiveWorkout();
+    // Spara det nya startade läget till Supabase/localStorage
+    if (typeof persistActiveWorkout === 'function') persistActiveWorkout();
+
+    // Rita om vyn så att träningspasset och alla övningar visas
     renderActiveWorkout();
-    if (typeof startTimer === "function") startTimer();
 }
 
 function openAddExerciseToWorkoutModal() {
