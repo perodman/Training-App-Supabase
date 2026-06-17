@@ -3914,9 +3914,25 @@ async function toggleExercise(index) {
     const openIdx = activeDraft.ui_state.openExercises.indexOf(index);
     if (openIdx > -1) {
         activeDraft.ui_state.openExercises.splice(openIdx, 1);
+        
+        // Om det stängda kortet var det aktiva, sätt föregående öppna kort som aktivt
+        if (activeDraft.ui_state.currentExerciseIndex === index) {
+            activeDraft.ui_state.currentExerciseIndex = activeDraft.ui_state.openExercises.length > 0 
+                ? activeDraft.ui_state.openExercises[activeDraft.ui_state.openExercises.length - 1] 
+                : 0;
+        }
     } else {
         activeDraft.ui_state.openExercises.push(index);
+        
+        // SYNK: Här sätter vi direkt vilket index som är det senast öppnade i listvyn.
+        activeDraft.ui_state.currentExerciseIndex = index;
     }
+
+    // Uppdatera även den dolda globala karusellvariabeln direkt i bakgrunden
+    carouselCurrentIndex = typeof activeDraft.ui_state.currentExerciseIndex === 'number' 
+        ? activeDraft.ui_state.currentExerciseIndex 
+        : 0;
+
     window._suppressAutoScroll = true;
     await persistActiveWorkout();
     renderActiveWorkout();
@@ -5158,17 +5174,6 @@ async function deleteLoggedWorkout(date, idx) {
         } catch(e) { console.error(e); }
     }
 
-    // LÖSNING PÅ SPÖK-MINNET: Innan vi sätter activeDraft till null, 
-    // nollställer vi karusellens index och tömmer listvyns sparade tillstånd helt.
-    carouselCurrentIndex = 0;
-    if (activeDraft) {
-        activeDraft.ui_state = {
-            activeView: 'list',
-            currentExerciseIndex: 0,
-            openExercises: []
-        };
-    }
-
     activeDraft = null;
     await saveAll();
     closeModal();
@@ -5499,6 +5504,21 @@ function confirmDiscardActiveWorkout() {
         clearInterval(carouselRestInterval);
         carouselRestActive = false;
         carouselRestSeconds = 0;
+
+        // LÖSNING PÅ SPÖK-MINNET: Innan vi kastar bort activeDraft och sparar,
+        // nollställer vi karusellens index globalt, och tömmer sparade tillstånd helt.
+        carouselCurrentIndex = 0;
+        if (activeDraft) {
+            activeDraft.ui_state = {
+                activeView: 'list',
+                currentExerciseIndex: 0,
+                openExercises: [0] // Gör så att nästa pass startar med första övningen öppen
+            };
+            if (activeDraft.ui_state.hasOwnProperty('hasInitializedOpen')) {
+                delete activeDraft.ui_state.hasInitializedOpen;
+            }
+        }
+
         activeDraft = null;
         localStorage.removeItem("activeWorkoutDraft");
         if (typeof stopTimer === 'function') stopTimer();
@@ -5513,7 +5533,7 @@ function confirmDiscardActiveWorkout() {
                 console.error("Supabase: Fel vid radering av pågående utkast:", err);
             }
         }
-       // UX-OPTIMERING: Skifta gränssnittet till kalendern innan vi stänger modalen.
+        // UX-OPTIMERING: Skifta gränssnittet till kalendern innan vi stänger modalen.
         if (typeof showView === 'function') showView("calendar-view");
         
         // Uppdatera kalendervyn så att det raderade passet försvinner direkt
