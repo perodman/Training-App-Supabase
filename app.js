@@ -4043,7 +4043,12 @@ async function toggleExerciseDone(exIdx) {
     const targetCard = document.getElementById(`exercise-card-${exIdx}`);
     const existingHandle = targetCard ? targetCard.querySelector('.drag-handle') : null;
 
-    updateSingleExerciseCard(exIdx);
+    const savedLayout = localStorage.getItem('workoutLayoutMode') || 'list';
+    if (savedLayout === 'carousel') {
+        renderCarouselCard();
+    } else {
+        updateSingleExerciseCard(exIdx);
+    }
 
     // Återlägg handtaget direkt
     if (existingHandle) {
