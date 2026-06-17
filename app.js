@@ -6401,6 +6401,13 @@ function renderCarousel() {
     const exercises = activeDraft.workout.exercises;
     const data = activeDraft.data;
     if (!exercises || exercises.length === 0) return;
+
+    // SYNK: Om det finns en expanderad/aktiv övning från listvyn sparad i ui_state,
+    // se till att karusellen startar på exakt den övningen.
+    if (activeDraft.ui_state && typeof activeDraft.ui_state.currentExerciseIndex === 'number') {
+        carouselCurrentIndex = activeDraft.ui_state.currentExerciseIndex;
+    }
+
     container.innerHTML = `
         <div class="carousel-nav-bar" id="carousel-nav-bar-inner"></div>
         <div class="carousel-card-area" id="carousel-card-area">
@@ -6421,7 +6428,6 @@ function renderCarousel() {
     initCarouselSwipe();
     initCarouselDragAndDrop();
 
-    // Uppdatera den globala set-räknaren i headern även när karusellen laddas/ritas om
     if (typeof updateWorkoutProgress === 'function' && activeDraft.data) {
         let totalWorkoutCompletedSets = 0;
         let totalWorkoutSets = 0;
@@ -6818,8 +6824,15 @@ function carouselGoTo(i) {
     carouselStopRest();
     stopRestTimer();
 
-    setTimeout(() => {
+    setTimeout(async () => { // Gick över till async här för att hantera persistActiveWorkout
         carouselCurrentIndex = i;
+
+        // SYNK: Spara ner indexet i ditt befintliga ui_state så att listvyn vet var du är.
+        // Vi ser också till att hålla openExercises uppdaterat så listvyn expanderar rätt kort direkt.
+        if (!activeDraft.ui_state) activeDraft.ui_state = {};
+        activeDraft.ui_state.currentExerciseIndex = i;
+        activeDraft.ui_state.openExercises = [i]; 
+        await persistActiveWorkout(); // Sparar det nya indexet i bakgrunden
 
         const prevActive = document.querySelector('.carousel-ex-thumb.active');
         if (prevActive) prevActive.classList.remove('active');
