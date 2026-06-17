@@ -6756,10 +6756,16 @@ function renderCarouselCard() {
     setsHtml += `</div>`;
 
     card.innerHTML = `
-        <div class="carousel-anim-zone">
-            ${svg}
-            <div class="anim-placeholder-label">Animation coming soon</div>
-        </div>
+        <div style="border-bottom:1px solid rgba(255,255,255,0.05);">
+    <div onclick="const z=this.nextElementSibling; const a=this.querySelector('.anim-arrow'); const isOpen=z.style.maxHeight&&z.style.maxHeight!=='0px'; z.style.maxHeight=isOpen?'0px':'200px'; z.style.opacity=isOpen?'0':'1'; a.style.transform=isOpen?'rotate(0deg)':'rotate(180deg)';" style="display:flex; align-items:center; justify-content:space-between; padding:8px 14px; cursor:pointer;">
+        <span style="font-size:10px; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:1px;">Animation</span>
+        <span class="anim-arrow" style="color:#475569; font-size:12px; transition:transform 0.3s ease;">▼</span>
+    </div>
+    <div class="carousel-anim-zone" style="max-height:0px; opacity:0; overflow:hidden; transition:max-height 0.35s ease, opacity 0.3s ease; display:flex;">
+        ${svg}
+        <div class="anim-placeholder-label">Animation coming soon</div>
+    </div>
+</div>
         <div style="padding:10px 14px 4px; display:flex; align-items:center; justify-content:space-between; gap:8px;">
             <div style="min-width:0; flex:1;">
                 <div style="font-size:16px; font-weight:900; color:${isDone ? 'var(--text-light)' : 'var(--text)'}; text-decoration:${isDone ? 'line-through' : 'none'}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${ex.name}</div>
