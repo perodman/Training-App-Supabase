@@ -6380,6 +6380,9 @@ function renderCarouselCard() {
 
     const catDisplay = CATEGORY_DISPLAY[ex.target] || ex.target || '';
 
+    // Kolla om automatisk timer är på (On/Off) för att färgsätta kugghjulet
+    const isAutoTimerOn = !!(activeDraft.ui_state?.autoRest); 
+
     // Action-bar pills
     const actionBar = `
         <div style="overflow-x:auto; scrollbar-width:none; margin-bottom:10px; -webkit-overflow-scrolling:touch;">
@@ -6445,11 +6448,26 @@ function renderCarouselCard() {
                 <div style="font-size:16px; font-weight:900; color:${isDone ? 'var(--text-light)' : 'var(--text)'}; text-decoration:${isDone ? 'line-through' : 'none'}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${ex.name}</div>
                 <div style="font-size:10px; color:${isDone ? '#22c55e' : 'var(--primary)'}; font-weight:800; margin-top:1px;">${isDone ? 'DONE ✅' : `${catDisplay}${catDisplay ? ' · ' : ''}${completedSets}/${totalSets} sets`}</div>
             </div>
-            <div id="carousel-rest-badge" onclick="carouselToggleRestBadge()" style="flex-shrink:0; display:flex; align-items:center; gap:5px; padding:5px 10px; border-radius:12px; cursor:pointer; border:1px solid ${restTimerActive ? 'rgba(245,158,11,0.4)' : 'rgba(255,255,255,0.08)'}; background:${restTimerActive ? 'rgba(245,158,11,0.08)' : 'rgba(255,255,255,0.04)'}; transition:all 0.2s;">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="${restTimerActive ? '#f59e0b' : '#64748b'}" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
-                <span style="font-size:12px; font-weight:800; color:${restTimerActive ? '#f59e0b' : '#64748b'}; font-family:monospace;" id="carousel-rest-badge-time">${restTimerActive ? formatRestTime(restTimerSeconds) : 'Rest'}</span>
+            
+            <div id="carousel-rest-badge" style="flex-shrink:0; display:flex; align-items:center; border-radius:14px; border:1px solid ${restTimerActive ? 'rgba(245,158,11,0.4)' : 'rgba(255,255,255,0.08)'}; background:${restTimerActive ? 'rgba(245,158,11,0.08)' : 'rgba(255,255,255,0.04)'}; overflow:hidden; transition:all 0.2s;">
+                
+                <div onclick="carouselToggleRestBadge()" style="display:flex; align-items:center; gap:5px; padding:6px 10px; cursor:pointer; background:rgba(255,255,255,0.02);" title="Open timer controls">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="${restTimerActive ? '#f59e0b' : '#64748b'}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <span style="font-size:12px; font-weight:800; color:${restTimerActive ? '#f59e0b' : '#64748b'}; font-family:monospace;" id="carousel-rest-badge-time">${restTimerActive ? formatRestTime(restTimerSeconds) : 'Rest'}</span>
+                </div>
+
+                <div style="width:1px; height:16px; background:rgba(255,255,255,0.12);"></div>
+
+                <div onclick="carouselToggleRestBadge()" style="padding:6px 10px; display:flex; align-items:center; justify-content:center; cursor:pointer; position:relative;" title="${isAutoTimerOn ? 'Auto-Timer is ON' : 'Auto-Timer is OFF'}">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="${isAutoTimerOn ? '#22d3ee' : '#475569'}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="${restTimerActive ? 'animation: spin 8s linear infinite;' : ''}">
+                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                    </svg>
+                    ${isAutoTimerOn ? '<span style="position:absolute; top:4px; right:4px; width:4px; height:4px; background:#22d3ee; border-radius:50%;"></span>' : ''}
+                </div>
             </div>
         </div>
+        
         <div id="carousel-rest-dropdown" style="display:none; margin:0 14px 6px; background:rgba(245,158,11,0.06); border:1px solid rgba(245,158,11,0.2); border-radius:12px; padding:8px 12px;">
             <div style="display:flex; align-items:center; justify-content:space-between;">
                 <div>
