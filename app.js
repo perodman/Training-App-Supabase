@@ -6769,43 +6769,32 @@ function renderCarouselCard() {
         <div class="anim-placeholder-label">Animation coming soon</div>
     </div>
 </div>
-        <div style="padding:10px 14px 4px; display:flex; align-items:center; justify-content:space-between; gap:8px;">
-            <div style="min-width:0; flex:1;">
-                <div style="display:flex; align-items:center; justify-content:space-between; gap:6px;">
-                    <div style="font-size:16px; font-weight:900; color:${isDone ? 'var(--text-light)' : 'var(--text)'}; text-decoration:${isDone ? 'line-through' : 'none'}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${ex.name}</div>
-                    <div style="display:flex; gap:5px; align-items:center; overflow-x:auto; scrollbar-width:none; -webkit-overflow-scrolling:touch; flex-shrink:0;">
-                        <div onclick="carouselToggleNote(${i})" style="display:flex;align-items:center;gap:5px;padding:4px 8px;border-radius:20px;border:1px solid ${exData.note ? 'rgba(253,224,71,0.4)' : '#2a3d52'};background:${exData.note ? 'rgba(253,224,71,0.06)' : '#1e2d3d'};cursor:pointer;position:relative;flex-shrink:0;">
-                            <span style="font-size:12px;">📝</span><span style="font-size:11px;font-weight:700;color:${exData.note ? '#fde047' : '#f8fafc'};">Note</span>
-                        </div>
-                        <div onclick="${isDone ? '' : `openReplaceExerciseModal(${i})`}" style="display:flex;align-items:center;gap:5px;padding:4px 8px;border-radius:20px;background:#1a3040;border:1px solid #22d3ee;cursor:pointer;flex-shrink:0;${isDone ? 'opacity:0.3;pointer-events:none;' : ''}">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16V4m0 0L3 8m4-4l4 4"/><path d="M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>
-                            <span style="font-size:11px;font-weight:700;color:#22d3ee;">Swap</span>
-                        </div>
-                        <div onclick="${isDone ? '' : `removeActiveExercise(${i})`}" style="display:flex;align-items:center;justify-content:center;padding:4px 8px;border-radius:20px;background:#2d1a1a;border:1px solid #7f1d1d;cursor:pointer;flex-shrink:0;${isDone ? 'opacity:0.3;pointer-events:none;' : ''}">
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
-                        </div>
+        <div style="padding:10px 14px 4px;">
+            <div style="display:flex; align-items:center; gap:5px; overflow-x:auto; scrollbar-width:none; -webkit-overflow-scrolling:touch; margin-bottom:4px;">
+                <div style="font-size:16px; font-weight:900; color:${isDone ? 'var(--text-light)' : 'var(--text)'}; text-decoration:${isDone ? 'line-through' : 'none'}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex-shrink:0; margin-right:4px;">${ex.name}</div>
+                <div id="carousel-rest-badge" style="flex-shrink:0; display:flex; align-items:center; border-radius:14px; border:1px solid ${restTimerActive ? 'rgba(245,158,11,0.4)' : 'rgba(255,255,255,0.08)'}; background:${restTimerActive ? 'rgba(245,158,11,0.08)' : 'rgba(255,255,255,0.04)'}; overflow:hidden; transition:all 0.2s;">
+                    <div onclick="carouselToggleRestBadge()" style="display:flex; align-items:center; gap:5px; padding:4px 8px; cursor:pointer;">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="${restTimerActive ? '#f59e0b' : '#64748b'}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        <span style="font-size:11px; font-weight:800; color:${restTimerActive ? '#f59e0b' : '#64748b'}; font-family:monospace;" id="carousel-rest-badge-time">${restTimerActive ? formatRestTime(restTimerSeconds) : 'Rest'}</span>
+                    </div>
+                    <div style="width:1px; height:14px; background:rgba(255,255,255,0.12);"></div>
+                    <div onclick="carouselToggleRestBadge()" style="padding:4px 8px; display:flex; align-items:center; justify-content:center; cursor:pointer; position:relative;">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="${isAutoTimerOn ? '#22d3ee' : '#475569'}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="${restTimerActive ? 'animation: spin 8s linear infinite;' : ''}"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                        ${isAutoTimerOn ? '<span style="position:absolute; top:2px; right:2px; width:4px; height:4px; background:#22d3ee; border-radius:50%;"></span>' : ''}
                     </div>
                 </div>
-                <div style="font-size:10px; color:${isDone ? '#22c55e' : 'var(--primary)'}; font-weight:800; margin-top:1px;">${isDone ? 'DONE ✅' : `${catDisplay}${catDisplay ? ' · ' : ''}${completedSets}/${totalSets} sets`}</div>
-            </div>
-             
-            <div id="carousel-rest-badge" style="flex-shrink:0; display:flex; align-items:center; border-radius:14px; border:1px solid ${restTimerActive ? 'rgba(245,158,11,0.4)' : 'rgba(255,255,255,0.08)'}; background:${restTimerActive ? 'rgba(245,158,11,0.08)' : 'rgba(255,255,255,0.04)'}; overflow:hidden; transition:all 0.2s;">
-                 
-                <div onclick="carouselToggleRestBadge()" style="display:flex; align-items:center; gap:5px; padding:6px 10px; cursor:pointer; background:rgba(255,255,255,0.02);" title="Open timer controls">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="${restTimerActive ? '#f59e0b' : '#64748b'}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                    <span style="font-size:12px; font-weight:800; color:${restTimerActive ? '#f59e0b' : '#64748b'}; font-family:monospace;" id="carousel-rest-badge-time">${restTimerActive ? formatRestTime(restTimerSeconds) : 'Rest'}</span>
+                <div onclick="carouselToggleNote(${i})" style="display:flex;align-items:center;gap:4px;padding:4px 8px;border-radius:20px;border:1px solid ${exData.note ? 'rgba(253,224,71,0.4)' : '#2a3d52'};background:${exData.note ? 'rgba(253,224,71,0.06)' : '#1e2d3d'};cursor:pointer;flex-shrink:0;">
+                    <span style="font-size:12px;">📝</span><span style="font-size:11px;font-weight:700;color:${exData.note ? '#fde047' : '#f8fafc'};">Note</span>
                 </div>
-
-                <div style="width:1px; height:16px; background:rgba(255,255,255,0.12);"></div>
-
-                <div onclick="carouselToggleRestBadge()" style="padding:6px 10px; display:flex; align-items:center; justify-content:center; cursor:pointer; position:relative;" title="${isAutoTimerOn ? 'Auto-Timer is ON' : 'Auto-Timer is OFF'}">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="${isAutoTimerOn ? '#22d3ee' : '#475569'}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="${restTimerActive ? 'animation: spin 8s linear infinite;' : ''}">
-                        <circle cx="12" cy="12" r="3"/>
-                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-                    </svg>
-                    ${isAutoTimerOn ? '<span style="position:absolute; top:4px; right:4px; width:4px; height:4px; background:#22d3ee; border-radius:50%;"></span>' : ''}
+                <div onclick="${isDone ? '' : `openReplaceExerciseModal(${i})`}" style="display:flex;align-items:center;gap:4px;padding:4px 8px;border-radius:20px;background:#1a3040;border:1px solid #22d3ee;cursor:pointer;flex-shrink:0;${isDone ? 'opacity:0.3;pointer-events:none;' : ''}">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16V4m0 0L3 8m4-4l4 4"/><path d="M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>
+                    <span style="font-size:11px;font-weight:700;color:#22d3ee;">Swap</span>
+                </div>
+                <div onclick="${isDone ? '' : `removeActiveExercise(${i})`}" style="display:flex;align-items:center;justify-content:center;padding:4px 8px;border-radius:20px;background:#2d1a1a;border:1px solid #7f1d1d;cursor:pointer;flex-shrink:0;${isDone ? 'opacity:0.3;pointer-events:none;' : ''}">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
                 </div>
             </div>
+            <div style="font-size:10px; color:${isDone ? '#22c55e' : 'var(--primary)'}; font-weight:800;">${isDone ? 'DONE ✅' : `${catDisplay}${catDisplay ? ' · ' : ''}${completedSets}/${totalSets} sets`}</div>
         </div>
         
         <div id="carousel-rest-dropdown" style="display:none; margin:0 14px 6px; background:rgba(245,158,11,0.06); border:1px solid rgba(245,158,11,0.2); border-radius:12px; padding:8px 12px;">
