@@ -3999,6 +3999,11 @@ async function toggleExerciseDone(exIdx) {
 async function actuallyStartWorkout() {
     activeDraft.isStarted = true;
     activeDraft.wasTimerRunning = true;
+    
+    // Sätt starttiden till just NU om den inte redan har registrerats tidigare
+    if (!activeDraft.startTime) {
+        activeDraft.startTime = new Date().toISOString();
+    }
 
     // Aktiverar passet och tidtagningen i bakgrunden mot Supabase
     await persistActiveWorkout();
@@ -6415,6 +6420,20 @@ function renderCarousel() {
     renderCarouselCard();
     initCarouselSwipe();
     initCarouselDragAndDrop();
+
+    // Uppdatera den globala set-räknaren i headern även när karusellen laddas/ritas om
+    if (typeof updateWorkoutProgress === 'function' && activeDraft.data) {
+        let totalWorkoutCompletedSets = 0;
+        let totalWorkoutSets = 0;
+        activeDraft.data.forEach(exerciseData => {
+            if (exerciseData && exerciseData.sets_data) {
+                totalWorkoutSets += exerciseData.sets_data.length;
+                totalWorkoutCompletedSets += exerciseData.sets_data.filter(s => s.userConfirmed).length;
+            }
+        });
+        updateWorkoutProgress(totalWorkoutCompletedSets, totalWorkoutSets);
+    }
+
     setTimeout(() => {
         const active = document.getElementById(`carousel-thumb-${carouselCurrentIndex}`);
         if (active) active.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
