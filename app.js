@@ -6275,7 +6275,15 @@ function toggleExerciseNote(exIdx) {
     } else {
         activeDraft.ui_state.openNotes.push(exIdx);
     }
+const targetCard = document.getElementById(`exercise-card-${exIdx}`);
+    const existingHandle = targetCard ? targetCard.querySelector('.drag-handle') : null;
     updateSingleExerciseCard(exIdx);
+    if (existingHandle) {
+        const updatedHeader = targetCard.querySelector('div[onclick^="toggleExercise"]');
+        if (updatedHeader && !updatedHeader.querySelector('.drag-handle')) {
+            updatedHeader.insertBefore(existingHandle, updatedHeader.firstChild);
+        }
+    }
     setTimeout(() => {
         const ta = document.getElementById(`note-input-${exIdx}`);
         if (ta && activeDraft.ui_state.openNotes.includes(exIdx)) ta.focus();
