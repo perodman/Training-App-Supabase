@@ -208,23 +208,24 @@
             </div>
         </div>
 
-        <!-- ================= UPPDATERAD WORKOUT VIEW HEADER ================= -->
+        <!-- ================= FIXAD DYNAMISK WORKOUT VIEW HEADER ================= -->
         <div id="workout-view" class="view hidden">
             <div style="
                 background: rgba(13, 21, 39, 0.6); 
                 border-radius: 16px; 
-                padding: 16px 20px 14px 20px; 
+                padding: 16px 20px 18px 20px; 
                 margin: 10px 15px 20px 15px;
                 box-shadow: 0 4px 20px rgba(0,0,0,0.15);
                 border: 1px solid rgba(255, 255, 255, 0.03);
+                position: relative;
+                overflow: hidden;
             ">
                 <!-- ÖVRE DELEN: Rubriker och Layout-kontroller -->
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; gap: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; gap: 12px;">
                     <div>
                         <div style="font-size: 10px; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 4px;">
                             Active Workout
                         </div>
-                        <!-- Titeln fylls i dynamiskt av ditt script via detta ID -->
                         <h2 id="active-title" style="margin: 0; font-size: 24px; font-weight: 800; color: #ffffff; letter-spacing: -0.5px; line-height: 1.2;"></h2>
                     </div>
 
@@ -232,32 +233,39 @@
                         <span style="font-size: 11px; font-weight: 600; color: #475569; letter-spacing: 0.3px;">
                             Choose Layout
                         </span>
-                        <!-- ID bevarat för din JS-logik -->
-                        <div id="workout-layout-toggle" style="display: flex; gap: 6px;">
-                            <div id="layout-list-btn" onclick="setWorkoutLayout('list')" class="hdr-layout-btn" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 10px; width: 36px; height: 34px; display: flex; align-items: center; justify-content: center; color: #475569; cursor: pointer; transition: all 0.2s;">
-                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><circle cx="3" cy="6" r="1" fill="currentColor"></circle><circle cx="3" cy="12" r="1" fill="currentColor"></circle><circle cx="3" cy="18" r="1" fill="currentColor"></circle></svg>
+                        <div id="workout-layout-toggle" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 3px; display: flex; gap: 2px;">
+                            <div id="layout-list-btn" onclick="setWorkoutLayout('list')" class="hdr-layout-btn" style="border-radius: 9px; width: 34px; height: 32px; display: flex; align-items: center; justify-content: center; color: #475569; cursor: pointer; transition: all 0.2s;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><circle cx="3" cy="6" r="1" fill="currentColor"></circle><circle cx="3" cy="12" r="1" fill="currentColor"></circle><circle cx="3" cy="18" r="1" fill="currentColor"></circle></svg>
                             </div>
-                            <div id="layout-carousel-btn" onclick="setWorkoutLayout('carousel')" class="hdr-layout-btn" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 10px; width: 36px; height: 34px; display: flex; align-items: center; justify-content: center; color: #475569; cursor: pointer; transition: all 0.2s;">
-                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect></svg>
+                            <!-- Tillagd 'active' klass direkt här för att matcha din bild -->
+                            <div id="layout-carousel-btn" onclick="setWorkoutLayout('carousel')" class="hdr-layout-btn active" style="border-radius: 9px; width: 34px; height: 32px; display: flex; align-items: center; justify-content: center; color: #475569; cursor: pointer; transition: all 0.2s;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect></svg>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- UNDRE DELEN: Statusrad med fast "Started "-prefix -->
-                <div style="border-top: 1px solid rgba(255, 255, 255, 0.05); padding-top: 12px; display: flex; justify-content: space-between; align-items: center;">
+                <!-- UNDRE DELEN: Helt dynamisk statusrad -->
+                <div style="border-top: 1px solid rgba(255, 255, 255, 0.05); padding-top: 14px; display: flex; justify-content: space-between; align-items: center;">
                     <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600;">
-                        <div style="display: flex; align-items: center; gap: 6px; color: #10b981;">
-                            <span style="width: 6px; height: 6px; background-color: #10b981; border-radius: 50%;"></span>
-                            <!-- Texten "Started " ligger här, och din JS injicerar tidsstämpeln inuti span-elementet -->
-                            <span style="display: flex; gap: 4px;">Started <span id="start-time-badge-container">00:00</span></span>
+                        <!-- Grön dynamisk badge som hanterar starttid via JavaScript -->
+                        <div id="start-time-badge-container" style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); color: #10b981; padding: 4px 10px; border-radius: 20px; display: flex; align-items: center; gap: 5px;">
+                            ⏱️ Started --:--
                         </div>
-                        <span style="color: #334155;">·</span>
-                        <span style="color: #475569;">23 min</span>
+                        <span style="color: rgba(255,255,255,0.15);">·</span>
+                        <!-- ID tillagt för varaktighet -->
+                        <span id="workout-duration-text" style="color: #64748b;">0 min</span>
                     </div>
-                    <div style="font-size: 13px; font-weight: 600; color: #475569;">
-                        6 / 14 set
+                    <!-- ID tillagt för set-räknaren -->
+                    <div id="workout-sets-progress" style="font-size: 13px; font-weight: 700; color: #64748b; letter-spacing: 0.3px;">
+                        0 / 0 set
                     </div>
+                </div>
+
+                <!-- PROCENTUELL PROGRESS LINE (Fylls på i takt med slutförda set) -->
+                <div style="position: absolute; bottom: 0; left: 0; width: 100%; height: 3px; background: rgba(255,255,255,0.03);">
+                    <!-- Ändra width via ditt script (t.ex. element.style.width = '42%') -->
+                    <div id="workout-progress-bar" style="width: 0%; height: 100%; background: linear-gradient(to right, #3b82f6, #22d3ee); transition: width 0.3s ease; box-shadow: 0 0 8px rgba(34, 211, 238, 0.5);"></div>
                 </div>
             </div>
 
@@ -341,19 +349,20 @@
         </div>
     </div>
 
-    <!-- TILLAGDA INTERAKTIVA STILAR FÖR DIN NYA HEADER -->
+    <!-- STYLING FÖR INTERAKTIVITET OCH LAYOUT-KNAPPAR -->
     <style>
+        .hdr-layout-btn {
+            background: transparent;
+            border: 1px solid transparent;
+        }
         .hdr-layout-btn:hover {
             color: #94a3b8 !important;
-            background: rgba(255, 255, 255, 0.05) !important;
-            border-color: rgba(255, 255, 255, 0.1) !important;
         }
-        /* När ditt JS sätter klassen 'active' på vald layout */
+        /* När knappen har klassen 'active' blir den markerad i blått (Enligt bild image_9781f9.png) */
         .hdr-layout-btn.active {
-            background: rgba(30, 58, 138, 0.4) !important; 
-            border: 1px solid #1d4ed8 !important;
+            background: rgba(30, 64, 175, 0.3) !important; 
+            border: 1px solid #2563eb !important;
             color: #38bdf8 !important;
-            box-shadow: 0 0 12px rgba(29, 78, 216, 0.2);
         }
     </style>
 </body>
