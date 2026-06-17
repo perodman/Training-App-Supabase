@@ -5904,6 +5904,36 @@ function stopRestTimer() {
 }
 
 function renderRestTimer() {
+    // KOLLA OM ANVÄNDAREN ÄR I KARUSELL-LÄGE
+    const savedLayout = localStorage.getItem('workoutLayoutMode') || 'list';
+    if (savedLayout === 'carousel') {
+        // Göm eller rensa listvyns element så de inte ligger kvar som spöken
+        const staticBar = document.getElementById("rest-timer-bar");
+        if (staticBar) staticBar.innerHTML = '';
+        const oldMoving = document.getElementById("rest-timer-moving");
+        if (oldMoving) oldMoving.remove();
+
+        // Uppdatera enbart karusellens egna kort-komponenter om de finns i DOM:en
+        const carouselBadgeTime = document.getElementById('carousel-rest-badge-time');
+        if (carouselBadgeTime) {
+            carouselBadgeTime.textContent = restTimerActive ? formatRestTime(restTimerSeconds) : 'Rest';
+            carouselBadgeTime.style.color = restTimerActive ? '#f59e0b' : '#64748b';
+            const badge = document.getElementById('carousel-rest-badge');
+            if (badge) {
+                badge.style.borderColor = restTimerActive ? 'rgba(245,158,11,0.4)' : 'rgba(255,255,255,0.08)';
+                badge.style.background = restTimerActive ? 'rgba(245,158,11,0.08)' : 'rgba(255,255,255,0.04)';
+            }
+        }
+        const carouselDdTime = document.getElementById('carousel-rest-dropdown-time');
+        if (carouselDdTime && restTimerActive) {
+            carouselDdTime.textContent = formatRestTime(restTimerSeconds);
+            carouselDdTime.style.color = restTimerSeconds <= 10 ? '#ef4444' : '#f59e0b';
+        }
+        
+        // Avbryt här så att inte listvyns HTML-mallar genereras eller trycks ut
+        return; 
+    }
+
     const isDisabled = activeDraft && activeDraft.restTimerDisabled;
     const mins = String(Math.floor(restTimerSeconds / 60)).padStart(1, '0');
     const secs = String(restTimerSeconds % 60).padStart(2, '0');
