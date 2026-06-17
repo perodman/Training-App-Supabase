@@ -1036,7 +1036,7 @@ if (isOngoing && typeof activeDraft !== 'undefined' && activeDraft) {
     <div onclick="showView('workout-view'); startWorkout(activeDraft.workout, activeDraft.data, activeDraft.date); setTimeout(() => closeModal(), 0)"
         style="
         position: relative; overflow: hidden;
-        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        background: linear-gradient(135deg, #243044 0%, #152032 100%);
         border: none; border-left: 4px solid #f59e0b;
         border-radius: 22px; padding: 18px 20px;
         box-shadow: 0 8px 20px rgba(0,0,0,0.4);
@@ -1157,7 +1157,7 @@ if (isOngoing && typeof activeDraft !== 'undefined' && activeDraft) {
             <div style="
                 border-radius: 16px; overflow: hidden;
                 position: relative;
-                background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+                background: linear-gradient(135deg, #243044 0%, #152032 100%);
                 border: none;
                 border-left: 4px solid ${isUngrouped ? 'rgba(255,255,255,0.15)' : groupAccent};
                 box-shadow: 0 4px 12px rgba(0,0,0,0.3);
@@ -1934,7 +1934,7 @@ function renderLargePassCard(pass, passIdx, icons, selector) {
     passCard.className = "prog-card";
     passCard.style.cssText = `
         position: relative; min-height: 120px; overflow: hidden;
-        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        background: linear-gradient(135deg, #243044 0%, #152032 100%);
         border-top: 3px solid #f59e0b;
         border-radius: 16px;
     `;
@@ -1965,7 +1965,7 @@ function renderAccordionPassCard(pass, passIdx, icons, selector, layoutMode) {
     passCard.className = "prog-card";
     passCard.style.cssText = `
         position: relative; overflow: hidden;
-        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        background: linear-gradient(135deg, #243044 0%, #152032 100%);
         border-top: 3px solid #f59e0b;
         border-radius: 16px;
         transition: opacity 0.3s ease, grid-column 0.3s ease;
@@ -2101,7 +2101,7 @@ function showChipsDetail(passesInGroup, activePass, selector, icons) {
         detailCard = document.createElement("div");
         detailCard.id = "chips-detail-card";
         detailCard.style.cssText = `
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            background: linear-gradient(135deg, #243044 0%, #152032 100%);
             border-top: 3px solid #f59e0b; border-radius: 16px; position:relative; overflow:hidden;
             max-height:0px; opacity:0; padding:0 16px;
             transition: max-height 0.35s ease, opacity 0.3s ease, padding 0.35s ease;
@@ -2271,7 +2271,7 @@ function renderGroupsView() {
         const groupCard = document.createElement("div");
        groupCard.style.cssText = `
             position: relative; overflow: hidden;
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            background: linear-gradient(135deg, #243044 0%, #152032 100%);
             border-top: 3px solid #f59e0b;
             border-left: none;
             border-right: none;
@@ -2320,7 +2320,7 @@ function renderGroupsView() {
         const ungroupedCard = document.createElement("div");
         ungroupedCard.style.cssText = `
             position: relative; overflow: hidden;
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            background: linear-gradient(135deg, #243044 0%, #152032 100%);
             border-top: 3px solid #f59e0b;
             border-left: none;
             border-right: none;
@@ -3640,7 +3640,7 @@ function renderActiveWorkout() {
                 margin-bottom: 12px;
                 padding: 0;
                 border-radius: 16px;
-                background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+                background: linear-gradient(135deg, #243044 0%, #152032 100%);
                 border: none;
                 border-left: 4px solid ${isDone ? '#22c55e' : isOpen ? '#22d3ee' : 'rgba(250,204,21,0.3)'};
                 box-shadow: ${isDone ? '0 4px 12px rgba(34,197,94,0.08)' : isOpen ? '0 4px 12px rgba(34,211,238,0.08)' : '0 4px 12px rgba(0,0,0,0.3)'};
