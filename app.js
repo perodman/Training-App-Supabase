@@ -6723,7 +6723,7 @@ function renderCarouselCard() {
                     <span style="font-size:11px;font-weight:700;color:${exData.note ? '#fde047' : '#f8fafc'};">Note</span>
                 </div>
                 <div onclick="${isDone ? '' : `openReplaceExerciseModal(${i})`}" style="display:flex;align-items:center;gap:5px;padding:5px 10px;border-radius:20px;background:#1a3040;border:1px solid #22d3ee;cursor:pointer;${isDone ? 'opacity:0.3;pointer-events:none;' : ''}">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16V4m0 0L3 8m4-4l4 4"/><path d="M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><polyline points="23 20 23 14 17 14"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
                     <span style="font-size:11px;font-weight:700;color:#22d3ee;">Swap</span>
                 </div>
                 <div onclick="const z=document.getElementById('anim-modal-${i}'); z.style.display=z.style.display==='flex'?'none':'flex';" style="display:flex;align-items:center;justify-content:center;padding:5px 10px;border-radius:20px;background:rgba(34,211,238,0.08);border:1px solid rgba(34,211,238,0.2);cursor:pointer;flex-shrink:0;">
