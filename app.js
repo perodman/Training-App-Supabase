@@ -3948,9 +3948,21 @@ async function removeSetFromExercise(exIdx, setIdx) {
 
 async function toggleExerciseDone(exIdx) {
     const scrollPos = window.scrollY;
-    activeDraft.data[exIdx].isCompleted = !activeDraft.data[exIdx].isCompleted;
-    if (activeDraft.data[exIdx].isCompleted) {
+    
+    // Invertera statusen för om övningen är helt klar
+    const newCompletedState = !activeDraft.data[exIdx].isCompleted;
+    activeDraft.data[exIdx].isCompleted = newCompletedState;
+    
+    if (newCompletedState) {
         stopRestTimer();
+    }
+
+    // NYHET: Om övningen markeras som klar, se till att ALLA dess set också blir markerade som klara i datan.
+    // Om man trycker på "Undo" (false), sätter vi dem till false.
+    if (activeDraft.data[exIdx].sets_data && activeDraft.data[exIdx].sets_data.length > 0) {
+        activeDraft.data[exIdx].sets_data.forEach(set => {
+            set.userConfirmed = newCompletedState;
+        });
     }
 
     // Spara handtaget innan omritning
@@ -3970,7 +3982,7 @@ async function toggleExerciseDone(exIdx) {
     window.scrollTo(0, scrollPos);
     await persistActiveWorkout();
 
-    // Uppdatera den globala set-räknaren i headern om man klarmarkerar en hel övning
+    // Uppdatera mätaren i headern baserat på den nya datan där seten nu räknas med!
     if (typeof updateWorkoutProgress === 'function' && activeDraft.data) {
         let totalWorkoutCompletedSets = 0;
         let totalWorkoutSets = 0;
@@ -4390,7 +4402,7 @@ async function confirmSet(exIdx, setIdx) {
         }
     }
 
-    // Uppdatera den globala set-räknaren i headern direkt vid klick
+    // Uppdatera den globala mätaren i headern
     if (typeof updateWorkoutProgress === 'function' && activeDraft.data) {
         let totalWorkoutCompletedSets = 0;
         let totalWorkoutSets = 0;
