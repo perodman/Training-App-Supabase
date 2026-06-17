@@ -3698,11 +3698,15 @@ function renderActiveWorkout() {
                         <small style="color: ${isDone ? '#22c55e' : 'var(--primary)'}; font-size: 10px;">${isDone ? 'DONE  ✅ ' : `${completedSets}/${totalSets} set`}</small>
                     </div>
                     <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0; margin-left: 10px;">
-                        <button onclick="event.stopPropagation(); toggleExerciseNote(${i})" style="background:none; border:none; font-size:14px; padding:5px; opacity: 1; position:relative;">
-                            📝${exerciseData.note ? '<span style="position:absolute; top:2px; right:2px; width:6px; height:6px; background:#fde047; border-radius:50%;"></span>' : ''}
+                       <button onclick="event.stopPropagation(); toggleExerciseNote(${i})" style="background:#1e2d3d;border:1px solid #2a3d52;color:#94a3b8;border-radius:20px;padding:5px 10px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:5px;position:relative;">
+                            <span style="font-size:13px;">📝</span>${exerciseData.note ? '<span style="position:absolute; top:2px; right:2px; width:6px; height:6px; background:#fde047; border-radius:50%;"></span>' : ''}<span style="color:#f8fafc;">Note</span>
                         </button>
-                        <button onclick="event.stopPropagation(); openReplaceExerciseModal(${i})" style="background:none; border:none; font-size:14px; padding:5px; opacity: 0.7;" ${isDone ? 'disabled' : ''}> 🔄 </button>
-                        <button onclick="event.stopPropagation(); removeActiveExercise(${i})" style="background:none; border:none; font-size:14px; padding:5px; opacity: 0.7;" ${isDone ? 'disabled' : ''}> ✖ </button>
+                        <button onclick="event.stopPropagation(); openReplaceExerciseModal(${i})" style="background:#1a3040;border:1px solid #22d3ee;color:#22d3ee;border-radius:20px;padding:5px 10px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:5px;" ${isDone ? 'disabled' : ''}>
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16V4m0 0L3 8m4-4l4 4"/><path d="M17 8v12m0 0l4-4m-4 4l-4-4"/></svg> Swap
+                        </button>
+                        <button onclick="event.stopPropagation(); removeActiveExercise(${i})" style="background:#2d1a1a;border:1px solid #7f1d1d;color:#ef4444;border-radius:20px;padding:5px 10px;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;" ${isDone ? 'disabled' : ''}>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+                        </button>
                         <span style="font-size: 10px; color: var(--text-light); margin-left: 5px; transform: ${isOpen ? 'rotate(180deg)' : 'rotate(0)'}; transition: 0.3s;"> ▼ </span>
                     </div>
                 </div>
@@ -6702,9 +6706,8 @@ function renderCarouselCard() {
                     <span style="font-size:14px;">🔄</span>
                     <span style="font-size:10px;font-weight:700;color:#22d3ee;">Swap</span>
                 </div>
-                <div onclick="${isDone ? '' : `removeActiveExercise(${i})`}" style="display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:20px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);cursor:pointer;${isDone ? 'opacity:0.3;pointer-events:none;' : ''}">
-                    <span style="font-size:14px;">✖</span>
-                    <span style="font-size:10px;font-weight:700;color:#ef4444;">Remove</span>
+               <div onclick="${isDone ? '' : `removeActiveExercise(${i})`}" style="display:flex;align-items:center;justify-content:center;padding:7px 10px;border-radius:20px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);cursor:pointer;${isDone ? 'opacity:0.3;pointer-events:none;' : ''}">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
                 </div>
             </div>
         </div>`;
