@@ -6571,19 +6571,28 @@ async function carouselConfirmSet(exIdx, setIdx) {
 
 function carouselStartRest(seconds) {
     clearInterval(carouselRestInterval);
+    
+    // SÄKERSTÄLL: Rensa även list-vyns gamla intervall om det fanns något
+    if (typeof restTimerInterval !== 'undefined') clearInterval(restTimerInterval);
+
     carouselRestSeconds = seconds;
     carouselRestActive = true;
-    restTimerActive = true; // Synka med globala flaggan
-    restTimerSeconds = seconds; // Synka med globala sekunderna
+    
+    // Synka till de globala variablerna som list-vyn använder
+    restTimerActive = true; 
+    restTimerSeconds = seconds; 
+    // Sätter restTimerExIdx till nuvarande karusell-index så att listvyn vet vilken kort-position den rörliga timern ska ligga på
+    if (typeof carouselCurrentIndex !== 'undefined') {
+        restTimerExIdx = carouselCurrentIndex;
+    }
 
-    // Rita om kortet direkt så att klockan och knapparna ändrar färg och status direkt
     renderCarouselCard();
 
+    // 1. Karusellens egna intervall-loop
     carouselRestInterval = setInterval(() => {
         carouselRestSeconds--;
-        restTimerSeconds = carouselRestSeconds; // Håll synkad
+        restTimerSeconds = carouselRestSeconds; 
 
-        // Uppdatera tiderna direkt i övningskortets DOM utan att behöva rita om hela kortet (förhindrar flimmer)
         const badgeTime = document.getElementById('carousel-rest-badge-time');
         const dropdownTime = document.getElementById('carousel-rest-dropdown-time');
         const formatted = formatRestTime(carouselRestSeconds);
@@ -6596,21 +6605,50 @@ function carouselStartRest(seconds) {
 
         if (carouselRestSeconds <= 0) {
             clearInterval(carouselRestInterval);
+            if (typeof restTimerInterval !== 'undefined') clearInterval(restTimerInterval);
             carouselRestActive = false;
             restTimerActive = false;
             if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
             renderCarouselCard();
         }
     }, 1000);
+
+    // 2. SYNCHRONIZATION: Starta även list-vyns bakgrunds-loop så den tickar parallellt
+    if (typeof restTimerInterval !== 'undefined' || true) {
+        restTimerInterval = setInterval(() => {
+            // Om användaren har hunnit växla över till list-vyn, låt den sköta renderingen där
+            if (typeof workoutLayoutMode !== 'undefined' && workoutLayoutMode === 'list') {
+                restTimerSeconds--;
+                if (restTimerSeconds <= 0) {
+                    clearInterval(restTimerInterval);
+                    clearInterval(carouselRestInterval);
+                    restTimerActive = false;
+                    carouselRestActive = false;
+                    if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+                }
+                renderRestTimer();
+            }
+        }, 1000);
+    }
 }
 
 function carouselStopRest() {
     clearInterval(carouselRestInterval);
+    // SÄKERSTÄLL: Stoppa även list-vyns intervall-loop
+    if (typeof restTimerInterval !== 'undefined') clearInterval(restTimerInterval);
+
     carouselRestActive = false;
     carouselRestSeconds = 0;
-    // Synka även bort de globala variablerna för säkerhets skull
     if (typeof restTimerActive !== 'undefined') restTimerActive = false;
     if (typeof restTimerSeconds !== 'undefined') restTimerSeconds = 0;
+    
+    // Säkerställ att det statiska elementet förblir rensat i karuselläge
+    const staticBar = document.getElementById("rest-timer-bar");
+    if (staticBar) {
+        staticBar.innerHTML = '';
+        staticBar.style.display = 'none';
+    }
+    
     renderCarouselCard();
 }
 
