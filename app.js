@@ -6698,16 +6698,16 @@ function renderCarouselCard() {
     const actionBar = `
         <div style="overflow-x:auto; scrollbar-width:none; margin-bottom:10px; -webkit-overflow-scrolling:touch;">
             <div style="display:flex; gap:6px; padding:0 2px; min-width:max-content;">
-                <div onclick="carouselToggleNote(${i})" style="display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:20px;border:1px solid ${exData.note ? 'rgba(253,224,71,0.4)' : 'rgba(255,255,255,0.1)'};background:${exData.note ? 'rgba(253,224,71,0.06)' : 'rgba(255,255,255,0.06)'};cursor:pointer;position:relative;">
-                    <span style="font-size:14px; position:relative;">📝${exData.note ? '<span style="position:absolute;top:-2px;right:-2px;width:6px;height:6px;background:#fde047;border-radius:50%;"></span>' : ''}</span>
-                    <span style="font-size:10px;font-weight:700;color:${exData.note ? '#fde047' : '#94a3b8'};">Note</span>
+                <div onclick="carouselToggleNote(${i})" style="display:flex;align-items:center;gap:5px;padding:5px 10px;border-radius:20px;border:1px solid ${exData.note ? 'rgba(253,224,71,0.4)' : '#2a3d52'};background:${exData.note ? 'rgba(253,224,71,0.06)' : '#1e2d3d'};cursor:pointer;position:relative;">
+                    <span style="font-size:13px; position:relative;">📝${exData.note ? '<span style="position:absolute;top:-2px;right:-2px;width:6px;height:6px;background:#fde047;border-radius:50%;"></span>' : ''}</span>
+                    <span style="font-size:11px;font-weight:700;color:${exData.note ? '#fde047' : '#f8fafc'};">Note</span>
                 </div>
-                <div onclick="${isDone ? '' : `openReplaceExerciseModal(${i})`}" style="display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:20px;background:rgba(34,211,238,0.08);border:1px solid rgba(34,211,238,0.2);cursor:pointer;${isDone ? 'opacity:0.3;pointer-events:none;' : ''}">
-                    <span style="font-size:14px;">🔄</span>
-                    <span style="font-size:10px;font-weight:700;color:#22d3ee;">Swap</span>
+                <div onclick="${isDone ? '' : `openReplaceExerciseModal(${i})`}" style="display:flex;align-items:center;gap:5px;padding:5px 10px;border-radius:20px;background:#1a3040;border:1px solid #22d3ee;cursor:pointer;${isDone ? 'opacity:0.3;pointer-events:none;' : ''}">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16V4m0 0L3 8m4-4l4 4"/><path d="M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>
+                    <span style="font-size:11px;font-weight:700;color:#22d3ee;">Swap</span>
                 </div>
-               <div onclick="${isDone ? '' : `removeActiveExercise(${i})`}" style="display:flex;align-items:center;justify-content:center;padding:7px 10px;border-radius:20px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);cursor:pointer;${isDone ? 'opacity:0.3;pointer-events:none;' : ''}">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                <div onclick="${isDone ? '' : `removeActiveExercise(${i})`}" style="display:flex;align-items:center;justify-content:center;padding:5px 10px;border-radius:20px;background:#2d1a1a;border:1px solid #7f1d1d;cursor:pointer;${isDone ? 'opacity:0.3;pointer-events:none;' : ''}">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
                 </div>
             </div>
         </div>`;
