@@ -6652,6 +6652,20 @@ async function carouselConfirmSet(exIdx, setIdx) {
     }
 
     await persistActiveWorkout();
+
+    // NYHET: Uppdatera den globala mätaren i headern även när man klickar i enskilda set i karusellen
+    if (typeof updateWorkoutProgress === 'function' && activeDraft.data) {
+        let totalWorkoutCompletedSets = 0;
+        let totalWorkoutSets = 0;
+        activeDraft.data.forEach(exerciseData => {
+            if (exerciseData && exerciseData.sets_data) {
+                totalWorkoutSets += exerciseData.sets_data.length;
+                totalWorkoutCompletedSets += exerciseData.sets_data.filter(s => s.userConfirmed).length;
+            }
+        });
+        updateWorkoutProgress(totalWorkoutCompletedSets, totalWorkoutSets);
+    }
+
     renderCarouselCard();
 }
 
@@ -6746,11 +6760,38 @@ async function carouselAddSet(exIdx) {
 }
 
 async function carouselToggleDone(exIdx) {
-    activeDraft.data[exIdx].isCompleted = !activeDraft.data[exIdx].isCompleted;
-    if (activeDraft.data[exIdx].isCompleted) {
+    // Invertera statusen för om övningen är helt klar
+    const newCompletedState = !activeDraft.data[exIdx].isCompleted;
+    activeDraft.data[exIdx].isCompleted = newCompletedState;
+    
+    if (newCompletedState) {
         stopRestTimer();
         carouselStopRest();
-        await persistActiveWorkout();
+    }
+
+    // NYHET: Uppdatera statusen på ALLA set i övningen så att de matchar övningens nya läge
+    if (activeDraft.data[exIdx].sets_data && activeDraft.data[exIdx].sets_data.length > 0) {
+        activeDraft.data[exIdx].sets_data.forEach(set => {
+            set.userConfirmed = newCompletedState;
+        });
+    }
+
+    await persistActiveWorkout();
+    
+    // NYHET: Uppdatera den globala mätaren i headern direkt efter ändringen
+    if (typeof updateWorkoutProgress === 'function' && activeDraft.data) {
+        let totalWorkoutCompletedSets = 0;
+        let totalWorkoutSets = 0;
+        activeDraft.data.forEach(exerciseData => {
+            if (exerciseData && exerciseData.sets_data) {
+                totalWorkoutSets += exerciseData.sets_data.length;
+                totalWorkoutCompletedSets += exerciseData.sets_data.filter(s => s.userConfirmed).length;
+            }
+        });
+        updateWorkoutProgress(totalWorkoutCompletedSets, totalWorkoutSets);
+    }
+
+    if (newCompletedState) {
         renderCarouselNav();
         renderCarouselDots();
         renderCarouselCard();
@@ -6759,7 +6800,6 @@ async function carouselToggleDone(exIdx) {
             setTimeout(() => carouselGoTo(nextUndone), 350);
         }
     } else {
-        await persistActiveWorkout();
         renderCarouselNav();
         renderCarouselDots();
         renderCarouselCard();
