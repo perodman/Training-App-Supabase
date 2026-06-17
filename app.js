@@ -3483,8 +3483,7 @@ function renderActiveWorkout() {
     }
     
     // =========================================================================
-    // AKUT DEFENSIF FIX: Om appen tror att passet är startat men saknar tid,
-    // eller om tiden har blivit korrupt, laga den DIREKT här på plats!
+    // 1. SÄKRA STARTTIDEN DIREKT OM PASSET ÄR IGÅNG
     // =========================================================================
     if (activeDraft.isStarted && (!activeDraft.startTime || activeDraft.startTime === "null" || activeDraft.startTime === "undefined")) {
         activeDraft.startTime = new Date().toISOString();
@@ -3508,40 +3507,58 @@ function renderActiveWorkout() {
     document.getElementById("active-title").textContent = activeDraft.workout.name;
     
     // =========================================================================
-    // FIX AV STARTKLOCKAN: Hämta tid och formatera stenhårt utan att kunna bli --:--
+    // 2. UPPDATERA KLOCKAN I HTML (Matchat mot dina exakta ID:n!)
     // =========================================================================
-    let startTimeStr = '';
-    if (activeDraft.startTime) {
-        try {
-            const parsedDate = new Date(activeDraft.startTime);
-            // Kontrollera att tidsstämpeln faktiskt är giltig
-            if (!isNaN(parsedDate.getTime())) {
-                startTimeStr = parsedDate.toLocaleTimeString('sv-SE', {hour: '2-digit', minute: '2-digit'});
-            }
-        } catch (e) {
-            console.error("Kunde inte tolka starttid:", e);
-        }
-    }
+    const badgeWrapper = document.getElementById("start-time-badge");
+    const startTimeEl = document.getElementById("active-start-time");
+    const durationTextEl = document.getElementById("workout-duration-text");
     
-    // Om den fortfarande är tom (eller ogiltig), sätt den till nuvarande klockslag som nödlösning
-    if (!startTimeStr && activeDraft.isStarted) {
-        startTimeStr = new Date().toLocaleTimeString('sv-SE', {hour: '2-digit', minute: '2-digit'});
-    }
+    if (activeDraft.isStarted) {
+        // Visa klockpucken om den råkar vara dold
+        if (badgeWrapper) badgeWrapper.style.display = "flex";
 
-    const container = document.getElementById("start-time-badge-container");
-    if (container) {
-        if (activeDraft.isStarted && startTimeStr) {
-            container.innerHTML = `<span style="display:inline-flex; align-items:center; gap:5px; background:rgba(34,197,94,0.08); border:1px solid rgba(34,197,94,0.2); border-radius:20px; padding:3px 10px; font-size:10px; color:#22c55e; font-weight:600;">⏱️ Started Workout ${startTimeStr}</span>`;
-        } else {
-            container.innerHTML = "";
+        let startTimeStr = "--:--";
+        if (activeDraft.startTime) {
+            try {
+                const parsedDate = new Date(activeDraft.startTime);
+                if (!isNaN(parsedDate.getTime())) {
+                    startTimeStr = parsedDate.toLocaleTimeString('sv-SE', {hour: '2-digit', minute: '2-digit'});
+                }
+            } catch (e) {
+                console.error("Kunde inte tolka starttid:", e);
+            }
         }
+        
+        // Tryck in tidsstämpeln (ersätter --:--)
+        if (startTimeEl) {
+            startTimeEl.textContent = startTimeStr;
+        }
+
+        // Beräkna live-minuter
+        if (durationTextEl && activeDraft.startTime) {
+            try {
+                const diffInMs = new Date() - new Date(activeDraft.startTime);
+                const diffInMinutes = Math.max(0, Math.floor(diffInMs / 1000 / 60)); 
+                durationTextEl.textContent = `${diffInMinutes} min`;
+            } catch (err) {
+                durationTextEl.textContent = "0 min";
+            }
+        }
+    } else {
+        // Om passet INTE är startat (det är bara en mall/utkast), dölj starttidspucken helt
+        if (badgeWrapper) badgeWrapper.style.display = "none";
+        if (durationTextEl) durationTextEl.textContent = "0 min";
     }
 
+    // =========================================================================
+    // 3. RENDERA UT TRÄNINGSPASSETS INNEHÅLL OCH KNAPPAR
+    // =========================================================================
     const list = document.getElementById("exercise-list");
     const footer = document.querySelector(".workout-footer");
     if (!list) return;
     list.innerHTML = "";
     
+    // Grön jätteknapp om passet inte har startat fysiskt än
     if (!activeDraft.isStarted) {
         if (footer) footer.classList.add("hidden");
         list.innerHTML = `
@@ -3565,6 +3582,8 @@ function renderActiveWorkout() {
             calendarView.style.display = originalDisplay;
         }
     }
+    
+    // Footer-knappar för pågående pass
     if (footer) {
         footer.classList.remove("hidden");
         footer.style.display = "flex";
@@ -3578,6 +3597,7 @@ function renderActiveWorkout() {
             <button class="mode-btn green" onclick="finishWorkout()" style="flex: 1; font-weight: bold;">Finish Workout  ✅</button>
         `;
     }
+    
     if (!activeDraft.ui_state) activeDraft.ui_state = {};
     if (!activeDraft.ui_state.openExercises) activeDraft.ui_state.openExercises = [];
     const isFrittPass = activeDraft.workout.name === "Free Workout";
@@ -3695,6 +3715,8 @@ function renderActiveWorkout() {
     }
 
     if (typeof updateWorkoutProgress === 'function') {
+        const totalWorkoutCompletedSets = activeDraft.data ? activeDraft.data.reduce((acc, curr) => acc + (curr.sets_data ? curr.sets_data.filter(s => s.userConfirmed).length : 0), 0) : 0;
+        const totalWorkoutSets = activeDraft.data ? activeDraft.data.reduce((acc, curr) => acc + (curr.sets_data ? curr.sets_data.length : 0), 0) : 0;
         updateWorkoutProgress(totalWorkoutCompletedSets, totalWorkoutSets);
     }
 
@@ -3723,27 +3745,6 @@ function renderActiveWorkout() {
     
     showView("workout-view");
     renderRestTimer();
-    
-    // =========================================================================
-    // FIX AV MINUTRÄKNARE: Räknar ut passerad tid indirekt och kraschar ALDRIG
-    // =========================================================================
-    const minutesEl = document.getElementById("workout-duration-minutes");
-    if (minutesEl) {
-        if (activeDraft.startTime) {
-            try {
-                const now = new Date();
-                const start = new Date(activeDraft.startTime);
-                const diffInMs = now - start;
-                const diffInMinutes = Math.max(0, Math.floor(diffInMs / 1000 / 60)); 
-                minutesEl.textContent = `${diffInMinutes} min`;
-            } catch (err) {
-                console.error("Fel vid live-beräkning av passets tid:", err);
-                minutesEl.textContent = "0 min";
-            }
-        } else {
-            minutesEl.textContent = "0 min";
-        }
-    }
 
     setTimeout(() => initDragAndDrop(), 50);
     const savedLayout = localStorage.getItem('workoutLayoutMode') || 'list';
