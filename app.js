@@ -3599,7 +3599,7 @@ function renderActiveWorkout() {
                 <button onclick="saveDraftAndGoHome()" style="width:44px; height:44px; background:rgba(34,211,238,0.1); border:1.5px solid rgba(34,211,238,0.45); color:#22d3ee; border-radius:12px; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0;">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                 </button>
-                <button id="pause-workout-btn" onclick="saveDraftAndGoHome()" style="flex:1; height:44px; background:linear-gradient(135deg,#7a8fa6,#5a7080); border:none; color:#fff; font-size:14px; font-weight:800; border-radius:22px; display:flex; align-items:center; justify-content:center; gap:8px; cursor:pointer;">
+                <button id="pause-workout-btn" onclick="saveDraftAndGoHome()" style="flex:1; height:44px; background:linear-gradient(135deg,#7a8fa6,#5a7080); border:none; color:#fff; font-size:14px; font-weight:800; border-radius:14px; display:flex; align-items:center; justify-content:center; gap:8px; cursor:pointer;">
                     Save draft
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
                 </button>
@@ -3739,22 +3739,7 @@ function renderActiveWorkout() {
     addBtn.onclick = openCustomAddExerciseModal;
     list.appendChild(addBtn);
     
-    const viewContainer = document.getElementById("workout-view");
-    if (viewContainer) {
-        const oldContainer = document.getElementById("discard-button-container");
-        if (oldContainer) oldContainer.remove();
-        const discardContainer = document.createElement("div");
-        discardContainer.id = "discard-button-container";
-        discardContainer.style.cssText = "width: 100%; padding: 0 10px; margin-top: 40px; margin-bottom: 20px; box-sizing: border-box;";
-        const discardBtn = document.createElement("button");
-        discardBtn.className = "btn-danger";
-        discardBtn.style.cssText = "margin-top:20px;";
-        discardBtn.innerHTML = "Delete Workout 🗑️";
-        discardBtn.onclick = confirmDiscardActiveWorkout;
-        discardContainer.appendChild(discardBtn);
-        viewContainer.appendChild(discardContainer);
-    }
-    
+       
     showView("workout-view");
     renderRestTimer();
 
