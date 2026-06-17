@@ -3477,7 +3477,7 @@ let isSyncingWithSupabase = false;
 
 function renderActiveWorkout() {
     if (!activeDraft || !activeDraft.workout) {
-        console.warn(" ⚠️  Inget aktivt utkast tillgängligt.");
+        console.warn(" ⚠️ Inget aktivt utkast tillgängligt.");
         return;
     }
     if (activeDraft.data) {
@@ -3556,6 +3556,11 @@ function renderActiveWorkout() {
         }
     }
     const openExercises = activeDraft.ui_state.openExercises;
+    
+    // Variabler för att ackumulera totalen för hela träningspasset
+    let totalWorkoutCompletedSets = 0;
+    let totalWorkoutSets = 0;
+
     if (activeDraft.workout.exercises && activeDraft.workout.exercises.length > 0) {
         activeDraft.workout.exercises.forEach((ex, i) => {
             const exerciseData = activeDraft.data[i];
@@ -3578,6 +3583,11 @@ function renderActiveWorkout() {
             div.id = `exercise-card-${i}`;
             const completedSets = exerciseData.sets_data ? exerciseData.sets_data.filter(s => s.userConfirmed).length : 0;
             const totalSets = exerciseData.sets_data ? exerciseData.sets_data.length : 0;
+            
+            // Addera den här övningens set till hela passets total
+            totalWorkoutCompletedSets += completedSets;
+            totalWorkoutSets += totalSets;
+
             const firstUnconfirmed = exerciseData.sets_data ? exerciseData.sets_data.findIndex(s => !s.userConfirmed) : -1;
             let setsHtml = `<div style="margin-top:10px;">
                 <div style="display:grid; grid-template-columns: 40px 1fr 1fr 1fr 30px; gap:8px; margin-bottom:5px; align-items:center;">
@@ -3651,6 +3661,12 @@ function renderActiveWorkout() {
         emptyNotice.innerHTML = "This workout is empty. Click the button below to add your exercises!  👇 ";
         list.appendChild(emptyNotice);
     }
+
+    // ANROP: Uppdatera mätaren i headern med de ihopräknade värdena för hela passet
+    if (typeof updateWorkoutProgress === 'function') {
+        updateWorkoutProgress(totalWorkoutCompletedSets, totalWorkoutSets);
+    }
+
     const addBtn = document.createElement("button");
     addBtn.className = "mode-btn glass-border";
     addBtn.style.cssText = "margin-top:10px; margin-bottom: 25px; border: 2px dashed rgba(34, 211, 238, 0.4); color: var(--primary); background: rgba(34, 211, 238, 0.04); font-weight: 700; width:100%;";
@@ -3670,6 +3686,7 @@ function renderActiveWorkout() {
         discardBtn.innerHTML = "Delete Workout 🗑️";
         discardBtn.onclick = confirmDiscardActiveWorkout;
         discardContainer.appendChild(discardBtn);
+        discardContainer.appendChild(discardBtn);
         viewContainer.appendChild(discardContainer);
     }
     showView("workout-view");
@@ -3686,7 +3703,6 @@ function renderActiveWorkout() {
         const carouselView = document.getElementById('carousel-view');
         const restTimerBar = document.getElementById('rest-timer-bar');
         
-        // GÖM SPÖK-TIMERN I HEADERN DIREKT NÄR VI LADDAR KARUSELLEN
         const topTimer = document.getElementById('carousel-rest-time');
         if (topTimer) topTimer.style.display = 'none';
 
