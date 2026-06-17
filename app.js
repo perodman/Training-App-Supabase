@@ -5904,7 +5904,7 @@ function stopRestTimer() {
 }
 
 function renderRestTimer() {
-    // SÄKERHETSSPÄRR: Om vi är i karuselläge, rör inte headern/listtimern över huvud taget
+    // SÄKERHETSSPÄRR: Om vi är i karuselläge, dölj och töm headern helt och hållet
     if (typeof workoutLayoutMode !== 'undefined' && workoutLayoutMode === 'carousel') {
         const staticBar = document.getElementById("rest-timer-bar");
         if (staticBar) {
@@ -5930,13 +5930,21 @@ function renderRestTimer() {
             carouselDdTime.textContent = formatRestTime(restTimerSeconds);
             carouselDdTime.style.color = restTimerSeconds <= 10 ? '#ef4444' : '#f59e0b';
         }
-        return; // Avbryt direkt så att ingen list-HTML kan genereras i bakgrunden
+        return; // Avbryt här så vi inte rör list-vyns element
     }
 
-    // --- Nedan körs ENDAST i vanliga Listvyn ---
+    // --- Nedan körs och visas KONSTANT i vanliga Listvyn ---
+    const staticBar = document.getElementById("rest-timer-bar");
+    
+    // Säkerställ att den fasta bar-containern alltid är synlig i list-vyn
+    if (staticBar) {
+        staticBar.style.display = 'block';
+    }
+
     const isDisabled = activeDraft && activeDraft.restTimerDisabled;
     const mins = String(Math.floor(restTimerSeconds / 60)).padStart(1, '0');
     const secs = String(restTimerSeconds % 60).padStart(2, '0');
+    
     const disabledHTML = `
         <div style="background:rgba(255,255,255,0.03); border-left:4px solid rgba(255,255,255,0.1); border-radius:16px; padding:8px 16px; display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
             <div style="display:flex; align-items:center; gap:8px;">
@@ -5949,6 +5957,7 @@ function renderRestTimer() {
                 <button style="padding:5px 12px; font-size:11px; font-weight:700; border:none; background:rgba(245,158,11,0.2); color:#f59e0b; cursor:default;">Off</button>
             </div>
         </div>`;
+        
     const activeHTML = `
         <div style="background:linear-gradient(135deg,#1a1200 0%,#0f0a00 100%); border-left:4px solid #f59e0b; border-radius:16px; padding:12px 16px; display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; overflow:hidden; position:relative;">
             <div style="position:absolute; top:0; left:4px; right:0; height:1px; background:linear-gradient(90deg,rgba(245,158,11,0.6) 0%,rgba(245,158,11,0.1) 100%);"></div>
@@ -5969,6 +5978,7 @@ function renderRestTimer() {
                 </div>
             </div>
         </div>`;
+        
     const idleHTML = `
         <div style="background:linear-gradient(135deg,#1a1200 0%,#0f0a00 100%); border-left:4px solid #f59e0b; border-radius:16px; padding:12px 16px; display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; overflow:hidden; position:relative; opacity:0.5;">
             <div style="position:absolute; top:0; left:4px; right:0; height:1px; background:linear-gradient(90deg,rgba(245,158,11,0.6) 0%,rgba(245,158,11,0.1) 100%);"></div>
@@ -5989,10 +5999,10 @@ function renderRestTimer() {
     const oldMoving = document.getElementById("rest-timer-moving");
     if (oldMoving) oldMoving.remove();
 
-    const staticBar = document.getElementById("rest-timer-bar");
     if (isDisabled) {
         if (staticBar) staticBar.innerHTML = disabledHTML;
     } else if (restTimerActive && restTimerExIdx !== null) {
+        // Om timern tickar aktivt så göms den fasta headern eftersom den rörliga flyttar in ovanför övningskortet
         if (staticBar) staticBar.innerHTML = '';
         const targetCard = document.getElementById(`exercise-card-${restTimerExIdx}`);
         if (targetCard) {
@@ -6002,6 +6012,7 @@ function renderRestTimer() {
             targetCard.insertAdjacentElement('beforebegin', movingBar);
         }
     } else {
+        // Om timern inte körs (idle) visar vi ALLTID idleHTML i den fasta headern
         if (staticBar) staticBar.innerHTML = idleHTML;
     }
 }
@@ -6296,20 +6307,21 @@ function setWorkoutLayout(mode) {
     if (mode === 'list') {
         if (exerciseList) exerciseList.style.display = 'block';
         if (carouselView) carouselView.classList.add('hidden');
-        if (restTimerBar) restTimerBar.style.display = 'block';
         window._suppressAutoScroll = true;
+        
+        // Tvinga fram renderingen av timern så den ritar upp sin tomgångs-HTML (idleHTML) direkt vid vybytet till listan
+        renderRestTimer();
         renderActiveWorkout();
     } else {
         if (exerciseList) exerciseList.style.display = 'none';
         if (carouselView) carouselView.classList.remove('hidden');
         
-        // SÄKERHETSÅTGÄRD: Töm och dölj den fasta headertimern så den försvinner helt i karusellen
+        // Dölj och töm headertimern omedelbart när vi går till karusellen
         if (restTimerBar) {
             restTimerBar.innerHTML = '';
             restTimerBar.style.display = 'none';
         }
         
-        // SÄKERHETSÅTGÄRD: Radera listvyns rörliga timer direkt vid vybytet så den inte ligger kvar i DOM:en
         const oldMoving = document.getElementById("rest-timer-moving");
         if (oldMoving) oldMoving.remove();
         
