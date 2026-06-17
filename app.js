@@ -3635,7 +3635,6 @@ function renderActiveWorkout() {
                 <div style="padding: 0 15px 15px 15px; display: ${isOpen ? 'block' : 'none'}; border-top: 1px solid rgba(255,255,255,0.05);">
                     <div id="note-area-${i}" style="display: ${activeDraft.ui_state.openNotes && activeDraft.ui_state.openNotes.includes(i) ? 'block' : 'none'}; margin-top:10px;">
                         <textarea id="note-input-${i}" placeholder="Add a note for this exercise..." 
-                            oninput="updateExerciseNote(${i})"
                             style="width:100%; min-height:60px; padding:10px; border-radius:10px; background:rgba(0,0,0,0.2); border:1px solid rgba(253,224,71,0.2); color:#fff; font-size:13px; font-family:inherit; resize:vertical;">${exerciseData.note || ''}</textarea>
                     </div>
                     ${setsHtml}
@@ -3681,10 +3680,16 @@ function renderActiveWorkout() {
     const carouselBtn = document.getElementById('layout-carousel-btn');
     if (listBtn) listBtn.classList.toggle('active', savedLayout === 'list');
     if (carouselBtn) carouselBtn.classList.toggle('active', savedLayout === 'carousel');
+    
     if (savedLayout === 'carousel') {
         const exerciseList = document.getElementById('exercise-list');
         const carouselView = document.getElementById('carousel-view');
         const restTimerBar = document.getElementById('rest-timer-bar');
+        
+        // GÖM SPÖK-TIMERN I HEADERN DIREKT NÄR VI LADDAR KARUSELLEN
+        const topTimer = document.getElementById('carousel-rest-time');
+        if (topTimer) topTimer.style.display = 'none';
+
         if (exerciseList) exerciseList.style.display = 'none';
         if (carouselView) carouselView.classList.remove('hidden');
         if (restTimerBar) restTimerBar.style.display = 'none';
