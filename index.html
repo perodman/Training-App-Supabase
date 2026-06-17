@@ -7,8 +7,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@800;900&family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/Draggable.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/Flip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/Draggable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/Flip.min.js"></script>
 </head>
 <body ontouchstart="">
     <div id="auth-view" class="view">
@@ -55,7 +55,7 @@
             </button>
         </div>
     </div>
-</div>
+
     <div class="global-header hidden" id="global-header" style="position: relative; width: 100%;">
         <div id="global-logout" class="circle-ctrl" style="display:none;"></div>
         <div id="global-home" class="circle-ctrl" style="position: absolute; left: 15px; top: 15px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">🏠</div>
@@ -97,18 +97,17 @@
             </div>
 
             <div class="menu-grid">
-
-        <button id="start-new-btn" class="mode-btn main-action next-workout">
-            <div class="btn-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 23c4 0 7-3 7-7c0-3-2-5-3-8c-1 2-2 3-2 5c0-3-1-5-3-7c-2 3-4 5-4 10c0 4 3 7 5 7z"/></svg>
-            </div>
-            <div class="btn-text-container">
-                <span class="label-sub">Next workout</span>
-                <span class="btn-main-text" id="home-next-pass-name">REST DAY</span>
-                <div class="stats-row" id="home-next-pass-stats"></div>
-            </div>
-            <span style="color: rgba(255,255,255,0.7); font-size: 22px; position: relative; z-index: 2;">→</span>
-        </button>
+                <button id="start-new-btn" class="mode-btn main-action next-workout">
+                    <div class="btn-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 23c4 0 7-3 7-7c0-3-2-5-3-8c-1 2-2 3-2 5c0-3-1-5-3-7c-2 3-4 5-4 10c0 4 3 7 5 7z"/></svg>
+                    </div>
+                    <div class="btn-text-container">
+                        <span class="label-sub">Next workout</span>
+                        <span class="btn-main-text" id="home-next-pass-name">REST DAY</span>
+                        <div class="stats-row" id="home-next-pass-stats"></div>
+                    </div>
+                    <span style="color: rgba(255,255,255,0.7); font-size: 22px; position: relative; z-index: 2;">→</span>
+                </button>
 
                <button id="view-exercises-btn" class="mode-btn glass home-card">
                     <div class="btn-icon" style="color:#fb923c;">
@@ -166,19 +165,19 @@
         <div id="exercises-view" class="view hidden">
             <h2 class="section-title modern-header">Exercises</h2>
             <div id="category-menu" class="category-grid">
-            <button class="cat-btn glass" data-cat="Ben" onclick="filterExercises('Ben')"><span class="cat-icon">🦵</span> Legs</button>
-            <button class="cat-btn glass" data-cat="Bröst" onclick="filterExercises('Bröst')"><span class="cat-icon">🏋️</span> Chest</button>
-            <button class="cat-btn glass" data-cat="Rygg" onclick="filterExercises('Rygg')"><span class="cat-icon">🪵</span> Back</button>
-            <button class="cat-btn glass" data-cat="Axlar" onclick="filterExercises('Axlar')"><span class="cat-icon">👐</span> Shoulders</button>
-            <button class="cat-btn glass" data-cat="Armar" onclick="filterExercises('Armar')"><span class="cat-icon">💪</span> Arms</button>
-            <button class="cat-btn glass" data-cat="Bål" onclick="filterExercises('Bål')"><span class="cat-icon">🧘</span> Core</button>
-        </div>
-        <div style="display: flex; align-items: center; gap: 15px; margin: 35px 0 20px 0; opacity: 0.8;">
+                <button class="cat-btn glass" data-cat="Ben" onclick="filterExercises('Ben')"><span class="cat-icon">🦵</span> Legs</button>
+                <button class="cat-btn glass" data-cat="Bröst" onclick="filterExercises('Bröst')"><span class="cat-icon">🏋️</span> Chest</button>
+                <button class="cat-btn glass" data-cat="Rygg" onclick="filterExercises('Rygg')"><span class="cat-icon">🪵</span> Back</button>
+                <button class="cat-btn glass" data-cat="Axlar" onclick="filterExercises('Axlar')"><span class="cat-icon">👐</span> Shoulders</button>
+                <button class="cat-btn glass" data-cat="Armar" onclick="filterExercises('Armar')"><span class="cat-icon">💪</span> Arms</button>
+                <button class="cat-btn glass" data-cat="Bål" onclick="filterExercises('Bål')"><span class="cat-icon">🧘</span> Core</button>
+            </div>
+            <div style="display: flex; align-items: center; gap: 15px; margin: 35px 0 20px 0; opacity: 0.8;">
                 <div style="flex-grow: 1; height: 1px; background: linear-gradient(to right, transparent, var(--primary), transparent);"></div>
                 <div style="width: 8px; height: 8px; background: var(--primary); transform: rotate(45deg); border-radius: 2px; box-shadow: 0 0 10px var(--primary);"></div>
                 <div style="flex-grow: 1; height: 1px; background: linear-gradient(to left, transparent, var(--primary), transparent);"></div>
             </div>
-           <div style="position:relative;">
+            <div style="position:relative;">
                 <div id="subcategory-filter-container"></div>
                 <div id="plus-area" style="position:absolute; top:5px; right:0; display:flex; align-items:center; gap:2px;">
                     <button onclick="openCreateExerciseModal()" 
@@ -209,26 +208,64 @@
             </div>
         </div>
 
-       <div id="workout-view" class="view hidden">
-<div style="display:flex; flex-direction:column; padding:0 10px 0 15px; margin-bottom:10px; gap:0;">
-<div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
-               <h2 id="active-title" class="section-title modern-header" style="margin-bottom:0; margin-top:20px; padding:0; font-size:1rem; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:calc(100% - 100px);"></h2>
-                <div id="workout-layout-toggle" style="display:flex; margin-top:20px; border:1px solid rgba(255,255,255,0.1); border-radius:10px; overflow:hidden; flex-shrink:0;">
-                    <div id="layout-list-btn" onclick="setWorkoutLayout('list')" style="padding:7px 11px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 0.2s;">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        <!-- ================= UPPDATERAD WORKOUT VIEW HEADER ================= -->
+        <div id="workout-view" class="view hidden">
+            <div style="
+                background: rgba(13, 21, 39, 0.6); 
+                border-radius: 16px; 
+                padding: 16px 20px 14px 20px; 
+                margin: 10px 15px 20px 15px;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+                border: 1px solid rgba(255, 255, 255, 0.03);
+            ">
+                <!-- ÖVRE DELEN: Rubriker och Layout-kontroller -->
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; gap: 12px;">
+                    <div>
+                        <div style="font-size: 10px; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 4px;">
+                            Active Workout
+                        </div>
+                        <!-- Titeln fylls i dynamiskt av ditt script via detta ID -->
+                        <h2 id="active-title" style="margin: 0; font-size: 24px; font-weight: 800; color: #ffffff; letter-spacing: -0.5px; line-height: 1.2;"></h2>
                     </div>
-                    <div id="layout-carousel-btn" onclick="setWorkoutLayout('carousel')" style="padding:7px 11px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 0.2s;">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 3l-4 4-4-4"/></svg>
+
+                    <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0;">
+                        <span style="font-size: 11px; font-weight: 600; color: #475569; letter-spacing: 0.3px;">
+                            Choose Layout
+                        </span>
+                        <!-- ID bevarat för din JS-logik -->
+                        <div id="workout-layout-toggle" style="display: flex; gap: 6px;">
+                            <div id="layout-list-btn" onclick="setWorkoutLayout('list')" class="hdr-layout-btn" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 10px; width: 36px; height: 34px; display: flex; align-items: center; justify-content: center; color: #475569; cursor: pointer; transition: all 0.2s;">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><circle cx="3" cy="6" r="1" fill="currentColor"></circle><circle cx="3" cy="12" r="1" fill="currentColor"></circle><circle cx="3" cy="18" r="1" fill="currentColor"></circle></svg>
+                            </div>
+                            <div id="layout-carousel-btn" onclick="setWorkoutLayout('carousel')" class="hdr-layout-btn" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 10px; width: 36px; height: 34px; display: flex; align-items: center; justify-content: center; color: #475569; cursor: pointer; transition: all 0.2s;">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect></svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- UNDRE DELEN: Statusrad med fast "Started "-prefix -->
+                <div style="border-top: 1px solid rgba(255, 255, 255, 0.05); padding-top: 12px; display: flex; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600;">
+                        <div style="display: flex; align-items: center; gap: 6px; color: #10b981;">
+                            <span style="width: 6px; height: 6px; background-color: #10b981; border-radius: 50%;"></span>
+                            <!-- Texten "Started " ligger här, och din JS injicerar tidsstämpeln inuti span-elementet -->
+                            <span style="display: flex; gap: 4px;">Started <span id="start-time-badge-container">00:00</span></span>
+                        </div>
+                        <span style="color: #334155;">·</span>
+                        <span style="color: #475569;">23 min</span>
+                    </div>
+                    <div style="font-size: 13px; font-weight: 600; color: #475569;">
+                        6 / 14 set
                     </div>
                 </div>
             </div>
-<div id="start-time-badge-container" style="padding: 4px 15px 8px 15px; margin-top:2px;"></div>
-</div>
+
             <div id="rest-timer-bar"></div>
             <div id="exercise-list"></div>
             <div id="carousel-view" class="hidden"></div>
             <div class="workout-footer">
-               <button id="pause-workout-btn" class="mode-btn glass-border">Save Draft</button>
+                <button id="pause-workout-btn" class="mode-btn glass-border">Save Draft</button>
                 <button id="save-workout-btn" class="mode-btn green">Delete Workout</button>
             </div>
         </div>
@@ -237,72 +274,87 @@
     <div id="workout-modal" class="modal hidden">
         <div class="modal-content">
             <div id="modal-body"></div>
-<button class="mode-btn glass-border" onclick="closeModal()" style="margin-top: 25px; background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.05) 100%); border: 1px solid rgba(255,255,255,0.25); border-top: 1px solid rgba(255,255,255,0.45); box-shadow: 0 4px 15px rgba(0,0,0,0.2);">Close</button>
+            <button class="mode-btn glass-border" onclick="closeModal()" style="margin-top: 25px; background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.05) 100%); border: 1px solid rgba(255,255,255,0.25); border-top: 1px solid rgba(255,255,255,0.45); box-shadow: 0 4px 15px rgba(0,0,0,0.2);">Close</button>
         </div>
     </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
- 
-<script src="supabase-config.js"></script>
-<script src="supabase-data.js"></script>
- 
-<script src="app.js?v=2.0.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="supabase-data.js"></script>
+    <script src="app.js?v=2.0.0"></script>
 
-<div id="bottom-bar" class="bottom-bar">
-    <div class="bar-item" onclick="renderHome(); showView('home-view');">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-        <span>Home</span>
-    </div>
-    <div class="bar-item" onclick="renderCalendar(); showView('calendar-view')">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        <span>Log</span>
-    </div>
-    <div class="fab-wrap">
-        <div class="fab" onclick="toggleQuickMenu()">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" id="fab-icon"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    <div id="bottom-bar" class="bottom-bar">
+        <div class="bar-item" onclick="renderHome(); showView('home-view');">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            <span>Home</span>
+        </div>
+        <div class="bar-item" onclick="renderCalendar(); showView('calendar-view')">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <span>Log</span>
+        </div>
+        <div class="fab-wrap">
+            <div class="fab" onclick="toggleQuickMenu()">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" id="fab-icon"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </div>
+        </div>
+        <div class="bar-item" onclick="window._selectionModeDate=null; renderGroupsView();">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h2M4 8v8M6 6v12M9 9v6M15 9v6M18 6v12M20 8v8M22 12h-2"/></svg>
+            <span>Workouts</span>
+        </div>
+        <div class="bar-item" id="bar-profile-item" onclick="openProfilePanel()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-3 4-5 8-5s8 2 8 5"/></svg>
+            <span>Profile</span>
         </div>
     </div>
-    <div class="bar-item" onclick="window._selectionModeDate=null; renderGroupsView();">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h2M4 8v8M6 6v12M9 9v6M15 9v6M18 6v12M20 8v8M22 12h-2"/></svg>
-        <span>Workouts</span>
-    </div>
-    <div class="bar-item" id="bar-profile-item" onclick="openProfilePanel()">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-3 4-5 8-5s8 2 8 5"/></svg>
-        <span>Profile</span>
-    </div>
-</div>
 
-<div id="quick-menu" class="quick-menu hidden">
-    <div class="quick-item" onclick="closeQuickMenu(); openCreateExerciseModal();">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h2M4 8v8M6 6v12M9 9v6M15 9v6M18 6v12M20 8v8M22 12h-2"/></svg>
-        <span>Create new exercise</span>
-    </div>
-    <div class="quick-item" onclick="closeQuickMenu(); openCreateProgramModal();">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="15" y2="16"/></svg>
-        <span>Create new workout</span>
-    </div>
-</div>
-<div id="profile-overlay" class="profile-overlay hidden" onclick="closeProfilePanel()"></div>
-<div id="profile-panel" class="profile-panel">
-    <div class="profile-header">
-        <div class="avatar" id="profile-avatar">--</div>
-        <div>
-            <div class="profile-name" id="profile-name">-</div>
-            <div class="profile-email" id="profile-email">-</div>
+    <div id="quick-menu" class="quick-menu hidden">
+        <div class="quick-item" onclick="closeQuickMenu(); openCreateExerciseModal();">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h2M4 8v8M6 6v12M9 9v6M15 9v6M18 6v12M20 8v8M22 12h-2"/></svg>
+            <span>Create new exercise</span>
+        </div>
+        <div class="quick-item" onclick="closeQuickMenu(); openCreateProgramModal();">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="15" y2="16"/></svg>
+            <span>Create new workout</span>
         </div>
     </div>
-    <div class="panel-row" onclick="alert('Settings coming soon')">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-        <span>Settings</span>
+
+    <div id="profile-overlay" class="profile-overlay hidden" onclick="closeProfilePanel()"></div>
+    <div id="profile-panel" class="profile-panel">
+        <div class="profile-header">
+            <div class="avatar" id="profile-avatar">--</div>
+            <div>
+                <div class="profile-name" id="profile-name">-</div>
+                <div class="profile-email" id="profile-email">-</div>
+            </div>
+        </div>
+        <div class="panel-row" onclick="alert('Settings coming soon')">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            <span>Settings</span>
+        </div>
+        <div class="panel-row" onclick="openThemePanel()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r="0.5"/><circle cx="17.5" cy="10.5" r="0.5"/><circle cx="8.5" cy="7.5" r="0.5"/><circle cx="6.5" cy="12.5" r="0.5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.672 0-.434-.176-.83-.46-1.115-.293-.293-.469-.683-.469-1.118 0-.926.746-1.672 1.672-1.672h1.96c3.051 0 5.529-2.478 5.529-5.529C22 6.298 17.5 2 12 2z"/></svg>
+            <span>Theme &amp; layout</span>
+        </div>
+        <div class="panel-row logout-row" onclick="triggerLogout()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            <span>Log out</span>
+        </div>
     </div>
-    <div class="panel-row" onclick="openThemePanel()">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r="0.5"/><circle cx="17.5" cy="10.5" r="0.5"/><circle cx="8.5" cy="7.5" r="0.5"/><circle cx="6.5" cy="12.5" r="0.5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.672 0-.434-.176-.83-.46-1.115-.293-.293-.469-.683-.469-1.118 0-.926.746-1.672 1.672-1.672h1.96c3.051 0 5.529-2.478 5.529-5.529C22 6.298 17.5 2 12 2z"/></svg>
-        <span>Theme &amp; layout</span>
-    </div>
-    <div class="panel-row logout-row" onclick="triggerLogout()">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-        <span>Log out</span>
-    </div>
-</div>
+
+    <!-- TILLAGDA INTERAKTIVA STILAR FÖR DIN NYA HEADER -->
+    <style>
+        .hdr-layout-btn:hover {
+            color: #94a3b8 !important;
+            background: rgba(255, 255, 255, 0.05) !important;
+            border-color: rgba(255, 255, 255, 0.1) !important;
+        }
+        /* När ditt JS sätter klassen 'active' på vald layout */
+        .hdr-layout-btn.active {
+            background: rgba(30, 58, 138, 0.4) !important; 
+            border: 1px solid #1d4ed8 !important;
+            color: #38bdf8 !important;
+            box-shadow: 0 0 12px rgba(29, 78, 216, 0.2);
+        }
+    </style>
 </body>
 </html>
