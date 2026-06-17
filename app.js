@@ -3707,6 +3707,7 @@ function renderActiveWorkout() {
     }
 }
 
+
 function carouselCopySet0(exIdx) {
     const exData = activeDraft?.data?.[exIdx];
     if (!exData?.sets_data || exData.sets_data.length < 2) return;
@@ -6902,4 +6903,15 @@ function carouselToggleNote(exIdx) {
         const ta = document.querySelector(`.carousel-note-input[data-ex="${exIdx}"]`) || document.getElementById(`note-input-${exIdx}`);
         if (ta && activeDraft.ui_state.openNotes.includes(exIdx)) ta.focus();
     }, 50);
+}
+
+function updateWorkoutProgress(completedSets, totalSets) {
+    // Sätt texten (t.ex. "6 / 14 set")
+    document.getElementById('workout-sets-progress').innerText = `${completedSets} / ${totalSets} set`;
+    
+    // Räkna ut procenten
+    const percentage = totalSets > 0 ? (completedSets / totalSets) * 100 : 0;
+    
+    // Fyll på linjen i botten av kortet
+    document.getElementById('workout-progress-bar').style.width = `${percentage}%`;
 }
