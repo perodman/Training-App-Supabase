@@ -6771,7 +6771,21 @@ function renderCarouselCard() {
 </div>
         <div style="padding:10px 14px 4px; display:flex; align-items:center; justify-content:space-between; gap:8px;">
             <div style="min-width:0; flex:1;">
-                <div style="font-size:16px; font-weight:900; color:${isDone ? 'var(--text-light)' : 'var(--text)'}; text-decoration:${isDone ? 'line-through' : 'none'}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${ex.name}</div>
+                <div style="display:flex; align-items:center; justify-content:space-between; gap:6px;">
+                    <div style="font-size:16px; font-weight:900; color:${isDone ? 'var(--text-light)' : 'var(--text)'}; text-decoration:${isDone ? 'line-through' : 'none'}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${ex.name}</div>
+                    <div style="display:flex; gap:5px; align-items:center; overflow-x:auto; scrollbar-width:none; -webkit-overflow-scrolling:touch; flex-shrink:0;">
+                        <div onclick="carouselToggleNote(${i})" style="display:flex;align-items:center;gap:5px;padding:4px 8px;border-radius:20px;border:1px solid ${exData.note ? 'rgba(253,224,71,0.4)' : '#2a3d52'};background:${exData.note ? 'rgba(253,224,71,0.06)' : '#1e2d3d'};cursor:pointer;position:relative;flex-shrink:0;">
+                            <span style="font-size:12px;">📝</span><span style="font-size:11px;font-weight:700;color:${exData.note ? '#fde047' : '#f8fafc'};">Note</span>
+                        </div>
+                        <div onclick="${isDone ? '' : `openReplaceExerciseModal(${i})`}" style="display:flex;align-items:center;gap:5px;padding:4px 8px;border-radius:20px;background:#1a3040;border:1px solid #22d3ee;cursor:pointer;flex-shrink:0;${isDone ? 'opacity:0.3;pointer-events:none;' : ''}">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16V4m0 0L3 8m4-4l4 4"/><path d="M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>
+                            <span style="font-size:11px;font-weight:700;color:#22d3ee;">Swap</span>
+                        </div>
+                        <div onclick="${isDone ? '' : `removeActiveExercise(${i})`}" style="display:flex;align-items:center;justify-content:center;padding:4px 8px;border-radius:20px;background:#2d1a1a;border:1px solid #7f1d1d;cursor:pointer;flex-shrink:0;${isDone ? 'opacity:0.3;pointer-events:none;' : ''}">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+                        </div>
+                    </div>
+                </div>
                 <div style="font-size:10px; color:${isDone ? '#22c55e' : 'var(--primary)'}; font-weight:800; margin-top:1px;">${isDone ? 'DONE ✅' : `${catDisplay}${catDisplay ? ' · ' : ''}${completedSets}/${totalSets} sets`}</div>
             </div>
              
@@ -6808,8 +6822,7 @@ function renderCarouselCard() {
                 </div>
             </div>
         </div>
-        <div class="carousel-card-body">
-            ${actionBar}
+<div class="carousel-card-body">
             ${noteOpen ? `<div style="margin-bottom:10px;">
                 <textarea id="note-input-${i}" class="carousel-note-input" data-ex="${i}" placeholder="Add a note for this exercise..."
                     oninput="updateExerciseNote(this, ${i})"
