@@ -3712,10 +3712,16 @@ function renderActiveWorkout() {
                             style="width:100%; min-height:60px; padding:10px; border-radius:10px; background:rgba(0,0,0,0.2); border:1px solid rgba(253,224,71,0.2); color:#fff; font-size:13px; font-family:inherit; resize:vertical;">${exerciseData.note || ''}</textarea>
                     </div>
                     ${setsHtml}
-                    <button class="mode-border glass-border" style="padding:8px; font-size:11px; margin-top:10px; border-style:dashed; width:100%;" onclick="addSetToExercise(${i})" ${isDone ? 'disabled' : ''}>+ Add set</button>
-                    <button class="mode-btn ${isDone ? 'blue' : 'green'}" style="padding:12px; font-size:13px; margin-top:15px; width:100%; font-weight:bold;" onclick="toggleExerciseDone(${i})">
-                        ${isDone ? 'Undo  ↩️ ' : 'Mark as Complete  ✅ '}
-                    </button>
+                   <div style="display:flex; gap:8px; margin-top:12px;">
+                      <button style="flex:1; padding:10px; background:transparent; border:1.5px dashed rgba(34,211,238,0.3); color:#22d3ee; border-radius:10px; font-size:12px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;" onclick="addSetToExercise(${i})" ${isDone ? 'disabled' : ''}>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                        Add set
+                      </button>
+                      <button style="flex:2; padding:12px; background:${isDone ? 'linear-gradient(135deg,#1d4ed8,#3b82f6)' : 'linear-gradient(135deg,#15803d,#22c55e)'}; color:#fff; border-radius:12px; font-size:13px; font-weight:800; border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;" onclick="toggleExerciseDone(${i})">
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="9 12 11 14 15 10"></polyline></svg>
+                        ${isDone ? 'Undo' : 'Finish exercise'}
+                      </button>
+                    </div>
                 </div>`;
             list.appendChild(div);
         });
