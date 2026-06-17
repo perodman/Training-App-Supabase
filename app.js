@@ -3431,12 +3431,6 @@ async function startWorkout(workout, data = null, date = null, isImmediateStart 
     stopRestTimer();
     if (typeof carouselStopRest === 'function') carouselStopRest();
 
-    if(!activeDraft || !activeDraft.secondsElapsed) {
-        secondsElapsed = 0;
-    } else {
-        secondsElapsed = activeDraft.secondsElapsed;
-    }
-
     if(!data) {
         data = workout.exercises.map(ex => {
             const history = getExerciseHistory(ex.name);
@@ -3452,22 +3446,29 @@ async function startWorkout(workout, data = null, date = null, isImmediateStart 
     // Bevara befintligt ui_state om passet redan har ett (återkomst till pågående pass)
     const existingUiState = (activeDraft && activeDraft.ui_state) ? activeDraft.ui_state : null;
 
-   activeDraft = {
+    // Kontrollera om detta är ett pass vi återvänder till (som redan har startats tidigare)
+    const alreadyStarted = activeDraft?.isStarted || false;
+    const existingStartTime = activeDraft?.startTime || null;
+
+    activeDraft = {
         workout: JSON.parse(JSON.stringify(workout)),
         data,
         date: date || new Date().toISOString().split('T')[0],
-        startTime: activeDraft?.startTime || new Date().toISOString(),
-        secondsElapsed: secondsElapsed,
-        isStarted: true,
-        wasTimerRunning: true,
+        // ÄNDRING: Sätt bara starttid om passet faktiskt redan var startat sedan innan, annars null
+        startTime: alreadyStarted ? existingStartTime : null,
+        // ÄNDRING: isStarted styrs av om det redan var igång, eller om isImmediateStart tvingar igång det
+        isStarted: alreadyStarted || isImmediateStart,
         ui_state: existingUiState || {}
     };
+    
+    // Om vi tvingar en omedelbar start (isImmediateStart är true), stämpla tiden direkt
+    if (isImmediateStart && !activeDraft.startTime) {
+        activeDraft.startTime = new Date().toISOString();
+    }
     
     // Sparar det skapade passutkastet direkt till både localStorage och Supabase
     await persistActiveWorkout();
     renderActiveWorkout();
-    if (typeof updateTimerDisplay === "function") updateTimerDisplay();
-    if (typeof startTimer === "function") startTimer();
 }
 
 // Global array för att hålla koll på valda övningar i modalen innan de sparas
