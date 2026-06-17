@@ -4571,10 +4571,10 @@ function updateSingleExerciseCard(exIdx) {
                 <small style="color: ${isDone ? '#22c55e' : 'var(--primary)'}; font-size: 10px;">${isDone ? 'DONE ✅' : `${completedSets}/${totalSets} set`}</small>
             </div>
             <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0; margin-left: 6px; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch;">
-               <button onclick="event.stopPropagation(); toggleExerciseNote(${i})" style="background:#1e2d3d;border:1px solid #2a3d52;color:#94a3b8;border-radius:20px;padding:5px 10px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:5px;position:relative;">
+               <button onclick="event.stopPropagation(); toggleExerciseNote(${exIdx})" style="background:#1e2d3d;border:1px solid #2a3d52;color:#94a3b8;border-radius:20px;padding:5px 10px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:5px;position:relative;">
                             <span style="font-size:13px;">📝</span>${exerciseData.note ? '<span style="position:absolute; top:2px; right:2px; width:6px; height:6px; background:#fde047; border-radius:50%;"></span>' : ''}
                         </button>
-                        <button onclick="event.stopPropagation(); openReplaceExerciseModal(${i})" style="background:#1a3040;border:1px solid #22d3ee;color:#22d3ee;border-radius:20px;padding:5px 10px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:5px;" ${isDone ? 'disabled' : ''}>
+                        <button onclick="event.stopPropagation(); openReplaceExerciseModal(${exIdx})" style="background:#1a3040;border:1px solid #22d3ee;color:#22d3ee;border-radius:20px;padding:5px 10px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:5px;" ${isDone ? 'disabled' : ''}>
                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><polyline points="23 20 23 14 17 14"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
                         </button>
                         <button onclick="event.stopPropagation(); removeActiveExercise(${exIdx})" style="background:#2d1a1a;border:1px solid #7f1d1d;color:#ef4444;border-radius:20px;padding:5px 10px;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;" ${isDone ? 'disabled' : ''}>
