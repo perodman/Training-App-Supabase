@@ -6527,7 +6527,7 @@ async function carouselConfirmSet(exIdx, setIdx) {
     if (isNowConfirmed && !isLastSet) {
         stopRestTimer();
         carouselStopRest();
-        startRestTimer(restVal, exIdx);
+        carouselStartRest(restVal); // Använd karusellens egen startare
     } else if (isNowConfirmed && isLastSet) {
         stopRestTimer();
         carouselStopRest();
@@ -6544,17 +6544,31 @@ function carouselStartRest(seconds) {
     clearInterval(carouselRestInterval);
     carouselRestSeconds = seconds;
     carouselRestActive = true;
+    restTimerActive = true; // Synka med globala flaggan
+    restTimerSeconds = seconds; // Synka med globala sekunderna
+
+    // Rita om kortet direkt så att klockan och knapparna ändrar färg och status direkt
     renderCarouselCard();
+
     carouselRestInterval = setInterval(() => {
         carouselRestSeconds--;
-        const el = document.getElementById('carousel-rest-time');
-        if (el) {
-            el.textContent = formatRestTime(carouselRestSeconds);
-            el.style.color = carouselRestSeconds <= 10 ? '#ef4444' : '#f59e0b';
+        restTimerSeconds = carouselRestSeconds; // Håll synkad
+
+        // Uppdatera tiderna direkt i övningskortets DOM utan att behöva rita om hela kortet (förhindrar flimmer)
+        const badgeTime = document.getElementById('carousel-rest-badge-time');
+        const dropdownTime = document.getElementById('carousel-rest-dropdown-time');
+        const formatted = formatRestTime(carouselRestSeconds);
+
+        if (badgeTime) badgeTime.textContent = formatted;
+        if (dropdownTime) {
+            dropdownTime.textContent = formatted;
+            dropdownTime.style.color = carouselRestSeconds <= 10 ? '#ef4444' : '#f59e0b';
         }
+
         if (carouselRestSeconds <= 0) {
             clearInterval(carouselRestInterval);
             carouselRestActive = false;
+            restTimerActive = false;
             if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
             renderCarouselCard();
         }
@@ -6565,6 +6579,9 @@ function carouselStopRest() {
     clearInterval(carouselRestInterval);
     carouselRestActive = false;
     carouselRestSeconds = 0;
+    // Synka även bort de globala variablerna för säkerhets skull
+    if (typeof restTimerActive !== 'undefined') restTimerActive = false;
+    if (typeof restTimerSeconds !== 'undefined') restTimerSeconds = 0;
     renderCarouselCard();
 }
 
@@ -6577,7 +6594,7 @@ async function carouselAddSet(exIdx) {
 
 async function carouselToggleDone(exIdx) {
     activeDraft.data[exIdx].isCompleted = !activeDraft.data[exIdx].isCompleted;
-        if (activeDraft.data[exIdx].isCompleted) {
+    if (activeDraft.data[exIdx].isCompleted) {
         stopRestTimer();
         carouselStopRest();
         await persistActiveWorkout();
@@ -6747,12 +6764,20 @@ function carouselToggleRestBadge() {
     dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
 }
 
+// Uppdaterad så att den justerar de nya elementen inuti övningskortet
 function carouselRestAdjust(delta) {
-    if (restTimerActive) {
-        restTimerSeconds = Math.max(0, restTimerSeconds + delta);
+    if (carouselRestActive) {
+        carouselRestSeconds = Math.max(0, carouselRestSeconds + delta);
+        restTimerSeconds = carouselRestSeconds;
     }
     const ddTime = document.getElementById('carousel-rest-dropdown-time');
-    if (ddTime) ddTime.textContent = restTimerActive ? formatRestTime(restTimerSeconds) : formatRestTime(Math.max(0, (parseInt(ddTime.dataset.base || '120')) + delta));
+    if (ddTime) {
+        ddTime.textContent = formatRestTime(carouselRestActive ? carouselRestSeconds : 120);
+    }
+    const badgeTime = document.getElementById('carousel-rest-badge-time');
+    if (badgeTime && carouselRestActive) {
+        badgeTime.textContent = formatRestTime(carouselRestSeconds);
+    }
 }
 
 function carouselRestStart() {
@@ -6760,25 +6785,25 @@ function carouselRestStart() {
     const restSecs = firstUnconfirmed !== -1 && firstUnconfirmed !== undefined
         ? parseInt(activeDraft.data[carouselCurrentIndex].sets_data[firstUnconfirmed - 1]?.rest || '120')
         : 120;
-    startRestTimer(restSecs, carouselCurrentIndex);
-    renderCarouselCard();
+    carouselStartRest(restSecs);
 }
 
 function carouselRestStop() {
-    stopRestTimer();
+    clearInterval(carouselRestInterval);
+    carouselRestActive = false;
+    carouselRestSeconds = 0;
+    if (typeof restTimerActive !== 'undefined') restTimerActive = false;
     renderCarouselCard();
 }
 
 function carouselToggleNote(exIdx) {
     if (!activeDraft.ui_state.openNotes) activeDraft.ui_state.openNotes = [];
 
-    // Spara eventuell befintlig nota innan vi ritar om via unika klasser/id
     const existingTa = document.querySelector(`.carousel-note-input[data-ex="${exIdx}"], #note-input-${exIdx}`);
     if (existingTa) {
         activeDraft.data[exIdx].note = existingTa.value;
     }
     
-    // Uppdatera pricken direkt i DOM om den finns
     const noteSpan = document.querySelector(`[onclick="carouselToggleNote(${exIdx})"] span:first-child`);
     if (noteSpan) {
         const hasNote = !!(activeDraft.data[exIdx].note && activeDraft.data[exIdx].note.trim());
@@ -6792,11 +6817,9 @@ function carouselToggleNote(exIdx) {
         activeDraft.ui_state.openNotes.push(exIdx);
     }
 
-    // Uppdatera vyn
     renderCarouselCard();
 
     setTimeout(() => {
-        // Sätt fokus på rätt textarea i karusellen efter omritning
         const ta = document.querySelector(`.carousel-note-input[data-ex="${exIdx}"]`) || document.getElementById(`note-input-${exIdx}`);
         if (ta && activeDraft.ui_state.openNotes.includes(exIdx)) ta.focus();
     }, 50);
