@@ -6160,13 +6160,14 @@ function renderRestTimer() {
         const secs = String(restTimerSeconds % 60).padStart(2, '0');
         const liveTimeStr = `${mins}:${secs}`;
 
-        // 1. FIX: Uppdatera den lilla klocktexten i headern live med rätt färg och logik!
+        // 1. ALLTID UPPDATERA HEADERN LIVE: Om restTimerSeconds har ett värde, visa det!
         const liveLabelTime = document.getElementById('carousel-live-label-time');
         if (liveLabelTime) {
-            if (restTimerActive) {
+            if (restTimerActive && restTimerSeconds > 0) {
                 liveLabelTime.textContent = liveTimeStr;
                 liveLabelTime.style.color = timerColor;
             } else {
+                // Om den inte tickar, visa det inställda värdet för nästa set
                 const nextRest = parseInt(activeDraft?.data?.[carouselCurrentIndex]?.sets_data?.find(s => !s.userConfirmed)?.rest || 120);
                 const defaultMins = String(Math.floor(nextRest / 60)).padStart(1, '0');
                 const defaultSecs = String(nextRest % 60).padStart(2, '0');
@@ -6178,7 +6179,7 @@ function renderRestTimer() {
         // 2. Uppdatera tiden inne i dropdown-panelen live
         const carouselDdTime = document.getElementById('carousel-rest-dropdown-time');
         if (carouselDdTime) {
-            if (restTimerActive) {
+            if (restTimerActive && restTimerSeconds > 0) {
                 carouselDdTime.textContent = liveTimeStr;
                 carouselDdTime.style.color = timerColor;
             } else {
@@ -6799,7 +6800,6 @@ function renderCarouselCard() {
     const catDisplay = CATEGORY_DISPLAY[ex.target] || ex.target || '';
     const isTimerDisabled = !!activeDraft.restTimerDisabled;
 
-    // Beräkna rätt färgkodning och tid direkt vid uppritning
     const timerColor = restTimerSeconds <= 10 ? '#ef4444' : '#f59e0b';
     const currentMins = String(Math.floor(restTimerSeconds / 60)).padStart(1, '0');
     const currentSecs = String(restTimerSeconds % 60).padStart(2, '0');
@@ -6864,28 +6864,13 @@ function renderCarouselCard() {
                 <div style="font-size:10px; color:${isDone ? '#22c55e' : 'var(--primary)'}; font-weight:800; margin-top:1px;">${isDone ? 'DONE ✅' : `${catDisplay}${catDisplay ? ' · ' : ''}${completedSets}/${totalSets} sets`}</div>
             </div>
             
-            <div style="display:flex; align-items:center; gap:10px; flex-shrink:0;">
+            <div style="display:flex; align-items:center; gap:12px; flex-shrink:0;">
                 
-                <div style="display:flex; align-items:center; gap:6px; min-width: 55px; justify-content: flex-end; cursor:pointer;" onclick="carouselToggleRestBadge();">
-                    <span style="font-size:13px; line-height:1;">⏱️</span>
-                    <span id="carousel-live-label-time" style="font-size:13px; font-weight:900; color:#f59e0b; font-family:monospace; letter-spacing:0.5px;">
-                        ${restTimerActive ? liveTimeStr : defaultTimeStr}
+                <div style="display:flex; align-items:center; gap:6px; min-width:52px; justify-content:flex-end; cursor:pointer;" onclick="carouselToggleRestBadge();">
+                    <span style="font-size:14px; line-height:1;">⏱️</span>
+                    <span id="carousel-live-label-time" style="font-size:14px; font-weight:900; color:#f59e0b; font-family:monospace; letter-spacing:0.5px;">
+                        ${(restTimerActive && restTimerSeconds > 0) ? liveTimeStr : defaultTimeStr}
                     </span>
-                </div>
-
-                <div style="display:flex; background:rgba(0,0,0,0.3); border-radius:12px; border:1px solid rgba(255,255,255,0.08); overflow:hidden; height:26px; align-items:center;">
-                    <button onclick="activeDraft.restTimerDisabled=false; persistActiveWorkout(); renderCarouselCard();"
-                        style="padding:0 12px; height:100%; font-size:11px; font-weight:700; cursor:pointer; border:none; transition:all 0.15s; 
-                        background:${!isTimerDisabled ? 'rgba(245,158,11,0.2)' : 'transparent'}; 
-                        color:${!isTimerDisabled ? '#f59e0b' : 'rgba(255,255,255,0.25)'};">
-                        On
-                    </button>
-                    <button onclick="clearInterval(restTimerInterval); restTimerActive=false; restTimerSeconds=0; restTimerExIdx=null; activeDraft.restTimerDisabled=true; persistActiveWorkout(); renderCarouselCard();"
-                        style="padding:0 12px; height:100%; font-size:11px; font-weight:700; cursor:pointer; border:none; transition:all 0.15s; 
-                        background:${isTimerDisabled ? 'rgba(245,158,11,0.2)' : 'transparent'}; 
-                        color:${isTimerDisabled ? '#f59e0b' : 'rgba(255,255,255,0.25)'};">
-                        Off
-                    </button>
                 </div>
 
                 <div onclick="carouselToggleRestBadge();" 
@@ -6898,19 +6883,33 @@ function renderCarouselCard() {
             </div>
         </div>
         
-        <div id="carousel-rest-dropdown" style="display:none; margin:0 14px 6px; background:rgba(245,158,11,0.06); border:1px solid rgba(245,158,11,0.2); border-radius:12px; padding:8px 12px;">
-            <div style="display:flex; align-items:center; justify-content:space-between;">
-                <div>
-                    <div style="font-size:8px; color:#92400e; font-weight:800; text-transform:uppercase; letter-spacing:1px;">Rest Timer</div>
-                    <div style="font-size:22px; font-weight:900; color:${restTimerActive ? timerColor : '#f59e0b'}; font-family:monospace;" id="carousel-rest-dropdown-time">
-                        ${restTimerActive ? liveTimeStr : defaultTimeStr}
+        <div id="carousel-rest-dropdown" style="display:none; margin:0 14px 6px; background:rgba(245,158,11,0.06); border:1px solid rgba(245,158,11,0.2); border-radius:12px; padding:10px 12px;">
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <div>
+                        <div style="font-size:8px; color:#92400e; font-weight:800; text-transform:uppercase; letter-spacing:1px;">Rest Timer</div>
+                        <div style="font-size:22px; font-weight:900; color:${(restTimerActive && restTimerSeconds > 0) ? timerColor : '#f59e0b'}; font-family:monospace;" id="carousel-rest-dropdown-time">
+                            ${(restTimerActive && restTimerSeconds > 0) ? liveTimeStr : defaultTimeStr}
+                        </div>
+                    </div>
+                    
+                    <div style="display:flex; background:rgba(0,0,0,0.4); border-radius:10px; border:1px solid rgba(255,255,255,0.08); overflow:hidden; height:26px; align-items:center; margin-left:4px;">
+                        <button onclick="activeDraft.restTimerDisabled=false; persistActiveWorkout(); renderCarouselCard();"
+                            style="padding:0 10px; height:100%; font-size:10px; font-weight:700; cursor:pointer; border:none; transition:all 0.15s; 
+                            background:${!isTimerDisabled ? 'rgba(245,158,11,0.25)' : 'transparent'}; 
+                            color:${!isTimerDisabled ? '#f59e0b' : 'rgba(255,255,255,0.2)'};">On</button>
+                        <button onclick="clearInterval(restTimerInterval); restTimerActive=false; restTimerSeconds=0; restTimerExIdx=null; activeDraft.restTimerDisabled=true; persistActiveWorkout(); renderCarouselCard();"
+                            style="padding:0 10px; height:100%; font-size:10px; font-weight:700; cursor:pointer; border:none; transition:all 0.15s; 
+                            background:${isTimerDisabled ? 'rgba(245,158,11,0.25)' : 'transparent'}; 
+                            color:${isTimerDisabled ? '#f59e0b' : 'rgba(255,255,255,0.2)'};">Off</button>
                     </div>
                 </div>
+
                 <div style="display:flex; gap:5px; align-items:center;">
-                    <button onclick="carouselRestAdjust(-15)" style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:8px;padding:4px 8px;font-size:10px;color:#f59e0b;cursor:pointer;">−15s</button>
-                    <button onclick="carouselRestAdjust(30)" style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:8px;padding:4px 8px;font-size:10px;color:#f59e0b;cursor:pointer;">+30s</button>
-                    <button onclick="carouselRestStart()" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);border-radius:8px;padding:4px 8px;font-size:10px;font-weight:700;color:#22c55e;cursor:pointer;">${restTimerActive ? 'Restart' : 'Start'}</button>
-                    <button onclick="carouselRestStop()" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:4px 8px;font-size:10px;color:#64748b;cursor:pointer;">Stop</button>
+                    <button onclick="carouselRestAdjust(-15)" style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:8px;padding:5px 8px;font-size:10px;color:#f59e0b;cursor:pointer;">−15s</button>
+                    <button onclick="carouselRestAdjust(30)" style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:8px;padding:5px 8px;font-size:10px;color:#f59e0b;cursor:pointer;">+30s</button>
+                    <button onclick="carouselRestStart()" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);border-radius:8px;padding:5px 8px;font-size:10px;font-weight:700;color:#22c55e;cursor:pointer;">${(restTimerActive && restTimerSeconds > 0) ? 'Restart' : 'Start'}</button>
+                    <button onclick="carouselRestStop()" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:5px 8px;font-size:10px;color:#64748b;cursor:pointer;">Stop</button>
                 </div>
             </div>
         </div>
