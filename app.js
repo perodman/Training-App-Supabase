@@ -6153,26 +6153,7 @@ function renderRestTimer() {
         const oldMoving = document.getElementById("rest-timer-moving");
         if (oldMoving) oldMoving.remove();
 
-        // Synka enbart karusellens egna badge/dropdown om de existerar live i DOM:en
-        const carouselBadgeTime = document.getElementById('carousel-rest-badge-time');
-        if (carouselBadgeTime) {
-            carouselBadgeTime.textContent = restTimerActive ? formatRestTime(restTimerSeconds) : 'Rest';
-            carouselBadgeTime.style.color = restTimerActive ? '#f59e0b' : '#64748b';
-            const badge = document.getElementById('carousel-rest-badge');
-            if (badge) {
-                const isDisabled = activeDraft && activeDraft.restTimerDisabled;
-                if (isDisabled) {
-                    badge.style.borderColor = 'rgba(255,255,255,0.05)';
-                    badge.style.background = 'rgba(255,255,255,0.02)';
-                    badge.style.opacity = '0.5';
-                } else {
-                    badge.style.opacity = '1';
-                    badge.style.borderColor = restTimerActive ? 'rgba(245,158,11,0.4)' : 'rgba(255,255,255,0.08)';
-                    badge.style.background = restTimerActive ? 'rgba(245,158,11,0.08)' : 'rgba(255,255,255,0.04)';
-                }
-            }
-        }
-
+        // Synka karusellens dropdown-tid om den är öppen live i DOM:en
         const carouselDdTime = document.getElementById('carousel-rest-dropdown-time');
         if (carouselDdTime && restTimerActive) {
             carouselDdTime.textContent = formatRestTime(restTimerSeconds);
@@ -6184,7 +6165,6 @@ function renderRestTimer() {
     // --- Nedan körs och visas KONSTANT i vanliga Listvyn ---
     const staticBar = document.getElementById("rest-timer-bar");
     
-    // Säkerställ att den fasta bar-containern alltid är synlig i list-vyn
     if (staticBar) {
         staticBar.style.display = 'block';
     }
@@ -6249,7 +6229,6 @@ function renderRestTimer() {
     if (isDisabled) {
         if (staticBar) staticBar.innerHTML = disabledHTML;
     } else if (restTimerActive && restTimerExIdx !== null) {
-        // Om timern tickar aktivt så göms den fasta headern eftersom den rörliga flyttar in ovanför övningskortet
         if (staticBar) staticBar.innerHTML = '';
         const targetCard = document.getElementById(`exercise-card-${restTimerExIdx}`);
         if (targetCard) {
@@ -6259,7 +6238,6 @@ function renderRestTimer() {
             targetCard.insertAdjacentElement('beforebegin', movingBar);
         }
     } else {
-        // Om timern inte körs (idle) visar vi ALLTID idleHTML i den fasta headern
         if (staticBar) staticBar.innerHTML = idleHTML;
     }
 }
@@ -6877,16 +6855,29 @@ function renderCarouselCard() {
                 <div style="font-size:10px; color:${isDone ? '#22c55e' : 'var(--primary)'}; font-weight:800; margin-top:1px;">${isDone ? 'DONE ✅' : `${catDisplay}${catDisplay ? ' · ' : ''}${completedSets}/${totalSets} sets`}</div>
             </div>
             
-            <div id="carousel-rest-badge" style="flex-shrink:0; display:flex; align-items:center; border-radius:14px; border:1px solid ${isTimerDisabled ? 'rgba(255,255,255,0.05)' : restTimerActive ? 'rgba(245,158,11,0.4)' : 'rgba(255,255,255,0.08)'}; background:${isTimerDisabled ? 'rgba(255,255,255,0.02)' : restTimerActive ? 'rgba(245,158,11,0.08)' : 'rgba(255,255,255,0.04)'}; opacity:${isTimerDisabled ? '0.5' : '1'}; overflow:hidden; transition:all 0.2s;">
-                <div onclick="${isTimerDisabled ? '' : 'carouselToggleRestBadge()'}" style="display:flex; align-items:center; gap:5px; padding:6px 10px; cursor:${isTimerDisabled ? 'default' : 'pointer'}; background:rgba(255,255,255,0.02);">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="${isTimerDisabled ? 'rgba(255,255,255,0.15)' : restTimerActive ? '#f59e0b' : '#64748b'}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                    <span style="font-size:12px; font-weight:800; color:${isTimerDisabled ? 'rgba(255,255,255,0.2)' : restTimerActive ? '#f59e0b' : '#64748b'}; font-family:monospace;" id="carousel-rest-badge-time">${isTimerDisabled ? 'Off' : restTimerActive ? formatRestTime(restTimerSeconds) : 'Rest'}</span>
-                </div>
-                <div style="width:1px; height:16px; background:rgba(255,255,255,0.12);"></div>
+            <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
                 
-                <div onclick="if(!activeDraft.restTimerDisabled){ clearInterval(restTimerInterval); restTimerActive=false; restTimerSeconds=0; restTimerExIdx=null; activeDraft.restTimerDisabled=true; }else{ activeDraft.restTimerDisabled=false; } persistActiveWorkout(); renderCarouselCard();" 
-                     style="padding:6px 10px; display:flex; align-items:center; justify-content:center; cursor:pointer; background:${isTimerDisabled ? 'transparent' : 'rgba(245,158,11,0.15)'};">
-                    <span style="font-size:10px; font-weight:800; color:${isTimerDisabled ? 'rgba(255,255,255,0.3)' : '#f59e0b'}; text-transform:uppercase; letter-spacing:0.5px;">${isTimerDisabled ? 'On' : 'Off'}</span>
+                <div style="display:flex; background:rgba(0,0,0,0.3); border-radius:12px; border:1px solid rgba(255,255,255,0.08); overflow:hidden; height:26px; align-items:center;">
+                    <button onclick="activeDraft.restTimerDisabled=false; persistActiveWorkout(); renderCarouselCard();"
+                        style="padding:0 12px; height:100%; font-size:11px; font-weight:700; cursor:pointer; border:none; transition:all 0.15s; 
+                        background:${!isTimerDisabled ? 'rgba(245,158,11,0.2)' : 'transparent'}; 
+                        color:${!isTimerDisabled ? '#f59e0b' : 'rgba(255,255,255,0.25)'};">
+                        On
+                    </button>
+                    <button onclick="clearInterval(restTimerInterval); restTimerActive=false; restTimerSeconds=0; restTimerExIdx=null; activeDraft.restTimerDisabled=true; persistActiveWorkout(); renderCarouselCard();"
+                        style="padding:0 12px; height:100%; font-size:11px; font-weight:700; cursor:pointer; border:none; transition:all 0.15s; 
+                        background:${isTimerDisabled ? 'rgba(245,158,11,0.2)' : 'transparent'}; 
+                        color:${isTimerDisabled ? '#f59e0b' : 'rgba(255,255,255,0.25)'};">
+                        Off
+                    </button>
+                </div>
+
+                <div onclick="if(!activeDraft.restTimerDisabled) { carouselToggleRestBadge(); }" 
+                     style="width:28px; height:28px; display:flex; align-items:center; justify-content:center; border-radius:8px; border:1px solid rgba(255,255,255,0.08); background:rgba(255,255,255,0.04); cursor:${isTimerDisabled ? 'not-allowed' : 'pointer'}; opacity:${isTimerDisabled ? '0.3' : '1'}; transition:all 0.2s;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${restTimerActive ? '#f59e0b' : '#64748b'}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                    </svg>
                 </div>
             </div>
         </div>
