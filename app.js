@@ -6143,7 +6143,7 @@ function stopRestTimer() {
 }
 
 function renderRestTimer() {
-    // SÄKERHETSSPÄRR: Om vi är i karuselläge, dölj listvyns bar och uppdatera karusellens timer live
+    // SÄKERHETSSPÄRR: Om vi är i karuselläge, dölj listvyns bar och uppdatera karusellens timers live
     if (typeof workoutLayoutMode !== 'undefined' && workoutLayoutMode === 'carousel') {
         const staticBar = document.getElementById("rest-timer-bar");
         if (staticBar) {
@@ -6160,17 +6160,18 @@ function renderRestTimer() {
         const secs = String(restTimerSeconds % 60).padStart(2, '0');
         const liveTimeStr = `${mins}:${secs}`;
 
-        // 1. Uppdatera lilla klocketiketten uppe till höger (Klockikon till vänster om texten)
+        // 1. FIX: Uppdatera den lilla klocktexten i headern live med rätt färg och logik!
         const liveLabelTime = document.getElementById('carousel-live-label-time');
         if (liveLabelTime) {
             if (restTimerActive) {
                 liveLabelTime.textContent = liveTimeStr;
                 liveLabelTime.style.color = timerColor;
-                liveLabelTime.style.fontFamily = 'monospace';
             } else {
-                liveLabelTime.textContent = 'Rest';
-                liveLabelTime.style.color = '#f8fafc'; // Gå tillbaka till standard textfärg när den är av
-                liveLabelTime.style.fontFamily = 'inherit';
+                const nextRest = parseInt(activeDraft?.data?.[carouselCurrentIndex]?.sets_data?.find(s => !s.userConfirmed)?.rest || 120);
+                const defaultMins = String(Math.floor(nextRest / 60)).padStart(1, '0');
+                const defaultSecs = String(nextRest % 60).padStart(2, '0');
+                liveLabelTime.textContent = `${defaultMins}:${defaultSecs}`;
+                liveLabelTime.style.color = '#f59e0b';
             }
         }
 
@@ -6798,7 +6799,7 @@ function renderCarouselCard() {
     const catDisplay = CATEGORY_DISPLAY[ex.target] || ex.target || '';
     const isTimerDisabled = !!activeDraft.restTimerDisabled;
 
-    // Färg och sträng vid första renderingen
+    // Beräkna rätt färgkodning och tid direkt vid uppritning
     const timerColor = restTimerSeconds <= 10 ? '#ef4444' : '#f59e0b';
     const currentMins = String(Math.floor(restTimerSeconds / 60)).padStart(1, '0');
     const currentSecs = String(restTimerSeconds % 60).padStart(2, '0');
@@ -6865,10 +6866,10 @@ function renderCarouselCard() {
             
             <div style="display:flex; align-items:center; gap:10px; flex-shrink:0;">
                 
-                <div style="display:flex; align-items:center; gap:5px; min-width: 50px; justify-content: flex-end;">
+                <div style="display:flex; align-items:center; gap:6px; min-width: 55px; justify-content: flex-end; cursor:pointer;" onclick="carouselToggleRestBadge();">
                     <span style="font-size:13px; line-height:1;">⏱️</span>
-                    <span id="carousel-live-label-time" style="font-size:11px; font-weight:800; color:${restTimerActive ? timerColor : '#f8fafc'}; font-family:${restTimerActive ? 'monospace' : 'inherit'}; text-transform:uppercase; letter-spacing:0.5px;">
-                        ${restTimerActive ? liveTimeStr : 'Rest'}
+                    <span id="carousel-live-label-time" style="font-size:13px; font-weight:900; color:#f59e0b; font-family:monospace; letter-spacing:0.5px;">
+                        ${restTimerActive ? liveTimeStr : defaultTimeStr}
                     </span>
                 </div>
 
