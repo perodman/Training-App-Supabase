@@ -6854,8 +6854,7 @@ function renderCarouselCard() {
 
     const isCounting = restTimerActive && restTimerSeconds > 0;
 
-let setsHtml = `<div style="margin:0 -15px 8px -15px; padding:8px 15px 8px 13px; border-left:2px solid rgba(34,211,238,0.3); background:rgba(34,211,238,0.02);">
-        <div style="margin-top:0px;">
+let setsHtml = `<div style="margin-top:4px;">
         <div style="display:grid; grid-template-columns: 40px 1fr 1fr 1fr 30px; gap:8px; margin-bottom:5px; align-items:center;">
             <small style="text-align:left; padding-left:5px; color:var(--text-light); font-size:9px; font-weight:700;">SET</small>
             <small style="text-align:center; color:var(--text-light); font-size:9px;">KG</small>
@@ -6894,7 +6893,7 @@ let setsHtml = `<div style="margin:0 -15px 8px -15px; padding:8px 15px 8px 13px;
             }
         });
     }
-  setsHtml += `</div></div>`;
+ setsHtml += `</div>`;
 
     card.innerHTML = `
         <div style="padding:10px 14px 4px; display:flex; align-items:center; justify-content:space-between; gap:8px;">
