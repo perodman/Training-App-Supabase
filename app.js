@@ -6854,7 +6854,7 @@ function renderCarouselCard() {
 
     const isCounting = restTimerActive && restTimerSeconds > 0;
 
-let setsHtml = `<div style="margin:0 -15px 8px -15px; padding:8px 15px 8px 13px; border-left:4px solid red; background:rgba(255,0,0,0.1);">
+let setsHtml = `<div style="margin:0 -15px 8px -15px; padding:8px 15px 8px 13px; border-left:2px solid rgba(34,211,238,0.3); background:rgba(34,211,238,0.02);">
         <div style="margin-top:0px;">
         <div style="display:grid; grid-template-columns: 40px 1fr 1fr 1fr 30px; gap:8px; margin-bottom:5px; align-items:center;">
             <small style="text-align:left; padding-left:5px; color:var(--text-light); font-size:9px; font-weight:700;">SET</small>
@@ -6879,10 +6879,10 @@ let setsHtml = `<div style="margin:0 -15px 8px -15px; padding:8px 15px 8px 13px;
                     style="width:32px; height:32px; border-radius:50%; border:2px solid ${circleColor}; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:10px; font-weight:800; background:${showSuccess ? 'rgba(34,197,94,0.2)' : isCurrent ? 'rgba(250,204,21,0.15)' : 'rgba(245,158,11,0.05)'}; color:${circleColor}; opacity:1;">
                     ${statusContent}
                 </div>
-                <input type="text" inputmode="decimal" id="w-${i}-${sIdx}" class="log-input weight-input" data-ex="${i}" data-set="${sIdx}" style="margin:0; padding:12px; font-size:18px; opacity:${inputOpacity};" value="${set.weight || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'weight')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
-                <input type="text" inputmode="decimal" id="r-${i}-${sIdx}" class="log-input reps-input" data-ex="${i}" data-set="${sIdx}" style="margin:0; padding:12px; font-size:18px; opacity:${inputOpacity};" value="${set.reps || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'reps')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
+               <input type="text" inputmode="decimal" id="w-${i}-${sIdx}" class="log-input weight-input" data-ex="${i}" data-set="${sIdx}" style="margin:0; padding:12px; font-size:18px; opacity:${inputOpacity}; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.weight || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'weight')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
+                <input type="text" inputmode="decimal" id="r-${i}-${sIdx}" class="log-input reps-input" data-ex="${i}" data-set="${sIdx}" style="margin:0; padding:12px; font-size:18px; opacity:${inputOpacity}; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.reps || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'reps')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
                 ${sIdx < exData.sets_data.length - 1
-                    ? `<input type="text" inputmode="decimal" id="v-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${inputOpacity}; border-color:rgba(52,152,219,0.3);" value="${set.rest || '120'}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'rest')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`
+                    ? `<input type="text" inputmode="decimal" id="v-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${inputOpacity}; border-color:${isCurrent ? 'rgba(245,158,11,0.6)' : 'rgba(52,152,219,0.3)'};" value="${set.rest || '120'}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'rest')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`
                     : '<div></div>'}
                 <button onclick="removeSetFromExercise(${i}, ${sIdx})" style="background:none; border:none; color:var(--danger); font-size:16px; opacity: ${showSuccess ? '0.1' : '0.8'};" ${showSuccess ? 'disabled' : ''}>×</button>
             </div>`;
