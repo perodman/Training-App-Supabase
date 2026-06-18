@@ -6143,7 +6143,7 @@ function stopRestTimer() {
 }
 
 function renderRestTimer() {
-    // SÄKERHETSSPÄRR: Om vi är i karuselläge, dölj och töm listvyns header-bar helt och hållet
+    // SÄKERHETSSPÄRR: Om vi är i karuselläge, dölj listvyns bar och uppdatera karusellens timer live
     if (typeof workoutLayoutMode !== 'undefined' && workoutLayoutMode === 'carousel') {
         const staticBar = document.getElementById("rest-timer-bar");
         if (staticBar) {
@@ -6153,37 +6153,39 @@ function renderRestTimer() {
         const oldMoving = document.getElementById("rest-timer-moving");
         if (oldMoving) oldMoving.remove();
 
-        // --- HÄR ÄR NYCKELN FÖR ATT LOGIKEN SKA TICKA NED ---
-        // Istället för att rita om hela kortet uppdaterar vi BARA tidstexterna i DOM:en live
+        // Bestäm färg baserat på tid kvar (Röd om 10s eller mindre, annars Orange)
+        const timerColor = restTimerSeconds <= 10 ? '#ef4444' : '#f59e0b';
+        
         const mins = String(Math.floor(restTimerSeconds / 60)).padStart(1, '0');
         const secs = String(restTimerSeconds % 60).padStart(2, '0');
         const liveTimeStr = `${mins}:${secs}`;
 
-        // 1. Uppdatera tiden i dropdown-panelen (om den är öppen)
+        // 1. Uppdatera lilla klocketiketten uppe till höger (Klockikon till vänster om texten)
+        const liveLabelTime = document.getElementById('carousel-live-label-time');
+        if (liveLabelTime) {
+            if (restTimerActive) {
+                liveLabelTime.textContent = liveTimeStr;
+                liveLabelTime.style.color = timerColor;
+                liveLabelTime.style.fontFamily = 'monospace';
+            } else {
+                liveLabelTime.textContent = 'Rest';
+                liveLabelTime.style.color = '#f8fafc'; // Gå tillbaka till standard textfärg när den är av
+                liveLabelTime.style.fontFamily = 'inherit';
+            }
+        }
+
+        // 2. Uppdatera tiden inne i dropdown-panelen live
         const carouselDdTime = document.getElementById('carousel-rest-dropdown-time');
         if (carouselDdTime) {
             if (restTimerActive) {
                 carouselDdTime.textContent = liveTimeStr;
-                carouselDdTime.style.color = restTimerSeconds <= 10 ? '#ef4444' : '#f59e0b';
+                carouselDdTime.style.color = timerColor;
             } else {
-                // Om den inte är aktiv, visa nästa sets vilotid
                 const nextRest = parseInt(activeDraft?.data?.[carouselCurrentIndex]?.sets_data?.find(s => !s.userConfirmed)?.rest || 120);
                 const defaultMins = String(Math.floor(nextRest / 60)).padStart(1, '0');
                 const defaultSecs = String(nextRest % 60).padStart(2, '0');
                 carouselDdTime.textContent = `${defaultMins}:${defaultSecs}`;
                 carouselDdTime.style.color = '#f59e0b';
-            }
-        }
-        
-        // 2. Uppdatera den lilla klock-etiketten uppe i högra hörnet live
-        const liveLabelTime = document.getElementById('carousel-live-label-time');
-        if (liveLabelTime) {
-            if (restTimerActive) {
-                liveLabelTime.textContent = liveTimeStr;
-                liveLabelTime.style.fontFamily = 'monospace';
-            } else {
-                liveLabelTime.textContent = 'Rest';
-                liveLabelTime.style.fontFamily = 'inherit';
             }
         }
         return; 
@@ -6796,12 +6798,12 @@ function renderCarouselCard() {
     const catDisplay = CATEGORY_DISPLAY[ex.target] || ex.target || '';
     const isTimerDisabled = !!activeDraft.restTimerDisabled;
 
-    // Beräkna nuvarande tidssträng vid uppritningstillfället
+    // Färg och sträng vid första renderingen
+    const timerColor = restTimerSeconds <= 10 ? '#ef4444' : '#f59e0b';
     const currentMins = String(Math.floor(restTimerSeconds / 60)).padStart(1, '0');
     const currentSecs = String(restTimerSeconds % 60).padStart(2, '0');
     const liveTimeStr = `${currentMins}:${currentSecs}`;
 
-    // Hämta sparad tid för nästa omarkerade set till dropdown-panelen som fallback
     const nextRestSeconds = parseInt(exData.sets_data?.find(s => !s.userConfirmed)?.rest || 120);
     const defaultMins = String(Math.floor(nextRestSeconds / 60)).padStart(1, '0');
     const defaultSecs = String(nextRestSeconds % 60).padStart(2, '0');
@@ -6864,8 +6866,8 @@ function renderCarouselCard() {
             <div style="display:flex; align-items:center; gap:10px; flex-shrink:0;">
                 
                 <div style="display:flex; align-items:center; gap:5px; min-width: 50px; justify-content: flex-end;">
-                    <span style="font-size:13px; line-height:1; display:inline-block; vertical-align:middle;">⏱️</span>
-                    <span id="carousel-live-label-time" style="font-size:11px; font-weight:800; color:#f8fafc; font-family:${restTimerActive ? 'monospace' : 'inherit'}; text-transform:uppercase; letter-spacing:0.5px;">
+                    <span style="font-size:13px; line-height:1;">⏱️</span>
+                    <span id="carousel-live-label-time" style="font-size:11px; font-weight:800; color:${restTimerActive ? timerColor : '#f8fafc'}; font-family:${restTimerActive ? 'monospace' : 'inherit'}; text-transform:uppercase; letter-spacing:0.5px;">
                         ${restTimerActive ? liveTimeStr : 'Rest'}
                     </span>
                 </div>
@@ -6899,7 +6901,7 @@ function renderCarouselCard() {
             <div style="display:flex; align-items:center; justify-content:space-between;">
                 <div>
                     <div style="font-size:8px; color:#92400e; font-weight:800; text-transform:uppercase; letter-spacing:1px;">Rest Timer</div>
-                    <div style="font-size:22px; font-weight:900; color:${restTimerActive && restTimerSeconds <= 10 ? '#ef4444' : '#f59e0b'}; font-family:monospace;" id="carousel-rest-dropdown-time">
+                    <div style="font-size:22px; font-weight:900; color:${restTimerActive ? timerColor : '#f59e0b'}; font-family:monospace;" id="carousel-rest-dropdown-time">
                         ${restTimerActive ? liveTimeStr : defaultTimeStr}
                     </div>
                 </div>
