@@ -6623,14 +6623,8 @@ function renderCarousel() {
         <div class="carousel-card-area" id="carousel-card-area">
             <div class="carousel-ex-card" id="carousel-ex-card"></div>
         </div>
-        <div class="carousel-nav-dots">
-            <div class="carousel-nav-arrow" onclick="carouselPrev()">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
-            </div>
+        <div class="carousel-nav-dots" style="justify-content:center;">
             <div class="carousel-dots" id="carousel-dots-container"></div>
-            <div class="carousel-nav-arrow" onclick="carouselNext()">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-            </div>
         </div>`;
     renderCarouselNav();
     renderCarouselDots();
@@ -6829,16 +6823,27 @@ function renderCarouselCard() {
                     style="width:100%; min-height:60px; padding:10px; border-radius:10px; background:rgba(0,0,0,0.2); border:1px solid rgba(253,224,71,0.2); color:#fff; font-size:13px; font-family:inherit; resize:vertical;">${exData.note || ''}</textarea>
             </div>` : ''}
             ${setsHtml}
-            <div style="display:flex; gap:8px; margin-top:12px;">
-                      <button style="flex:1; padding:10px; background:transparent; border:1.5px dashed rgba(34,211,238,0.3); color:#22d3ee; border-radius:10px; font-size:12px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;" onclick="addSetToExercise(${i})" ${isDone ? 'disabled' : ''}>
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                        Add set
-                      </button>
-                      <button style="flex:2; padding:12px; background:${isDone ? 'rgba(148,163,184,0.25)' : 'rgba(34,197,94,0.1)'}; color:${isDone ? '#fff' : '#22c55e'}; border-radius:12px; font-size:13px; font-weight:800; border:${isDone ? '1px solid rgba(148,163,184,0.2)' : '1px solid rgba(34,197,94,0.25)'}; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;" onclick="toggleExerciseDone(${i})">
-                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">${isDone ? '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>' : '<circle cx="12" cy="12" r="10"></circle><polyline points="9 12 11 14 15 10"></polyline>'}</svg>
-                        ${isDone ? 'Undo' : 'Finish exercise'}
-                      </button>
-                    </div>
+            <div style="display:flex; gap:6px; align-items:center; margin-top:12px; margin-bottom:8px; overflow-x:auto; scrollbar-width:none;">
+                <button style="display:flex;align-items:center;gap:6px;padding:8px 12px;background:transparent;border:1.5px dashed rgba(34,211,238,0.3);color:#22d3ee;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0;" onclick="addSetToExercise(${i})" ${isDone ? 'disabled' : ''}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    Add set
+                </button>
+                <div style="flex:1;"></div>
+                <div onclick="carouselToggleNote(${i})" style="display:flex;align-items:center;gap:5px;padding:6px 10px;border-radius:20px;border:1px solid ${exData.note ? 'rgba(253,224,71,0.4)' : '#2a3d52'};background:${exData.note ? 'rgba(253,224,71,0.06)' : '#1e2d3d'};cursor:pointer;flex-shrink:0;position:relative;">
+                    <span style="font-size:13px;">📝</span><span style="font-size:11px;font-weight:700;color:${exData.note ? '#fde047' : '#f8fafc'};">Note</span>
+                </div>
+                <div onclick="${isDone ? '' : `openReplaceExerciseModal(${i})`}" style="display:flex;align-items:center;gap:5px;padding:6px 10px;border-radius:20px;background:#1a3040;border:1px solid #22d3ee;cursor:pointer;flex-shrink:0;${isDone ? 'opacity:0.3;pointer-events:none;' : ''}">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><polyline points="23 20 23 14 17 14"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
+                    <span style="font-size:11px;font-weight:700;color:#22d3ee;">Swap</span>
+                </div>
+                <div onclick="${isDone ? '' : `removeActiveExercise(${i})`}" style="display:flex;align-items:center;justify-content:center;padding:6px 10px;border-radius:20px;background:#2d1a1a;border:1px solid #7f1d1d;cursor:pointer;flex-shrink:0;${isDone ? 'opacity:0.3;pointer-events:none;' : ''}">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </div>
+            </div>
+            <button style="width:100%;padding:12px;background:${isDone ? 'rgba(148,163,184,0.25)' : 'rgba(34,197,94,0.1)'};color:${isDone ? '#fff' : '#22c55e'};border-radius:12px;font-size:14px;font-weight:800;border:${isDone ? '1px solid rgba(148,163,184,0.2)' : '1px solid rgba(34,197,94,0.25)'};cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;" onclick="toggleExerciseDone(${i})">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">${isDone ? '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>' : '<circle cx="12" cy="12" r="10"></circle><polyline points="9 12 11 14 15 10"></polyline>'}</svg>
+                ${isDone ? 'Undo' : 'Finish exercise'}
+            </button>
         </div>`;
 }
 
