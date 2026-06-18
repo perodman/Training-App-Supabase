@@ -3650,7 +3650,7 @@ function renderActiveWorkout() {
                 margin-bottom: 12px;
                 padding: 0;
                 border-radius: 16px;
-                background: linear-gradient(135deg, #243044 0%, #152032 100%);
+                background: linear-gradient(180deg, #1a2540 0%, #0f172a 100%);
                 border: none;
                 border-left: 4px solid ${isDone ? '#22c55e' : isOpen ? '#22d3ee' : 'rgba(250,204,21,0.3)'};
                 box-shadow: ${isDone ? '0 4px 12px rgba(34,197,94,0.08)' : isOpen ? '0 4px 12px rgba(34,211,238,0.08)' : '0 4px 12px rgba(0,0,0,0.3)'};
@@ -3704,7 +3704,18 @@ function renderActiveWorkout() {
                <div onclick="toggleExercise(${i})" style="padding: 12px 15px; display: flex; align-items: center; cursor: pointer; background: ${isOpen ? 'rgba(250, 204, 21, 0.05)' : 'transparent'}; overflow: hidden;">
                     <div style="width: 8px; flex-shrink: 0;"></div>
                     <div style="display: flex; flex-direction: column; min-width:0; flex-grow:1;">
-                        <strong style="font-size: 14px; color: ${isDone ? 'var(--text-light)' : 'var(--text)'}; text-decoration: ${isDone ? 'line-through' : 'none'}; white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">${ex.name}</strong>
+                        <div style="display:flex;align-items:center;gap:6px;">
+    <strong style="font-size: 14px; color: ${isDone ? 'var(--text-light)' : 'var(--text)'}; text-decoration: ${isDone ? 'line-through' : 'none'}; white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">${ex.name}</strong>
+    <div onclick="event.stopPropagation(); const z=document.getElementById('anim-modal-list-${i}'); z.style.display=z.style.display==='flex'?'none':'flex';" style="display:flex;align-items:center;justify-content:center;padding:3px 7px;border-radius:20px;background:rgba(34,211,238,0.08);border:1px solid rgba(34,211,238,0.2);cursor:pointer;flex-shrink:0;">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    </div>
+</div>
+<div id="anim-modal-list-${i}" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:9999;align-items:center;justify-content:center;" onclick="this.style.display='none'">
+    <div style="background:#1e293b;border-radius:16px;padding:20px;width:90%;max-width:400px;">
+        <div style="font-size:12px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">Animation</div>
+        <div style="font-size:11px;color:#475569;text-align:center;margin-top:10px;">Animation coming soon</div>
+    </div>
+</div>
                         <small style="color: ${isDone ? '#22c55e' : 'var(--primary)'}; font-size: 10px;">${isDone ? 'DONE  ✅ ' : `${completedSets}/${totalSets} set`}</small>
                     </div>
                     <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0; margin-left: 6px; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch;">
@@ -4590,6 +4601,7 @@ function updateSingleExerciseCard(exIdx) {
     if (!targetCard) return;
     targetCard.style.borderLeft = `4px solid ${isDone ? '#22c55e' : isOpen ? '#22d3ee' : 'rgba(250,204,21,0.3)'}`;
     targetCard.style.boxShadow = isDone ? '0 4px 12px rgba(34,197,94,0.08)' : isOpen ? '0 4px 12px rgba(34,211,238,0.08)' : '0 4px 12px rgba(0,0,0,0.3)';
+    targetCard.style.background = 'linear-gradient(180deg, #1a2540 0%, #0f172a 100%)';
     const completedSets = exerciseData.sets_data ? exerciseData.sets_data.filter(s => s.userConfirmed).length : 0;
     const totalSets = exerciseData.sets_data ? exerciseData.sets_data.length : 0;
     const firstUnconfirmed = exerciseData.sets_data ? exerciseData.sets_data.findIndex(s => !s.userConfirmed) : -1;
@@ -4634,7 +4646,18 @@ function updateSingleExerciseCard(exIdx) {
         <div onclick="toggleExercise(${exIdx})" style="padding: 12px 15px; display: flex; align-items: center; cursor: pointer; background: ${isOpen ? 'rgba(250, 204, 21, 0.05)' : 'transparent'}">
             <div style="width: 8px; flex-shrink: 0;"></div>
             <div style="display: flex; flex-direction: column; min-width:0; flex-grow:1;">
-                <strong style="font-size: 14px; color: ${isDone ? 'var(--text-light)' : 'var(--text)'}; text-decoration: ${isDone ? 'line-through' : 'none'}; white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">${ex.name}</strong>
+                <div style="display:flex;align-items:center;gap:6px;">
+    <strong style="font-size: 14px; color: ${isDone ? 'var(--text-light)' : 'var(--text)'}; text-decoration: ${isDone ? 'line-through' : 'none'}; white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">${ex.name}</strong>
+    <div onclick="event.stopPropagation(); const z=document.getElementById('anim-modal-list-${i}'); z.style.display=z.style.display==='flex'?'none':'flex';" style="display:flex;align-items:center;justify-content:center;padding:3px 7px;border-radius:20px;background:rgba(34,211,238,0.08);border:1px solid rgba(34,211,238,0.2);cursor:pointer;flex-shrink:0;">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    </div>
+</div>
+<div id="anim-modal-list-${i}" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:9999;align-items:center;justify-content:center;" onclick="this.style.display='none'">
+    <div style="background:#1e293b;border-radius:16px;padding:20px;width:90%;max-width:400px;">
+        <div style="font-size:12px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">Animation</div>
+        <div style="font-size:11px;color:#475569;text-align:center;margin-top:10px;">Animation coming soon</div>
+    </div>
+</div>
                 <small style="color: ${isDone ? '#22c55e' : 'var(--primary)'}; font-size: 10px;">${isDone ? 'DONE ✅' : `${completedSets}/${totalSets} set`}</small>
             </div>
             <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0; margin-left: 6px; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch;">
