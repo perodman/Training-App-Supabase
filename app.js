@@ -6859,6 +6859,8 @@ function renderCarouselCard() {
 
     card.style.borderLeftColor = isDone ? '#22c55e' : '#22d3ee';
     card.classList.toggle('is-done', isDone);
+card.style.outline = isDone ? '1.5px solid #22c55e' : 'none';
+card.style.boxShadow = isDone ? '0 0 25px rgba(34,197,94,0.25), inset 0 0 40px rgba(34,197,94,0.06)' : 'none';
 
     const completedSets = exData.sets_data ? exData.sets_data.filter(s => s.userConfirmed).length : 0;
     const totalSets = exData.sets_data ? exData.sets_data.length : 0;
