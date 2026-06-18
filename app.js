@@ -3505,6 +3505,10 @@ function renderActiveWorkout() {
     }
     
     document.getElementById("active-title").textContent = activeDraft.workout.name;
+    const exCountEl = document.getElementById("active-exercise-count");
+    if (exCountEl && activeDraft.workout.exercises) {
+        exCountEl.textContent = `${activeDraft.workout.exercises.length} exercises`;
+    }
     
     // =========================================================================
     // 2. UPPDATERA KLOCKAN I HTML (Matchat mot dina exakta ID:n!)
@@ -6667,7 +6671,7 @@ function renderCarousel() {
     container.innerHTML = `
         <div class="carousel-nav-bar" id="carousel-nav-bar-inner"></div>
         <div style="display:flex; align-items:center; justify-content:space-between; padding:4px 2px 6px; font-size:10px; font-weight:700; color:#f0a020; letter-spacing:0.3px;">
-            <span>${completedExercises}/${totalExercises} exercises</span>
+           <span></span>
             <div class="carousel-nav-dots" style="justify-content:center; padding:0;">
                 <div class="carousel-dots" id="carousel-dots-container"></div>
             </div>
