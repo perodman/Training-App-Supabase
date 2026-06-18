@@ -3597,7 +3597,7 @@ function renderActiveWorkout() {
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
                 Finish workout
             </button>` : `
-           <button onclick="showEndWorkoutConfirm()" style="width:100%; padding:10px; background:transparent; border:none; color:rgba(255,255,255,0.25); font-size:12px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; margin-bottom:4px;">
+           <button onclick="showEndWorkoutConfirm()" style="width:100%; padding:10px; background:transparent; border:1px solid rgba(255,255,255,0.1); border-radius:12px; color:rgba(255,255,255,0.45); font-size:12px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; margin-bottom:4px;">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
                 End workout early
             </button>`}
@@ -4102,7 +4102,7 @@ async function toggleExerciseDone(exIdx) {
         const allExercisesDone = allDone;
         footer.innerHTML = `
             <div style="height:2px; background:linear-gradient(90deg, transparent, #22d3ee 30%, #f0a020 70%, transparent); margin:-0px -0px 12px -0px; border-radius:0;"></div>
-            ${allExercisesDone ? `<button onclick="finishWorkout()" style="width:100%; padding:15px; background:linear-gradient(135deg,#15803d,#22c55e); color:#fff; font-size:15px; font-weight:900; border-radius:14px; border:none; display:flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; margin-bottom:8px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>Finish workout</button>` : `<button onclick="showEndWorkoutConfirm()" style="width:100%; padding:10px; background:transparent; border:none; color:rgba(255,255,255,0.25); font-size:12px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; margin-bottom:4px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>End workout early</button>`}
+            ${allExercisesDone ? `<button onclick="finishWorkout()" style="width:100%; padding:15px; background:linear-gradient(135deg,#15803d,#22c55e); color:#fff; font-size:15px; font-weight:900; border-radius:14px; border:none; display:flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; margin-bottom:8px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>Finish workout</button>` : `<button onclick="showEndWorkoutConfirm()" style="width:100%; padding:10px; background:transparent; border:1px solid rgba(255,255,255,0.1); border-radius:12px; color:rgba(255,255,255,0.45); font-size:12px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; margin-bottom:4px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>End workout early</button>`}
             <div style="display:flex; gap:8px; width:100%;">
                 <button onclick="saveDraftAndGoHome()" style="width:44px; height:44px; background:rgba(34,211,238,0.1); border:1.5px solid rgba(34,211,238,0.45); color:#22d3ee; border-radius:12px; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></button>
                 <button id="pause-workout-btn" onclick="saveDraftAndGoHome()" style="flex:1; height:44px; background:linear-gradient(135deg,#7a8fa6,#5a7080); border:none; color:#fff; font-size:14px; font-weight:800; border-radius:14px; display:flex; align-items:center; justify-content:center; gap:8px; cursor:pointer;">Save draft<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg></button>
@@ -6709,11 +6709,11 @@ function renderCarouselNav() {
             <div class="carousel-ex-thumb-name">${ex.name}</div>
             ${isDone ? `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>` : ''}
         </div>`;
-    }).join('') + `
-        <div onclick="openCustomAddExerciseModal()" style="flex-shrink:0; min-width:56px; max-width:80px; border-radius:14px; border:1.5px dashed rgba(34,211,238,0.3); background:transparent; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:7px 4px 6px; cursor:pointer; gap:4px;">
+    }).join('');
+    navBar.innerHTML = `<div onclick="openCustomAddExerciseModal()" style="flex-shrink:0; min-width:56px; max-width:80px; border-radius:14px; border:1.5px dashed rgba(34,211,238,0.3); background:transparent; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:7px 4px 6px; cursor:pointer; gap:4px;">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             <div style="font-size:8px; font-weight:800; color:#22d3ee; text-align:center; line-height:1.2;">Add</div>
-        </div>`;
+        </div>` + navBar.innerHTML;
 
     setTimeout(() => {
         const active = document.getElementById(`carousel-thumb-${carouselCurrentIndex}`);
