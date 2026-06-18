@@ -6153,6 +6153,8 @@ function renderRestTimer() {
         const oldMoving = document.getElementById("rest-timer-moving");
         if (oldMoving) oldMoving.remove();
 
+        const isTimerDisabled = !!(activeDraft && activeDraft.restTimerDisabled);
+        
         // Bestäm färg baserat på tid kvar (Röd om 10s eller mindre, annars Orange)
         const timerColor = restTimerSeconds <= 10 ? '#ef4444' : '#f59e0b';
         
@@ -6160,48 +6162,55 @@ function renderRestTimer() {
         const secs = String(restTimerSeconds % 60).padStart(2, '0');
         const liveTimeStr = `${mins}:${secs}`;
 
-        // 1. Hämta live-elementen
-        const liveLabelTime = document.getElementById('carousel-live-label-time');
-        const carouselDdTime = document.getElementById('carousel-rest-dropdown-time');
-
-        // Kontrollera om timern faktiskt är aktiv och tickar just nu
+        // Kontrollera om timern faktiskt räknar aktivt just nu
         const isCurrentlyCounting = restTimerActive && restTimerSeconds > 0;
 
-        // FIX: Om elementen saknas i DOM:en (t.ex. efter en render), tvinga fram en uppdatering av hela headerytan
-        if (!liveLabelTime && document.getElementById('carousel-timer-header-zone')) {
-            const nextRest = parseInt(activeDraft?.data?.[carouselCurrentIndex]?.sets_data?.find(s => !s.userConfirmed)?.rest || 120);
-            const defaultMins = String(Math.floor(nextRest / 60)).padStart(1, '0');
-            const defaultSecs = String(nextRest % 60).padStart(2, '0');
-            const defaultTimeStr = `${defaultMins}:${defaultSecs}`;
+        // 1. UPPDATERA HEADERN LIVE (Tvingande direkt-injektion till DOM)
+        const zone = document.getElementById('carousel-timer-header-zone');
+        const liveLabelTime = document.getElementById('carousel-live-label-time');
 
-            document.getElementById('carousel-timer-header-zone').innerHTML = `
-                <div style="display:flex; flex-direction:column; align-items:flex-end; gap:2px; cursor:pointer;" onclick="carouselToggleRestBadge();">
-                    <span style="font-size:9px; color:#92400e; font-weight:800; text-transform:uppercase; letter-spacing:1px; line-height:1;">REST</span>
-                    <div style="display:flex; align-items:center; gap:6px; min-width:52px; justify-content:flex-end;">
-                        <span style="font-size:14px; line-height:1;">⏱️</span>
-                        <span id="carousel-live-label-time" style="font-size:14px; font-weight:900; color:#f59e0b; font-family:monospace; letter-spacing:0.5px;">
-                            ${isCurrentlyCounting ? liveTimeStr : defaultTimeStr}
-                        </span>
-                    </div>
-                </div>
-            `;
-        } else if (liveLabelTime) {
-            // Om elementet finns, uppdatera texten direkt så det TICKAR live!
-            if (isCurrentlyCounting) {
-                liveLabelTime.textContent = liveTimeStr;
-                liveLabelTime.style.color = timerColor;
-            } else {
-                const nextRest = parseInt(activeDraft?.data?.[carouselCurrentIndex]?.sets_data?.find(s => !s.userConfirmed)?.rest || 120);
-                const defaultMins = String(Math.floor(nextRest / 60)).padStart(1, '0');
-                const defaultSecs = String(nextRest % 60).padStart(2, '0');
-                liveLabelTime.textContent = `${defaultMins}:${defaultSecs}`;
-                liveLabelTime.style.color = '#f59e0b';
+        if (isTimerDisabled) {
+            // Om den är avstängd, tvinga fram dimmat läge och "--:--"
+            if (zone) zone.style.opacity = '0.35';
+            const labelWord = document.getElementById('carousel-rest-label-word');
+            if (labelWord) {
+                labelWord.textContent = 'OFF';
+                labelWord.style.color = '#64748b';
+            }
+            if (liveLabelTime) {
+                liveLabelTime.textContent = '--:--';
+                liveLabelTime.style.color = '#64748b';
+            }
+        } else {
+            // Om den är påslagen, återställ opacitet och uppdatera text live
+            if (zone) zone.style.opacity = '1';
+            const labelWord = document.getElementById('carousel-rest-label-word');
+            if (labelWord) {
+                labelWord.textContent = 'REST';
+                labelWord.style.color = '#92400e';
+            }
+            
+            if (liveLabelTime) {
+                if (isCurrentlyCounting) {
+                    liveLabelTime.textContent = liveTimeStr;
+                    liveLabelTime.style.color = timerColor;
+                } else {
+                    const nextRest = parseInt(activeDraft?.data?.[carouselCurrentIndex]?.sets_data?.find(s => !s.userConfirmed)?.rest || 120);
+                    const defaultMins = String(Math.floor(nextRest / 60)).padStart(1, '0');
+                    const defaultSecs = String(nextRest % 60).padStart(2, '0');
+                    liveLabelTime.textContent = `${defaultMins}:${defaultSecs}`;
+                    liveLabelTime.style.color = '#f59e0b';
+                }
             }
         }
 
-        // 2. Uppdatera tiden inne i själva dropdown-panelen live
+        // 2. UPPDATERA DROPDOWN LIVE
+        const carouselDdTime = document.getElementById('carousel-rest-dropdown-time');
         if (carouselDdTime) {
-            if (isCurrentlyCounting) {
+            if (isTimerDisabled) {
+                carouselDdTime.textContent = '--:--';
+                carouselDdTime.style.color = '#64748b';
+            } else if (isCurrentlyCounting) {
                 carouselDdTime.textContent = liveTimeStr;
                 carouselDdTime.style.color = timerColor;
             } else {
@@ -6804,6 +6813,11 @@ function renderCarouselDots() {
 function renderCarouselCard() {
     const card = document.getElementById('carousel-ex-card');
     if (!card || !activeDraft) return;
+
+    // LOGISK FIX: Kolla om dropdownen är öppen JUST NU innan vi raderar och ritar om kortet
+    const dropdownEl = document.getElementById('carousel-rest-dropdown');
+    const wasDropdownOpen = dropdownEl ? (dropdownEl.style.display === 'block') : false;
+
     const i = carouselCurrentIndex;
     const ex = activeDraft.workout.exercises[i];
     const exData = activeDraft.data[i];
@@ -6890,12 +6904,14 @@ function renderCarouselCard() {
             
             <div style="display:flex; align-items:center; gap:12px; flex-shrink:0;">
                 
-                <div id="carousel-timer-header-zone" style="display:flex; flex-direction:column; align-items:flex-end; gap:2px; cursor:pointer;" onclick="carouselToggleRestBadge();">
-                    <span style="font-size:9px; color:#92400e; font-weight:800; text-transform:uppercase; letter-spacing:1px; line-height:1;">REST</span>
+                <div id="carousel-timer-header-zone" style="display:flex; flex-direction:column; align-items:flex-end; gap:2px; cursor:pointer; transition: opacity 0.2s ease; opacity: ${isTimerDisabled ? '0.35' : '1'};" onclick="carouselToggleRestBadge();">
+                    <span id="carousel-rest-label-word" style="font-size:9px; color:${isTimerDisabled ? '#64748b' : '#92400e'}; font-weight:800; text-transform:uppercase; letter-spacing:1px; line-height:1;">
+                        ${isTimerDisabled ? 'OFF' : 'REST'}
+                    </span>
                     <div style="display:flex; align-items:center; gap:6px; min-width:52px; justify-content:flex-end;">
                         <span style="font-size:14px; line-height:1;">⏱️</span>
-                        <span id="carousel-live-label-time" style="font-size:14px; font-weight:900; color:#f59e0b; font-family:monospace; letter-spacing:0.5px;">
-                            ${isCounting ? liveTimeStr : defaultTimeStr}
+                        <span id="carousel-live-label-time" style="font-size:14px; font-weight:900; color:${isTimerDisabled ? '#64748b' : '#f59e0b'}; font-family:monospace; letter-spacing:0.5px;">
+                            ${isTimerDisabled ? '--:--' : (isCounting ? liveTimeStr : defaultTimeStr)}
                         </span>
                     </div>
                 </div>
@@ -6910,13 +6926,13 @@ function renderCarouselCard() {
             </div>
         </div>
         
-        <div id="carousel-rest-dropdown" style="display:none; margin:0 14px 6px; background:rgba(245,158,11,0.06); border:1px solid rgba(245,158,11,0.2); border-radius:12px; padding:10px 12px;">
+        <div id="carousel-rest-dropdown" style="display:${wasDropdownOpen ? 'block' : 'none'}; margin:0 14px 6px; background:rgba(245,158,11,0.06); border:1px solid rgba(245,158,11,0.2); border-radius:12px; padding:10px 12px;">
             <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
                 <div style="display:flex; align-items:center; gap:12px;">
                     <div>
                         <div style="font-size:8px; color:#92400e; font-weight:800; text-transform:uppercase; letter-spacing:1px;">Rest Timer</div>
-                        <div style="font-size:22px; font-weight:900; color:${isCounting ? timerColor : '#f59e0b'}; font-family:monospace;" id="carousel-rest-dropdown-time">
-                            ${isCounting ? liveTimeStr : defaultTimeStr}
+                        <div style="font-size:22px; font-weight:900; color:${isTimerDisabled ? '#64748b' : (isCounting ? timerColor : '#f59e0b')}; font-family:monospace;" id="carousel-rest-dropdown-time">
+                            ${isTimerDisabled ? '--:--' : (isCounting ? liveTimeStr : defaultTimeStr)}
                         </div>
                     </div>
                     
@@ -6933,10 +6949,10 @@ function renderCarouselCard() {
                 </div>
 
                 <div style="display:flex; gap:5px; align-items:center;">
-                    <button onclick="carouselRestAdjust(-15)" style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:8px;padding:5px 8px;font-size:10px;color:#f59e0b;cursor:pointer;">−15s</button>
-                    <button onclick="carouselRestAdjust(30)" style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:8px;padding:5px 8px;font-size:10px;color:#f59e0b;cursor:pointer;">+30s</button>
-                    <button onclick="carouselRestStart()" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);border-radius:8px;padding:5px 8px;font-size:10px;font-weight:700;color:#22c55e;cursor:pointer;">${isCounting ? 'Restart' : 'Start'}</button>
-                    <button onclick="carouselRestStop()" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:5px 8px;font-size:10px;color:#64748b;cursor:pointer;">Stop</button>
+                    <button onclick="carouselRestAdjust(-15)" style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:8px;padding:5px 8px;font-size:10px;color:#f59e0b;cursor:pointer;" ${isTimerDisabled ? 'disabled style="opacity:0.2;"' : ''}>−15s</button>
+                    <button onclick="carouselRestAdjust(30)" style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:8px;padding:5px 8px;font-size:10px;color:#f59e0b;cursor:pointer;" ${isTimerDisabled ? 'disabled style="opacity:0.2;"' : ''}>+30s</button>
+                    <button onclick="carouselRestStart()" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);border-radius:8px;padding:5px 8px;font-size:10px;font-weight:700;color:#22c55e;cursor:pointer;" ${isTimerDisabled ? 'disabled style="opacity:0.2;"' : ''}>${isCounting ? 'Restart' : 'Start'}</button>
+                    <button onclick="carouselRestStop()" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:5px 8px;font-size:10px;color:#64748b;cursor:pointer;" ${isTimerDisabled ? 'disabled style="opacity:0.2;"' : ''}>Stop</button>
                 </div>
             </div>
         </div>
