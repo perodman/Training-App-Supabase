@@ -6697,8 +6697,8 @@ function renderCarouselCard() {
     const noteOpen = activeDraft.ui_state?.openNotes?.includes(i);
 
     card.style.borderLeftColor = isDone ? '#22c55e' : '#22d3ee';
-card.style.boxShadow = isDone ? '0 0 0 1.5px #22c55e, 0 0 20px rgba(34,197,94,0.25)' : '0 4px 12px rgba(34,211,238,0.08)';
-card.style.transition = 'box-shadow 0.4s ease, border-left-color 0.3s ease';
+card.style.boxShadow = isDone ? '0 0 20px rgba(34,197,94,0.3)' : '0 4px 12px rgba(34,211,238,0.08)';
+card.style.outline = isDone ? '1.5px solid #22c55e' : 'none';
 
     const completedSets = exData.sets_data ? exData.sets_data.filter(s => s.userConfirmed).length : 0;
     const totalSets = exData.sets_data ? exData.sets_data.length : 0;
@@ -7052,7 +7052,7 @@ function carouselGoTo(i) {
     if (!card) return;
     const dir = i > carouselCurrentIndex ? 1 : -1;
 
-    card.style.transition = 'transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease';
+    card.style.transition = 'transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.15s ease';
     card.style.transform = `translateX(${dir * 35}px)`;
     card.style.opacity = '0';
     carouselStopRest();
@@ -7093,7 +7093,7 @@ function carouselGoTo(i) {
         card.style.opacity = '0';
         requestAnimationFrame(() => {
             requestAnimationFrame(() => {
-                card.style.transition = 'transform 0.28s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease';
+                card.style.transition = 'transform 0.18s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.18s ease';
                 card.style.transform = 'translateX(0)';
                 card.style.opacity = '1';
             });
