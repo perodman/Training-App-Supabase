@@ -3597,7 +3597,7 @@ function renderActiveWorkout() {
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
                 Finish workout
             </button>` : `
-            <button onclick="finishWorkout()" style="width:100%; padding:10px; background:transparent; border:none; color:rgba(255,255,255,0.25); font-size:12px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; margin-bottom:4px;">
+           <button onclick="if(confirm('End workout early? Your progress will be saved.')) finishWorkout();" style="width:100%; padding:10px; background:transparent; border:none; color:rgba(255,255,255,0.25); font-size:12px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; margin-bottom:4px;">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
                 End workout early
             </button>`}
@@ -6705,9 +6705,7 @@ function renderCarouselCard() {
     const noteOpen = activeDraft.ui_state?.openNotes?.includes(i);
 
     card.style.borderLeftColor = isDone ? '#22c55e' : '#22d3ee';
-card.style.boxShadow = isDone ? '0 0 25px rgba(34,197,94,0.25), inset 0 0 40px rgba(34,197,94,0.06)' : '0 4px 12px rgba(34,211,238,0.08)';
-card.style.outline = isDone ? '1.5px solid #22c55e' : 'none';
-card.style.transition = 'box-shadow 0.5s ease, outline 0.3s ease';
+card.classList.toggle('is-done', isDone);
 
     const completedSets = exData.sets_data ? exData.sets_data.filter(s => s.userConfirmed).length : 0;
     const totalSets = exData.sets_data ? exData.sets_data.length : 0;
