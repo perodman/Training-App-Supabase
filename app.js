@@ -3597,7 +3597,7 @@ function renderActiveWorkout() {
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
                 Finish workout
             </button>` : `
-           <button onclick="if(confirm('End workout early? Your progress will be saved.')) finishWorkout();" style="width:100%; padding:10px; background:transparent; border:none; color:rgba(255,255,255,0.25); font-size:12px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; margin-bottom:4px;">
+           <button onclick="showEndWorkoutConfirm()" style="width:100%; padding:10px; background:transparent; border:none; color:rgba(255,255,255,0.25); font-size:12px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; margin-bottom:4px;">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
                 End workout early
             </button>`}
@@ -3789,6 +3789,28 @@ function renderActiveWorkout() {
     } else {
         window._suppressAutoScroll = false;
     }
+}
+
+function showEndWorkoutConfirm() {
+    const modal = document.getElementById('workout-modal');
+    const body = document.getElementById('modal-body');
+    if (!modal || !body) return;
+    body.innerHTML = `
+        <div style="text-align:center; padding:10px 0 20px;">
+            <div style="width:56px;height:56px;border-radius:16px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <h3 style="margin:0 0 8px;font-size:18px;font-weight:800;color:#fff;">End workout early?</h3>
+            <p style="margin:0 0 24px;font-size:13px;color:#64748b;line-height:1.5;">Your progress will be saved and you can resume later.</p>
+            <button onclick="finishWorkout(); closeModal();" style="width:100%;padding:14px;background:linear-gradient(135deg,#dc2626,#ef4444);color:#fff;border:none;border-radius:14px;font-size:14px;font-weight:800;cursor:pointer;margin-bottom:10px;">
+                Yes, end workout
+            </button>
+            <button onclick="closeModal()" style="width:100%;padding:12px;background:transparent;border:1px solid rgba(255,255,255,0.1);color:#64748b;border-radius:14px;font-size:14px;font-weight:700;cursor:pointer;">
+                Continue workout
+            </button>
+        </div>
+    `;
+    modal.classList.remove('hidden');
 }
 
 
