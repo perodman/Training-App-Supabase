@@ -6177,8 +6177,9 @@ function renderRestTimer() {
         const defaultSecs = String(nextRest % 60).padStart(2, '0');
         const defaultTimeStr = `${defaultMins}:${defaultSecs}`;
 
-        const zone = document.getElementById('carousel-timer-header-zone');
-        const liveLabelTime = document.getElementById('carousel-live-label-time');
+const zone = document.getElementById('carousel-timer-header-zone');
+const liveLabelTime = document.getElementById('carousel-live-label-time');
+console.log('carousel timer update:', { zone: !!zone, liveLabelTime: !!liveLabelTime, restTimerSeconds, restTimerActive });
         const labelWord = document.getElementById('carousel-rest-label-word');
         const carouselDdTime = document.getElementById('carousel-rest-dropdown-time');
 
