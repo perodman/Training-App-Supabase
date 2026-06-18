@@ -6896,7 +6896,7 @@ let setsHtml = `<div style="margin-top:4px;">
  setsHtml += `</div>`;
 
     card.innerHTML = `
-        <div style="padding:10px 14px 4px; display:flex; align-items:center; justify-content:space-between; gap:8px;">
+        <div style="padding:10px 14px 8px; display:flex; align-items:center; justify-content:space-between; gap:8px; background:rgba(255,255,255,0.03); border-bottom:1px solid rgba(255,255,255,0.05);">
             <div style="min-width:0; flex:1;">
                 <div style="display:flex;align-items:center;gap:8px;">
                     <div style="font-size:16px; font-weight:900; color:${isDone ? 'var(--text-light)' : 'var(--text)'}; text-decoration:${isDone ? 'line-through' : 'none'}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${ex.name}</div>
