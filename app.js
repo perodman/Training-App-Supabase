@@ -7119,7 +7119,7 @@ function initCarouselSwipe() {
     ca.addEventListener('touchend', e => {
         if (!isH) return;
         const dx = e.changedTouches[0].clientX - sx;
-        if (dx < -50) carouselNext(); else if (dx > 50) carouselPrev();
+        if (dx > 50) carouselNext(); else if (dx < -50) carouselPrev();
         isH = null;
     });
 }
