@@ -6785,7 +6785,12 @@ function renderCarouselCard() {
     card.innerHTML = `
         <div style="padding:10px 14px 4px; display:flex; align-items:center; justify-content:space-between; gap:8px;">
             <div style="min-width:0; flex:1;">
-                <div style="font-size:16px; font-weight:900; color:${isDone ? 'var(--text-light)' : 'var(--text)'}; text-decoration:${isDone ? 'line-through' : 'none'}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${ex.name}</div>
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <div style="font-size:16px; font-weight:900; color:${isDone ? 'var(--text-light)' : 'var(--text)'}; text-decoration:${isDone ? 'line-through' : 'none'}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${ex.name}</div>
+                    <div onclick="const z=document.getElementById('anim-modal-${i}'); z.style.display=z.style.display==='flex'?'none':'flex';" style="display:flex;align-items:center;justify-content:center;padding:4px 8px;border-radius:20px;background:rgba(34,211,238,0.08);border:1px solid rgba(34,211,238,0.2);cursor:pointer;flex-shrink:0;">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    </div>
+                </div>
                 <div style="font-size:10px; color:${isDone ? '#22c55e' : 'var(--primary)'}; font-weight:800; margin-top:1px;">${isDone ? 'DONE ✅' : `${catDisplay}${catDisplay ? ' · ' : ''}${completedSets}/${totalSets} sets`}</div>
             </div>
             <div id="carousel-rest-badge" style="flex-shrink:0; display:flex; align-items:center; border-radius:14px; border:1px solid ${restTimerActive ? 'rgba(245,158,11,0.4)' : 'rgba(255,255,255,0.08)'}; background:${restTimerActive ? 'rgba(245,158,11,0.08)' : 'rgba(255,255,255,0.04)'}; overflow:hidden; transition:all 0.2s;">
@@ -6822,9 +6827,9 @@ function renderCarouselCard() {
                     style="width:100%; min-height:60px; padding:10px; border-radius:10px; background:rgba(0,0,0,0.2); border:1px solid rgba(253,224,71,0.2); color:#fff; font-size:13px; font-family:inherit; resize:vertical;">${exData.note || ''}</textarea>
             </div>` : ''}
             ${setsHtml}
-            <div style="display:flex; gap:6px; align-items:center; margin-top:12px; margin-bottom:8px; overflow-x:auto; scrollbar-width:none;">
-                <button style="display:flex;align-items:center;gap:6px;padding:8px 12px;background:transparent;border:1.5px dashed rgba(34,211,238,0.3);color:#22d3ee;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0;" onclick="addSetToExercise(${i})" ${isDone ? 'disabled' : ''}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            <div style="display:flex; gap:6px; align-items:center; margin-top:12px; margin-bottom:8px; width:100%;">
+                <button style="display:flex;align-items:center;gap:5px;padding:7px 10px;background:transparent;border:1.5px dashed rgba(34,211,238,0.3);color:#22d3ee;border-radius:10px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0;" onclick="addSetToExercise(${i})" ${isDone ? 'disabled' : ''}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                     Add set
                 </button>
                 <div style="flex:1;"></div>
@@ -6834,9 +6839,6 @@ function renderCarouselCard() {
                 <div onclick="${isDone ? '' : `openReplaceExerciseModal(${i})`}" style="display:flex;align-items:center;gap:5px;padding:6px 10px;border-radius:20px;background:#1a3040;border:1px solid #22d3ee;cursor:pointer;flex-shrink:0;${isDone ? 'opacity:0.3;pointer-events:none;' : ''}">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><polyline points="23 20 23 14 17 14"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
                     <span style="font-size:11px;font-weight:700;color:#22d3ee;">Swap</span>
-                </div>
-                <div onclick="const z=document.getElementById('anim-modal-${i}'); z.style.display=z.style.display==='flex'?'none':'flex';" style="display:flex;align-items:center;justify-content:center;padding:6px 10px;border-radius:20px;background:rgba(34,211,238,0.08);border:1px solid rgba(34,211,238,0.2);cursor:pointer;flex-shrink:0;">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                 </div>
                 <div onclick="${isDone ? '' : `removeActiveExercise(${i})`}" style="display:flex;align-items:center;justify-content:center;padding:6px 10px;border-radius:20px;background:#2d1a1a;border:1px solid #7f1d1d;cursor:pointer;flex-shrink:0;${isDone ? 'opacity:0.3;pointer-events:none;' : ''}">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
