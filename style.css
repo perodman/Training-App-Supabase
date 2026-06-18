@@ -1354,8 +1354,8 @@ body:has(.bottom-bar.hidden) { padding-bottom: 0; }
 }
 
 .carousel-ex-card .set-zone {
-    margin: 0 12px 8px;
-    padding: 8px 8px 8px 10px;
+    margin: 0 0 8px 0;
+    padding: 8px 8px 8px 12px;
     border-left: 2px solid rgba(34,211,238,0.3) !important;
     background: rgba(34,211,238,0.02);
 }
