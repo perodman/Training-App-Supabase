@@ -1469,9 +1469,7 @@ body:has(.bottom-bar.hidden) { padding-bottom: 0; }
 }
 
 .carousel-ex-card.is-done {
-    box-shadow: 0 0 25px rgba(34,197,94,0.25), inset 0 0 40px rgba(34,197,94,0.06) !important;
-    outline: 1.5px solid #22c55e !important;
-   border-color: rgba(34,197,94,0.5) !important;
+    border-color: #22c55e !important;
 }
 
 .carousel-ex-card.is-done::after {
