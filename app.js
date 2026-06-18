@@ -6160,10 +6160,19 @@ function renderRestTimer() {
             carouselBadgeTime.style.color = restTimerActive ? '#f59e0b' : '#64748b';
             const badge = document.getElementById('carousel-rest-badge');
             if (badge) {
-                badge.style.borderColor = restTimerActive ? 'rgba(245,158,11,0.4)' : 'rgba(255,255,255,0.08)';
-                badge.style.background = restTimerActive ? 'rgba(245,158,11,0.08)' : 'rgba(255,255,255,0.04)';
+                const isDisabled = activeDraft && activeDraft.restTimerDisabled;
+                if (isDisabled) {
+                    badge.style.borderColor = 'rgba(255,255,255,0.05)';
+                    badge.style.background = 'rgba(255,255,255,0.02)';
+                    badge.style.opacity = '0.5';
+                } else {
+                    badge.style.opacity = '1';
+                    badge.style.borderColor = restTimerActive ? 'rgba(245,158,11,0.4)' : 'rgba(255,255,255,0.08)';
+                    badge.style.background = restTimerActive ? 'rgba(245,158,11,0.08)' : 'rgba(255,255,255,0.04)';
+                }
             }
         }
+
         const carouselDdTime = document.getElementById('carousel-rest-dropdown-time');
         if (carouselDdTime && restTimerActive) {
             carouselDdTime.textContent = formatRestTime(restTimerSeconds);
@@ -6179,7 +6188,6 @@ function renderRestTimer() {
     if (staticBar) {
         staticBar.style.display = 'block';
     }
-
     const isDisabled = activeDraft && activeDraft.restTimerDisabled;
     const mins = String(Math.floor(restTimerSeconds / 60)).padStart(1, '0');
     const secs = String(restTimerSeconds % 60).padStart(2, '0');
@@ -6775,7 +6783,7 @@ function renderCarouselCard() {
     const noteOpen = activeDraft.ui_state?.openNotes?.includes(i);
 
     card.style.borderLeftColor = isDone ? '#22c55e' : '#22d3ee';
-card.classList.toggle('is-done', isDone);
+    card.classList.toggle('is-done', isDone);
 
     const completedSets = exData.sets_data ? exData.sets_data.filter(s => s.userConfirmed).length : 0;
     const totalSets = exData.sets_data ? exData.sets_data.length : 0;
@@ -6783,8 +6791,8 @@ card.classList.toggle('is-done', isDone);
 
     const catDisplay = CATEGORY_DISPLAY[ex.target] || ex.target || '';
 
-    // Kolla om automatisk timer är på (On/Off) för att färgsätta kugghjulet
-    const isAutoTimerOn = !!(activeDraft.ui_state?.autoRest); 
+    // Kontrollera om timern är avstängd (Disabled)
+    const isTimerDisabled = !!activeDraft.restTimerDisabled;
 
     // Action-bar pills
     const actionBar = `
@@ -6801,7 +6809,7 @@ card.classList.toggle('is-done', isDone);
                 <div onclick="const z=document.getElementById('anim-modal-${i}'); z.style.display=z.style.display==='flex'?'none':'flex';" style="display:flex;align-items:center;justify-content:center;padding:5px 10px;border-radius:20px;background:rgba(34,211,238,0.08);border:1px solid rgba(34,211,238,0.2);cursor:pointer;flex-shrink:0;">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                 </div>
-                <div onclick="${isDone ? '' : `removeActiveExercise(${i})`}" style="display:flex;align-items:center;justify-content:center;padding:5px 10px;border-radius:20px;background:#2d1a1a;border:1px solid #7f1d1d;cursor:pointer;${isDone ? 'opacity:0.3;pointer-events:none;' : ''}">
+                <div onclick="${isDone ? '' : `removeActiveExercise(${i})`}" style="display:flex;align-items:center;justify-content:center;padding:6px 10px;border-radius:20px;background:#2d1a1a;border:1px solid #7f1d1d;cursor:pointer;${isDone ? 'opacity:0.3;pointer-events:none;' : ''}">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 </div>
                 <div id="anim-modal-${i}" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:9999;align-items:center;justify-content:center;" onclick="this.style.display='none'">
@@ -6831,10 +6839,7 @@ card.classList.toggle('is-done', isDone);
             const circleColor = showSuccess ? '#22c55e' : (isCurrent ? '#facc15' : '#f59e0b');
             const statusContent = showSuccess ? '✅' : `#${sIdx + 1}`;
 
-            // SYNKAD LOGIK: Hela radens opacitet dämpas (0.35) om det inte är nuvarande/aktivt set
             const rowOpacity = showSuccess ? '0.35' : isCurrent ? '1' : '0.35';
-            
-            // Fältens interna opacitet (Sätts till 1 på aktiva, och dämpas för resten)
             const inputOpacity = isCurrent ? '1' : '0.3';
 
             setsHtml += `
@@ -6871,15 +6876,17 @@ card.classList.toggle('is-done', isDone);
                 </div>
                 <div style="font-size:10px; color:${isDone ? '#22c55e' : 'var(--primary)'}; font-weight:800; margin-top:1px;">${isDone ? 'DONE ✅' : `${catDisplay}${catDisplay ? ' · ' : ''}${completedSets}/${totalSets} sets`}</div>
             </div>
-            <div id="carousel-rest-badge" style="flex-shrink:0; display:flex; align-items:center; border-radius:14px; border:1px solid ${restTimerActive ? 'rgba(245,158,11,0.4)' : 'rgba(255,255,255,0.08)'}; background:${restTimerActive ? 'rgba(245,158,11,0.08)' : 'rgba(255,255,255,0.04)'}; overflow:hidden; transition:all 0.2s;">
-                <div onclick="carouselToggleRestBadge()" style="display:flex; align-items:center; gap:5px; padding:6px 10px; cursor:pointer; background:rgba(255,255,255,0.02);">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="${restTimerActive ? '#f59e0b' : '#64748b'}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                    <span style="font-size:12px; font-weight:800; color:${restTimerActive ? '#f59e0b' : '#64748b'}; font-family:monospace;" id="carousel-rest-badge-time">${restTimerActive ? formatRestTime(restTimerSeconds) : 'Rest'}</span>
+            
+            <div id="carousel-rest-badge" style="flex-shrink:0; display:flex; align-items:center; border-radius:14px; border:1px solid ${isTimerDisabled ? 'rgba(255,255,255,0.05)' : restTimerActive ? 'rgba(245,158,11,0.4)' : 'rgba(255,255,255,0.08)'}; background:${isTimerDisabled ? 'rgba(255,255,255,0.02)' : restTimerActive ? 'rgba(245,158,11,0.08)' : 'rgba(255,255,255,0.04)'}; opacity:${isTimerDisabled ? '0.5' : '1'}; overflow:hidden; transition:all 0.2s;">
+                <div onclick="${isTimerDisabled ? '' : 'carouselToggleRestBadge()'}" style="display:flex; align-items:center; gap:5px; padding:6px 10px; cursor:${isTimerDisabled ? 'default' : 'pointer'}; background:rgba(255,255,255,0.02);">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="${isTimerDisabled ? 'rgba(255,255,255,0.15)' : restTimerActive ? '#f59e0b' : '#64748b'}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <span style="font-size:12px; font-weight:800; color:${isTimerDisabled ? 'rgba(255,255,255,0.2)' : restTimerActive ? '#f59e0b' : '#64748b'}; font-family:monospace;" id="carousel-rest-badge-time">${isTimerDisabled ? 'Off' : restTimerActive ? formatRestTime(restTimerSeconds) : 'Rest'}</span>
                 </div>
                 <div style="width:1px; height:16px; background:rgba(255,255,255,0.12);"></div>
-                <div onclick="carouselToggleRestBadge()" style="padding:6px 10px; display:flex; align-items:center; justify-content:center; cursor:pointer; position:relative;">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="${isAutoTimerOn ? '#22d3ee' : '#475569'}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="${restTimerActive ? 'animation: spin 8s linear infinite;' : ''}"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-                    ${isAutoTimerOn ? '<span style="position:absolute; top:4px; right:4px; width:4px; height:4px; background:#22d3ee; border-radius:50%;"></span>' : ''}
+                
+                <div onclick="if(!activeDraft.restTimerDisabled){ clearInterval(restTimerInterval); restTimerActive=false; restTimerSeconds=0; restTimerExIdx=null; activeDraft.restTimerDisabled=true; }else{ activeDraft.restTimerDisabled=false; } persistActiveWorkout(); renderCarouselCard();" 
+                     style="padding:6px 10px; display:flex; align-items:center; justify-content:center; cursor:pointer; background:${isTimerDisabled ? 'transparent' : 'rgba(245,158,11,0.15)'};">
+                    <span style="font-size:10px; font-weight:800; color:${isTimerDisabled ? 'rgba(255,255,255,0.3)' : '#f59e0b'}; text-transform:uppercase; letter-spacing:0.5px;">${isTimerDisabled ? 'On' : 'Off'}</span>
                 </div>
             </div>
         </div>
@@ -6898,7 +6905,7 @@ card.classList.toggle('is-done', isDone);
                 </div>
             </div>
         </div>
-<div class="carousel-card-body">
+        <div class="carousel-card-body">
             ${noteOpen ? `<div style="margin-bottom:10px;">
                 <textarea id="note-input-${i}" class="carousel-note-input" data-ex="${i}" placeholder="Add a note for this exercise..."
                     oninput="updateExerciseNote(this, ${i})"
