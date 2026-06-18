@@ -1463,7 +1463,7 @@ body:has(.bottom-bar.hidden) { padding-bottom: 0; }
     top: 0;
     bottom: 0;
     width: 1px;
-    background: linear-gradient(180deg, transparent, rgba(34,211,238,0.5) 20%, rgba(34,211,238,0.5) 80%, transparent);
+    background: linear-gradient(180deg, transparent, rgba(34,211,238,0.5) 8%, rgba(34,211,238,0.5) 92%, transparent);
     z-index: 2;
     pointer-events: none;
 }
