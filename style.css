@@ -1380,6 +1380,7 @@ body:has(.bottom-bar.hidden) { padding-bottom: 0; }
 .carousel-card-body {
     padding: 10px 15px 12px !important;
     background: transparent !important;
+   overflow: visible !important;
 }
 .carousel-ex-header {
     display: flex;
