@@ -6675,7 +6675,7 @@ function renderCarousel() {
             <div class="carousel-nav-dots" style="justify-content:center; padding:0;">
                 <div class="carousel-dots" id="carousel-dots-container"></div>
             </div>
-            <span>${totalSets} sets total</span>
+              <span></span>
         </div>
         <div class="carousel-card-area" id="carousel-card-area">
             <div class="carousel-ex-card" id="carousel-ex-card"></div>
