@@ -6140,7 +6140,7 @@ function startRestTimer(seconds, exIdx) {
             } catch(e) {}
             
             renderRestTimer();
-            if (typeof workoutLayoutMode !== 'undefined' && workoutLayoutMode === 'carousel') {
+            if (localStorage.getItem('workoutLayoutMode') === 'carousel') {
                 renderCarouselCard();
             }
             return;
@@ -6155,14 +6155,14 @@ function stopRestTimer() {
     restTimerSeconds = 0;
     restTimerExIdx = null;
     renderRestTimer();
-    if (typeof workoutLayoutMode !== 'undefined' && workoutLayoutMode === 'carousel') {
+    if (localStorage.getItem('workoutLayoutMode') === 'carousel') {
         renderCarouselCard();
     }
 }
 
 function renderRestTimer() {
     // KARUSELLÄGE (Carousel)
-    if (typeof workoutLayoutMode !== 'undefined' && workoutLayoutMode === 'carousel') {
+    if (localStorage.getItem('workoutLayoutMode') === 'carousel') {
         const isTimerDisabled = !!(activeDraft && activeDraft.restTimerDisabled);
         const timerColor = restTimerSeconds <= 10 ? '#ef4444' : '#f59e0b';
         
@@ -6827,8 +6827,8 @@ function renderCarouselCard() {
     const dropdownEl = document.getElementById('carousel-rest-dropdown');
     const wasDropdownOpen = dropdownEl ? (dropdownEl.style.display === 'block') : false;
 
-    // SÄKER FIX FÖR NOTES: Använd den globala/befintliga flaggan 'noteOpen' om den är definierad, annars false
-    const isNoteOpen = (typeof noteOpen !== 'undefined') ? noteOpen : false;
+
+    const isNoteOpen = activeDraft.ui_state?.openNotes?.includes(i) || false;
 
     const isDone = exData.isCompleted;
 
@@ -6920,10 +6920,10 @@ function renderCarouselCard() {
                     </div>
                 </div>
 
-                <div onclick="carouselToggleRestBadge();" 
+               <div onclick="carouselToggleRestBadge();" 
                      style="width:28px; height:28px; display:flex; align-items:center; justify-content:center; border-radius:8px; border:1px solid rgba(245,158,11,0.2); background:rgba(245,158,11,0.08); cursor:pointer; transition:all 0.2s;">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="6 9 12 15 18 9"></polyline>
+                        <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
                     </svg>
                 </div>
             </div>
