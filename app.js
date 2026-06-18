@@ -7054,7 +7054,7 @@ function carouselGoTo(i) {
     if (!card) return;
     const dir = i > carouselCurrentIndex ? 1 : -1;
 
-    card.style.transition = 'transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.15s ease';
+    card.style.transition = 'transform 0.1s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.1s ease';
     card.style.transform = `translateX(${dir * 35}px)`;
     card.style.opacity = '0';
     carouselStopRest();
@@ -7119,7 +7119,7 @@ function initCarouselSwipe() {
     ca.addEventListener('touchend', e => {
         if (!isH) return;
         const dx = e.changedTouches[0].clientX - sx;
-        if (dx > 50) carouselNext(); else if (dx < -50) carouselPrev();
+       if (dx < -50) carouselNext(); else if (dx > 50) carouselPrev();
         isH = null;
     });
 }
