@@ -1343,12 +1343,12 @@ body:has(.bottom-bar.hidden) { padding-bottom: 0; }
     touch-action: pan-y;
 }
 .carousel-ex-card {
-   position: relative;
+    position: relative;
     background: linear-gradient(180deg, #1a2540 0%, #0f172a 100%);
     border: 1px solid rgba(34,211,238,0.15);
     border-radius: 12px;
     overflow: hidden;
-    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease;
+    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease, box-shadow 0.5s ease, outline 0.3s ease;
     will-change: transform, opacity;
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 2px 20px rgba(0,0,0,0.35);
 }
@@ -1442,14 +1442,6 @@ body:has(.bottom-bar.hidden) { padding-bottom: 0; }
     border-radius: 12px;
     padding: 8px 12px;
     margin-top: 8px;
-}
-
-.carousel-ex-card {
-    border: none !important;
-    border-left: none !important;
-    box-shadow: none !important;
-    border-radius: 0 !important;
-    transition: box-shadow 0.5s ease, outline 0.3s ease;
 }
 
 .carousel-card-area {
