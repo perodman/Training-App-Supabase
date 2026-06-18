@@ -3589,12 +3589,18 @@ function renderActiveWorkout() {
         footer.style.display = "flex";
         footer.style.alignItems = "stretch";
         footer.style.gap = "12px";
+        const allExercisesDone = activeDraft.data && activeDraft.data.every(ex => ex.isCompleted);
         footer.innerHTML = `
             <div style="height:2px; background:linear-gradient(90deg, transparent, #22d3ee 30%, #f0a020 70%, transparent); margin:-0px -0px 12px -0px; border-radius:0;"></div>
+            ${allExercisesDone ? `
             <button onclick="finishWorkout()" style="width:100%; padding:15px; background:linear-gradient(135deg,#15803d,#22c55e); color:#fff; font-size:15px; font-weight:900; border-radius:14px; border:none; display:flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; margin-bottom:8px;">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
                 Finish workout
-            </button>
+            </button>` : `
+            <button onclick="finishWorkout()" style="width:100%; padding:10px; background:transparent; border:none; color:rgba(255,255,255,0.25); font-size:12px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; margin-bottom:4px;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                End workout early
+            </button>`}
             <div style="display:flex; gap:8px; width:100%;">
                 <button onclick="saveDraftAndGoHome()" style="width:44px; height:44px; background:rgba(34,211,238,0.1); border:1.5px solid rgba(34,211,238,0.45); color:#22d3ee; border-radius:12px; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0;">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
@@ -6699,8 +6705,9 @@ function renderCarouselCard() {
     const noteOpen = activeDraft.ui_state?.openNotes?.includes(i);
 
     card.style.borderLeftColor = isDone ? '#22c55e' : '#22d3ee';
-card.style.boxShadow = isDone ? '0 0 20px rgba(34,197,94,0.3)' : '0 4px 12px rgba(34,211,238,0.08)';
+card.style.boxShadow = isDone ? '0 0 25px rgba(34,197,94,0.25), inset 0 0 40px rgba(34,197,94,0.06)' : '0 4px 12px rgba(34,211,238,0.08)';
 card.style.outline = isDone ? '1.5px solid #22c55e' : 'none';
+card.style.transition = 'box-shadow 0.5s ease, outline 0.3s ease';
 
     const completedSets = exData.sets_data ? exData.sets_data.filter(s => s.userConfirmed).length : 0;
     const totalSets = exData.sets_data ? exData.sets_data.length : 0;
@@ -6831,12 +6838,12 @@ card.style.outline = isDone ? '1.5px solid #22c55e' : 'none';
             </div>` : ''}
             ${setsHtml}
             <div style="display:flex; gap:6px; align-items:center; margin-top:12px; margin-bottom:8px; width:100%;">
-                <button style="display:flex;align-items:center;gap:5px;padding:7px 10px;background:transparent;border:1.5px dashed rgba(34,211,238,0.3);color:#22d3ee;border-radius:10px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0;" onclick="addSetToExercise(${i})" ${isDone ? 'disabled' : ''}>
+                <button style="display:flex;align-items:center;gap:5px;padding:7px 10px;background:transparent;border:1.5px dashed rgba(34,211,238,0.3);color:#22d3ee;border-radius:10px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0;${isDone ? 'opacity:0.3;pointer-events:none;' : ''}" onclick="addSetToExercise(${i})" ${isDone ? 'disabled' : ''}>
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                     Add set
                 </button>
                 <div style="flex:1;"></div>
-                <div onclick="carouselToggleNote(${i})" style="display:flex;align-items:center;gap:5px;padding:6px 10px;border-radius:20px;border:1px solid ${exData.note ? 'rgba(253,224,71,0.4)' : '#2a3d52'};background:${exData.note ? 'rgba(253,224,71,0.06)' : '#1e2d3d'};cursor:pointer;flex-shrink:0;position:relative;">
+                <div onclick="carouselToggleNote(${i})" style="display:flex;align-items:center;gap:5px;padding:6px 10px;border-radius:20px;border:1px solid ${exData.note ? 'rgba(253,224,71,0.4)' : '#2a3d52'};background:${exData.note ? 'rgba(253,224,71,0.06)' : '#1e2d3d'};cursor:pointer;flex-shrink:0;position:relative;${isDone ? 'opacity:0.3;pointer-events:none;' : ''}">
                     <span style="font-size:13px;position:relative;">📝${exData.note ? '<span style="position:absolute;top:-2px;right:-2px;width:6px;height:6px;background:#fde047;border-radius:50%;"></span>' : ''}</span><span style="font-size:11px;font-weight:700;color:${exData.note ? '#fde047' : '#f8fafc'};">Note</span>
                 </div>
                 <div onclick="${isDone ? '' : `openReplaceExerciseModal(${i})`}" style="display:flex;align-items:center;gap:5px;padding:6px 10px;border-radius:20px;background:#1a3040;border:1px solid #22d3ee;cursor:pointer;flex-shrink:0;${isDone ? 'opacity:0.3;pointer-events:none;' : ''}">
