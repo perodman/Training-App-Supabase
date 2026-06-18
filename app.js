@@ -6179,7 +6179,6 @@ function renderRestTimer() {
 
 const zone = document.getElementById('carousel-timer-header-zone');
 const liveLabelTime = document.getElementById('carousel-live-label-time');
-console.log('carousel timer update:', { zone: !!zone, liveLabelTime: !!liveLabelTime, restTimerSeconds, restTimerActive });
         const labelWord = document.getElementById('carousel-rest-label-word');
         const carouselDdTime = document.getElementById('carousel-rest-dropdown-time');
 
@@ -7074,12 +7073,17 @@ function carouselStartRest(seconds) {
 
         const badgeTime = document.getElementById('carousel-rest-badge-time');
         const dropdownTime = document.getElementById('carousel-rest-dropdown-time');
+        const headerTime = document.getElementById('carousel-live-label-time');
         const formatted = formatRestTime(carouselRestSeconds);
-
+        const timerColor = carouselRestSeconds <= 10 ? '#ef4444' : '#f59e0b';
         if (badgeTime) badgeTime.textContent = formatted;
         if (dropdownTime) {
             dropdownTime.textContent = formatted;
-            dropdownTime.style.color = carouselRestSeconds <= 10 ? '#ef4444' : '#f59e0b';
+            dropdownTime.style.color = timerColor;
+        }
+        if (headerTime) {
+            headerTime.textContent = formatted;
+            headerTime.style.color = timerColor;
         }
 
         if (carouselRestSeconds <= 0) {
