@@ -1345,8 +1345,8 @@ body:has(.bottom-bar.hidden) { padding-bottom: 0; }
 .carousel-ex-card {
    position: relative;
     background: linear-gradient(180deg, #1a2540 0%, #0f172a 100%);
-    border: none;
-    border-radius: 0;
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 12px;
     overflow: hidden;
     transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease;
     will-change: transform, opacity;
@@ -1358,6 +1358,10 @@ body:has(.bottom-bar.hidden) { padding-bottom: 0; }
     padding: 8px 8px 8px 12px;
     border-left: 2px solid rgba(34,211,238,0.3) !important;
     background: rgba(34,211,238,0.02);
+}
+
+.carousel-ex-card:not(.is-done) {
+    border-color: rgba(34,211,238,0.15);
 }
 .carousel-anim-zone {
     height: 140px;
