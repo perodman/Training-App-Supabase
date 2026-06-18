@@ -6704,12 +6704,16 @@ function renderCarouselNav() {
         const isActive = i === carouselCurrentIndex;
         const svg = getExSVG(ex.target, 'small');
         return `<div class="carousel-ex-thumb${isDone ? ' done' : isActive ? ' active' : ''}" id="carousel-thumb-${i}" onclick="carouselGoTo(${i})">
-            <div class="carousel-drag-handle" style="font-size:10px; color:rgba(255,255,255,0.25); cursor:grab; line-height:1; margin-bottom:2px;" title="Drag to reorder">⠿</div>
+            <div class="carousel-drag-handle" style="font-size:14px; color:rgba(255,255,255,0.35); cursor:grab; line-height:1; margin-bottom:3px; padding:2px 8px; width:100%; text-align:center;" title="Drag to reorder">⠿</div>
             <div style="opacity:${isActive ? 1 : 0.5}">${svg}</div>
             <div class="carousel-ex-thumb-name">${ex.name}</div>
             ${isDone ? `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>` : ''}
         </div>`;
-    }).join('');
+    }).join('') + `
+        <div onclick="openCustomAddExerciseModal()" style="flex-shrink:0; min-width:56px; max-width:80px; border-radius:14px; border:1.5px dashed rgba(34,211,238,0.3); background:transparent; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:7px 4px 6px; cursor:pointer; gap:4px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <div style="font-size:8px; font-weight:800; color:#22d3ee; text-align:center; line-height:1.2;">Add</div>
+        </div>`;
 
     setTimeout(() => {
         const active = document.getElementById(`carousel-thumb-${carouselCurrentIndex}`);
