@@ -4648,11 +4648,11 @@ function updateSingleExerciseCard(exIdx) {
             <div style="display: flex; flex-direction: column; min-width:0; flex-grow:1;">
                 <div style="display:flex;align-items:center;gap:6px;">
     <strong style="font-size: 14px; color: ${isDone ? 'var(--text-light)' : 'var(--text)'}; text-decoration: ${isDone ? 'line-through' : 'none'}; white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">${ex.name}</strong>
-    <div onclick="event.stopPropagation(); const z=document.getElementById('anim-modal-list-${i}'); z.style.display=z.style.display==='flex'?'none':'flex';" style="display:flex;align-items:center;justify-content:center;padding:3px 7px;border-radius:20px;background:rgba(34,211,238,0.08);border:1px solid rgba(34,211,238,0.2);cursor:pointer;flex-shrink:0;">
+    <div onclick="event.stopPropagation(); const z=document.getElementById('anim-modal-list-${exIdx}'); z.style.display=z.style.display==='flex'?'none':'flex';" style="display:flex;align-items:center;justify-content:center;padding:3px 7px;border-radius:20px;background:rgba(34,211,238,0.08);border:1px solid rgba(34,211,238,0.2);cursor:pointer;flex-shrink:0;">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
     </div>
 </div>
-<div id="anim-modal-list-${i}" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:9999;align-items:center;justify-content:center;" onclick="this.style.display='none'">
+<div id="anim-modal-list-${exIdx}" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:9999;align-items:center;justify-content:center;" onclick="this.style.display='none'">
     <div style="background:#1e293b;border-radius:16px;padding:20px;width:90%;max-width:400px;">
         <div style="font-size:12px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">Animation</div>
         <div style="font-size:11px;color:#475569;text-align:center;margin-top:10px;">Animation coming soon</div>
