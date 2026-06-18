@@ -6160,14 +6160,37 @@ function renderRestTimer() {
         const secs = String(restTimerSeconds % 60).padStart(2, '0');
         const liveTimeStr = `${mins}:${secs}`;
 
-        // 1. ALLTID UPPDATERA HEADERN LIVE: Om restTimerSeconds har ett värde, visa det!
+        // 1. Hämta live-elementen
         const liveLabelTime = document.getElementById('carousel-live-label-time');
-        if (liveLabelTime) {
-            if (restTimerActive && restTimerSeconds > 0) {
+        const carouselDdTime = document.getElementById('carousel-rest-dropdown-time');
+
+        // Kontrollera om timern faktiskt är aktiv och tickar just nu
+        const isCurrentlyCounting = restTimerActive && restTimerSeconds > 0;
+
+        // FIX: Om elementen saknas i DOM:en (t.ex. efter en render), tvinga fram en uppdatering av hela headerytan
+        if (!liveLabelTime && document.getElementById('carousel-timer-header-zone')) {
+            const nextRest = parseInt(activeDraft?.data?.[carouselCurrentIndex]?.sets_data?.find(s => !s.userConfirmed)?.rest || 120);
+            const defaultMins = String(Math.floor(nextRest / 60)).padStart(1, '0');
+            const defaultSecs = String(nextRest % 60).padStart(2, '0');
+            const defaultTimeStr = `${defaultMins}:${defaultSecs}`;
+
+            document.getElementById('carousel-timer-header-zone').innerHTML = `
+                <div style="display:flex; flex-direction:column; align-items:flex-end; gap:2px; cursor:pointer;" onclick="carouselToggleRestBadge();">
+                    <span style="font-size:9px; color:#92400e; font-weight:800; text-transform:uppercase; letter-spacing:1px; line-height:1;">REST</span>
+                    <div style="display:flex; align-items:center; gap:6px; min-width:52px; justify-content:flex-end;">
+                        <span style="font-size:14px; line-height:1;">⏱️</span>
+                        <span id="carousel-live-label-time" style="font-size:14px; font-weight:900; color:#f59e0b; font-family:monospace; letter-spacing:0.5px;">
+                            ${isCurrentlyCounting ? liveTimeStr : defaultTimeStr}
+                        </span>
+                    </div>
+                </div>
+            `;
+        } else if (liveLabelTime) {
+            // Om elementet finns, uppdatera texten direkt så det TICKAR live!
+            if (isCurrentlyCounting) {
                 liveLabelTime.textContent = liveTimeStr;
                 liveLabelTime.style.color = timerColor;
             } else {
-                // Om den inte tickar, visa det inställda värdet för nästa set
                 const nextRest = parseInt(activeDraft?.data?.[carouselCurrentIndex]?.sets_data?.find(s => !s.userConfirmed)?.rest || 120);
                 const defaultMins = String(Math.floor(nextRest / 60)).padStart(1, '0');
                 const defaultSecs = String(nextRest % 60).padStart(2, '0');
@@ -6176,10 +6199,9 @@ function renderRestTimer() {
             }
         }
 
-        // 2. Uppdatera tiden inne i dropdown-panelen live
-        const carouselDdTime = document.getElementById('carousel-rest-dropdown-time');
+        // 2. Uppdatera tiden inne i själva dropdown-panelen live
         if (carouselDdTime) {
-            if (restTimerActive && restTimerSeconds > 0) {
+            if (isCurrentlyCounting) {
                 carouselDdTime.textContent = liveTimeStr;
                 carouselDdTime.style.color = timerColor;
             } else {
@@ -6810,6 +6832,8 @@ function renderCarouselCard() {
     const defaultSecs = String(nextRestSeconds % 60).padStart(2, '0');
     const defaultTimeStr = `${defaultMins}:${defaultSecs}`;
 
+    const isCounting = restTimerActive && restTimerSeconds > 0;
+
     let setsHtml = `<div style="margin-top:4px;">
         <div style="display:grid; grid-template-columns: 40px 1fr 1fr 1fr 30px; gap:8px; margin-bottom:5px; align-items:center;">
             <small style="text-align:left; padding-left:5px; color:var(--text-light); font-size:9px; font-weight:700;">SET</small>
@@ -6866,11 +6890,14 @@ function renderCarouselCard() {
             
             <div style="display:flex; align-items:center; gap:12px; flex-shrink:0;">
                 
-                <div style="display:flex; align-items:center; gap:6px; min-width:52px; justify-content:flex-end; cursor:pointer;" onclick="carouselToggleRestBadge();">
-                    <span style="font-size:14px; line-height:1;">⏱️</span>
-                    <span id="carousel-live-label-time" style="font-size:14px; font-weight:900; color:#f59e0b; font-family:monospace; letter-spacing:0.5px;">
-                        ${(restTimerActive && restTimerSeconds > 0) ? liveTimeStr : defaultTimeStr}
-                    </span>
+                <div id="carousel-timer-header-zone" style="display:flex; flex-direction:column; align-items:flex-end; gap:2px; cursor:pointer;" onclick="carouselToggleRestBadge();">
+                    <span style="font-size:9px; color:#92400e; font-weight:800; text-transform:uppercase; letter-spacing:1px; line-height:1;">REST</span>
+                    <div style="display:flex; align-items:center; gap:6px; min-width:52px; justify-content:flex-end;">
+                        <span style="font-size:14px; line-height:1;">⏱️</span>
+                        <span id="carousel-live-label-time" style="font-size:14px; font-weight:900; color:#f59e0b; font-family:monospace; letter-spacing:0.5px;">
+                            ${isCounting ? liveTimeStr : defaultTimeStr}
+                        </span>
+                    </div>
                 </div>
 
                 <div onclick="carouselToggleRestBadge();" 
@@ -6888,8 +6915,8 @@ function renderCarouselCard() {
                 <div style="display:flex; align-items:center; gap:12px;">
                     <div>
                         <div style="font-size:8px; color:#92400e; font-weight:800; text-transform:uppercase; letter-spacing:1px;">Rest Timer</div>
-                        <div style="font-size:22px; font-weight:900; color:${(restTimerActive && restTimerSeconds > 0) ? timerColor : '#f59e0b'}; font-family:monospace;" id="carousel-rest-dropdown-time">
-                            ${(restTimerActive && restTimerSeconds > 0) ? liveTimeStr : defaultTimeStr}
+                        <div style="font-size:22px; font-weight:900; color:${isCounting ? timerColor : '#f59e0b'}; font-family:monospace;" id="carousel-rest-dropdown-time">
+                            ${isCounting ? liveTimeStr : defaultTimeStr}
                         </div>
                     </div>
                     
@@ -6908,7 +6935,7 @@ function renderCarouselCard() {
                 <div style="display:flex; gap:5px; align-items:center;">
                     <button onclick="carouselRestAdjust(-15)" style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:8px;padding:5px 8px;font-size:10px;color:#f59e0b;cursor:pointer;">−15s</button>
                     <button onclick="carouselRestAdjust(30)" style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:8px;padding:5px 8px;font-size:10px;color:#f59e0b;cursor:pointer;">+30s</button>
-                    <button onclick="carouselRestStart()" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);border-radius:8px;padding:5px 8px;font-size:10px;font-weight:700;color:#22c55e;cursor:pointer;">${(restTimerActive && restTimerSeconds > 0) ? 'Restart' : 'Start'}</button>
+                    <button onclick="carouselRestStart()" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);border-radius:8px;padding:5px 8px;font-size:10px;font-weight:700;color:#22c55e;cursor:pointer;">${isCounting ? 'Restart' : 'Start'}</button>
                     <button onclick="carouselRestStop()" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:5px 8px;font-size:10px;color:#64748b;cursor:pointer;">Stop</button>
                 </div>
             </div>
