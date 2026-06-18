@@ -6661,10 +6661,17 @@ function renderCarousel() {
         carouselCurrentIndex = activeDraft.ui_state.currentExerciseIndex;
     }
 
+    const totalExercises = exercises.length;
+    const completedExercises = data.filter(d => d?.isCompleted).length;
+    const totalSets = data.reduce((acc, d) => acc + (d?.sets_data?.length || 0), 0);
     container.innerHTML = `
         <div class="carousel-nav-bar" id="carousel-nav-bar-inner"></div>
-        <div class="carousel-nav-dots" style="justify-content:center; padding:4px 0 6px 0;">
-            <div class="carousel-dots" id="carousel-dots-container"></div>
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:4px 2px 6px; font-size:10px; font-weight:700; color:#475569; letter-spacing:0.3px;">
+            <span>${completedExercises}/${totalExercises} exercises</span>
+            <div class="carousel-nav-dots" style="justify-content:center; padding:0;">
+                <div class="carousel-dots" id="carousel-dots-container"></div>
+            </div>
+            <span>${totalSets} sets total</span>
         </div>
         <div class="carousel-card-area" id="carousel-card-area">
             <div class="carousel-ex-card" id="carousel-ex-card"></div>
