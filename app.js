@@ -6769,7 +6769,7 @@ function renderCarouselCard() {
 
     const catDisplay = CATEGORY_DISPLAY[ex.target] || ex.target || '';
 
-    // Kontrollera om timern är avstängd (Disabled)
+    // Kontrollera om timern är manuellt avstängd (Disabled)
     const isTimerDisabled = !!activeDraft.restTimerDisabled;
 
     // Action-bar pills
@@ -6820,6 +6820,7 @@ function renderCarouselCard() {
             const rowOpacity = showSuccess ? '0.35' : isCurrent ? '1' : '0.35';
             const inputOpacity = isCurrent ? '1' : '0.3';
 
+            // Klick på cirkeln sparar, bekräftar och drar igång timern automatiskt om den inte är inaktiverad (och inte sista setet)
             setsHtml += `
             <div style="display:grid; grid-template-columns: 40px 1fr 1fr 1fr 30px; gap:8px; margin-bottom:8px; align-items:center; transition:opacity 0.2s ease; position:relative; overflow:visible;">
                 <div class="${isCurrent ? 'pulse-ring' : ''}" onclick="${isLocked && !isDone ? '' : `carouselConfirmSet(${i}, ${sIdx})`}"
@@ -6855,15 +6856,25 @@ function renderCarouselCard() {
                 <div style="font-size:10px; color:${isDone ? '#22c55e' : 'var(--primary)'}; font-weight:800; margin-top:1px;">${isDone ? 'DONE ✅' : `${catDisplay}${catDisplay ? ' · ' : ''}${completedSets}/${totalSets} sets`}</div>
             </div>
             
-            <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
+            <!-- HÖGERHÖRN: IKON + TEXT + TOGGLE SWITCH + KUGGHJUL -->
+            <div style="display:flex; align-items:center; gap:10px; flex-shrink:0;">
                 
+                <!-- TITEL MED IKON (Gör det tydligt att det är vilotimern) -->
+                <div style="display:flex; align-items:center; gap:4px; opacity:0.8;">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <span style="font-size:11px; font-weight:800; color:#f8fafc; text-transform:uppercase; letter-spacing:0.5px;">Rest</span>
+                </div>
+
+                <!-- TOGGLE SWITCH (On/Off - Kontrollerar det delade tillståndet) -->
                 <div style="display:flex; background:rgba(0,0,0,0.3); border-radius:12px; border:1px solid rgba(255,255,255,0.08); overflow:hidden; height:26px; align-items:center;">
+                    <!-- ON-KNAPP -->
                     <button onclick="activeDraft.restTimerDisabled=false; persistActiveWorkout(); renderCarouselCard();"
                         style="padding:0 12px; height:100%; font-size:11px; font-weight:700; cursor:pointer; border:none; transition:all 0.15s; 
                         background:${!isTimerDisabled ? 'rgba(245,158,11,0.2)' : 'transparent'}; 
                         color:${!isTimerDisabled ? '#f59e0b' : 'rgba(255,255,255,0.25)'};">
                         On
                     </button>
+                    <!-- OFF-KNAPP -->
                     <button onclick="clearInterval(restTimerInterval); restTimerActive=false; restTimerSeconds=0; restTimerExIdx=null; activeDraft.restTimerDisabled=true; persistActiveWorkout(); renderCarouselCard();"
                         style="padding:0 12px; height:100%; font-size:11px; font-weight:700; cursor:pointer; border:none; transition:all 0.15s; 
                         background:${isTimerDisabled ? 'rgba(245,158,11,0.2)' : 'transparent'}; 
@@ -6872,9 +6883,10 @@ function renderCarouselCard() {
                     </button>
                 </div>
 
-                <div onclick="if(!activeDraft.restTimerDisabled) { carouselToggleRestBadge(); }" 
-                     style="width:28px; height:28px; display:flex; align-items:center; justify-content:center; border-radius:8px; border:1px solid rgba(255,255,255,0.08); background:rgba(255,255,255,0.04); cursor:${isTimerDisabled ? 'not-allowed' : 'pointer'}; opacity:${isTimerDisabled ? '0.3' : '1'}; transition:all 0.2s;">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${restTimerActive ? '#f59e0b' : '#64748b'}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <!-- NEUTRALT KUGGHJUL (Konstant utseende, alltid aktivt och klickbart för dropdown-inställningar) -->
+                <div onclick="carouselToggleRestBadge();" 
+                     style="width:28px; height:28px; display:flex; align-items:center; justify-content:center; border-radius:8px; border:1px solid rgba(245,158,11,0.2); background:rgba(245,158,11,0.08); cursor:pointer; transition:all 0.2s;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="12" cy="12" r="3"></circle>
                         <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
                     </svg>
@@ -6882,6 +6894,7 @@ function renderCarouselCard() {
             </div>
         </div>
         
+        <!-- DROPDOWN PANELEN (Visar tid och justeringsknappar när man trycker på kugghjulet) -->
         <div id="carousel-rest-dropdown" style="display:none; margin:0 14px 6px; background:rgba(245,158,11,0.06); border:1px solid rgba(245,158,11,0.2); border-radius:12px; padding:8px 12px;">
             <div style="display:flex; align-items:center; justify-content:space-between;">
                 <div>
