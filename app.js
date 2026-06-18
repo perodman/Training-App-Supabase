@@ -3718,7 +3718,7 @@ function renderActiveWorkout() {
 </div>
                         <small style="color: ${isDone ? '#22c55e' : 'var(--primary)'}; font-size: 10px;">${isDone ? 'DONE  ✅ ' : `${completedSets}/${totalSets} set`}</small>
                     </div>
-                    <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0; margin-left: 6px; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch;">
+                    <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0; margin-left: 6px; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; ${isDone ? 'opacity:0.3;' : ''}">
                        <button onclick="event.stopPropagation(); toggleExerciseNote(${i})" style="background:#1e2d3d;border:1px solid #2a3d52;color:#94a3b8;border-radius:20px;padding:5px 10px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:5px;position:relative;">
                             <span style="font-size:13px;">📝</span>${exerciseData.note ? '<span style="position:absolute; top:2px; right:2px; width:6px; height:6px; background:#fde047; border-radius:50%;"></span>' : ''}
                         </button>
@@ -3737,7 +3737,7 @@ function renderActiveWorkout() {
                             style="width:100%; min-height:60px; padding:10px; border-radius:10px; background:rgba(0,0,0,0.2); border:1px solid rgba(253,224,71,0.2); color:#fff; font-size:13px; font-family:inherit; resize:vertical;">${exerciseData.note || ''}</textarea>
                     </div>
                     ${setsHtml}
-                   <div style="display:flex; gap:8px; margin-top:12px;">
+                   <div style="display:flex; gap:8px; margin-top:12px; ${isDone ? 'opacity:0.3; pointer-events:none;' : ''}">
                       <button style="flex:1; padding:10px; background:transparent; border:1.5px dashed rgba(34,211,238,0.3); color:#22d3ee; border-radius:10px; font-size:12px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;" onclick="addSetToExercise(${i})" ${isDone ? 'disabled' : ''}>
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                         Add set
@@ -4662,7 +4662,7 @@ function updateSingleExerciseCard(exIdx) {
 </div>
                 <small style="color: ${isDone ? '#22c55e' : 'var(--primary)'}; font-size: 10px;">${isDone ? 'DONE ✅' : `${completedSets}/${totalSets} set`}</small>
             </div>
-            <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0; margin-left: 6px; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch;">
+            <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0; margin-left: 6px; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; ${isDone ? 'opacity:0.3;' : ''}">
                <button onclick="event.stopPropagation(); toggleExerciseNote(${exIdx})" style="background:#1e2d3d;border:1px solid #2a3d52;color:#94a3b8;border-radius:20px;padding:5px 10px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:5px;position:relative;">
                             <span style="font-size:13px;">📝</span>${exerciseData.note ? '<span style="position:absolute; top:2px; right:2px; width:6px; height:6px; background:#fde047; border-radius:50%;"></span>' : ''}
                         </button>
@@ -4682,7 +4682,7 @@ function updateSingleExerciseCard(exIdx) {
                     style="width:100%; min-height:60px; padding:10px; border-radius:10px; background:rgba(0,0,0,0.2); border:1px solid rgba(253,224,71,0.2); color:#fff; font-size:13px; font-family:inherit; resize:vertical;">${exerciseData.note || ''}</textarea>
             </div>
             ${setsHtml}
-            <div style="display:flex; gap:8px; margin-top:12px;">
+            <div style="display:flex; gap:8px; margin-top:12px; ${isDone ? 'opacity:0.3; pointer-events:none;' : ''}">
                       <button style="flex:1; padding:10px; background:transparent; border:1.5px dashed rgba(34,211,238,0.3); color:#22d3ee; border-radius:10px; font-size:12px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;" onclick="addSetToExercise(${exIdx})" ${isDone ? 'disabled' : ''}>
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                         Add set
