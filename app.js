@@ -4050,6 +4050,8 @@ async function toggleExerciseDone(exIdx) {
     const savedLayout = localStorage.getItem('workoutLayoutMode') || 'list';
     if (savedLayout === 'carousel') {
         renderCarouselCard();
+        renderCarouselNav();
+        renderCarouselDots();
     } else {
         updateSingleExerciseCard(exIdx);
     }
