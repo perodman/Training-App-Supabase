@@ -6854,7 +6854,8 @@ function renderCarouselCard() {
 
     const isCounting = restTimerActive && restTimerSeconds > 0;
 
-    let setsHtml = `<div style="margin-top:4px;">
+    let setsHtml = `<div style="margin:0 0 8px; padding:8px 8px 8px 10px; border-left:2px solid rgba(34,211,238,0.3); background:rgba(34,211,238,0.02);">
+        <div style="margin-top:0px;">
         <div style="display:grid; grid-template-columns: 40px 1fr 1fr 1fr 30px; gap:8px; margin-bottom:5px; align-items:center;">
             <small style="text-align:left; padding-left:5px; color:var(--text-light); font-size:9px; font-weight:700;">SET</small>
             <small style="text-align:center; color:var(--text-light); font-size:9px;">KG</small>
@@ -6893,7 +6894,7 @@ function renderCarouselCard() {
             }
         });
     }
-    setsHtml += `</div>`;
+  setsHtml += `</div></div>`;
 
     card.innerHTML = `
         <div style="padding:10px 14px 4px; display:flex; align-items:center; justify-content:space-between; gap:8px;">
@@ -6958,7 +6959,7 @@ function renderCarouselCard() {
                 </div>
             </div>
         </div>
-        <div class="carousel-card-body">
+        <div class="carousel-card-body" style="background:rgba(255,255,255,0.03); border-top:1px solid rgba(255,255,255,0.06);">    
             ${isNoteOpen ? `<div style="margin-bottom:10px;">
                 <textarea id="note-input-${i}" class="carousel-note-input" data-ex="${i}" placeholder="Add a note for this exercise..."
                     oninput="updateExerciseNote(this, ${i})"
