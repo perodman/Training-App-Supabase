@@ -6118,6 +6118,7 @@ function startRestTimer(seconds, exIdx) {
     restTimerExIdx = exIdx;
     clearInterval(restTimerInterval);
     renderRestTimer();
+    
     restTimerInterval = setInterval(() => {
         restTimerSeconds--;
         if (restTimerSeconds <= 0) {
@@ -6126,9 +6127,19 @@ function startRestTimer(seconds, exIdx) {
             restTimerSeconds = 0;
             restTimerExIdx = null;
             if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-            try { const ctx = new AudioContext(); const o = ctx.createOscillator(); const g = ctx.createGain(); o.connect(g); g.connect(ctx.destination); o.frequency.value = 880; g.gain.value = 0.3; o.start(); setTimeout(() => o.stop(), 300); } catch(e) {}
+            try { 
+                const ctx = new AudioContext(); 
+                const o = ctx.createOscillator(); 
+                const g = ctx.createGain(); 
+                o.connect(g); 
+                g.connect(ctx.destination); 
+                o.frequency.value = 880; 
+                g.gain.value = 0.3; 
+                o.start(); 
+                setTimeout(() => o.stop(), 300); 
+            } catch(e) {}
+            
             renderRestTimer();
-            // Om vi är i karuselläge, se till att kortet ritas om så att allt synkroniseras
             if (typeof workoutLayoutMode !== 'undefined' && workoutLayoutMode === 'carousel') {
                 renderCarouselCard();
             }
@@ -6152,14 +6163,6 @@ function stopRestTimer() {
 function renderRestTimer() {
     // KARUSELLÄGE (Carousel)
     if (typeof workoutLayoutMode !== 'undefined' && workoutLayoutMode === 'carousel') {
-        const staticBar = document.getElementById("rest-timer-bar");
-        if (staticBar) {
-            staticBar.innerHTML = '';
-            staticBar.style.display = 'none';
-        }
-        const oldMoving = document.getElementById("rest-timer-moving");
-        if (oldMoving) oldMoving.remove();
-
         const isTimerDisabled = !!(activeDraft && activeDraft.restTimerDisabled);
         const timerColor = restTimerSeconds <= 10 ? '#ef4444' : '#f59e0b';
         
@@ -6168,37 +6171,35 @@ function renderRestTimer() {
         const liveTimeStr = `${mins}:${secs}`;
         const isCurrentlyCounting = restTimerActive && restTimerSeconds > 0;
 
-        // Räkna ut standardtid baserat på nästa set
+        // Hämta standardtid för nuvarande övning
         const nextRest = parseInt(activeDraft?.data?.[carouselCurrentIndex]?.sets_data?.find(s => !s.userConfirmed)?.rest || 120);
         const defaultMins = String(Math.floor(nextRest / 60)).padStart(1, '0');
         const defaultSecs = String(nextRest % 60).padStart(2, '0');
         const defaultTimeStr = `${defaultMins}:${defaultSecs}`;
 
         const zone = document.getElementById('carousel-timer-header-zone');
-        
-        // KRITISK FIX: Om hela zonen eller klockan har raderats ur DOM:en, tvinga in den igen i containern!
+        const liveLabelTime = document.getElementById('carousel-live-label-time');
+        const labelWord = document.getElementById('carousel-rest-label-word');
+        const carouselDdTime = document.getElementById('carousel-rest-dropdown-time');
+
+        // Om vi är i karuselläget men elementen inte finns i DOM:en än, rita först kortet
         if (!zone && document.getElementById('carousel-ex-card')) {
-            // Om kortet finns men zonen saknas, betyder det att vi behöver köra en omritning av kortet för att återställa balansen
             renderCarouselCard();
             return;
         }
 
-        // Uppdatera texter och opacitet live i headern
+        // Uppdatera headern live utan att förstöra resten av kortet
         if (zone) {
             if (isTimerDisabled) {
                 zone.style.opacity = '0.35';
-                const labelWord = document.getElementById('carousel-rest-label-word');
                 if (labelWord) labelWord.textContent = 'OFF';
-                const liveLabelTime = document.getElementById('carousel-live-label-time');
                 if (liveLabelTime) {
                     liveLabelTime.textContent = '--:--';
                     liveLabelTime.style.color = '#64748b';
                 }
             } else {
                 zone.style.opacity = '1';
-                const labelWord = document.getElementById('carousel-rest-label-word');
                 if (labelWord) labelWord.textContent = 'REST';
-                const liveLabelTime = document.getElementById('carousel-live-label-time');
                 if (liveLabelTime) {
                     if (isCurrentlyCounting) {
                         liveLabelTime.textContent = liveTimeStr;
@@ -6211,8 +6212,7 @@ function renderRestTimer() {
             }
         }
 
-        // Uppdatera klockan inuti själva dropdown-panelen live (om den är öppen)
-        const carouselDdTime = document.getElementById('carousel-rest-dropdown-time');
+        // Uppdatera klockan inuti dropdown-panelen live (om den är öppen)
         if (carouselDdTime) {
             if (isTimerDisabled) {
                 carouselDdTime.textContent = '--:--';
@@ -6827,9 +6827,8 @@ function renderCarouselCard() {
     const dropdownEl = document.getElementById('carousel-rest-dropdown');
     const wasDropdownOpen = dropdownEl ? (dropdownEl.style.display === 'block') : false;
 
-    // Spara anteckningsrutans tillstånd innan rendering (istället för noteOpen-variabeln)
-    const existingNoteInput = document.getElementById(`note-input-${i}`);
-    const isNoteCurrentlyOpen = existingNoteInput !== null || !!exData.note;
+    // SÄKER FIX FÖR NOTES: Använd den globala/befintliga flaggan 'noteOpen' om den är definierad, annars false
+    const isNoteOpen = (typeof noteOpen !== 'undefined') ? noteOpen : false;
 
     const isDone = exData.isCompleted;
 
@@ -6924,8 +6923,7 @@ function renderCarouselCard() {
                 <div onclick="carouselToggleRestBadge();" 
                      style="width:28px; height:28px; display:flex; align-items:center; justify-content:center; border-radius:8px; border:1px solid rgba(245,158,11,0.2); background:rgba(245,158,11,0.08); cursor:pointer; transition:all 0.2s;">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="3"></circle>
-                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 < 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                        <polyline points="6 9 12 15 18 9"></polyline>
                     </svg>
                 </div>
             </div>
@@ -6962,7 +6960,7 @@ function renderCarouselCard() {
             </div>
         </div>
         <div class="carousel-card-body">
-            ${isNoteCurrentlyOpen ? `<div style="margin-bottom:10px;">
+            ${isNoteOpen ? `<div style="margin-bottom:10px;">
                 <textarea id="note-input-${i}" class="carousel-note-input" data-ex="${i}" placeholder="Add a note for this exercise..."
                     oninput="updateExerciseNote(this, ${i})"
                     style="width:100%; min-height:60px; padding:10px; border-radius:10px; background:rgba(0,0,0,0.2); border:1px solid rgba(253,224,71,0.2); color:#fff; font-size:13px; font-family:inherit; resize:vertical;">${exData.note || ''}</textarea>
