@@ -6192,7 +6192,7 @@ const liveLabelTime = document.getElementById('carousel-live-label-time');
         if (zone) {
             if (isTimerDisabled) {
                 zone.style.opacity = '0.35';
-                if (labelWord) labelWord.textContent = 'OFF';
+                if (labelWord) labelWord.textContent = 'REST OFF';
                 if (liveLabelTime) {
                     liveLabelTime.textContent = '--:--';
                     liveLabelTime.style.color = '#64748b';
@@ -6955,7 +6955,6 @@ function renderCarouselCard() {
                     <button onclick="carouselRestAdjust(-15)" style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:8px;padding:5px 8px;font-size:10px;color:#f59e0b;cursor:pointer;" ${isTimerDisabled ? 'disabled style="opacity:0.2;"' : ''}>−15s</button>
                     <button onclick="carouselRestAdjust(30)" style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:8px;padding:5px 8px;font-size:10px;color:#f59e0b;cursor:pointer;" ${isTimerDisabled ? 'disabled style="opacity:0.2;"' : ''}>+30s</button>
                     <button onclick="carouselRestStart()" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);border-radius:8px;padding:5px 8px;font-size:10px;font-weight:700;color:#22c55e;cursor:pointer;" ${isTimerDisabled ? 'disabled style="opacity:0.2;"' : ''}>${isCounting ? 'Restart' : 'Start'}</button>
-                    <button onclick="carouselRestStop()" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:5px 8px;font-size:10px;color:#64748b;cursor:pointer;" ${isTimerDisabled ? 'disabled style="opacity:0.2;"' : ''}>Stop</button>
                 </div>
             </div>
         </div>
