@@ -4036,23 +4036,43 @@ async function toggleExercise(index) {
 }
 
 async function addSetToExercise(exIdx) {
-    const scrollPos = window.scrollY;
     const lastSet = activeDraft.data[exIdx].sets_data[activeDraft.data[exIdx].sets_data.length - 1];
     const newWeight = lastSet ? lastSet.weight : "";
     const newReps = lastSet ? lastSet.reps : "";
     activeDraft.data[exIdx].sets_data.push({ weight: newWeight, reps: newReps });
-    window._suppressAutoScroll = true;
-    renderActiveWorkout();
-    window.scrollTo(0, scrollPos);
+    const savedLayout = localStorage.getItem('workoutLayoutMode') || 'list';
+    if (savedLayout === 'carousel') {
+        renderCarouselCard();
+    } else {
+        const targetCard = document.getElementById(`exercise-card-${exIdx}`);
+        const existingHandle = targetCard ? targetCard.querySelector('.drag-handle') : null;
+        updateSingleExerciseCard(exIdx);
+        if (existingHandle) {
+            const updatedHeader = targetCard.querySelector('div[onclick^="toggleExercise"]');
+            if (updatedHeader && !updatedHeader.querySelector('.drag-handle')) {
+                updatedHeader.insertBefore(existingHandle, updatedHeader.firstChild);
+            }
+        }
+    }
     await persistActiveWorkout();
 }
 
 async function removeSetFromExercise(exIdx, setIdx) {
-    const scrollPos = window.scrollY;
     activeDraft.data[exIdx].sets_data.splice(setIdx, 1);
-    window._suppressAutoScroll = true;
-    renderActiveWorkout();
-    window.scrollTo(0, scrollPos);
+    const savedLayout = localStorage.getItem('workoutLayoutMode') || 'list';
+    if (savedLayout === 'carousel') {
+        renderCarouselCard();
+    } else {
+        const targetCard = document.getElementById(`exercise-card-${exIdx}`);
+        const existingHandle = targetCard ? targetCard.querySelector('.drag-handle') : null;
+        updateSingleExerciseCard(exIdx);
+        if (existingHandle) {
+            const updatedHeader = targetCard.querySelector('div[onclick^="toggleExercise"]');
+            if (updatedHeader && !updatedHeader.querySelector('.drag-handle')) {
+                updatedHeader.insertBefore(existingHandle, updatedHeader.firstChild);
+            }
+        }
+    }
     await persistActiveWorkout();
 }
 
