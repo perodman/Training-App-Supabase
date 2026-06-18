@@ -6834,7 +6834,7 @@ function renderCarouselCard() {
                 </button>
                 <div style="flex:1;"></div>
                 <div onclick="carouselToggleNote(${i})" style="display:flex;align-items:center;gap:5px;padding:6px 10px;border-radius:20px;border:1px solid ${exData.note ? 'rgba(253,224,71,0.4)' : '#2a3d52'};background:${exData.note ? 'rgba(253,224,71,0.06)' : '#1e2d3d'};cursor:pointer;flex-shrink:0;position:relative;">
-                    <span style="font-size:13px;">📝</span><span style="font-size:11px;font-weight:700;color:${exData.note ? '#fde047' : '#f8fafc'};">Note</span>
+                    <span style="font-size:13px;position:relative;">📝${exData.note ? '<span style="position:absolute;top:-2px;right:-2px;width:6px;height:6px;background:#fde047;border-radius:50%;"></span>' : ''}</span><span style="font-size:11px;font-weight:700;color:${exData.note ? '#fde047' : '#f8fafc'};">Note</span>
                 </div>
                 <div onclick="${isDone ? '' : `openReplaceExerciseModal(${i})`}" style="display:flex;align-items:center;gap:5px;padding:6px 10px;border-radius:20px;background:#1a3040;border:1px solid #22d3ee;cursor:pointer;flex-shrink:0;${isDone ? 'opacity:0.3;pointer-events:none;' : ''}">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><polyline points="23 20 23 14 17 14"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
