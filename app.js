@@ -6818,14 +6818,19 @@ function renderCarouselCard() {
     const card = document.getElementById('carousel-ex-card');
     if (!card || !activeDraft) return;
 
-    // Spara dropdownens tillstånd innan rendering
-    const dropdownEl = document.getElementById('carousel-rest-dropdown');
-    const wasDropdownOpen = dropdownEl ? (dropdownEl.style.display === 'block') : false;
-
     const i = carouselCurrentIndex;
     const ex = activeDraft.workout.exercises[i];
     const exData = activeDraft.data[i];
     if (!ex || !exData) return;
+
+    // Spara dropdownens tillstånd innan rendering
+    const dropdownEl = document.getElementById('carousel-rest-dropdown');
+    const wasDropdownOpen = dropdownEl ? (dropdownEl.style.display === 'block') : false;
+
+    // Spara anteckningsrutans tillstånd innan rendering (istället för noteOpen-variabeln)
+    const existingNoteInput = document.getElementById(`note-input-${i}`);
+    const isNoteCurrentlyOpen = existingNoteInput !== null || !!exData.note;
+
     const isDone = exData.isCompleted;
 
     card.style.borderLeftColor = isDone ? '#22c55e' : '#22d3ee';
@@ -6904,7 +6909,6 @@ function renderCarouselCard() {
             </div>
             
             <div style="display:flex; align-items:center; gap:12px; flex-shrink:0;">
-                <!-- HEADER-KLOCKA MED DIMNING OCH "--:--" VID OFF -->
                 <div id="carousel-timer-header-zone" style="display:flex; flex-direction:column; align-items:flex-end; gap:2px; cursor:pointer; transition: opacity 0.2s ease; opacity: ${isTimerDisabled ? '0.35' : '1'};" onclick="carouselToggleRestBadge();">
                     <span id="carousel-rest-label-word" style="font-size:9px; color:${isTimerDisabled ? '#64748b' : '#92400e'}; font-weight:800; text-transform:uppercase; letter-spacing:1px; line-height:1;">
                         ${isTimerDisabled ? 'OFF' : 'REST'}
@@ -6921,13 +6925,12 @@ function renderCarouselCard() {
                      style="width:28px; height:28px; display:flex; align-items:center; justify-content:center; border-radius:8px; border:1px solid rgba(245,158,11,0.2); background:rgba(245,158,11,0.08); cursor:pointer; transition:all 0.2s;">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="12" cy="12" r="3"></circle>
-                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 < 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
                     </svg>
                 </div>
             </div>
         </div>
         
-        <!-- DROPDOWN PANELEN -->
         <div id="carousel-rest-dropdown" style="display:${wasDropdownOpen ? 'block' : 'none'}; margin:0 14px 6px; background:rgba(245,158,11,0.06); border:1px solid rgba(245,158,11,0.2); border-radius:12px; padding:10px 12px;">
             <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
                 <div style="display:flex; align-items:center; gap:12px;">
@@ -6959,7 +6962,7 @@ function renderCarouselCard() {
             </div>
         </div>
         <div class="carousel-card-body">
-            ${noteOpen ? `<div style="margin-bottom:10px;">
+            ${isNoteCurrentlyOpen ? `<div style="margin-bottom:10px;">
                 <textarea id="note-input-${i}" class="carousel-note-input" data-ex="${i}" placeholder="Add a note for this exercise..."
                     oninput="updateExerciseNote(this, ${i})"
                     style="width:100%; min-height:60px; padding:10px; border-radius:10px; background:rgba(0,0,0,0.2); border:1px solid rgba(253,224,71,0.2); color:#fff; font-size:13px; font-family:inherit; resize:vertical;">${exData.note || ''}</textarea>
