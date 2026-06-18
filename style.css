@@ -1345,7 +1345,7 @@ body:has(.bottom-bar.hidden) { padding-bottom: 0; }
 .carousel-ex-card {
    position: relative;
     background: linear-gradient(180deg, #1a2540 0%, #0f172a 100%);
-    border: 1px solid rgba(255,255,255,0.06);
+    border: 1px solid rgba(34,211,238,0.15);
     border-radius: 12px;
     overflow: hidden;
     transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease;
