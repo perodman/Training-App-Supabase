@@ -6343,13 +6343,15 @@ function renderRestTimerListStyle(staticBar) {
     if (isDisabled) {
         if (staticBar) staticBar.innerHTML = disabledHTML;
     } else if (restTimerActive && restTimerExIdx !== null) {
-        if (staticBar) staticBar.innerHTML = '';
         const targetCard = document.getElementById(`exercise-card-${restTimerExIdx}`);
         if (targetCard) {
+            if (staticBar) staticBar.innerHTML = '';
             const movingBar = document.createElement("div");
             movingBar.id = "rest-timer-moving";
             movingBar.innerHTML = activeHTML;
             targetCard.insertAdjacentElement('beforebegin', movingBar);
+        } else if (staticBar) {
+            staticBar.innerHTML = activeHTML;
         }
     } else {
         if (staticBar) staticBar.innerHTML = idleHTML;
@@ -7773,10 +7775,9 @@ async function focusConfirmSet(exIdx, setIdx) {
     const isNowConfirmed = activeDraft.data[exIdx].sets_data[setIdx].userConfirmed;
     const isLastSet = setIdx === activeDraft.data[exIdx].sets_data.length - 1;
     if (isNowConfirmed && !isLastSet) {
-        carouselStopRest();
+        stopRestTimer();
         startRestTimer(restVal, exIdx);
     } else {
-        carouselStopRest();
         stopRestTimer();
     }
     await persistActiveWorkout();
