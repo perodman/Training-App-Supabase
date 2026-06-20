@@ -6199,8 +6199,15 @@ function stopRestTimer() {
 }
 
 function renderRestTimer() {
+    const currentLayoutMode = localStorage.getItem('workoutLayoutMode');
+    // FOCUS-LÄGE: Använd samma listvy-logik men med egen container
+    if (currentLayoutMode === 'focus') {
+        const staticBar = document.getElementById("focus-rest-timer-bar");
+        renderRestTimerListStyle(staticBar);
+        return;
+    }
     // KARUSELLÄGE (Carousel)
-    if (['carousel', 'focus'].includes(localStorage.getItem('workoutLayoutMode'))) {
+    if (currentLayoutMode === 'carousel') {
         const isTimerDisabled = !!(activeDraft && activeDraft.restTimerDisabled);
         const timerColor = restTimerSeconds <= 10 ? '#ef4444' : '#f59e0b';
         
@@ -6265,9 +6272,13 @@ const liveLabelTime = document.getElementById('carousel-live-label-time');
         }
         return; 
     }
-
+    
     // LISTVYN (Standardläge)
     const staticBar = document.getElementById("rest-timer-bar");
+    renderRestTimerListStyle(staticBar);
+}
+
+function renderRestTimerListStyle(staticBar) {
     if (staticBar) {
         staticBar.style.display = 'block';
     }
@@ -7517,12 +7528,14 @@ function renderFocus() {
         <div style="height:3px; background:rgba(255,255,255,0.05); border-radius:3px; overflow:hidden; margin:0 2px 10px;">
             <div id="focus-progress-bar" style="width:0%; height:100%; background:#22d3ee; transition:width 0.3s ease;"></div>
         </div>
-        <div class="carousel-nav-bar" id="focus-nav-bar-inner"></div>
+<div class="carousel-nav-bar" id="focus-nav-bar-inner"></div>
+        <div id="focus-rest-timer-bar"></div>
         <div class="carousel-card-area" id="focus-card-area">
             <div class="carousel-ex-card" id="focus-ex-card"></div>
         </div>`;
     renderFocusNav();
     renderFocusCard();
+    renderRestTimer();
     initFocusSwipe();
     initFocusDragAndDrop();
     updateFocusProgress();
