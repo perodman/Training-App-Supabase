@@ -6178,7 +6178,7 @@ function startRestTimer(seconds, exIdx) {
             } catch(e) {}
             
             renderRestTimer();
-            if (localStorage.getItem('workoutLayoutMode') === 'carousel') {
+            if (['carousel', 'focus'].includes(localStorage.getItem('workoutLayoutMode'))) {
                 renderCarouselCard();
             }
             return;
@@ -6193,14 +6193,14 @@ function stopRestTimer() {
     restTimerSeconds = 0;
     restTimerExIdx = null;
     renderRestTimer();
-    if (localStorage.getItem('workoutLayoutMode') === 'carousel') {
+    if (['carousel', 'focus'].includes(localStorage.getItem('workoutLayoutMode'))) {
         renderCarouselCard();
     }
 }
 
 function renderRestTimer() {
     // KARUSELLÄGE (Carousel)
-    if (localStorage.getItem('workoutLayoutMode') === 'carousel') {
+    if (['carousel', 'focus'].includes(localStorage.getItem('workoutLayoutMode'))) {
         const isTimerDisabled = !!(activeDraft && activeDraft.restTimerDisabled);
         const timerColor = restTimerSeconds <= 10 ? '#ef4444' : '#f59e0b';
         
@@ -7143,6 +7143,8 @@ function carouselStartRest(seconds) {
         const badgeTime = document.getElementById('carousel-rest-badge-time');
         const dropdownTime = document.getElementById('carousel-rest-dropdown-time');
         const headerTime = document.getElementById('carousel-live-label-time');
+        const focusHeaderTime = document.getElementById('focus-live-label-time');
+        const focusDropdownTime = document.getElementById('focus-rest-dropdown-time');
         const formatted = formatRestTime(carouselRestSeconds);
         const timerColor = carouselRestSeconds <= 10 ? '#ef4444' : '#f59e0b';
         if (badgeTime) badgeTime.textContent = formatted;
@@ -7153,6 +7155,14 @@ function carouselStartRest(seconds) {
         if (headerTime) {
             headerTime.textContent = formatted;
             headerTime.style.color = timerColor;
+        }
+        if (focusHeaderTime) {
+            focusHeaderTime.textContent = formatted;
+            focusHeaderTime.style.color = timerColor;
+        }
+        if (focusDropdownTime) {
+            focusDropdownTime.textContent = formatted;
+            focusDropdownTime.style.color = timerColor;
         }
 
         if (carouselRestSeconds <= 0) {
@@ -7497,12 +7507,15 @@ function renderFocus() {
         carouselCurrentIndex = activeDraft.ui_state.currentExerciseIndex;
     }
     container.innerHTML = `
-        <div style="display:flex; align-items:center; justify-content:space-between; padding:2px 4px 10px;">
-            <div onclick="setWorkoutLayout('list')" style="display:flex; align-items:center; gap:5px; color:#64748b; font-size:11px; font-weight:700; cursor:pointer;">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:2px 4px 8px;">
+            <div onclick="setWorkoutLayout('list')" style="display:flex; align-items:center; gap:5px; color:#64748b; font-size:12px; font-weight:700; cursor:pointer;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
                 Exit focus
             </div>
-            <div id="focus-progress-text" style="font-size:11px; font-weight:800; color:#22d3ee;"></div>
+            <div id="focus-progress-text" style="font-size:14px; font-weight:900; color:#22d3ee;"></div>
+        </div>
+        <div style="height:3px; background:rgba(255,255,255,0.05); border-radius:3px; overflow:hidden; margin:0 2px 10px;">
+            <div id="focus-progress-bar" style="width:0%; height:100%; background:#22d3ee; transition:width 0.3s ease;"></div>
         </div>
         <div class="carousel-nav-bar" id="focus-nav-bar-inner"></div>
         <div class="carousel-card-area" id="focus-card-area">
@@ -7517,6 +7530,7 @@ function renderFocus() {
 
 function updateFocusProgress() {
     const el = document.getElementById('focus-progress-text');
+    const bar = document.getElementById('focus-progress-bar');
     if (!el || !activeDraft.data) return;
     let totalCompleted = 0, total = 0;
     activeDraft.data.forEach(d => {
@@ -7526,6 +7540,7 @@ function updateFocusProgress() {
         }
     });
     el.textContent = `${totalCompleted} / ${total} set`;
+    if (bar) bar.style.width = total > 0 ? `${(totalCompleted / total) * 100}%` : '0%';
 }
 
 function renderFocusNav() {
@@ -7677,7 +7692,7 @@ function renderFocusCard() {
         </div>
 
         <div class="carousel-card-body">
-            <div style="font-size:11px; color:${isDone ? '#22c55e' : 'var(--primary)'}; font-weight:800; margin-bottom:10px;">${isDone ? 'DONE ✅' : `${catDisplay}${catDisplay ? ' · ' : ''}${completedSets}/${totalSets} sets`}</div>
+            <div style="font-size:13px; color:${isDone ? '#22c55e' : 'var(--primary)'}; font-weight:800; margin-bottom:12px;">${isDone ? 'DONE ✅' : `${catDisplay}${catDisplay ? ' · ' : ''}${completedSets}/${totalSets} sets`}</div>
             ${isNoteOpen ? `<div style="margin-bottom:10px;">
                 <textarea id="note-input-${i}" class="carousel-note-input" data-ex="${i}" placeholder="Add a note for this exercise..."
                     oninput="updateExerciseNote(this, ${i})"
@@ -7685,8 +7700,8 @@ function renderFocusCard() {
             </div>` : ''}
             ${setsHtml}
             <div style="display:flex; gap:6px; align-items:center; margin-top:12px; margin-bottom:8px; width:100%;">
-                <button style="display:flex;align-items:center;gap:5px;padding:7px 10px;background:transparent;border:1.5px dashed rgba(34,211,238,0.3);color:#22d3ee;border-radius:10px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0;${isDone ? 'opacity:0.3;pointer-events:none;' : ''}" onclick="addSetToExercise(${i})" ${isDone ? 'disabled' : ''}>
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                <button style="display:flex;align-items:center;gap:6px;padding:9px 14px;background:transparent;border:1.5px dashed rgba(34,211,238,0.3);color:#22d3ee;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0;${isDone ? 'opacity:0.3;pointer-events:none;' : ''}" onclick="addSetToExercise(${i})" ${isDone ? 'disabled' : ''}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                     Add set
                 </button>
             </div>
