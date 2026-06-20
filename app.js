@@ -7773,12 +7773,11 @@ async function focusConfirmSet(exIdx, setIdx) {
     const isNowConfirmed = activeDraft.data[exIdx].sets_data[setIdx].userConfirmed;
     const isLastSet = setIdx === activeDraft.data[exIdx].sets_data.length - 1;
     if (isNowConfirmed && !isLastSet) {
-        stopRestTimer();
         carouselStopRest();
-        carouselStartRest(restVal);
+        startRestTimer(restVal, exIdx);
     } else {
-        stopRestTimer();
         carouselStopRest();
+        stopRestTimer();
     }
     await persistActiveWorkout();
     if (typeof updateWorkoutProgress === 'function' && activeDraft.data) {
