@@ -6657,6 +6657,8 @@ function setWorkoutLayout(mode) {
         if (focusView) focusView.classList.add('hidden');
         window._suppressAutoScroll = true;
         
+const headerCard2 = document.querySelector('#workout-view > div:first-child');
+        if (headerCard2) headerCard2.classList.remove('hidden');
         renderRestTimer();
         renderActiveWorkout();
     } else if (mode === 'carousel') {
@@ -6676,12 +6678,20 @@ function setWorkoutLayout(mode) {
             const firstUndone = activeDraft.workout.exercises.findIndex((_, i) => !activeDraft.data[i]?.isCompleted);
             if (firstUndone !== -1) carouselCurrentIndex = firstUndone;
         }
+const headerCard3 = document.querySelector('#workout-view > div:first-child');
+        if (headerCard3) headerCard3.classList.remove('hidden');
         renderCarousel();
         setTimeout(() => renderCarouselCard(), 50);
     } else if (mode === 'focus') {
         if (exerciseList) exerciseList.style.display = 'none';
         if (carouselView) carouselView.classList.add('hidden');
         if (focusView) focusView.classList.remove('hidden');
+        
+        const headerCard = document.querySelector('#workout-view > div:first-child');
+        const separator = document.querySelector('#workout-view > div[style*="diamond"], #workout-view > div:nth-child(2)');
+        const footer = document.querySelector('.workout-footer');
+        if (headerCard) headerCard.classList.add('hidden');
+        if (footer) footer.classList.add('hidden');
         
         if (restTimerBar) {
             restTimerBar.innerHTML = '';
