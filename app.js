@@ -3778,21 +3778,34 @@ function renderActiveWorkout() {
     const savedLayout = localStorage.getItem('workoutLayoutMode') || 'list';
     const listBtn = document.getElementById('layout-list-btn');
     const carouselBtn = document.getElementById('layout-carousel-btn');
+    const focusBtn = document.getElementById('layout-focus-btn');
     if (listBtn) listBtn.classList.toggle('active', savedLayout === 'list');
     if (carouselBtn) carouselBtn.classList.toggle('active', savedLayout === 'carousel');
-    
+    if (focusBtn) focusBtn.classList.toggle('active', savedLayout === 'focus');
+
+    const exerciseList = document.getElementById('exercise-list');
+    const carouselView = document.getElementById('carousel-view');
+    const focusView = document.getElementById('focus-view');
+    const restTimerBar = document.getElementById('rest-timer-bar');
+
     if (savedLayout === 'carousel') {
-        const exerciseList = document.getElementById('exercise-list');
-        const carouselView = document.getElementById('carousel-view');
-        const restTimerBar = document.getElementById('rest-timer-bar');
-        
         const topTimer = document.getElementById('carousel-rest-time');
         if (topTimer) topTimer.style.display = 'none';
-
         if (exerciseList) exerciseList.style.display = 'none';
         if (carouselView) carouselView.classList.remove('hidden');
+        if (focusView) focusView.classList.add('hidden');
         if (restTimerBar) restTimerBar.style.display = 'none';
         renderCarousel();
+    } else if (savedLayout === 'focus') {
+        if (exerciseList) exerciseList.style.display = 'none';
+        if (carouselView) carouselView.classList.add('hidden');
+        if (focusView) focusView.classList.remove('hidden');
+        if (restTimerBar) restTimerBar.style.display = 'none';
+        renderFocus();
+    } else {
+        if (exerciseList) exerciseList.style.display = 'block';
+        if (carouselView) carouselView.classList.add('hidden');
+        if (focusView) focusView.classList.add('hidden');
     }
     if (isReturning && openExercises.length > 0 && !window._suppressAutoScroll) {
         const firstOpenIndex = openExercises.slice().sort((a, b) => a - b)[0];
@@ -7443,4 +7456,350 @@ function updateWorkoutProgress(completedSets, totalSets) {
     
     // Fyll på linjen i botten av kortet
     document.getElementById('workout-progress-bar').style.width = `${percentage}%`;
+}
+
+function renderFocus() {
+    const container = document.getElementById('focus-view');
+    if (!container || !activeDraft) return;
+    const exercises = activeDraft.workout.exercises;
+    if (!exercises || exercises.length === 0) return;
+    if (activeDraft.ui_state && typeof activeDraft.ui_state.currentExerciseIndex === 'number') {
+        carouselCurrentIndex = activeDraft.ui_state.currentExerciseIndex;
+    }
+    container.innerHTML = `
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:2px 4px 10px;">
+            <div onclick="setWorkoutLayout('list')" style="display:flex; align-items:center; gap:5px; color:#64748b; font-size:11px; font-weight:700; cursor:pointer;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+                Exit focus
+            </div>
+            <div id="focus-progress-text" style="font-size:11px; font-weight:800; color:#22d3ee;"></div>
+        </div>
+        <div class="carousel-nav-bar" id="focus-nav-bar-inner"></div>
+        <div class="carousel-card-area" id="focus-card-area">
+            <div class="carousel-ex-card" id="focus-ex-card"></div>
+        </div>`;
+    renderFocusNav();
+    renderFocusCard();
+    initFocusSwipe();
+    initFocusDragAndDrop();
+    updateFocusProgress();
+}
+
+function updateFocusProgress() {
+    const el = document.getElementById('focus-progress-text');
+    if (!el || !activeDraft.data) return;
+    let totalCompleted = 0, total = 0;
+    activeDraft.data.forEach(d => {
+        if (d && d.sets_data) {
+            total += d.sets_data.length;
+            totalCompleted += d.sets_data.filter(s => s.userConfirmed).length;
+        }
+    });
+    el.textContent = `${totalCompleted} / ${total} set`;
+}
+
+function renderFocusNav() {
+    const navBar = document.getElementById('focus-nav-bar-inner');
+    if (!navBar || !activeDraft) return;
+    const exercises = activeDraft.workout.exercises;
+    const data = activeDraft.data;
+    navBar.innerHTML = exercises.map((ex, i) => {
+        const isDone = data[i]?.isCompleted;
+        const isActive = i === carouselCurrentIndex;
+        const svg = getExSVG(ex.target, 'small');
+        return `<div class="carousel-ex-thumb${isDone ? ' done' : isActive ? ' active' : ''}" id="focus-thumb-${i}" onclick="focusGoTo(${i})">
+            <div class="carousel-drag-handle" style="font-size:14px; color:rgba(255,255,255,0.35); cursor:grab; line-height:1; margin-bottom:3px; padding:2px 8px; width:100%; text-align:center;" title="Drag to reorder">⠿</div>
+            <div style="opacity:${isActive ? 1 : 0.5}">${svg}</div>
+            <div class="carousel-ex-thumb-name">${ex.name}</div>
+            ${isDone ? `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>` : ''}
+        </div>`;
+    }).join('');
+    setTimeout(() => {
+        const active = document.getElementById(`focus-thumb-${carouselCurrentIndex}`);
+        if (active) active.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+    }, 50);
+    initFocusDragAndDrop();
+}
+
+function renderFocusCard() {
+    const card = document.getElementById('focus-ex-card');
+    if (!card || !activeDraft) return;
+    const i = carouselCurrentIndex;
+    const ex = activeDraft.workout.exercises[i];
+    const exData = activeDraft.data[i];
+    if (!ex || !exData) return;
+    const dropdownEl = document.getElementById('focus-rest-dropdown');
+    const wasDropdownOpen = dropdownEl ? (dropdownEl.style.display === 'block') : false;
+    const isNoteOpen = activeDraft.ui_state?.openNotes?.includes(i) || false;
+    const isDone = exData.isCompleted;
+    card.classList.toggle('is-done', isDone);
+    const completedSets = exData.sets_data ? exData.sets_data.filter(s => s.userConfirmed).length : 0;
+    const totalSets = exData.sets_data ? exData.sets_data.length : 0;
+    const firstUnconfirmed = exData.sets_data ? exData.sets_data.findIndex(s => !s.userConfirmed) : -1;
+    const catDisplay = CATEGORY_DISPLAY[ex.target] || ex.target || '';
+    const isTimerDisabled = !!activeDraft.restTimerDisabled;
+    const timerColor = restTimerSeconds <= 10 ? '#ef4444' : '#f59e0b';
+    const currentMins = String(Math.floor(restTimerSeconds / 60)).padStart(1, '0');
+    const currentSecs = String(restTimerSeconds % 60).padStart(2, '0');
+    const liveTimeStr = `${currentMins}:${currentSecs}`;
+    const nextRestSeconds = parseInt(exData.sets_data?.find(s => !s.userConfirmed)?.rest || 120);
+    const defaultMins = String(Math.floor(nextRestSeconds / 60)).padStart(1, '0');
+    const defaultSecs = String(nextRestSeconds % 60).padStart(2, '0');
+    const defaultTimeStr = `${defaultMins}:${defaultSecs}`;
+    const isCounting = restTimerActive && restTimerSeconds > 0;
+
+    let setsHtml = `<div style="margin-top:4px;">
+        <div style="display:grid; grid-template-columns: 40px 1fr 1fr 1fr 30px; gap:8px; margin-bottom:5px; align-items:center;">
+            <small style="text-align:left; padding-left:5px; color:var(--text-light); font-size:9px; font-weight:700;">SET</small>
+            <small style="text-align:center; color:var(--text-light); font-size:9px;">KG</small>
+            <small style="text-align:center; color:var(--text-light); font-size:9px;">REPS</small>
+            <small style="text-align:center; color:var(--text-light); font-size:9px;">REST (S)</small>
+            <span></span>
+        </div>`;
+    if (exData.sets_data) {
+        exData.sets_data.forEach((set, sIdx) => {
+            const isLocked = isDone;
+            const isCurrent = !set.userConfirmed && !isDone && sIdx === firstUnconfirmed;
+            const showSuccess = set.userConfirmed || isDone;
+            const circleColor = showSuccess ? '#22c55e' : (isCurrent ? '#facc15' : '#f59e0b');
+            const statusContent = showSuccess ? '✅' : `#${sIdx + 1}`;
+            const inputOpacity = isCurrent ? '1' : '0.3';
+            setsHtml += `
+            <div style="display:grid; grid-template-columns: 40px 1fr 1fr 1fr 30px; gap:8px; margin-bottom:8px; align-items:center; transition:opacity 0.2s ease; position:relative; overflow:visible;">
+                <div class="${isCurrent ? 'pulse-ring' : ''}" onclick="${isLocked && !isDone ? '' : `focusConfirmSet(${i}, ${sIdx})`}"
+                    style="width:32px; height:32px; border-radius:50%; border:2px solid ${circleColor}; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:10px; font-weight:800; background:${showSuccess ? 'rgba(34,197,94,0.2)' : isCurrent ? 'rgba(250,204,21,0.15)' : 'rgba(245,158,11,0.05)'}; color:${circleColor}; opacity:1;">
+                    ${statusContent}
+                </div>
+                <input type="text" inputmode="decimal" id="fw-${i}-${sIdx}" class="log-input weight-input" data-ex="${i}" data-set="${sIdx}" style="margin:0; padding:12px; font-size:18px; opacity:${inputOpacity}; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.weight || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'weight')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
+                <input type="text" inputmode="decimal" id="fr-${i}-${sIdx}" class="log-input reps-input" data-ex="${i}" data-set="${sIdx}" style="margin:0; padding:12px; font-size:18px; opacity:${inputOpacity}; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.reps || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'reps')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
+                ${sIdx < exData.sets_data.length - 1
+                    ? `<input type="text" inputmode="decimal" id="fv-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${inputOpacity}; border-color:${isCurrent ? 'rgba(245,158,11,0.6)' : 'rgba(52,152,219,0.3)'};" value="${set.rest || '120'}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'rest')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`
+                    : '<div></div>'}
+                <button onclick="removeSetFromExercise(${i}, ${sIdx})" style="background:none; border:none; color:var(--danger); font-size:16px; opacity: ${showSuccess ? '0.1' : '0.8'};" ${showSuccess ? 'disabled' : ''}>×</button>
+            </div>`;
+            if (isCurrent && sIdx === firstUnconfirmed) {
+                setsHtml += `
+                <div style="grid-column: 2 / span 3; margin:-4px 0 8px 0; padding-left:2px; opacity:0.8; font-size:10px; color:var(--primary); font-weight:600; letter-spacing:0.3px;">
+                            💡 Select ${statusContent} to lock & continue
+                        </div>`;
+            }
+        });
+    }
+    setsHtml += `</div>`;
+
+    card.innerHTML = `
+        <div style="padding:10px 14px 8px; display:flex; align-items:flex-start; justify-content:space-between; gap:8px; background:rgba(255,255,255,0.03); border-bottom:1px solid rgba(255,255,255,0.05);">
+            <div style="display:flex; align-items:center; gap:6px; min-width:0;">
+                <div style="font-size:18px; font-weight:900; color:${isDone ? 'var(--text-light)' : 'var(--text)'}; text-decoration:${isDone ? 'line-through' : 'none'}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${ex.name}</div>
+                <div onclick="const z=document.getElementById('focus-anim-modal-${i}'); z.style.display=z.style.display==='flex'?'none':'flex';" style="display:flex;align-items:center;justify-content:center;padding:4px 8px;border-radius:20px;background:rgba(34,211,238,0.08);border:1px solid rgba(34,211,238,0.2);cursor:pointer;flex-shrink:0;">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+                <div id="focus-timer-header-zone" style="display:flex; align-items:center; border-radius:12px; border:1px solid rgba(245,158,11,0.25); background:rgba(245,158,11,0.06); overflow:hidden; cursor:pointer; ${isDone ? 'opacity:0.3;pointer-events:none;' : ''}" onclick="focusToggleRestBadge();">
+                    <div style="display:flex; align-items:center; gap:5px; padding:5px 8px;">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="${isTimerDisabled ? '#64748b' : '#f59e0b'}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        <span id="focus-live-label-time" style="font-size:11px; font-weight:800; color:${isTimerDisabled ? '#64748b' : '#f59e0b'}; font-family:monospace;">${isTimerDisabled ? '--:--' : (isCounting ? liveTimeStr : defaultTimeStr)}</span>
+                    </div>
+                    <div style="padding:5px 7px; display:flex; align-items:center; border-left:1px solid rgba(255,255,255,0.08);">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                    </div>
+                </div>
+                <div onclick="const z=document.getElementById('focus-menu-${i}'); z.style.display=z.style.display==='block'?'none':'block';" style="width:26px;height:26px;border-radius:8px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;cursor:pointer;color:#94a3b8;font-size:13px;letter-spacing:1px;flex-shrink:0;">⋯</div>
+            </div>
+        </div>
+
+        <div id="focus-menu-${i}" style="display:none; position:absolute; top:54px; right:14px; background:#1e293b; border:1px solid rgba(255,255,255,0.1); border-radius:14px; padding:6px; z-index:50; min-width:160px; box-shadow:0 8px 24px rgba(0,0,0,0.5);">
+            <div onclick="document.getElementById('focus-menu-${i}').style.display='none'; focusToggleNote(${i});" style="display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;position:relative;">
+                <span style="font-size:14px;">📝${exData.note ? '<span style="position:absolute;top:6px;left:18px;width:6px;height:6px;background:#fde047;border-radius:50%;"></span>' : ''}</span><span style="color:#f8fafc;">Note</span>
+            </div>
+            <div onclick="document.getElementById('focus-menu-${i}').style.display='none'; ${isDone ? '' : `openReplaceExerciseModal(${i})`}" style="display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;${isDone ? 'opacity:0.3;pointer-events:none;' : ''}">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><polyline points="23 20 23 14 17 14"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/></svg><span style="color:#22d3ee;">Swap exercise</span>
+            </div>
+            <div style="height:1px;background:rgba(255,255,255,0.06);margin:4px 0;"></div>
+            <div onclick="document.getElementById('focus-menu-${i}').style.display='none'; ${isDone ? '' : `removeActiveExercise(${i})`}" style="display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;${isDone ? 'opacity:0.3;pointer-events:none;' : ''}">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg><span style="color:#ef4444;">Remove</span>
+            </div>
+        </div>
+
+        <div id="focus-rest-dropdown" style="display:${wasDropdownOpen ? 'block' : 'none'}; margin:0 14px 6px; background:rgba(245,158,11,0.06); border:1px solid rgba(245,158,11,0.2); border-radius:12px; padding:10px 12px;">
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <div>
+                        <div style="font-size:8px; color:#92400e; font-weight:800; text-transform:uppercase; letter-spacing:1px;">Rest Timer</div>
+                        <div style="font-size:22px; font-weight:900; color:${isTimerDisabled ? '#64748b' : (isCounting ? timerColor : '#f59e0b')}; font-family:monospace;" id="focus-rest-dropdown-time">
+                            ${isTimerDisabled ? '--:--' : (isCounting ? liveTimeStr : defaultTimeStr)}
+                        </div>
+                    </div>
+                    <div style="display:flex; background:rgba(0,0,0,0.4); border-radius:10px; border:1px solid rgba(255,255,255,0.08); overflow:hidden; height:26px; align-items:center; margin-left:4px;">
+                        <button onclick="activeDraft.restTimerDisabled=false; persistActiveWorkout(); renderFocusCard(); renderRestTimer();"
+                            style="padding:0 10px; height:100%; font-size:10px; font-weight:700; cursor:pointer; border:none; transition:all 0.15s; background:${!isTimerDisabled ? 'rgba(245,158,11,0.25)' : 'transparent'}; color:${!isTimerDisabled ? '#f59e0b' : 'rgba(255,255,255,0.2)'};">On</button>
+                        <button onclick="clearInterval(restTimerInterval); restTimerActive=false; restTimerSeconds=0; restTimerExIdx=null; activeDraft.restTimerDisabled=true; persistActiveWorkout(); renderFocusCard(); renderRestTimer();"
+                            style="padding:0 10px; height:100%; font-size:10px; font-weight:700; cursor:pointer; border:none; transition:all 0.15s; background:${isTimerDisabled ? 'rgba(245,158,11,0.25)' : 'transparent'}; color:${isTimerDisabled ? '#f59e0b' : 'rgba(255,255,255,0.2)'};">Off</button>
+                    </div>
+                </div>
+                <div style="display:flex; gap:5px; align-items:center;">
+                    <button onclick="carouselRestAdjust(-15)" style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:8px;padding:5px 8px;font-size:10px;color:#f59e0b;cursor:pointer;" ${isTimerDisabled ? 'disabled style="opacity:0.2;"' : ''}>−15s</button>
+                    <button onclick="carouselRestAdjust(30)" style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:8px;padding:5px 8px;font-size:10px;color:#f59e0b;cursor:pointer;" ${isTimerDisabled ? 'disabled style="opacity:0.2;"' : ''}>+30s</button>
+                    <button onclick="carouselRestStart()" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);border-radius:8px;padding:5px 8px;font-size:10px;font-weight:700;color:#22c55e;cursor:pointer;" ${isTimerDisabled ? 'disabled style="opacity:0.2;"' : ''}>${isCounting ? 'Restart' : 'Start'}</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="carousel-card-body">
+            <div style="font-size:11px; color:${isDone ? '#22c55e' : 'var(--primary)'}; font-weight:800; margin-bottom:10px;">${isDone ? 'DONE ✅' : `${catDisplay}${catDisplay ? ' · ' : ''}${completedSets}/${totalSets} sets`}</div>
+            ${isNoteOpen ? `<div style="margin-bottom:10px;">
+                <textarea id="note-input-${i}" class="carousel-note-input" data-ex="${i}" placeholder="Add a note for this exercise..."
+                    oninput="updateExerciseNote(this, ${i})"
+                    style="width:100%; min-height:60px; padding:10px; border-radius:10px; background:rgba(0,0,0,0.2); border:1px solid rgba(253,224,71,0.2); color:#fff; font-size:13px; font-family:inherit; resize:vertical;">${exData.note || ''}</textarea>
+            </div>` : ''}
+            ${setsHtml}
+            <div style="display:flex; gap:6px; align-items:center; margin-top:12px; margin-bottom:8px; width:100%;">
+                <button style="display:flex;align-items:center;gap:5px;padding:7px 10px;background:transparent;border:1.5px dashed rgba(34,211,238,0.3);color:#22d3ee;border-radius:10px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0;${isDone ? 'opacity:0.3;pointer-events:none;' : ''}" onclick="addSetToExercise(${i})" ${isDone ? 'disabled' : ''}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    Add set
+                </button>
+            </div>
+            <button style="width:100%;padding:12px;background:${isDone ? 'rgba(148,163,184,0.25)' : 'rgba(34,197,94,0.1)'};color:${isDone ? '#fff' : '#22c55e'};border-radius:12px;font-size:14px;font-weight:800;border:${isDone ? '1px solid rgba(148,163,184,0.2)' : '1px solid rgba(34,197,94,0.25)'};cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;" onclick="focusToggleDone(${i})">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">${isDone ? '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>' : '<circle cx="12" cy="12" r="10"></circle><polyline points="9 12 11 14 15 10"></polyline>'}</svg>
+                ${isDone ? 'Undo' : 'Finish exercise'}
+            </button>
+        </div>
+        <div id="focus-anim-modal-${i}" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:9999;align-items:center;justify-content:center;" onclick="this.style.display='none'">
+            <div style="background:#1e293b;border-radius:16px;padding:20px;width:90%;max-width:400px;">
+                <div style="font-size:12px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">Animation</div>
+                ${getExSVG(ex.target, 'large')}
+                <div style="font-size:11px;color:#475569;text-align:center;margin-top:10px;">Animation coming soon</div>
+            </div>
+        </div>`;
+}
+
+function focusToggleRestBadge() {
+    const dd = document.getElementById('focus-rest-dropdown');
+    if (dd) dd.style.display = dd.style.display === 'block' ? 'none' : 'block';
+}
+
+function focusToggleNote(exIdx) {
+    if (!activeDraft.ui_state.openNotes) activeDraft.ui_state.openNotes = [];
+    const idx = activeDraft.ui_state.openNotes.indexOf(exIdx);
+    if (idx > -1) {
+        activeDraft.ui_state.openNotes.splice(idx, 1);
+    } else {
+        activeDraft.ui_state.openNotes.push(exIdx);
+    }
+    renderFocusCard();
+    setTimeout(() => {
+        const ta = document.getElementById(`note-input-${exIdx}`);
+        if (ta && activeDraft.ui_state.openNotes.includes(exIdx)) ta.focus();
+    }, 50);
+}
+
+async function focusConfirmSet(exIdx, setIdx) {
+    const allInputs = document.querySelectorAll(`[id^="fw-${exIdx}-"], [id^="fr-${exIdx}-"], [id^="fv-${exIdx}-"]`);
+    allInputs.forEach(inp => {
+        const parts = inp.id.split('-');
+        const sIdx2 = parseInt(parts[parts.length - 1]);
+        const type = parts[0];
+        if (!isNaN(sIdx2) && activeDraft.data[exIdx]?.sets_data?.[sIdx2]) {
+            if (type === 'fw') activeDraft.data[exIdx].sets_data[sIdx2].weight = inp.value;
+            if (type === 'fr') activeDraft.data[exIdx].sets_data[sIdx2].reps = inp.value;
+            if (type === 'fv') activeDraft.data[exIdx].sets_data[sIdx2].rest = inp.value;
+        }
+    });
+    const restVal = parseInt(activeDraft.data[exIdx].sets_data[setIdx].rest) || 120;
+    const currentState = activeDraft.data[exIdx].sets_data[setIdx].userConfirmed;
+    activeDraft.data[exIdx].sets_data[setIdx].userConfirmed = !currentState;
+    const isNowConfirmed = activeDraft.data[exIdx].sets_data[setIdx].userConfirmed;
+    const isLastSet = setIdx === activeDraft.data[exIdx].sets_data.length - 1;
+    if (isNowConfirmed && !isLastSet) {
+        stopRestTimer();
+        carouselStopRest();
+        carouselStartRest(restVal);
+    } else {
+        stopRestTimer();
+        carouselStopRest();
+    }
+    await persistActiveWorkout();
+    if (typeof updateWorkoutProgress === 'function' && activeDraft.data) {
+        let totalWorkoutCompletedSets = 0, totalWorkoutSets = 0;
+        activeDraft.data.forEach(exerciseData => {
+            if (exerciseData && exerciseData.sets_data) {
+                totalWorkoutSets += exerciseData.sets_data.length;
+                totalWorkoutCompletedSets += exerciseData.sets_data.filter(s => s.userConfirmed).length;
+            }
+        });
+        updateWorkoutProgress(totalWorkoutCompletedSets, totalWorkoutSets);
+    }
+    renderFocusCard();
+    updateFocusProgress();
+}
+
+async function focusToggleDone(exIdx) {
+    const newCompletedState = !activeDraft.data[exIdx].isCompleted;
+    activeDraft.data[exIdx].isCompleted = newCompletedState;
+    if (newCompletedState) {
+        stopRestTimer();
+        carouselStopRest();
+    }
+    if (activeDraft.data[exIdx].sets_data && activeDraft.data[exIdx].sets_data.length > 0) {
+        activeDraft.data[exIdx].sets_data.forEach(set => { set.userConfirmed = newCompletedState; });
+    }
+    await persistActiveWorkout();
+    if (typeof updateWorkoutProgress === 'function' && activeDraft.data) {
+        let totalWorkoutCompletedSets = 0, totalWorkoutSets = 0;
+        activeDraft.data.forEach(exerciseData => {
+            if (exerciseData && exerciseData.sets_data) {
+                totalWorkoutSets += exerciseData.sets_data.length;
+                totalWorkoutCompletedSets += exerciseData.sets_data.filter(s => s.userConfirmed).length;
+            }
+        });
+        updateWorkoutProgress(totalWorkoutCompletedSets, totalWorkoutSets);
+    }
+    renderFocusNav();
+    renderFocusCard();
+    updateFocusProgress();
+    if (newCompletedState) {
+        const nextUndone = activeDraft.workout.exercises.findIndex((_, idx) => idx > exIdx && !activeDraft.data[idx]?.isCompleted);
+        if (nextUndone !== -1) {
+            setTimeout(() => focusGoTo(nextUndone), 350);
+        }
+    }
+}
+
+function focusGoTo(index) {
+    if (index < 0 || index >= activeDraft.workout.exercises.length) return;
+    carouselCurrentIndex = index;
+    if (!activeDraft.ui_state) activeDraft.ui_state = {};
+    activeDraft.ui_state.currentExerciseIndex = index;
+    persistActiveWorkout();
+    renderFocusNav();
+    renderFocusCard();
+}
+
+function initFocusSwipe() {
+    const area = document.getElementById('focus-card-area');
+    if (!area) return;
+    let startX = 0, startY = 0;
+    area.addEventListener('touchstart', e => {
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+    }, { passive: true });
+    area.addEventListener('touchend', e => {
+        const dx = e.changedTouches[0].clientX - startX;
+        const dy = e.changedTouches[0].clientY - startY;
+        if (Math.abs(dx) > Math.abs(dy)) {
+            if (dx < -50) focusGoTo(carouselCurrentIndex + 1);
+            else if (dx > 50) focusGoTo(carouselCurrentIndex - 1);
+        }
+    }, { passive: true });
+}
+
+function initFocusDragAndDrop() {
+    // Återanvänder samma logik som carousel-vyn om den finns tillgänglig
+    if (typeof initCarouselDragAndDrop === 'function') {
+        const navBar = document.getElementById('focus-nav-bar-inner');
+        if (navBar && typeof Draggable !== 'undefined') {
+            // Drag-and-drop kan kopplas på samma sätt som carousel-nav-bar vid behov
+        }
+    }
 }
