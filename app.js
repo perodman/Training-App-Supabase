@@ -7175,6 +7175,9 @@ function carouselStartRest(seconds) {
             focusDropdownTime.textContent = formatted;
             focusDropdownTime.style.color = timerColor;
         }
+        if (localStorage.getItem('workoutLayoutMode') === 'focus') {
+            renderRestTimer();
+        }
 
         if (carouselRestSeconds <= 0) {
             clearInterval(carouselRestInterval);
