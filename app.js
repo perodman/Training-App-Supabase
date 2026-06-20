@@ -6343,7 +6343,8 @@ function renderRestTimerListStyle(staticBar) {
     if (isDisabled) {
         if (staticBar) staticBar.innerHTML = disabledHTML;
     } else if (restTimerActive && restTimerExIdx !== null) {
-        const targetCard = document.getElementById(`exercise-card-${restTimerExIdx}`);
+        const isFocusMode = localStorage.getItem('workoutLayoutMode') === 'focus';
+        const targetCard = isFocusMode ? null : document.getElementById(`exercise-card-${restTimerExIdx}`);
         if (targetCard) {
             if (staticBar) staticBar.innerHTML = '';
             const movingBar = document.createElement("div");
