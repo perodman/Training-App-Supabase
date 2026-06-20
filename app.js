@@ -6672,7 +6672,9 @@ function setWorkoutLayout(mode) {
         window._suppressAutoScroll = true;
         
 const headerCard2 = document.querySelector('#workout-view > div:first-child');
+        const separator2 = document.getElementById('workout-separator-line');
         if (headerCard2) headerCard2.classList.remove('hidden');
+        if (separator2) separator2.classList.remove('hidden');
         renderRestTimer();
         renderActiveWorkout();
     } else if (mode === 'carousel') {
@@ -6693,7 +6695,9 @@ const headerCard2 = document.querySelector('#workout-view > div:first-child');
             if (firstUndone !== -1) carouselCurrentIndex = firstUndone;
         }
 const headerCard3 = document.querySelector('#workout-view > div:first-child');
+        const separator3 = document.getElementById('workout-separator-line');
         if (headerCard3) headerCard3.classList.remove('hidden');
+        if (separator3) separator3.classList.remove('hidden');
         renderCarousel();
         setTimeout(() => renderCarouselCard(), 50);
     } else if (mode === 'focus') {
@@ -6702,9 +6706,10 @@ const headerCard3 = document.querySelector('#workout-view > div:first-child');
         if (focusView) focusView.classList.remove('hidden');
         
         const headerCard = document.querySelector('#workout-view > div:first-child');
-        const separator = document.querySelector('#workout-view > div[style*="diamond"], #workout-view > div:nth-child(2)');
+        const separator = document.getElementById('workout-separator-line');
         const footer = document.querySelector('.workout-footer');
         if (headerCard) headerCard.classList.add('hidden');
+        if (separator) separator.classList.add('hidden');
         if (footer) footer.classList.add('hidden');
         
         if (restTimerBar) {
