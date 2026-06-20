@@ -6641,31 +6641,33 @@ function setWorkoutLayout(mode) {
     localStorage.setItem('workoutLayoutMode', mode);
     const listBtn = document.getElementById('layout-list-btn');
     const carouselBtn = document.getElementById('layout-carousel-btn');
+    const focusBtn = document.getElementById('layout-focus-btn');
     const exerciseList = document.getElementById('exercise-list');
     const carouselView = document.getElementById('carousel-view');
+    const focusView = document.getElementById('focus-view');
     const restTimerBar = document.getElementById('rest-timer-bar');
     
     if (listBtn) listBtn.classList.toggle('active', mode === 'list');
     if (carouselBtn) carouselBtn.classList.toggle('active', mode === 'carousel');
+    if (focusBtn) focusBtn.classList.toggle('active', mode === 'focus');
     
     if (mode === 'list') {
         if (exerciseList) exerciseList.style.display = 'block';
         if (carouselView) carouselView.classList.add('hidden');
+        if (focusView) focusView.classList.add('hidden');
         window._suppressAutoScroll = true;
         
-        // Tvinga fram renderingen av timern så den ritar upp sin tomgångs-HTML (idleHTML) direkt vid vybytet till listan
         renderRestTimer();
         renderActiveWorkout();
-    } else {
+    } else if (mode === 'carousel') {
         if (exerciseList) exerciseList.style.display = 'none';
         if (carouselView) carouselView.classList.remove('hidden');
+        if (focusView) focusView.classList.add('hidden');
         
-        // Dölj och töm headertimern omedelbart när vi går till karusellen
         if (restTimerBar) {
             restTimerBar.innerHTML = '';
             restTimerBar.style.display = 'none';
         }
-        
         const oldMoving = document.getElementById("rest-timer-moving");
         if (oldMoving) oldMoving.remove();
         
@@ -6676,6 +6678,24 @@ function setWorkoutLayout(mode) {
         }
         renderCarousel();
         setTimeout(() => renderCarouselCard(), 50);
+    } else if (mode === 'focus') {
+        if (exerciseList) exerciseList.style.display = 'none';
+        if (carouselView) carouselView.classList.add('hidden');
+        if (focusView) focusView.classList.remove('hidden');
+        
+        if (restTimerBar) {
+            restTimerBar.innerHTML = '';
+            restTimerBar.style.display = 'none';
+        }
+        const oldMoving = document.getElementById("rest-timer-moving");
+        if (oldMoving) oldMoving.remove();
+        
+        carouselCurrentIndex = 0;
+        if (activeDraft?.workout?.exercises) {
+            const firstUndone = activeDraft.workout.exercises.findIndex((_, i) => !activeDraft.data[i]?.isCompleted);
+            if (firstUndone !== -1) carouselCurrentIndex = firstUndone;
+        }
+        renderFocus();
     }
 }
 
