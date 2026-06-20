@@ -3788,24 +3788,38 @@ function renderActiveWorkout() {
     const focusView = document.getElementById('focus-view');
     const restTimerBar = document.getElementById('rest-timer-bar');
 
-    if (savedLayout === 'carousel') {
+   if (savedLayout === 'carousel') {
         const topTimer = document.getElementById('carousel-rest-time');
         if (topTimer) topTimer.style.display = 'none';
         if (exerciseList) exerciseList.style.display = 'none';
         if (carouselView) carouselView.classList.remove('hidden');
         if (focusView) focusView.classList.add('hidden');
         if (restTimerBar) restTimerBar.style.display = 'none';
+        const headerCardInit3 = document.querySelector('#workout-view > div:first-child');
+        const separatorInit3 = document.getElementById('workout-separator-line');
+        if (headerCardInit3) headerCardInit3.classList.remove('hidden');
+        if (separatorInit3) separatorInit3.classList.remove('hidden');
         renderCarousel();
     } else if (savedLayout === 'focus') {
         if (exerciseList) exerciseList.style.display = 'none';
         if (carouselView) carouselView.classList.add('hidden');
         if (focusView) focusView.classList.remove('hidden');
         if (restTimerBar) restTimerBar.style.display = 'none';
+        const headerCardInit = document.querySelector('#workout-view > div:first-child');
+        const separatorInit = document.getElementById('workout-separator-line');
+        const footerInit = document.querySelector('.workout-footer');
+        if (headerCardInit) headerCardInit.classList.add('hidden');
+        if (separatorInit) separatorInit.classList.add('hidden');
+        if (footerInit) footerInit.classList.add('hidden');
         renderFocus();
     } else {
         if (exerciseList) exerciseList.style.display = 'block';
         if (carouselView) carouselView.classList.add('hidden');
         if (focusView) focusView.classList.add('hidden');
+        const headerCardInit2 = document.querySelector('#workout-view > div:first-child');
+        const separatorInit2 = document.getElementById('workout-separator-line');
+        if (headerCardInit2) headerCardInit2.classList.remove('hidden');
+        if (separatorInit2) separatorInit2.classList.remove('hidden');
     }
     if (isReturning && openExercises.length > 0 && !window._suppressAutoScroll) {
         const firstOpenIndex = openExercises.slice().sort((a, b) => a - b)[0];
@@ -7532,7 +7546,7 @@ function renderFocus() {
         <div style="display:flex; align-items:center; justify-content:space-between; padding:2px 4px 8px;">
             <div onclick="setWorkoutLayout('list')" style="display:flex; align-items:center; gap:5px; color:#64748b; font-size:12px; font-weight:700; cursor:pointer;">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
-                Exit focus
+                Exit Focus-view
             </div>
             <div id="focus-progress-text" style="font-size:14px; font-weight:900; color:#22d3ee;"></div>
         </div>
@@ -7665,15 +7679,6 @@ function renderFocusCard() {
                 </div>
             </div>
             <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
-                <div id="focus-timer-header-zone" style="display:flex; align-items:center; border-radius:12px; border:1px solid rgba(245,158,11,0.25); background:rgba(245,158,11,0.06); overflow:hidden; cursor:pointer; ${isDone ? 'opacity:0.3;pointer-events:none;' : ''}" onclick="focusToggleRestBadge();">
-                    <div style="display:flex; align-items:center; gap:5px; padding:5px 8px;">
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="${isTimerDisabled ? '#64748b' : '#f59e0b'}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                        <span id="focus-live-label-time" style="font-size:11px; font-weight:800; color:${isTimerDisabled ? '#64748b' : '#f59e0b'}; font-family:monospace;">${isTimerDisabled ? '--:--' : (isCounting ? liveTimeStr : defaultTimeStr)}</span>
-                    </div>
-                    <div style="padding:5px 7px; display:flex; align-items:center; border-left:1px solid rgba(255,255,255,0.08);">
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-                    </div>
-                </div>
                 <div onclick="const z=document.getElementById('focus-menu-${i}'); z.style.display=z.style.display==='block'?'none':'block';" style="width:26px;height:26px;border-radius:8px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;cursor:pointer;color:#94a3b8;font-size:13px;letter-spacing:1px;flex-shrink:0;">⋯</div>
             </div>
         </div>
