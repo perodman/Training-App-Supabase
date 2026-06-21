@@ -7922,14 +7922,15 @@ function initFocusDragAndDrop() {
 }
 
 document.addEventListener('click', function(e) {
-    const ta = document.querySelector('.carousel-note-input, #note-input-' + (typeof carouselCurrentIndex !== 'undefined' ? carouselCurrentIndex : ''));
-    if (!ta) return;
     if (localStorage.getItem('workoutLayoutMode') !== 'focus') return;
-    if (ta.contains(e.target)) return;
+    if (!activeDraft || typeof carouselCurrentIndex === 'undefined') return;
     const i = carouselCurrentIndex;
-    if (activeDraft?.ui_state?.openNotes?.includes(i)) {
-        focusToggleNote(i);
-    }
+    if (!activeDraft.ui_state?.openNotes?.includes(i)) return;
+    const ta = document.getElementById('note-input-' + i);
+    if (!ta) return;
+    if (ta.contains(e.target)) return;
+    if (e.target.closest(`[onclick*="focusToggleNote(${i})"]`)) return;
+    focusToggleNote(i);
 });
 
 let focusTextScaleStep = parseInt(localStorage.getItem('focusTextScaleStep') || '0');
@@ -7942,7 +7943,11 @@ function focusAdjustTextScale(delta) {
 
 function applyFocusTextScale() {
     const card = document.getElementById('focus-ex-card');
-    if (!card) return;
-    const scaleMap = { 0: 1, 1: 1.1, 2: 1.2, 3: 1.35 };
-    card.style.fontSize = `${scaleMap[focusTextScaleStep]}em`;
+    const area = document.getElementById('focus-card-area');
+    if (!card || !area) return;
+    const scaleMap = { 0: 1, 1: 1.08, 2: 1.16, 3: 1.26 };
+    const scale = scaleMap[focusTextScaleStep];
+    card.style.transform = `scale(${scale})`;
+    card.style.transformOrigin = 'top center';
+    area.style.paddingBottom = scale > 1 ? `${(scale - 1) * 300}px` : '0px';
 }
