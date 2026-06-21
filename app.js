@@ -4078,9 +4078,11 @@ async function addSetToExercise(exIdx) {
     const newWeight = lastSet ? lastSet.weight : "";
     const newReps = lastSet ? lastSet.reps : "";
     activeDraft.data[exIdx].sets_data.push({ weight: newWeight, reps: newReps });
-    const savedLayout = localStorage.getItem('workoutLayoutMode') || 'list';
+const savedLayout = localStorage.getItem('workoutLayoutMode') || 'list';
     if (savedLayout === 'carousel') {
         renderCarouselCard();
+    } else if (savedLayout === 'focus') {
+        renderFocusCard();
     } else {
         const targetCard = document.getElementById(`exercise-card-${exIdx}`);
         const existingHandle = targetCard ? targetCard.querySelector('.drag-handle') : null;
@@ -4097,9 +4099,11 @@ async function addSetToExercise(exIdx) {
 
 async function removeSetFromExercise(exIdx, setIdx) {
     activeDraft.data[exIdx].sets_data.splice(setIdx, 1);
-    const savedLayout = localStorage.getItem('workoutLayoutMode') || 'list';
+const savedLayout = localStorage.getItem('workoutLayoutMode') || 'list';
     if (savedLayout === 'carousel') {
         renderCarouselCard();
+    } else if (savedLayout === 'focus') {
+        renderFocusCard();
     } else {
         const targetCard = document.getElementById(`exercise-card-${exIdx}`);
         const existingHandle = targetCard ? targetCard.querySelector('.drag-handle') : null;
@@ -7543,12 +7547,18 @@ function renderFocus() {
         carouselCurrentIndex = activeDraft.ui_state.currentExerciseIndex;
     }
     container.innerHTML = `
-        <div style="display:flex; align-items:center; justify-content:space-between; padding:2px 4px 8px;">
+       <div style="display:flex; align-items:center; justify-content:space-between; padding:2px 4px 8px;">
             <div onclick="setWorkoutLayout('list')" style="display:flex; align-items:center; gap:5px; color:#64748b; font-size:12px; font-weight:700; cursor:pointer;">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
-                Exit Focus-view
+                Exit focus
             </div>
-            <div id="focus-progress-text" style="font-size:14px; font-weight:900; color:#22d3ee;"></div>
+            <div style="display:flex; align-items:center; gap:10px;">
+                <div style="display:flex; align-items:center; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:10px; overflow:hidden;">
+                    <div onclick="focusAdjustTextScale(-1)" style="padding:5px 9px; font-size:11px; font-weight:800; color:#64748b; cursor:pointer; border-right:1px solid rgba(255,255,255,0.08);">A−</div>
+                    <div onclick="focusAdjustTextScale(1)" style="padding:5px 9px; font-size:14px; font-weight:800; color:#94a3b8; cursor:pointer;">A+</div>
+                </div>
+                <div id="focus-progress-text" style="font-size:14px; font-weight:900; color:#22d3ee;"></div>
+            </div>
         </div>
         <div style="height:3px; background:rgba(255,255,255,0.05); border-radius:3px; overflow:hidden; margin:0 2px 10px;">
             <div id="focus-progress-bar" style="width:0%; height:100%; background:#22d3ee; transition:width 0.3s ease;"></div>
@@ -7690,7 +7700,6 @@ function renderFocusCard() {
             <div onclick="document.getElementById('focus-menu-${i}').style.display='none'; ${isDone ? '' : `openReplaceExerciseModal(${i})`}" style="display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;${isDone ? 'opacity:0.3;pointer-events:none;' : ''}">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><polyline points="23 20 23 14 17 14"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/></svg><span style="color:#22d3ee;">Swap exercise</span>
             </div>
-            <div style="height:1px;background:rgba(255,255,255,0.06);margin:4px 0;"></div>
             <div onclick="document.getElementById('focus-menu-${i}').style.display='none'; ${isDone ? '' : `removeActiveExercise(${i})`}" style="display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;${isDone ? 'opacity:0.3;pointer-events:none;' : ''}">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg><span style="color:#ef4444;">Remove</span>
             </div>
@@ -7739,13 +7748,14 @@ function renderFocusCard() {
                 ${isDone ? 'Undo' : 'Finish exercise'}
             </button>
         </div>
-        <div id="focus-anim-modal-${i}" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:9999;align-items:center;justify-content:center;" onclick="this.style.display='none'">
+       <div id="focus-anim-modal-${i}" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:9999;align-items:center;justify-content:center;" onclick="this.style.display='none'">
             <div style="background:#1e293b;border-radius:16px;padding:20px;width:90%;max-width:400px;">
                 <div style="font-size:12px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">Animation</div>
                 ${getExSVG(ex.target, 'large')}
                 <div style="font-size:11px;color:#475569;text-align:center;margin-top:10px;">Animation coming soon</div>
             </div>
         </div>`;
+    applyFocusTextScale();
 }
 
 function focusToggleRestBadge() {
@@ -7838,14 +7848,49 @@ async function focusToggleDone(exIdx) {
     }
 }
 
-function focusGoTo(index) {
-    if (index < 0 || index >= activeDraft.workout.exercises.length) return;
-    carouselCurrentIndex = index;
-    if (!activeDraft.ui_state) activeDraft.ui_state = {};
-    activeDraft.ui_state.currentExerciseIndex = index;
-    persistActiveWorkout();
-    renderFocusNav();
-    renderFocusCard();
+function focusGoTo(i) {
+    if (i === carouselCurrentIndex || i < 0 || i >= activeDraft.workout.exercises.length) return;
+    const card = document.getElementById('focus-ex-card');
+    if (!card) return;
+    const dir = i > carouselCurrentIndex ? 1 : -1;
+    card.style.transition = 'transform 0.1s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.1s ease';
+    card.style.transform = `translateX(${dir * 35}px)`;
+    card.style.opacity = '0';
+    carouselStopRest();
+    stopRestTimer();
+    setTimeout(async () => {
+        carouselCurrentIndex = i;
+        if (!activeDraft.ui_state) activeDraft.ui_state = {};
+        activeDraft.ui_state.currentExerciseIndex = i;
+        await persistActiveWorkout();
+        const prevActive = document.querySelector('#focus-nav-bar-inner .carousel-ex-thumb.active');
+        if (prevActive) prevActive.classList.remove('active');
+        const newActive = document.getElementById(`focus-thumb-${i}`);
+        if (newActive) {
+            newActive.classList.add('active');
+            const nameEl = newActive.querySelector('.carousel-ex-thumb-name');
+            if (nameEl) nameEl.style.color = '#22d3ee';
+            newActive.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+        }
+        document.querySelectorAll('#focus-nav-bar-inner .carousel-ex-thumb').forEach((t, idx) => {
+            const svgWrap = t.querySelector('div:not(.carousel-drag-handle)');
+            if (svgWrap) svgWrap.style.opacity = idx === i ? '1' : '0.5';
+            const nameEl = t.querySelector('.carousel-ex-thumb-name');
+            if (nameEl) nameEl.style.color = idx === i ? '#22d3ee' : (activeDraft.data[idx]?.isCompleted ? '#22c55e' : '#64748b');
+        });
+        renderFocusCard();
+        updateFocusProgress();
+        card.style.transition = 'none';
+        card.style.transform = `translateX(${dir * 35}px)`;
+        card.style.opacity = '0';
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                card.style.transition = 'transform 0.18s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.18s ease';
+                card.style.transform = 'translateX(0)';
+                card.style.opacity = '1';
+            });
+        });
+    }, 200);
 }
 
 function initFocusSwipe() {
@@ -7874,4 +7919,30 @@ function initFocusDragAndDrop() {
             // Drag-and-drop kan kopplas på samma sätt som carousel-nav-bar vid behov
         }
     }
+}
+
+document.addEventListener('click', function(e) {
+    const ta = document.querySelector('.carousel-note-input, #note-input-' + (typeof carouselCurrentIndex !== 'undefined' ? carouselCurrentIndex : ''));
+    if (!ta) return;
+    if (localStorage.getItem('workoutLayoutMode') !== 'focus') return;
+    if (ta.contains(e.target)) return;
+    const i = carouselCurrentIndex;
+    if (activeDraft?.ui_state?.openNotes?.includes(i)) {
+        focusToggleNote(i);
+    }
+});
+
+let focusTextScaleStep = parseInt(localStorage.getItem('focusTextScaleStep') || '0');
+
+function focusAdjustTextScale(delta) {
+    focusTextScaleStep = Math.max(0, Math.min(3, focusTextScaleStep + delta));
+    localStorage.setItem('focusTextScaleStep', focusTextScaleStep);
+    applyFocusTextScale();
+}
+
+function applyFocusTextScale() {
+    const card = document.getElementById('focus-ex-card');
+    if (!card) return;
+    const scaleMap = { 0: 1, 1: 1.1, 2: 1.2, 3: 1.35 };
+    card.style.fontSize = `${scaleMap[focusTextScaleStep]}em`;
 }
