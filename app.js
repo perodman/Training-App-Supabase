@@ -7977,22 +7977,53 @@ function toggleCarouselFocusMode() {
     const separator = document.getElementById('workout-separator-line');
     const footer = document.querySelector('.workout-footer');
     const arrow = document.getElementById('carousel-focus-arrow');
-    const toggle = document.getElementById('carousel-focus-toggle');
-    const restBar = document.getElementById('rest-timer-bar');
+    const label = document.getElementById('carousel-focus-label');
+
+    const transitionStyle = 'opacity 0.4s ease, max-height 0.5s ease';
 
     if (carouselFocusModeActive) {
-        if (header) { header.style.transition = 'opacity 0.4s ease, max-height 0.4s ease'; header.style.opacity = '0'; header.style.maxHeight = '0'; header.style.overflow = 'hidden'; }
-        if (separator) { separator.style.transition = 'opacity 0.3s ease'; separator.style.opacity = '0'; }
-        if (footer) { footer.style.transition = 'opacity 0.4s ease, max-height 0.4s ease'; footer.style.opacity = '0'; footer.style.maxHeight = '0'; footer.style.overflow = 'hidden'; }
-       if (arrow) { arrow.style.transform = 'rotate(180deg)'; }
-        const label = document.getElementById('carousel-focus-label');
+        if (header) {
+            header.style.transition = transitionStyle;
+            header.style.opacity = '0';
+            header.style.maxHeight = '0';
+            header.style.overflow = 'hidden';
+            header.style.marginBottom = '0';
+        }
+        if (separator) {
+            separator.style.transition = 'opacity 0.3s ease, max-height 0.3s ease';
+            separator.style.opacity = '0';
+            separator.style.maxHeight = '0';
+            separator.style.overflow = 'hidden';
+        }
+        if (footer) {
+            footer.style.transition = transitionStyle;
+            footer.style.opacity = '0';
+            footer.style.maxHeight = '0';
+            footer.style.overflow = 'hidden';
+        }
+        if (arrow) arrow.style.transform = 'rotate(180deg)';
         if (label) label.textContent = 'Exit focus';
     } else {
-        if (header) { header.style.opacity = '1'; header.style.maxHeight = '500px'; }
-        if (separator) { separator.style.opacity = '1'; }
-        if (footer) { footer.style.opacity = '1'; footer.style.maxHeight = '500px'; }
-       if (arrow) { arrow.style.transform = 'rotate(0deg)'; }
-        const label2 = document.getElementById('carousel-focus-label');
-        if (label2) label2.textContent = 'Focus view';
+        if (header) {
+            header.style.transition = transitionStyle;
+            header.style.opacity = '1';
+            header.style.maxHeight = '500px';
+            header.style.overflow = '';
+            header.style.marginBottom = '';
+        }
+        if (separator) {
+            separator.style.transition = 'opacity 0.3s ease, max-height 0.3s ease';
+            separator.style.opacity = '1';
+            separator.style.maxHeight = '100px';
+            separator.style.overflow = '';
+        }
+        if (footer) {
+            footer.style.transition = transitionStyle;
+            footer.style.opacity = '1';
+            footer.style.maxHeight = '500px';
+            footer.style.overflow = '';
+        }
+        if (arrow) arrow.style.transform = 'rotate(0deg)';
+        if (label) label.textContent = 'Focus view';
     }
 }
