@@ -6920,7 +6920,8 @@ function renderCarouselNav() {
         const isDone = data[i]?.isCompleted;
         const isActive = i === carouselCurrentIndex;
         const svg = getExSVG(ex.target, 'small');
-        return `<div class="carousel-ex-thumb${isDone ? ' done' : isActive ? ' active' : ''}" id="carousel-thumb-${i}" onclick="carouselGoTo(${i})">
+        // ÄNDRING: onclick="carouselGoTo(${i})" är borttaget från rot-diven nedan
+        return `<div class="carousel-ex-thumb${isDone ? ' done' : isActive ? ' active' : ''}" id="carousel-thumb-${i}">
             <div class="carousel-drag-handle" style="font-size:14px; color:rgba(255,255,255,0.35); cursor:grab; line-height:1; margin-bottom:3px; padding:2px 8px; width:100%; text-align:center;" title="Drag to reorder">⠿</div>
             <div style="opacity:${isActive ? 1 : 0.5}">${svg}</div>
             <div class="carousel-ex-thumb-name">${ex.name}</div>
@@ -7432,6 +7433,15 @@ function initCarouselDragAndDrop() {
             trigger: handle,
             zIndexBoost: false,
             lockAxis: true,
+            dragClickables: false, // ÄNDRING: Tillåter vanliga klick att registreras på kortet
+            onClick: function () {
+                // ÄNDRING: Hanterar klicket här istället för via inline-HTML
+                const idParts = thumb.id.split('-');
+                const idx = parseInt(idParts[idParts.length - 1]);
+                if (!isNaN(idx)) {
+                    carouselGoTo(idx);
+                }
+            },
             onDragStart: function () {
                 currentOrder = Array.from(navBar.querySelectorAll('.carousel-ex-thumb'));
                 gsap.to(thumb, { scale: 1.05, boxShadow: '0 8px 20px rgba(0,0,0,0.5)', duration: 0.2 });
