@@ -7557,7 +7557,10 @@ function updateWorkoutProgress(completedSets, totalSets) {
 }
 
 function renderFocus() {
-    const container = document.getElementById('focus-view');
+    const layout = localStorage.getItem('workoutLayoutMode');
+    const container = (layout === 'carousel' && carouselFocusModeActive)
+        ? document.getElementById('carousel-card-area')
+        : document.getElementById('focus-view');
     if (!container || !activeDraft) return;
     const exercises = activeDraft.workout.exercises;
     if (!exercises || exercises.length === 0) return;
@@ -7583,9 +7586,12 @@ function renderFocus() {
         </div>
 <div class="carousel-nav-bar" id="focus-nav-bar-inner"></div>
         <div id="focus-rest-timer-bar"></div>
-        <div class="carousel-card-area" id="focus-card-area">
+<div class="carousel-card-area" id="focus-card-area">
             <div class="carousel-ex-card" id="focus-ex-card"></div>
         </div>`;
+    if (layout === 'carousel' && carouselFocusModeActive) {
+        initCarouselSwipe();
+    }
     renderFocusNav();
     renderFocusCard();
     renderRestTimer();
@@ -7992,31 +7998,14 @@ function toggleCarouselFocusMode() {
             carouselCard.id = 'carousel-ex-card-hidden';
             carouselCard.style.display = 'none';
         }
-        const focusCard = document.createElement('div');
-        focusCard.className = 'carousel-ex-card';
-        focusCard.id = 'focus-ex-card';
-        const cardArea = document.getElementById('carousel-card-area') || carouselCard?.parentElement;
-        if (cardArea) cardArea.appendChild(focusCard);
-        const restBar = document.getElementById('focus-rest-timer-bar');
-        if (!restBar) {
-            const bar = document.createElement('div');
-            bar.id = 'focus-rest-timer-bar';
-            if (cardArea) cardArea.insertBefore(bar, focusCard);
-        }
-        renderFocusCard();
-        renderRestTimer();
+        renderFocus();
     } else {
         if (header) { header.style.transition = transitionStyle; header.style.opacity = '1'; header.style.maxHeight = '500px'; header.style.overflow = ''; }
         if (separator) { separator.style.transition = 'opacity 0.3s ease, max-height 0.3s ease'; separator.style.opacity = '1'; separator.style.maxHeight = '100px'; separator.style.overflow = ''; }
         if (footer) { footer.style.transition = transitionStyle; footer.style.opacity = '1'; footer.style.maxHeight = '500px'; footer.style.overflow = ''; }
         if (arrow) arrow.style.transform = 'rotate(0deg)';
         if (label) label.textContent = 'Focus view';
-        const focusCard = document.getElementById('focus-ex-card');
-        if (focusCard) focusCard.remove();
-        const focusBar = document.getElementById('focus-rest-timer-bar');
-        if (focusBar) focusBar.remove();
-        const hiddenCard = document.getElementById('carousel-ex-card-hidden');
-        if (hiddenCard) { hiddenCard.id = 'carousel-ex-card'; hiddenCard.style.display = ''; }
-        renderCarouselCard();
+        renderCarousel();
+        setTimeout(() => renderCarouselCard(), 50);
     }
 }
