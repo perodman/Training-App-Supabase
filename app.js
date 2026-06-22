@@ -6219,7 +6219,7 @@ function stopRestTimer() {
 function renderRestTimer() {
     const currentLayoutMode = localStorage.getItem('workoutLayoutMode');
     // FOCUS-LÄGE: Använd samma listvy-logik men med egen container
-    if (currentLayoutMode === 'focus') {
+   if (currentLayoutMode === 'focus' || (currentLayoutMode === 'carousel' && carouselFocusModeActive)) {
         const staticBar = document.getElementById("focus-rest-timer-bar");
         renderRestTimerListStyle(staticBar);
         return;
@@ -6361,7 +6361,8 @@ function renderRestTimerListStyle(staticBar) {
     if (isDisabled) {
         if (staticBar) staticBar.innerHTML = disabledHTML;
     } else if (restTimerActive && restTimerExIdx !== null) {
-        const isFocusMode = localStorage.getItem('workoutLayoutMode') === 'focus';
+        const isFocusMode = localStorage.getItem('workoutLayoutMode') === 'focus' || 
+        (localStorage.getItem('workoutLayoutMode') === 'carousel' && carouselFocusModeActive);
         const targetCard = isFocusMode ? null : document.getElementById(`exercise-card-${restTimerExIdx}`);
         if (targetCard) {
             if (staticBar) staticBar.innerHTML = '';
@@ -8003,6 +8004,7 @@ function toggleCarouselFocusMode() {
         }
         if (arrow) arrow.style.transform = 'rotate(180deg)';
         if (label) label.textContent = 'Exit focus';
+        renderFocusCard();
     } else {
         if (header) {
             header.style.transition = transitionStyle;
@@ -8026,4 +8028,5 @@ function toggleCarouselFocusMode() {
         if (arrow) arrow.style.transform = 'rotate(0deg)';
         if (label) label.textContent = 'Focus view';
     }
+    renderCarouselCard();
 }
