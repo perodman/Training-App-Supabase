@@ -6718,14 +6718,17 @@ function setWorkoutLayout(mode) {
             const firstUndone = activeDraft.workout.exercises.findIndex((_, i) => !activeDraft.data[i]?.isCompleted);
             if (firstUndone !== -1) carouselCurrentIndex = firstUndone;
         }
-        const headerCard3 = document.querySelector('#workout-view > div:first-child');
+       const headerCard3 = document.querySelector('#workout-view > div:first-child');
         const separator3 = document.getElementById('workout-separator-line');
         if (headerCard3) headerCard3.classList.remove('hidden');
         if (separator3) separator3.classList.remove('hidden');
-        document.getElementById('carousel-focus-toggle')?.style && (document.getElementById('carousel-focus-toggle').style.display = 'flex');
-        carouselFocusModeActive = false;
+carouselFocusModeActive = false;
         renderCarousel();
         setTimeout(() => renderCarouselCard(), 50);
+        setTimeout(() => {
+            const ft = document.getElementById('carousel-focus-toggle');
+            if (ft) ft.style.display = 'flex';
+        }, 100);
        
     } else if (mode === 'focus') {
         if (exerciseList) exerciseList.style.display = 'none';
