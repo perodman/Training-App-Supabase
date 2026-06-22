@@ -7477,7 +7477,6 @@ function initCarouselDragAndDrop() {
                     const exArr = activeDraft.workout.exercises;
                     const dataArr = activeDraft.data;
 
-                    // Spara vilken övning användaren tittar på INNAN vi ändrar ordningen
                     const viewedExercise = exArr[carouselCurrentIndex];
 
                     const [movedEx] = exArr.splice(draggedIdx, 1);
@@ -7494,12 +7493,21 @@ function initCarouselDragAndDrop() {
                         });
                     }
 
-                    // Hitta var den visade övningen hamnade efter omsorteringen
                     const newViewedIdx = exArr.indexOf(viewedExercise);
-                    carouselCurrentIndex = newViewedIdx !== -1 ? newViewedIdx : newIdx;
+                    carouselCurrentIndex = newViewedIdx !== -1 ? newViewedIdx : 0;
+
+                    // Uppdatera ui_state INNAN persist så rätt index sparas
+                    if (!activeDraft.ui_state) activeDraft.ui_state = {};
+                    activeDraft.ui_state.currentExerciseIndex = carouselCurrentIndex;
 
                     await persistActiveWorkout();
-                    renderCarousel();
+
+                    // Rendera nav + kort direkt, UTAN att anropa renderCarousel()
+                    // som river och bygger om allt och skriver över carouselCurrentIndex
+                    renderCarouselNav();
+                    renderCarouselDots();
+                    renderCarouselCard();
+
                     setTimeout(() => {
                         const active = document.getElementById(`carousel-thumb-${carouselCurrentIndex}`);
                         if (active) active.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
@@ -8028,7 +8036,6 @@ function initFocusDragAndDrop() {
                     const exArr = activeDraft.workout.exercises;
                     const dataArr = activeDraft.data;
 
-                    // Spara vilken övning användaren tittar på INNAN vi ändrar ordningen
                     const viewedExercise = exArr[carouselCurrentIndex];
 
                     const [movedEx] = exArr.splice(draggedIdx, 1);
@@ -8036,14 +8043,18 @@ function initFocusDragAndDrop() {
                     exArr.splice(newIdx, 0, movedEx);
                     dataArr.splice(newIdx, 0, movedData);
 
-                    // Hitta var den visade övningen hamnade efter omsorteringen
                     const newViewedIdx = exArr.indexOf(viewedExercise);
-                    carouselCurrentIndex = newViewedIdx !== -1 ? newViewedIdx : newIdx;
+                    carouselCurrentIndex = newViewedIdx !== -1 ? newViewedIdx : 0;
+
+                    if (!activeDraft.ui_state) activeDraft.ui_state = {};
+                    activeDraft.ui_state.currentExerciseIndex = carouselCurrentIndex;
 
                     await persistActiveWorkout();
+
                     renderFocusNav();
                     renderFocusCard();
                     updateFocusProgress();
+
                     setTimeout(() => {
                         const active = document.getElementById(`focus-thumb-${carouselCurrentIndex}`);
                         if (active) active.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
