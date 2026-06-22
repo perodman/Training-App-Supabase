@@ -6683,19 +6683,25 @@ function setWorkoutLayout(mode) {
     if (carouselBtn) carouselBtn.classList.toggle('active', mode === 'carousel');
     if (focusBtn) focusBtn.classList.toggle('active', mode === 'focus');
     
-    if (mode === 'list') {
+   if (mode === 'list') {
         if (exerciseList) exerciseList.style.display = 'block';
         if (carouselView) carouselView.classList.add('hidden');
         if (focusView) focusView.classList.add('hidden');
         window._suppressAutoScroll = true;
-        
-const headerCard2 = document.querySelector('#workout-view > div:first-child');
+        const headerCard2 = document.querySelector('#workout-view > div:first-child');
         const separator2 = document.getElementById('workout-separator-line');
         if (headerCard2) headerCard2.classList.remove('hidden');
         if (separator2) separator2.classList.remove('hidden');
+        document.getElementById('carousel-focus-toggle')?.style && (document.getElementById('carousel-focus-toggle').style.display = 'none');
+        carouselFocusModeActive = false;
+        const header = document.querySelector('#workout-view > div:first-child');
+        const footer = document.querySelector('.workout-footer');
+        if (header) { header.style.opacity = '1'; header.style.maxHeight = ''; header.style.overflow = ''; }
+        if (footer) { footer.style.opacity = '1'; footer.style.maxHeight = ''; footer.style.overflow = ''; }
         renderRestTimer();
         renderActiveWorkout();
-    } else if (mode === 'carousel') {
+       
+   } else if (mode === 'carousel') {
         if (exerciseList) exerciseList.style.display = 'none';
         if (carouselView) carouselView.classList.remove('hidden');
         if (focusView) focusView.classList.add('hidden');
@@ -6712,16 +6718,21 @@ const headerCard2 = document.querySelector('#workout-view > div:first-child');
             const firstUndone = activeDraft.workout.exercises.findIndex((_, i) => !activeDraft.data[i]?.isCompleted);
             if (firstUndone !== -1) carouselCurrentIndex = firstUndone;
         }
-const headerCard3 = document.querySelector('#workout-view > div:first-child');
+        const headerCard3 = document.querySelector('#workout-view > div:first-child');
         const separator3 = document.getElementById('workout-separator-line');
         if (headerCard3) headerCard3.classList.remove('hidden');
         if (separator3) separator3.classList.remove('hidden');
+        document.getElementById('carousel-focus-toggle')?.style && (document.getElementById('carousel-focus-toggle').style.display = 'flex');
+        carouselFocusModeActive = false;
         renderCarousel();
         setTimeout(() => renderCarouselCard(), 50);
+       
     } else if (mode === 'focus') {
         if (exerciseList) exerciseList.style.display = 'none';
         if (carouselView) carouselView.classList.add('hidden');
         if (focusView) focusView.classList.remove('hidden');
+        document.getElementById('carousel-focus-toggle')?.style && (document.getElementById('carousel-focus-toggle').style.display = 'none');
+        carouselFocusModeActive = false;
         
         const headerCard = document.querySelector('#workout-view > div:first-child');
         const separator = document.getElementById('workout-separator-line');
@@ -7950,4 +7961,30 @@ function applyFocusTextScale() {
     card.style.transform = `scale(${scale})`;
     card.style.transformOrigin = 'top center';
     area.style.paddingBottom = scale > 1 ? `${(scale - 1) * 300}px` : '0px';
+}
+
+let carouselFocusModeActive = false;
+
+function toggleCarouselFocusMode() {
+    carouselFocusModeActive = !carouselFocusModeActive;
+    const header = document.querySelector('#workout-view > div:first-child');
+    const separator = document.getElementById('workout-separator-line');
+    const footer = document.querySelector('.workout-footer');
+    const arrow = document.getElementById('carousel-focus-arrow');
+    const toggle = document.getElementById('carousel-focus-toggle');
+    const restBar = document.getElementById('rest-timer-bar');
+
+    if (carouselFocusModeActive) {
+        if (header) { header.style.transition = 'opacity 0.4s ease, max-height 0.4s ease'; header.style.opacity = '0'; header.style.maxHeight = '0'; header.style.overflow = 'hidden'; }
+        if (separator) { separator.style.transition = 'opacity 0.3s ease'; separator.style.opacity = '0'; }
+        if (footer) { footer.style.transition = 'opacity 0.4s ease, max-height 0.4s ease'; footer.style.opacity = '0'; footer.style.maxHeight = '0'; footer.style.overflow = 'hidden'; }
+        if (arrow) { arrow.style.transform = 'rotate(180deg)'; }
+        if (toggle) { toggle.style.opacity = '0.6'; }
+    } else {
+        if (header) { header.style.opacity = '1'; header.style.maxHeight = '500px'; }
+        if (separator) { separator.style.opacity = '1'; }
+        if (footer) { footer.style.opacity = '1'; footer.style.maxHeight = '500px'; }
+        if (arrow) { arrow.style.transform = 'rotate(0deg)'; }
+        if (toggle) { toggle.style.opacity = '0.4'; }
+    }
 }
