@@ -7558,7 +7558,8 @@ function updateWorkoutProgress(completedSets, totalSets) {
 
 function renderFocus() {
     const layout = localStorage.getItem('workoutLayoutMode');
-    const container = (layout === 'carousel' && carouselFocusModeActive)
+    const inCarousel = layout === 'carousel' && carouselFocusModeActive;
+    const container = inCarousel
         ? document.getElementById('carousel-card-area')
         : document.getElementById('focus-view');
     if (!container || !activeDraft) return;
@@ -7567,36 +7568,42 @@ function renderFocus() {
     if (activeDraft.ui_state && typeof activeDraft.ui_state.currentExerciseIndex === 'number') {
         carouselCurrentIndex = activeDraft.ui_state.currentExerciseIndex;
     }
-    container.innerHTML = `
-       <div style="display:flex; align-items:center; justify-content:space-between; padding:2px 4px 8px;">
-            <div onclick="setWorkoutLayout('list')" style="display:flex; align-items:center; gap:5px; color:#64748b; font-size:12px; font-weight:700; cursor:pointer;">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
-                Exit focus
-            </div>
-            <div style="display:flex; align-items:center; gap:10px;">
-                <div style="display:flex; align-items:center; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:10px; overflow:hidden;">
-                    <div onclick="focusAdjustTextScale(-1)" style="padding:5px 9px; font-size:11px; font-weight:800; color:#64748b; cursor:pointer; border-right:1px solid rgba(255,255,255,0.08);">A−</div>
-                    <div onclick="focusAdjustTextScale(1)" style="padding:5px 9px; font-size:14px; font-weight:800; color:#94a3b8; cursor:pointer;">A+</div>
+
+    if (inCarousel) {
+        container.innerHTML = `
+            <div id="focus-rest-timer-bar"></div>
+            <div class="carousel-ex-card" id="focus-ex-card"></div>`;
+    } else {
+        container.innerHTML = `
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:2px 4px 8px;">
+                <div onclick="setWorkoutLayout('list')" style="display:flex; align-items:center; gap:5px; color:#64748b; font-size:12px; font-weight:700; cursor:pointer;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+                    Exit focus
                 </div>
-                <div id="focus-progress-text" style="font-size:14px; font-weight:900; color:#22d3ee;"></div>
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <div style="display:flex; align-items:center; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:10px; overflow:hidden;">
+                        <div onclick="focusAdjustTextScale(-1)" style="padding:5px 9px; font-size:11px; font-weight:800; color:#64748b; cursor:pointer; border-right:1px solid rgba(255,255,255,0.08);">A−</div>
+                        <div onclick="focusAdjustTextScale(1)" style="padding:5px 9px; font-size:14px; font-weight:800; color:#94a3b8; cursor:pointer;">A+</div>
+                    </div>
+                    <div id="focus-progress-text" style="font-size:14px; font-weight:900; color:#22d3ee;"></div>
+                </div>
             </div>
-        </div>
-        <div style="height:3px; background:rgba(255,255,255,0.05); border-radius:3px; overflow:hidden; margin:0 2px 10px;">
-            <div id="focus-progress-bar" style="width:0%; height:100%; background:#22d3ee; transition:width 0.3s ease;"></div>
-        </div>
-<div class="carousel-nav-bar" id="focus-nav-bar-inner"></div>
-        <div id="focus-rest-timer-bar"></div>
-<div class="carousel-card-area" id="focus-card-area">
-            <div class="carousel-ex-card" id="focus-ex-card"></div>
-        </div>`;
-    if (layout === 'carousel' && carouselFocusModeActive) {
-        initCarouselSwipe();
+            <div style="height:3px; background:rgba(255,255,255,0.05); border-radius:3px; overflow:hidden; margin:0 2px 10px;">
+                <div id="focus-progress-bar" style="width:0%; height:100%; background:#22d3ee; transition:width 0.3s ease;"></div>
+            </div>
+            <div class="carousel-nav-bar" id="focus-nav-bar-inner"></div>
+            <div id="focus-rest-timer-bar"></div>
+            <div class="carousel-card-area" id="focus-card-area">
+                <div class="carousel-ex-card" id="focus-ex-card"></div>
+            </div>`;
     }
-    renderFocusNav();
+
+    if (!inCarousel) {
+        renderFocusNav();
+    }
     renderFocusCard();
     renderRestTimer();
     initFocusSwipe();
-    initFocusDragAndDrop();
     updateFocusProgress();
 }
 
@@ -7983,29 +7990,69 @@ function toggleCarouselFocusMode() {
     const header = document.querySelector('#workout-view > div:first-child');
     const separator = document.getElementById('workout-separator-line');
     const footer = document.querySelector('.workout-footer');
-    const arrow = document.getElementById('carousel-focus-arrow');
-    const label = document.getElementById('carousel-focus-label');
-    const carouselCard = document.getElementById('carousel-ex-card');
     const transitionStyle = 'opacity 0.4s ease, max-height 0.5s ease';
 
     if (carouselFocusModeActive) {
         if (header) { header.style.transition = transitionStyle; header.style.opacity = '0'; header.style.maxHeight = '0'; header.style.overflow = 'hidden'; }
         if (separator) { separator.style.transition = 'opacity 0.3s ease, max-height 0.3s ease'; separator.style.opacity = '0'; separator.style.maxHeight = '0'; separator.style.overflow = 'hidden'; }
         if (footer) { footer.style.transition = transitionStyle; footer.style.opacity = '0'; footer.style.maxHeight = '0'; footer.style.overflow = 'hidden'; }
-        if (arrow) arrow.style.transform = 'rotate(180deg)';
-        if (label) label.textContent = 'Exit focus';
-        if (carouselCard) {
-            carouselCard.id = 'carousel-ex-card-hidden';
-            carouselCard.style.display = 'none';
+
+        const toggleEl = document.getElementById('carousel-focus-toggle');
+        if (toggleEl) {
+            toggleEl.innerHTML = `
+                <div style="display:flex; align-items:center; justify-content:space-between; width:100%; padding:0 4px;">
+                    <div onclick="toggleCarouselFocusMode()" style="display:flex; align-items:center; gap:7px; background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.12); border-radius:20px; padding:6px 18px; cursor:pointer;">
+                        <svg style="transform:rotate(180deg);" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>
+                        <span style="font-size:11px; font-weight:700; color:#64748b;">Exit focus</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <div style="display:flex; align-items:center; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:10px; overflow:hidden;">
+                            <div onclick="focusAdjustTextScale(-1)" style="padding:5px 9px; font-size:11px; font-weight:800; color:#64748b; cursor:pointer; border-right:1px solid rgba(255,255,255,0.08);">A−</div>
+                            <div onclick="focusAdjustTextScale(1)" style="padding:5px 9px; font-size:14px; font-weight:800; color:#94a3b8; cursor:pointer;">A+</div>
+                        </div>
+                        <div id="focus-progress-text" style="font-size:14px; font-weight:900; color:#22d3ee;"></div>
+                    </div>
+                </div>`;
         }
-        renderFocus();
+
+        const cardArea = document.getElementById('carousel-card-area') || document.querySelector('.carousel-card-area');
+        if (cardArea) {
+            const existingCard = document.getElementById('carousel-ex-card');
+            if (existingCard) { existingCard.id = 'carousel-ex-card-hidden'; existingCard.style.display = 'none'; }
+            const restBar = document.createElement('div');
+            restBar.id = 'focus-rest-timer-bar';
+            const focusCard = document.createElement('div');
+            focusCard.className = 'carousel-ex-card';
+            focusCard.id = 'focus-ex-card';
+            cardArea.appendChild(restBar);
+            cardArea.appendChild(focusCard);
+        }
+
+        renderFocusCard();
+        renderRestTimer();
+        updateFocusProgress();
+
     } else {
         if (header) { header.style.transition = transitionStyle; header.style.opacity = '1'; header.style.maxHeight = '500px'; header.style.overflow = ''; }
         if (separator) { separator.style.transition = 'opacity 0.3s ease, max-height 0.3s ease'; separator.style.opacity = '1'; separator.style.maxHeight = '100px'; separator.style.overflow = ''; }
         if (footer) { footer.style.transition = transitionStyle; footer.style.opacity = '1'; footer.style.maxHeight = '500px'; footer.style.overflow = ''; }
-        if (arrow) arrow.style.transform = 'rotate(0deg)';
-        if (label) label.textContent = 'Focus view';
-        renderCarousel();
-        setTimeout(() => renderCarouselCard(), 50);
+
+        const focusCard = document.getElementById('focus-ex-card');
+        if (focusCard) focusCard.remove();
+        const focusBar = document.getElementById('focus-rest-timer-bar');
+        if (focusBar) focusBar.remove();
+        const hiddenCard = document.getElementById('carousel-ex-card-hidden');
+        if (hiddenCard) { hiddenCard.id = 'carousel-ex-card'; hiddenCard.style.display = ''; }
+
+        const toggleEl2 = document.getElementById('carousel-focus-toggle');
+        if (toggleEl2) {
+            toggleEl2.innerHTML = `
+                <div style="background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.12); border-radius:20px; padding:6px 18px; display:flex; align-items:center; gap:7px;">
+                    <svg id="carousel-focus-arrow" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2.5" style="transition:transform 0.3s ease;"><polyline points="18 15 12 9 6 15"/></svg>
+                    <span id="carousel-focus-label" style="font-size:11px; font-weight:700; color:#64748b; letter-spacing:0.5px;">Focus view</span>
+                </div>`;
+        }
+
+        renderCarouselCard();
     }
 }
