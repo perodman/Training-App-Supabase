@@ -1339,7 +1339,7 @@ body:has(.bottom-bar.hidden) { padding-bottom: 0; }
 .carousel-ex-thumb.done .carousel-ex-thumb-name { color: #22c55e; }
 
 .carousel-card-area {
-    padding: 0 15px 8px;
+    padding: 0 0 8px;
     touch-action: pan-y;
 }
 .carousel-ex-card {
@@ -1364,6 +1364,11 @@ body:has(.bottom-bar.hidden) { padding-bottom: 0; }
 .carousel-ex-card:not(.is-done) {
     border-color: rgba(34,211,238,0.15);
 }
+
+#carousel-ex-card, #focus-rest-timer-bar {
+    margin: 0 15px;
+}
+
 .carousel-anim-zone {
     height: 140px;
     background: rgba(0,0,0,0.25);
