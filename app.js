@@ -7517,16 +7517,22 @@ function initCarouselDragAndDrop() {
     if (!activeDraft.ui_state) activeDraft.ui_state = {};
     activeDraft.ui_state.currentExerciseIndex = carouselCurrentIndex;
 
-    await persistActiveWorkout();
+await persistActiveWorkout();
 
+navBar.style.opacity = '0';
+requestAnimationFrame(() => {
     renderCarouselNav();
     renderCarouselDots();
     renderCarouselCard();
+    requestAnimationFrame(() => {
+        navBar.style.opacity = '1';
+    });
+});
 
-    setTimeout(() => {
-        const active = document.getElementById(`carousel-thumb-${carouselCurrentIndex}`);
-        if (active) active.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
-    }, 50);
+setTimeout(() => {
+    const active = document.getElementById(`carousel-thumb-${carouselCurrentIndex}`);
+    if (active) active.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+}, 50);
 }
         });
     });
@@ -8071,16 +8077,22 @@ function initFocusDragAndDrop() {
     if (!activeDraft.ui_state) activeDraft.ui_state = {};
     activeDraft.ui_state.currentExerciseIndex = carouselCurrentIndex;
 
-    await persistActiveWorkout();
+   await persistActiveWorkout();
 
+navBar.style.opacity = '0';
+requestAnimationFrame(() => {
     renderFocusNav();
     renderFocusCard();
     updateFocusProgress();
+    requestAnimationFrame(() => {
+        navBar.style.opacity = '1';
+    });
+});
 
-    setTimeout(() => {
-        const active = document.getElementById(`focus-thumb-${carouselCurrentIndex}`);
-        if (active) active.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
-    }, 50);
+setTimeout(() => {
+    const active = document.getElementById(`focus-thumb-${carouselCurrentIndex}`);
+    if (active) active.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+}, 50);
 }
         });
     });
