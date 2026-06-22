@@ -7226,28 +7226,6 @@ function formatRestTime(seconds) {
     const secs = String(seconds % 60).padStart(2, '0');
     return `${mins}:${secs}`;
 }
-
-async function carouselConfirmSet(exIdx, setIdx) {
-    // Spara ALLA inputs för denna övning till draft FÖRST (innan flush/omritning)
-    const allInputs = document.querySelectorAll(`[id^="w-${exIdx}-"], [id^="r-${exIdx}-"], [id^="v-${exIdx}-"]`);
-    allInputs.forEach(inp => {
-        const parts = inp.id.split('-');
-        const sIdx2 = parseInt(parts[parts.length - 1]);
-        const type = parts[0];
-        if (!isNaN(sIdx2) && activeDraft.data[exIdx]?.sets_data?.[sIdx2]) {
-            if (type === 'w') activeDraft.data[exIdx].sets_data[sIdx2].weight = inp.value;
-            if (type === 'r') activeDraft.data[exIdx].sets_data[sIdx2].reps = inp.value;
-            if (type === 'v') activeDraft.data[exIdx].sets_data[sIdx2].rest = inp.value;
-        }
-    });
-
-    const restVal = parseInt(activeDraft.data[exIdx].sets_data[setIdx].rest) || 120;
-
-    const currentState = activeDraft.data[exIdx].sets_data[setIdx].userConfirmed;
-    activeDraft.data[exIdx].sets_data[setIdx].userConfirmed = !currentState;
-    const isNowConfirmed = activeDraft.data[exIdx].sets_data[setIdx].userConfirmed;
-    const isLastSet = setIdx === activeDraft.data[exIdx].sets_data.length - 1;
-
 async function carouselConfirmSet(exIdx, setIdx) {
     const allInputs = document.querySelectorAll(`[id^="w-${exIdx}-"], [id^="r-${exIdx}-"], [id^="v-${exIdx}-"]`);
     allInputs.forEach(inp => {
@@ -7267,9 +7245,7 @@ async function carouselConfirmSet(exIdx, setIdx) {
     const isLastSet = setIdx === activeDraft.data[exIdx].sets_data.length - 1;
     stopRestTimer();
     carouselStopRest();
-    console.log('villkor:', isNowConfirmed, isLastSet, activeDraft.restTimerDisabled, restVal);
     if (isNowConfirmed && !isLastSet && !activeDraft.restTimerDisabled) {
-        console.log('startar timer');
         carouselStartRest(restVal);
     }
     await persistActiveWorkout();
@@ -7286,6 +7262,7 @@ async function carouselConfirmSet(exIdx, setIdx) {
     }
     renderCarouselCard();
 }
+
 
 function carouselStartRest(seconds) {
     clearInterval(carouselRestInterval);
