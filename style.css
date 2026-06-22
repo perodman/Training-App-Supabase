@@ -1295,7 +1295,7 @@ body:has(.bottom-bar.hidden) { padding-bottom: 0; }
 .carousel-nav-bar {
     display: flex;
     gap: 7px;
-    padding: 0 15px 10px;
+    padding: 0 0 10px;
     overflow-x: auto;
     scrollbar-width: none;
     scroll-behavior: smooth;
@@ -1341,6 +1341,7 @@ body:has(.bottom-bar.hidden) { padding-bottom: 0; }
 .carousel-card-area {
     padding: 0 15px 8px;
     touch-action: pan-y;
+    margin-top: 0;
 }
 .carousel-ex-card {
     position: relative;
