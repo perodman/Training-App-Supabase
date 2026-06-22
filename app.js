@@ -7979,54 +7979,44 @@ function toggleCarouselFocusMode() {
     const footer = document.querySelector('.workout-footer');
     const arrow = document.getElementById('carousel-focus-arrow');
     const label = document.getElementById('carousel-focus-label');
-
+    const carouselCard = document.getElementById('carousel-ex-card');
     const transitionStyle = 'opacity 0.4s ease, max-height 0.5s ease';
 
     if (carouselFocusModeActive) {
-        if (header) {
-            header.style.transition = transitionStyle;
-            header.style.opacity = '0';
-            header.style.maxHeight = '0';
-            header.style.overflow = 'hidden';
-            header.style.marginBottom = '0';
-        }
-        if (separator) {
-            separator.style.transition = 'opacity 0.3s ease, max-height 0.3s ease';
-            separator.style.opacity = '0';
-            separator.style.maxHeight = '0';
-            separator.style.overflow = 'hidden';
-        }
-        if (footer) {
-            footer.style.transition = transitionStyle;
-            footer.style.opacity = '0';
-            footer.style.maxHeight = '0';
-            footer.style.overflow = 'hidden';
-        }
+        if (header) { header.style.transition = transitionStyle; header.style.opacity = '0'; header.style.maxHeight = '0'; header.style.overflow = 'hidden'; }
+        if (separator) { separator.style.transition = 'opacity 0.3s ease, max-height 0.3s ease'; separator.style.opacity = '0'; separator.style.maxHeight = '0'; separator.style.overflow = 'hidden'; }
+        if (footer) { footer.style.transition = transitionStyle; footer.style.opacity = '0'; footer.style.maxHeight = '0'; footer.style.overflow = 'hidden'; }
         if (arrow) arrow.style.transform = 'rotate(180deg)';
         if (label) label.textContent = 'Exit focus';
+        if (carouselCard) {
+            carouselCard.id = 'carousel-ex-card-hidden';
+            carouselCard.style.display = 'none';
+        }
+        const focusCard = document.createElement('div');
+        focusCard.className = 'carousel-ex-card';
+        focusCard.id = 'focus-ex-card';
+        const cardArea = document.getElementById('carousel-card-area') || carouselCard?.parentElement;
+        if (cardArea) cardArea.appendChild(focusCard);
+        const restBar = document.getElementById('focus-rest-timer-bar');
+        if (!restBar) {
+            const bar = document.createElement('div');
+            bar.id = 'focus-rest-timer-bar';
+            if (cardArea) cardArea.insertBefore(bar, focusCard);
+        }
         renderFocusCard();
+        renderRestTimer();
     } else {
-        if (header) {
-            header.style.transition = transitionStyle;
-            header.style.opacity = '1';
-            header.style.maxHeight = '500px';
-            header.style.overflow = '';
-            header.style.marginBottom = '';
-        }
-        if (separator) {
-            separator.style.transition = 'opacity 0.3s ease, max-height 0.3s ease';
-            separator.style.opacity = '1';
-            separator.style.maxHeight = '100px';
-            separator.style.overflow = '';
-        }
-        if (footer) {
-            footer.style.transition = transitionStyle;
-            footer.style.opacity = '1';
-            footer.style.maxHeight = '500px';
-            footer.style.overflow = '';
-        }
+        if (header) { header.style.transition = transitionStyle; header.style.opacity = '1'; header.style.maxHeight = '500px'; header.style.overflow = ''; }
+        if (separator) { separator.style.transition = 'opacity 0.3s ease, max-height 0.3s ease'; separator.style.opacity = '1'; separator.style.maxHeight = '100px'; separator.style.overflow = ''; }
+        if (footer) { footer.style.transition = transitionStyle; footer.style.opacity = '1'; footer.style.maxHeight = '500px'; footer.style.overflow = ''; }
         if (arrow) arrow.style.transform = 'rotate(0deg)';
         if (label) label.textContent = 'Focus view';
+        const focusCard = document.getElementById('focus-ex-card');
+        if (focusCard) focusCard.remove();
+        const focusBar = document.getElementById('focus-rest-timer-bar');
+        if (focusBar) focusBar.remove();
+        const hiddenCard = document.getElementById('carousel-ex-card-hidden');
+        if (hiddenCard) { hiddenCard.id = 'carousel-ex-card'; hiddenCard.style.display = ''; }
+        renderCarouselCard();
     }
-    renderCarouselCard();
 }
