@@ -4079,7 +4079,9 @@ async function addSetToExercise(exIdx) {
     const newReps = lastSet ? lastSet.reps : "";
     activeDraft.data[exIdx].sets_data.push({ weight: newWeight, reps: newReps });
 const savedLayout = localStorage.getItem('workoutLayoutMode') || 'list';
-    if (savedLayout === 'carousel') {
+    if (savedLayout === 'carousel' && carouselFocusModeActive) {
+        renderFocusCard();
+    } else if (savedLayout === 'carousel') {
         renderCarouselCard();
     } else if (savedLayout === 'focus') {
         renderFocusCard();
@@ -4100,7 +4102,9 @@ const savedLayout = localStorage.getItem('workoutLayoutMode') || 'list';
 async function removeSetFromExercise(exIdx, setIdx) {
     activeDraft.data[exIdx].sets_data.splice(setIdx, 1);
 const savedLayout = localStorage.getItem('workoutLayoutMode') || 'list';
-    if (savedLayout === 'carousel') {
+    if (savedLayout === 'carousel' && carouselFocusModeActive) {
+        renderFocusCard();
+    } else if (savedLayout === 'carousel') {
         renderCarouselCard();
     } else if (savedLayout === 'focus') {
         renderFocusCard();
@@ -8000,17 +8004,10 @@ function toggleCarouselFocusMode() {
         const toggleEl = document.getElementById('carousel-focus-toggle');
         if (toggleEl) {
             toggleEl.innerHTML = `
-                <div style="display:flex; align-items:center; justify-content:space-between; width:100%; padding:0 4px;">
+                <div style="display:flex; align-items:center; justify-content:center; width:100%; padding:0 4px;">
                     <div onclick="toggleCarouselFocusMode()" style="display:flex; align-items:center; gap:7px; background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.12); border-radius:20px; padding:6px 18px; cursor:pointer;">
                         <svg style="transform:rotate(180deg);" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>
-                        <span style="font-size:11px; font-weight:700; color:#64748b;">Exit focus</span>
-                    </div>
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <div style="display:flex; align-items:center; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:10px; overflow:hidden;">
-                            <div onclick="focusAdjustTextScale(-1)" style="padding:5px 9px; font-size:11px; font-weight:800; color:#64748b; cursor:pointer; border-right:1px solid rgba(255,255,255,0.08);">A−</div>
-                            <div onclick="focusAdjustTextScale(1)" style="padding:5px 9px; font-size:14px; font-weight:800; color:#94a3b8; cursor:pointer;">A+</div>
-                        </div>
-                        <div id="focus-progress-text" style="font-size:14px; font-weight:900; color:#22d3ee;"></div>
+                        <span style="font-size:11px; font-weight:700; color:#64748b;">Exit Focus</span>
                     </div>
                 </div>`;
         }
