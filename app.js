@@ -7155,8 +7155,10 @@ async function carouselConfirmSet(exIdx, setIdx) {
     if (isNowConfirmed && !isLastSet) {
         stopRestTimer();
         carouselStopRest();
-        carouselStartRest(restVal); // Använd karusellens egen startare
-    } else if (isNowConfirmed && isLastSet) {
+        if (!activeDraft.restTimerDisabled) {
+            carouselStartRest(restVal);
+        }
+    } else {
         stopRestTimer();
         carouselStopRest();
     } else if (!isNowConfirmed) {
