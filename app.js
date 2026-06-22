@@ -6857,6 +6857,101 @@ function toggleExerciseExpand(exIdx) {
     renderActiveWorkout();
 }
 
+function initCarouselSwipe() {
+    const ca = document.getElementById('carousel-card-area');
+    if (!ca || ca.dataset.swipeInit) return;
+    ca.dataset.swipeInit = 'true';
+    let sx = 0, sy = 0, isH = null;
+    ca.addEventListener('touchstart', e => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; isH = null; }, { passive: true });
+    ca.addEventListener('touchmove', e => {
+        if (isH === null) { const dx = Math.abs(e.touches[0].clientX - sx), dy = Math.abs(e.touches[0].clientY - sy); if (dx > 8 || dy > 8) isH = dx > dy; }
+        if (isH && e.cancelable) e.preventDefault();
+    }, { passive: false });
+    ca.addEventListener('touchend', e => {
+        if (!isH) return;
+        const dx = e.changedTouches[0].clientX - sx;
+       if (dx < -50) carouselNext(); else if (dx > 50) carouselPrev();
+        isH = null;
+    });
+}
+
+function initCarouselDragAndDrop() {
+    const navBar = document.getElementById('carousel-nav-bar-inner');
+    if (!navBar || typeof Draggable === 'undefined') return;
+    const thumbs = Array.from(navBar.querySelectorAll('.carousel-ex-thumb'));
+    if (thumbs.length === 0) return;
+
+    thumbs.forEach((thumb) => {
+        const handle = thumb.querySelector('.carousel-drag-handle');
+        if (!handle) return;
+        handle.style.touchAction = 'none';
+
+        let currentOrder = [...thumbs];
+        const thumbWidth = () => thumb.offsetWidth + 7;
+
+        Draggable.create(thumb, {
+            type: 'x',
+            trigger: handle,
+            zIndexBoost: false,
+            lockAxis: true,
+            onDragStart: function () {
+                currentOrder = Array.from(navBar.querySelectorAll('.carousel-ex-thumb'));
+                gsap.to(thumb, { scale: 1.05, boxShadow: '0 8px 20px rgba(0,0,0,0.5)', duration: 0.2 });
+                gsap.set(thumb, { zIndex: 100 });
+            },
+            onDrag: function () {
+                const draggedIdx = currentOrder.indexOf(thumb);
+                const movedSteps = Math.round(this.x / thumbWidth());
+                currentOrder.forEach((other, otherIdx) => {
+                    if (other === thumb) return;
+                    const diff = otherIdx - draggedIdx;
+                    if (movedSteps > 0 && diff > 0 && diff <= movedSteps) {
+                        gsap.to(other, { x: -thumbWidth(), duration: 0.2, ease: 'power2.out' });
+                    } else if (movedSteps < 0 && diff < 0 && diff >= movedSteps) {
+                        gsap.to(other, { x: thumbWidth(), duration: 0.2, ease: 'power2.out' });
+                    } else {
+                        gsap.to(other, { x: 0, duration: 0.2, ease: 'power2.out' });
+                    }
+                });
+            },
+            onDragEnd: async function () {
+                const draggedIdx = currentOrder.indexOf(thumb);
+                const movedSteps = Math.round(this.x / thumbWidth());
+                const newIdx = Math.max(0, Math.min(currentOrder.length - 1, draggedIdx + movedSteps));
+
+                gsap.killTweensOf(thumb);
+                currentOrder.forEach(t => {
+                    gsap.killTweensOf(t);
+                    gsap.set(t, { clearProps: 'transform,zIndex,scale,boxShadow' });
+                });
+
+                if (newIdx !== draggedIdx) {
+                    const exArr = activeDraft.workout.exercises;
+                    const dataArr = activeDraft.data;
+                    const [movedEx] = exArr.splice(draggedIdx, 1);
+                    const [movedData] = dataArr.splice(draggedIdx, 1);
+                    exArr.splice(newIdx, 0, movedEx);
+                    dataArr.splice(newIdx, 0, movedData);
+
+                    if (activeDraft.ui_state?.openNotes) {
+                        activeDraft.ui_state.openNotes = activeDraft.ui_state.openNotes.map(idx => {
+                            if (idx === draggedIdx) return newIdx;
+                            if (draggedIdx < newIdx && idx > draggedIdx && idx <= newIdx) return idx - 1;
+                            if (draggedIdx > newIdx && idx < draggedIdx && idx >= newIdx) return idx + 1;
+                            return idx;
+                        });
+                    }
+
+                    carouselCurrentIndex = newIdx;
+                    await persistActiveWorkout();
+                    renderCarousel();
+                    setTimeout(() => carouselGoTo(newIdx), 50);
+                }
+            }
+        });
+    });
+}
+
 function renderCarousel() {
     const container = document.getElementById('carousel-view');
     if (!container || !activeDraft) return;
@@ -7387,100 +7482,7 @@ function carouselGoTo(i) {
 function carouselNext() { if (carouselCurrentIndex < activeDraft.workout.exercises.length - 1) carouselGoTo(carouselCurrentIndex + 1); }
 function carouselPrev() { if (carouselCurrentIndex > 0) carouselGoTo(carouselCurrentIndex - 1); }
 
-function initCarouselSwipe() {
-    const ca = document.getElementById('carousel-card-area');
-    if (!ca || ca.dataset.swipeInit) return;
-    ca.dataset.swipeInit = 'true';
-    let sx = 0, sy = 0, isH = null;
-    ca.addEventListener('touchstart', e => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; isH = null; }, { passive: true });
-    ca.addEventListener('touchmove', e => {
-        if (isH === null) { const dx = Math.abs(e.touches[0].clientX - sx), dy = Math.abs(e.touches[0].clientY - sy); if (dx > 8 || dy > 8) isH = dx > dy; }
-        if (isH && e.cancelable) e.preventDefault();
-    }, { passive: false });
-    ca.addEventListener('touchend', e => {
-        if (!isH) return;
-        const dx = e.changedTouches[0].clientX - sx;
-       if (dx < -50) carouselNext(); else if (dx > 50) carouselPrev();
-        isH = null;
-    });
-}
 
-function initCarouselDragAndDrop() {
-    const navBar = document.getElementById('carousel-nav-bar-inner');
-    if (!navBar || typeof Draggable === 'undefined') return;
-    const thumbs = Array.from(navBar.querySelectorAll('.carousel-ex-thumb'));
-    if (thumbs.length === 0) return;
-
-    thumbs.forEach((thumb) => {
-        const handle = thumb.querySelector('.carousel-drag-handle');
-        if (!handle) return;
-        handle.style.touchAction = 'none';
-
-        let currentOrder = [...thumbs];
-        const thumbWidth = () => thumb.offsetWidth + 7;
-
-        Draggable.create(thumb, {
-            type: 'x',
-            trigger: handle,
-            zIndexBoost: false,
-            lockAxis: true,
-            onDragStart: function () {
-                currentOrder = Array.from(navBar.querySelectorAll('.carousel-ex-thumb'));
-                gsap.to(thumb, { scale: 1.05, boxShadow: '0 8px 20px rgba(0,0,0,0.5)', duration: 0.2 });
-                gsap.set(thumb, { zIndex: 100 });
-            },
-            onDrag: function () {
-                const draggedIdx = currentOrder.indexOf(thumb);
-                const movedSteps = Math.round(this.x / thumbWidth());
-                currentOrder.forEach((other, otherIdx) => {
-                    if (other === thumb) return;
-                    const diff = otherIdx - draggedIdx;
-                    if (movedSteps > 0 && diff > 0 && diff <= movedSteps) {
-                        gsap.to(other, { x: -thumbWidth(), duration: 0.2, ease: 'power2.out' });
-                    } else if (movedSteps < 0 && diff < 0 && diff >= movedSteps) {
-                        gsap.to(other, { x: thumbWidth(), duration: 0.2, ease: 'power2.out' });
-                    } else {
-                        gsap.to(other, { x: 0, duration: 0.2, ease: 'power2.out' });
-                    }
-                });
-            },
-            onDragEnd: async function () {
-                const draggedIdx = currentOrder.indexOf(thumb);
-                const movedSteps = Math.round(this.x / thumbWidth());
-                const newIdx = Math.max(0, Math.min(currentOrder.length - 1, draggedIdx + movedSteps));
-
-                gsap.killTweensOf(thumb);
-                currentOrder.forEach(t => {
-                    gsap.killTweensOf(t);
-                    gsap.set(t, { clearProps: 'transform,zIndex,scale,boxShadow' });
-                });
-
-                if (newIdx !== draggedIdx) {
-                    const exArr = activeDraft.workout.exercises;
-                    const dataArr = activeDraft.data;
-                    const [movedEx] = exArr.splice(draggedIdx, 1);
-                    const [movedData] = dataArr.splice(draggedIdx, 1);
-                    exArr.splice(newIdx, 0, movedEx);
-                    dataArr.splice(newIdx, 0, movedData);
-
-                    if (activeDraft.ui_state?.openNotes) {
-                        activeDraft.ui_state.openNotes = activeDraft.ui_state.openNotes.map(idx => {
-                            if (idx === draggedIdx) return newIdx;
-                            if (draggedIdx < newIdx && idx > draggedIdx && idx <= newIdx) return idx - 1;
-                            if (draggedIdx > newIdx && idx < draggedIdx && idx >= newIdx) return idx + 1;
-                            return idx;
-                        });
-                    }
-
-                    carouselCurrentIndex = newIdx;
-                    await persistActiveWorkout();
-                    renderCarousel();
-                    setTimeout(() => carouselGoTo(newIdx), 50);
-                }
-            }
-        });
-    });
-}
 
 function carouselToggleRestBadge() {
     const dd = document.getElementById('carousel-rest-dropdown');
