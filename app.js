@@ -7340,22 +7340,32 @@ async function carouselToggleDone(exIdx) {
 
 function carouselGoTo(i) {
     if (i === carouselCurrentIndex) return;
-    const card = document.getElementById('carousel-ex-card');
-    if (!card) return;
     const dir = i > carouselCurrentIndex ? 1 : -1;
-    card.style.transition = 'transform 0.1s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.1s ease';
-    card.style.transform = `translateX(${dir * 35}px)`;
-    card.style.opacity = '0';
+
     carouselStopRest();
     stopRestTimer();
+
+    // Animera rätt kort beroende på om focus-läget är aktivt
+    const card = carouselFocusModeActive
+        ? document.getElementById('focus-ex-card')
+        : document.getElementById('carousel-ex-card');
+
+    if (card) {
+        card.style.transition = 'transform 0.1s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.1s ease';
+        card.style.transform = `translateX(${dir * 35}px)`;
+        card.style.opacity = '0';
+    }
+
     setTimeout(async () => {
         carouselCurrentIndex = i;
         if (!activeDraft.ui_state) activeDraft.ui_state = {};
         activeDraft.ui_state.currentExerciseIndex = i;
         activeDraft.ui_state.openExercises = [i];
         await persistActiveWorkout();
+
         const prevActive = document.querySelector('.carousel-ex-thumb.active');
         if (prevActive) prevActive.classList.remove('active');
+
         const newActive = document.getElementById(`carousel-thumb-${i}`);
         if (newActive) {
             newActive.classList.add('active');
@@ -7363,28 +7373,35 @@ function carouselGoTo(i) {
             if (nameEl) nameEl.style.color = '#22d3ee';
             newActive.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
         }
+
         document.querySelectorAll('.carousel-ex-thumb').forEach((t, idx) => {
             const svgWrap = t.querySelector('div:not(.carousel-drag-handle)');
             if (svgWrap) svgWrap.style.opacity = idx === i ? '1' : '0.5';
             const nameEl = t.querySelector('.carousel-ex-thumb-name');
             if (nameEl) nameEl.style.color = idx === i ? '#22d3ee' : (activeDraft.data[idx]?.isCompleted ? '#22c55e' : '#64748b');
         });
+
         renderCarouselDots();
-        renderCarouselCard();
+
         if (carouselFocusModeActive) {
             renderFocusCard();
             updateFocusProgress();
+        } else {
+            renderCarouselCard();
         }
-        card.style.transition = 'none';
-        card.style.transform = `translateX(${dir * 35}px)`;
-        card.style.opacity = '0';
-        requestAnimationFrame(() => {
+
+        if (card) {
+            card.style.transition = 'none';
+            card.style.transform = `translateX(${dir * 35}px)`;
+            card.style.opacity = '0';
             requestAnimationFrame(() => {
-                card.style.transition = 'transform 0.18s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.18s ease';
-                card.style.transform = 'translateX(0)';
-                card.style.opacity = '1';
+                requestAnimationFrame(() => {
+                    card.style.transition = 'transform 0.18s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.18s ease';
+                    card.style.transform = 'translateX(0)';
+                    card.style.opacity = '1';
+                });
             });
-        });
+        }
     }, 200);
 }
 
@@ -7476,8 +7493,8 @@ function initCarouselDragAndDrop() {
                     renderCarousel();
                     setTimeout(() => carouselGoTo(newIdx), 50);
                 } else {
+                    // Ingen flytt skedde — uppdatera bara nav-baren utan slide-animation
                     renderCarouselNav();
-                    if (carouselFocusModeActive) renderFocusNav();
                 }
             }
         });
