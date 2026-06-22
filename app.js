@@ -6671,6 +6671,7 @@ let carouselCurrentIndex = 0;
 let carouselRestActive = false;
 let carouselRestSeconds = 0;
 let carouselRestInterval = null;
+let carouselFocusModeActive = false;
 setInterval(() => {
     const durationTextEl = document.getElementById("workout-duration-text");
     if (durationTextEl && activeDraft?.isStarted && activeDraft?.startTime) {
@@ -7985,8 +7986,6 @@ function applyFocusTextScale() {
     card.style.transformOrigin = 'top center';
     area.style.paddingBottom = scale > 1 ? `${(scale - 1) * 300}px` : '0px';
 }
-
-let carouselFocusModeActive = false;
 
 function toggleCarouselFocusMode() {
     carouselFocusModeActive = !carouselFocusModeActive;
