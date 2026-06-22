@@ -6916,7 +6916,12 @@ function renderCarouselNav() {
     const exercises = activeDraft.workout.exercises;
     const data = activeDraft.data;
 
-    navBar.innerHTML = exercises.map((ex, i) => {
+    const addBtn = `<div onclick="openCustomAddExerciseModal()" style="flex-shrink:0; min-width:56px; max-width:80px; border-radius:14px; border:1.5px dashed rgba(34,211,238,0.3); background:transparent; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:7px 4px 6px; cursor:pointer; gap:4px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <div style="font-size:8px; font-weight:800; color:#22d3ee; text-align:center; line-height:1.4;">Add<br>Exercise</div>
+    </div>`;
+
+    const thumbsHtml = exercises.map((ex, i) => {
         const isDone = data[i]?.isCompleted;
         const isActive = i === carouselCurrentIndex;
         const svg = getExSVG(ex.target, 'small');
@@ -6927,15 +6932,14 @@ function renderCarouselNav() {
             ${isDone ? `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>` : ''}
         </div>`;
     }).join('');
-    navBar.innerHTML = `<div onclick="openCustomAddExerciseModal()" style="flex-shrink:0; min-width:56px; max-width:80px; border-radius:14px; border:1.5px dashed rgba(34,211,238,0.3); background:transparent; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:7px 4px 6px; cursor:pointer; gap:4px;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            <div style="font-size:8px; font-weight:800; color:#22d3ee; text-align:center; line-height:1.4;">Add<br>Exercise</div>
-        </div>` + navBar.innerHTML;
+
+    navBar.innerHTML = addBtn + thumbsHtml;
 
     setTimeout(() => {
         const active = document.getElementById(`carousel-thumb-${carouselCurrentIndex}`);
         if (active) active.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
     }, 50);
+
     initCarouselDragAndDrop();
 }
 
@@ -7432,11 +7436,16 @@ function initCarouselDragAndDrop() {
     const thumbs = Array.from(navBar.querySelectorAll('.carousel-ex-thumb'));
     if (thumbs.length === 0) return;
 
+    // Döda alla gamla Draggable-instanser på dessa element innan nya skapas
+    thumbs.forEach(t => {
+        const existing = Draggable.get(t);
+        if (existing) existing.kill();
+    });
+
     thumbs.forEach((thumb) => {
         const handle = thumb.querySelector('.carousel-drag-handle');
         if (!handle) return;
         handle.style.touchAction = 'none';
-        let currentOrder = [...thumbs];
         const thumbWidth = () => thumb.offsetWidth + 7;
 
         Draggable.create(thumb, {
@@ -7445,11 +7454,11 @@ function initCarouselDragAndDrop() {
             zIndexBoost: false,
             lockAxis: true,
             onDragStart: function () {
-                currentOrder = Array.from(navBar.querySelectorAll('.carousel-ex-thumb'));
                 gsap.to(thumb, { scale: 1.05, boxShadow: '0 8px 20px rgba(0,0,0,0.5)', duration: 0.2 });
                 gsap.set(thumb, { zIndex: 100 });
             },
             onDrag: function () {
+                const currentOrder = Array.from(navBar.querySelectorAll('.carousel-ex-thumb'));
                 const draggedIdx = currentOrder.indexOf(thumb);
                 const movedSteps = Math.round(this.x / thumbWidth());
                 currentOrder.forEach((other, otherIdx) => {
@@ -7465,6 +7474,7 @@ function initCarouselDragAndDrop() {
                 });
             },
             onDragEnd: async function () {
+                const currentOrder = Array.from(navBar.querySelectorAll('.carousel-ex-thumb'));
                 const draggedIdx = currentOrder.indexOf(thumb);
                 const movedSteps = Math.round(this.x / thumbWidth());
                 const newIdx = Math.max(0, Math.min(currentOrder.length - 1, draggedIdx + movedSteps));
@@ -7496,14 +7506,11 @@ function initCarouselDragAndDrop() {
                     const newViewedIdx = exArr.indexOf(viewedExercise);
                     carouselCurrentIndex = newViewedIdx !== -1 ? newViewedIdx : 0;
 
-                    // Uppdatera ui_state INNAN persist så rätt index sparas
                     if (!activeDraft.ui_state) activeDraft.ui_state = {};
                     activeDraft.ui_state.currentExerciseIndex = carouselCurrentIndex;
 
                     await persistActiveWorkout();
 
-                    // Rendera nav + kort direkt, UTAN att anropa renderCarousel()
-                    // som river och bygger om allt och skriver över carouselCurrentIndex
                     renderCarouselNav();
                     renderCarouselDots();
                     renderCarouselCard();
