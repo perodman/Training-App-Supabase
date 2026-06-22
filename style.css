@@ -1295,7 +1295,7 @@ body:has(.bottom-bar.hidden) { padding-bottom: 0; }
 .carousel-nav-bar {
     display: flex;
     gap: 7px;
-    padding: 0 15px 10px;
+    padding: 0 0 10px;
     overflow-x: auto;
     scrollbar-width: none;
     scroll-behavior: smooth;
@@ -1339,7 +1339,7 @@ body:has(.bottom-bar.hidden) { padding-bottom: 0; }
 .carousel-ex-thumb.done .carousel-ex-thumb-name { color: #22c55e; }
 
 .carousel-card-area {
-    padding: 0 0 8px;
+    padding: 0 15px 8px;
     touch-action: pan-y;
 }
 .carousel-ex-card {
@@ -1359,10 +1359,6 @@ body:has(.bottom-bar.hidden) { padding-bottom: 0; }
     padding: 8px 8px 8px 12px;
     border-left: 2px solid rgba(34,211,238,0.3) !important;
     background: rgba(34,211,238,0.02);
-}
-
-#carousel-ex-card, #focus-rest-timer-bar, #rest-timer-bar {
-    margin: 0 15px;
 }
 
 .carousel-ex-card:not(.is-done) {
