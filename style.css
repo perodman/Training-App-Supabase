@@ -1339,20 +1339,20 @@ body:has(.bottom-bar.hidden) { padding-bottom: 0; }
 .carousel-ex-thumb.done .carousel-ex-thumb-name { color: #22c55e; }
 
 .carousel-card-area {
-    padding: 0 0 8px;
+    padding: 0 15px 8px;
     touch-action: pan-y;
 }
-.carousel-ex-card {
-    position: relative;
-    background: linear-gradient(180deg, #1a2540 0%, #0f172a 100%);
-    border: 1px solid rgba(34,211,238,0.25);
-    border-left: 4px solid #22d3ee;
-    border-radius: 12px;
-    overflow: hidden;
-    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease;
-    will-change: transform, opacity;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 2px 20px rgba(0,0,0,0.35);
-}
+   .carousel-ex-card {
+       position: relative;
+       background: linear-gradient(180deg, #1a2540 0%, #0f172a 100%);
+       border: 1px solid rgba(34,211,238,0.25);
+       border-left: 4px solid #22d3ee;
+       border-radius: 12px;
+       overflow: hidden;
+       transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease;
+       will-change: transform, opacity;
+       box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 2px 20px rgba(0,0,0,0.35);
+   }
 
 .carousel-ex-card .set-zone {
     margin: 0 0 8px 0;
@@ -1365,9 +1365,6 @@ body:has(.bottom-bar.hidden) { padding-bottom: 0; }
     border-color: rgba(34,211,238,0.15);
 }
 
-#carousel-ex-card, #focus-rest-timer-bar {
-    margin: 0 15px;
-}
 
 .carousel-anim-zone {
     height: 140px;
