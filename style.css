@@ -1295,11 +1295,13 @@ body:has(.bottom-bar.hidden) { padding-bottom: 0; }
 .carousel-nav-bar {
     display: flex;
     gap: 7px;
-    padding: 0 0 10px;
+    padding: 0 15px 10px;
     overflow-x: auto;
     scrollbar-width: none;
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
+    box-sizing: border-box;
+    width: 100%;
 }
 .carousel-nav-bar::-webkit-scrollbar { display: none; }
 
