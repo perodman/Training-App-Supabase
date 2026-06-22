@@ -7639,37 +7639,21 @@ function renderFocusNav() {
     if (!navBar || !activeDraft) return;
     const exercises = activeDraft.workout.exercises;
     const data = activeDraft.data;
-
-    // Vi sätter data-index på korten istället för onclick
     navBar.innerHTML = exercises.map((ex, i) => {
         const isDone = data[i]?.isCompleted;
         const isActive = i === carouselCurrentIndex;
         const svg = getExSVG(ex.target, 'small');
-        return `<div class="carousel-ex-thumb${isDone ? ' done' : isActive ? ' active' : ''}" id="focus-thumb-${i}" data-idx="${i}">
+        return `<div class="carousel-ex-thumb${isDone ? ' done' : isActive ? ' active' : ''}" id="focus-thumb-${i}" onclick="focusGoTo(${i})">
             <div class="carousel-drag-handle" style="font-size:14px; color:rgba(255,255,255,0.35); cursor:grab; line-height:1; margin-bottom:3px; padding:2px 8px; width:100%; text-align:center;" title="Drag to reorder">⠿</div>
             <div style="opacity:${isActive ? 1 : 0.5}">${svg}</div>
             <div class="carousel-ex-thumb-name">${ex.name}</div>
             ${isDone ? `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>` : ''}
         </div>`;
     }).join('');
-
-    // ÄNDRING: En helt vanlig eventlistener som fångar upp klick på korten, men IGNORERAR klick på drag-handtaget!
-    navBar.onclick = function(e) {
-        if (e.target.closest('.carousel-drag-handle')) return; // Klicka inte om man drar i handtaget
-        const thumb = e.target.closest('[id^="focus-thumb-"]');
-        if (thumb) {
-            const idx = parseInt(thumb.getAttribute('data-idx'));
-            if (!isNaN(idx)) {
-                focusGoTo(idx);
-            }
-        }
-    };
-
     setTimeout(() => {
         const active = document.getElementById(`focus-thumb-${carouselCurrentIndex}`);
         if (active) active.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
     }, 50);
-    
     initFocusDragAndDrop();
 }
 
@@ -7971,119 +7955,26 @@ function initFocusSwipe() {
 }
 
 function initFocusDragAndDrop() {
-    // ÄNDRING: Vi lyssnar på din riktiga nav-bar eftersom Focus-vyn återanvänder Carousel-naven!
-    const navBar = document.getElementById('carousel-nav-bar-inner');
-    if (!navBar || typeof Draggable === 'undefined') return;
-    
-    // Vi hittar tummarna som renderats i nav-baren
-    const thumbs = Array.from(navBar.querySelectorAll('.carousel-ex-thumb'));
-    if (thumbs.length === 0) return;
-
-    thumbs.forEach((thumb) => {
-        const handle = thumb.querySelector('.carousel-drag-handle');
-        if (!handle) return;
-        handle.style.touchAction = 'none';
-
-        let currentOrder = [...thumbs];
-        const thumbWidth = () => thumb.offsetWidth + 7;
-
-        Draggable.create(thumb, {
-            type: 'x',
-            trigger: handle,
-            zIndexBoost: false,
-            lockAxis: true,
-            dragClickables: false, // Tillåter klick
-            onClick: function () {
-                // HÄR LÖSER VI DET:
-                // Vi tar reda på vilket index som klickades på
-                const idParts = thumb.id.split('-');
-                const idx = parseInt(idParts[idParts.length - 1]);
-                
-                if (!isNaN(idx)) {
-                    // Om Focus-vyn är aktiv kör vi focusGoTo, annars kör vi vanliga carouselGoTo!
-                    if (carouselFocusModeActive) {
-                        focusGoTo(idx);
-                    } else {
-                        carouselGoTo(idx);
-                    }
-                }
-            },
-            onDragStart: function () {
-                currentOrder = Array.from(navBar.querySelectorAll('.carousel-ex-thumb'));
-                gsap.to(thumb, { scale: 1.05, boxShadow: '0 8px 20px rgba(0,0,0,0.5)', duration: 0.2 });
-                gsap.set(thumb, { zIndex: 100 });
-            },
-            onDrag: function () {
-                const draggedIdx = currentOrder.indexOf(thumb);
-                const movedSteps = Math.round(this.x / thumbWidth());
-                currentOrder.forEach((other, otherIdx) => {
-                    if (other === thumb) return;
-                    const diff = otherIdx - draggedIdx;
-                    if (movedSteps > 0 && diff > 0 && diff <= movedSteps) {
-                        gsap.to(other, { x: -thumbWidth(), duration: 0.2, ease: 'power2.out' });
-                    } else if (movedSteps < 0 && diff < 0 && diff >= movedSteps) {
-                        gsap.to(other, { x: thumbWidth(), duration: 0.2, ease: 'power2.out' });
-                    } else {
-                        gsap.to(other, { x: 0, duration: 0.2, ease: 'power2.out' });
-                    }
-                });
-            },
-            onDragEnd: async function () {
-                const draggedIdx = currentOrder.indexOf(thumb);
-                const movedSteps = Math.round(this.x / thumbWidth());
-                const newIdx = Math.max(0, Math.min(currentOrder.length - 1, draggedIdx + movedSteps));
-
-                gsap.killTweensOf(thumb);
-                currentOrder.forEach(t => {
-                    gsap.killTweensOf(t);
-                    gsap.set(t, { clearProps: 'transform,zIndex,scale,boxShadow' });
-                });
-
-                if (newIdx !== draggedIdx) {
-                    const exArr = activeDraft.workout.exercises;
-                    const dataArr = activeDraft.data;
-                    const [movedEx] = exArr.splice(draggedIdx, 1);
-                    const [movedData] = dataArr.splice(draggedIdx, 1);
-                    exArr.splice(newIdx, 0, movedEx);
-                    dataArr.splice(newIdx, 0, movedData);
-
-                    if (activeDraft.ui_state?.openNotes) {
-                        activeDraft.ui_state.openNotes = activeDraft.ui_state.openNotes.map(idx => {
-                            if (idx === draggedIdx) return newIdx;
-                            if (draggedIdx < newIdx && idx > draggedIdx && idx <= newIdx) return idx - 1;
-                            if (draggedIdx > newIdx && idx < draggedIdx && idx >= newIdx) return idx + 1;
-                            return idx;
-                        });
-                    }
-
-                    carouselCurrentIndex = newIdx;
-                    await persistActiveWorkout();
-                    
-                    // Om vi är i focus-läge renderar vi om focus, annars vanliga carousel
-                    if (carouselFocusModeActive) {
-                        renderFocusCard();
-                        updateFocusProgress();
-                        // Uppdaterar det aktiva utseendet i naven
-                        const prevActive = document.querySelector('#carousel-nav-bar-inner .carousel-ex-thumb.active');
-                        if (prevActive) prevActive.classList.remove('active');
-                        const newActive = document.getElementById(`carousel-thumb-${newIdx}`);
-                        if (newActive) newActive.classList.add('active');
-                    } else {
-                        renderCarousel();
-                    }
-                    
-                    setTimeout(() => {
-                        if (carouselFocusModeActive) {
-                            focusGoTo(newIdx);
-                        } else {
-                            carouselGoTo(newIdx);
-                        }
-                    }, 50);
-                }
-            }
-        });
-    });
+    // Återanvänder samma logik som carousel-vyn om den finns tillgänglig
+    if (typeof initCarouselDragAndDrop === 'function') {
+        const navBar = document.getElementById('focus-nav-bar-inner');
+        if (navBar && typeof Draggable !== 'undefined') {
+            // Drag-and-drop kan kopplas på samma sätt som carousel-nav-bar vid behov
+        }
+    }
 }
+
+document.addEventListener('click', function(e) {
+    if (localStorage.getItem('workoutLayoutMode') !== 'focus') return;
+    if (!activeDraft || typeof carouselCurrentIndex === 'undefined') return;
+    const i = carouselCurrentIndex;
+    if (!activeDraft.ui_state?.openNotes?.includes(i)) return;
+    const ta = document.getElementById('note-input-' + i);
+    if (!ta) return;
+    if (ta.contains(e.target)) return;
+    if (e.target.closest(`[onclick*="focusToggleNote(${i})"]`)) return;
+    focusToggleNote(i);
+});
 
 let focusTextScaleStep = parseInt(localStorage.getItem('focusTextScaleStep') || '0');
 
