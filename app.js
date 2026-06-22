@@ -7476,10 +7476,15 @@ function initCarouselDragAndDrop() {
                 if (newIdx !== draggedIdx) {
                     const exArr = activeDraft.workout.exercises;
                     const dataArr = activeDraft.data;
+
+                    // Spara vilken övning användaren tittar på INNAN vi ändrar ordningen
+                    const viewedExercise = exArr[carouselCurrentIndex];
+
                     const [movedEx] = exArr.splice(draggedIdx, 1);
                     const [movedData] = dataArr.splice(draggedIdx, 1);
                     exArr.splice(newIdx, 0, movedEx);
                     dataArr.splice(newIdx, 0, movedData);
+
                     if (activeDraft.ui_state?.openNotes) {
                         activeDraft.ui_state.openNotes = activeDraft.ui_state.openNotes.map(idx => {
                             if (idx === draggedIdx) return newIdx;
@@ -7488,12 +7493,15 @@ function initCarouselDragAndDrop() {
                             return idx;
                         });
                     }
-                    carouselCurrentIndex = newIdx;
+
+                    // Hitta var den visade övningen hamnade efter omsorteringen
+                    const newViewedIdx = exArr.indexOf(viewedExercise);
+                    carouselCurrentIndex = newViewedIdx !== -1 ? newViewedIdx : newIdx;
+
                     await persistActiveWorkout();
                     renderCarousel();
-                    // Scrolla bara aktiv thumb på plats, ingen slide-animation
                     setTimeout(() => {
-                        const active = document.getElementById(`carousel-thumb-${newIdx}`);
+                        const active = document.getElementById(`carousel-thumb-${carouselCurrentIndex}`);
                         if (active) active.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
                     }, 50);
                 } else {
@@ -8019,17 +8027,25 @@ function initFocusDragAndDrop() {
                 if (newIdx !== draggedIdx) {
                     const exArr = activeDraft.workout.exercises;
                     const dataArr = activeDraft.data;
+
+                    // Spara vilken övning användaren tittar på INNAN vi ändrar ordningen
+                    const viewedExercise = exArr[carouselCurrentIndex];
+
                     const [movedEx] = exArr.splice(draggedIdx, 1);
                     const [movedData] = dataArr.splice(draggedIdx, 1);
                     exArr.splice(newIdx, 0, movedEx);
                     dataArr.splice(newIdx, 0, movedData);
-                    carouselCurrentIndex = newIdx;
+
+                    // Hitta var den visade övningen hamnade efter omsorteringen
+                    const newViewedIdx = exArr.indexOf(viewedExercise);
+                    carouselCurrentIndex = newViewedIdx !== -1 ? newViewedIdx : newIdx;
+
                     await persistActiveWorkout();
                     renderFocusNav();
                     renderFocusCard();
                     updateFocusProgress();
                     setTimeout(() => {
-                        const active = document.getElementById(`focus-thumb-${newIdx}`);
+                        const active = document.getElementById(`focus-thumb-${carouselCurrentIndex}`);
                         if (active) active.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
                     }, 50);
                 } else {
