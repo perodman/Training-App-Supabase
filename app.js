@@ -6944,12 +6944,10 @@ function renderCarouselNav() {
         arrow.onclick = () => {
             navBar.scrollTo({ left: navBar.scrollWidth, behavior: 'smooth' });
         };
-        arrow.innerHTML = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>`;
-        arrow.style.cssText = `position:fixed; right:0; top:auto; width:36px; height:80px; display:flex; align-items:center; justify-content:center; background:linear-gradient(to right, transparent, rgba(10,16,24,0.97)); cursor:pointer; z-index:999; pointer-events:auto;`;
-        const navRect = navBar.getBoundingClientRect();
-        arrow.style.top = navRect.top + 'px';
-        arrow.style.height = navRect.height + 'px';
-        document.body.appendChild(arrow);
+       arrow.innerHTML = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>`;
+        arrow.style.cssText = `position:absolute; right:0; top:0; bottom:0; width:36px; display:flex; align-items:center; justify-content:center; background:linear-gradient(to right, transparent, #0a1018 70%); cursor:pointer; z-index:10; pointer-events:auto;`;
+        navBar.style.position = 'relative';
+        navBar.appendChild(arrow);
     }
 
     initCarouselDragAndDrop();
