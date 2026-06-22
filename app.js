@@ -7343,23 +7343,17 @@ function carouselGoTo(i) {
     const card = document.getElementById('carousel-ex-card');
     if (!card) return;
     const dir = i > carouselCurrentIndex ? 1 : -1;
-
     card.style.transition = 'transform 0.1s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.1s ease';
     card.style.transform = `translateX(${dir * 35}px)`;
     card.style.opacity = '0';
     carouselStopRest();
     stopRestTimer();
-
     setTimeout(async () => {
         carouselCurrentIndex = i;
-
-        // SYNK: När användaren bläddrar i karusellen, spara det direkt till ui_state.
-        // Vi sätter också openExercises till samma index så listvyn vet vilket kort som ska vara öppet.
         if (!activeDraft.ui_state) activeDraft.ui_state = {};
         activeDraft.ui_state.currentExerciseIndex = i;
-        activeDraft.ui_state.openExercises = [i]; 
+        activeDraft.ui_state.openExercises = [i];
         await persistActiveWorkout();
-
         const prevActive = document.querySelector('.carousel-ex-thumb.active');
         if (prevActive) prevActive.classList.remove('active');
         const newActive = document.getElementById(`carousel-thumb-${i}`);
@@ -7369,17 +7363,18 @@ function carouselGoTo(i) {
             if (nameEl) nameEl.style.color = '#22d3ee';
             newActive.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
         }
-
         document.querySelectorAll('.carousel-ex-thumb').forEach((t, idx) => {
             const svgWrap = t.querySelector('div:not(.carousel-drag-handle)');
             if (svgWrap) svgWrap.style.opacity = idx === i ? '1' : '0.5';
             const nameEl = t.querySelector('.carousel-ex-thumb-name');
             if (nameEl) nameEl.style.color = idx === i ? '#22d3ee' : (activeDraft.data[idx]?.isCompleted ? '#22c55e' : '#64748b');
         });
-
         renderCarouselDots();
         renderCarouselCard();
-
+        if (carouselFocusModeActive) {
+            renderFocusCard();
+            updateFocusProgress();
+        }
         card.style.transition = 'none';
         card.style.transform = `translateX(${dir * 35}px)`;
         card.style.opacity = '0';
@@ -7424,7 +7419,6 @@ function initCarouselDragAndDrop() {
         const handle = thumb.querySelector('.carousel-drag-handle');
         if (!handle) return;
         handle.style.touchAction = 'none';
-
         let currentOrder = [...thumbs];
         const thumbWidth = () => thumb.offsetWidth + 7;
 
@@ -7457,13 +7451,11 @@ function initCarouselDragAndDrop() {
                 const draggedIdx = currentOrder.indexOf(thumb);
                 const movedSteps = Math.round(this.x / thumbWidth());
                 const newIdx = Math.max(0, Math.min(currentOrder.length - 1, draggedIdx + movedSteps));
-
                 gsap.killTweensOf(thumb);
                 currentOrder.forEach(t => {
                     gsap.killTweensOf(t);
                     gsap.set(t, { clearProps: 'transform,zIndex,scale,boxShadow' });
                 });
-
                 if (newIdx !== draggedIdx) {
                     const exArr = activeDraft.workout.exercises;
                     const dataArr = activeDraft.data;
@@ -7471,7 +7463,6 @@ function initCarouselDragAndDrop() {
                     const [movedData] = dataArr.splice(draggedIdx, 1);
                     exArr.splice(newIdx, 0, movedEx);
                     dataArr.splice(newIdx, 0, movedData);
-
                     if (activeDraft.ui_state?.openNotes) {
                         activeDraft.ui_state.openNotes = activeDraft.ui_state.openNotes.map(idx => {
                             if (idx === draggedIdx) return newIdx;
@@ -7480,11 +7471,13 @@ function initCarouselDragAndDrop() {
                             return idx;
                         });
                     }
-
                     carouselCurrentIndex = newIdx;
                     await persistActiveWorkout();
                     renderCarousel();
                     setTimeout(() => carouselGoTo(newIdx), 50);
+                } else {
+                    renderCarouselNav();
+                    if (carouselFocusModeActive) renderFocusNav();
                 }
             }
         });
@@ -7957,26 +7950,71 @@ function initFocusSwipe() {
 }
 
 function initFocusDragAndDrop() {
-    // Återanvänder samma logik som carousel-vyn om den finns tillgänglig
-    if (typeof initCarouselDragAndDrop === 'function') {
-        const navBar = document.getElementById('focus-nav-bar-inner');
-        if (navBar && typeof Draggable !== 'undefined') {
-            // Drag-and-drop kan kopplas på samma sätt som carousel-nav-bar vid behov
-        }
-    }
-}
+    const navBar = document.getElementById('focus-nav-bar-inner');
+    if (!navBar || typeof Draggable === 'undefined') return;
+    const thumbs = Array.from(navBar.querySelectorAll('.carousel-ex-thumb'));
+    if (thumbs.length === 0) return;
 
-document.addEventListener('click', function(e) {
-    if (localStorage.getItem('workoutLayoutMode') !== 'focus') return;
-    if (!activeDraft || typeof carouselCurrentIndex === 'undefined') return;
-    const i = carouselCurrentIndex;
-    if (!activeDraft.ui_state?.openNotes?.includes(i)) return;
-    const ta = document.getElementById('note-input-' + i);
-    if (!ta) return;
-    if (ta.contains(e.target)) return;
-    if (e.target.closest(`[onclick*="focusToggleNote(${i})"]`)) return;
-    focusToggleNote(i);
-});
+    thumbs.forEach((thumb) => {
+        const handle = thumb.querySelector('.carousel-drag-handle');
+        if (!handle) return;
+        handle.style.touchAction = 'none';
+        let currentOrder = [...thumbs];
+        const thumbWidth = () => thumb.offsetWidth + 7;
+
+        Draggable.create(thumb, {
+            type: 'x',
+            trigger: handle,
+            zIndexBoost: false,
+            lockAxis: true,
+            onDragStart: function () {
+                currentOrder = Array.from(navBar.querySelectorAll('.carousel-ex-thumb'));
+                gsap.to(thumb, { scale: 1.05, boxShadow: '0 8px 20px rgba(0,0,0,0.5)', duration: 0.2 });
+                gsap.set(thumb, { zIndex: 100 });
+            },
+            onDrag: function () {
+                const draggedIdx = currentOrder.indexOf(thumb);
+                const movedSteps = Math.round(this.x / thumbWidth());
+                currentOrder.forEach((other, otherIdx) => {
+                    if (other === thumb) return;
+                    const diff = otherIdx - draggedIdx;
+                    if (movedSteps > 0 && diff > 0 && diff <= movedSteps) {
+                        gsap.to(other, { x: -thumbWidth(), duration: 0.2, ease: 'power2.out' });
+                    } else if (movedSteps < 0 && diff < 0 && diff >= movedSteps) {
+                        gsap.to(other, { x: thumbWidth(), duration: 0.2, ease: 'power2.out' });
+                    } else {
+                        gsap.to(other, { x: 0, duration: 0.2, ease: 'power2.out' });
+                    }
+                });
+            },
+            onDragEnd: async function () {
+                const draggedIdx = currentOrder.indexOf(thumb);
+                const movedSteps = Math.round(this.x / thumbWidth());
+                const newIdx = Math.max(0, Math.min(currentOrder.length - 1, draggedIdx + movedSteps));
+                gsap.killTweensOf(thumb);
+                currentOrder.forEach(t => {
+                    gsap.killTweensOf(t);
+                    gsap.set(t, { clearProps: 'transform,zIndex,scale,boxShadow' });
+                });
+                if (newIdx !== draggedIdx) {
+                    const exArr = activeDraft.workout.exercises;
+                    const dataArr = activeDraft.data;
+                    const [movedEx] = exArr.splice(draggedIdx, 1);
+                    const [movedData] = dataArr.splice(draggedIdx, 1);
+                    exArr.splice(newIdx, 0, movedEx);
+                    dataArr.splice(newIdx, 0, movedData);
+                    carouselCurrentIndex = newIdx;
+                    await persistActiveWorkout();
+                    renderFocusNav();
+                    renderFocusCard();
+                    updateFocusProgress();
+                } else {
+                    renderFocusNav();
+                }
+            }
+        });
+    });
+}
 
 let focusTextScaleStep = parseInt(localStorage.getItem('focusTextScaleStep') || '0');
 
