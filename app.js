@@ -7971,11 +7971,12 @@ function initFocusSwipe() {
 }
 
 function initFocusDragAndDrop() {
-    const navBar = document.getElementById('focus-nav-bar-inner');
+    // ÄNDRING: Vi lyssnar på din riktiga nav-bar eftersom Focus-vyn återanvänder Carousel-naven!
+    const navBar = document.getElementById('carousel-nav-bar-inner');
     if (!navBar || typeof Draggable === 'undefined') return;
     
-    // Vi letar efter alla element som har ett ID som börjar med focus-thumb-
-    const thumbs = Array.from(navBar.querySelectorAll('[id^="focus-thumb-"]'));
+    // Vi hittar tummarna som renderats i nav-baren
+    const thumbs = Array.from(navBar.querySelectorAll('.carousel-ex-thumb'));
     if (thumbs.length === 0) return;
 
     thumbs.forEach((thumb) => {
@@ -7991,9 +7992,24 @@ function initFocusDragAndDrop() {
             trigger: handle,
             zIndexBoost: false,
             lockAxis: true,
-            // Vi hanterar INTE klicket här i Draggable längre för att undvika buggar
+            dragClickables: false, // Tillåter klick
+            onClick: function () {
+                // HÄR LÖSER VI DET:
+                // Vi tar reda på vilket index som klickades på
+                const idParts = thumb.id.split('-');
+                const idx = parseInt(idParts[idParts.length - 1]);
+                
+                if (!isNaN(idx)) {
+                    // Om Focus-vyn är aktiv kör vi focusGoTo, annars kör vi vanliga carouselGoTo!
+                    if (carouselFocusModeActive) {
+                        focusGoTo(idx);
+                    } else {
+                        carouselGoTo(idx);
+                    }
+                }
+            },
             onDragStart: function () {
-                currentOrder = Array.from(navBar.querySelectorAll('[id^="focus-thumb-"]'));
+                currentOrder = Array.from(navBar.querySelectorAll('.carousel-ex-thumb'));
                 gsap.to(thumb, { scale: 1.05, boxShadow: '0 8px 20px rgba(0,0,0,0.5)', duration: 0.2 });
                 gsap.set(thumb, { zIndex: 100 });
             },
@@ -8042,8 +8058,27 @@ function initFocusDragAndDrop() {
 
                     carouselCurrentIndex = newIdx;
                     await persistActiveWorkout();
-                    renderFocus(); 
-                    setTimeout(() => focusGoTo(newIdx), 50);
+                    
+                    // Om vi är i focus-läge renderar vi om focus, annars vanliga carousel
+                    if (carouselFocusModeActive) {
+                        renderFocusCard();
+                        updateFocusProgress();
+                        // Uppdaterar det aktiva utseendet i naven
+                        const prevActive = document.querySelector('#carousel-nav-bar-inner .carousel-ex-thumb.active');
+                        if (prevActive) prevActive.classList.remove('active');
+                        const newActive = document.getElementById(`carousel-thumb-${newIdx}`);
+                        if (newActive) newActive.classList.add('active');
+                    } else {
+                        renderCarousel();
+                    }
+                    
+                    setTimeout(() => {
+                        if (carouselFocusModeActive) {
+                            focusGoTo(newIdx);
+                        } else {
+                            carouselGoTo(newIdx);
+                        }
+                    }, 50);
                 }
             }
         });
