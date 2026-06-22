@@ -7491,9 +7491,12 @@ function initCarouselDragAndDrop() {
                     carouselCurrentIndex = newIdx;
                     await persistActiveWorkout();
                     renderCarousel();
-                    setTimeout(() => carouselGoTo(newIdx), 50);
+                    // Scrolla bara aktiv thumb på plats, ingen slide-animation
+                    setTimeout(() => {
+                        const active = document.getElementById(`carousel-thumb-${newIdx}`);
+                        if (active) active.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+                    }, 50);
                 } else {
-                    // Ingen flytt skedde — uppdatera bara nav-baren utan slide-animation
                     renderCarouselNav();
                 }
             }
@@ -8025,6 +8028,10 @@ function initFocusDragAndDrop() {
                     renderFocusNav();
                     renderFocusCard();
                     updateFocusProgress();
+                    setTimeout(() => {
+                        const active = document.getElementById(`focus-thumb-${newIdx}`);
+                        if (active) active.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+                    }, 50);
                 } else {
                     renderFocusNav();
                 }
