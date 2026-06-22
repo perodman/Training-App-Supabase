@@ -7171,9 +7171,9 @@ async function carouselConfirmSet(exIdx, setIdx) {
     const isLastSet = setIdx === activeDraft.data[exIdx].sets_data.length - 1;
     stopRestTimer();
     carouselStopRest();
-    console.log('isNowConfirmed:', isNowConfirmed, 'isLastSet:', isLastSet, 'restTimerDisabled:', activeDraft.restTimerDisabled);
-console.log('DEBUG:', isNowConfirmed, isLastSet, activeDraft.restTimerDisabled);
+    console.log('villkor:', isNowConfirmed, isLastSet, activeDraft.restTimerDisabled, restVal);
     if (isNowConfirmed && !isLastSet && !activeDraft.restTimerDisabled) {
+        console.log('startar timer');
         carouselStartRest(restVal);
     }
     await persistActiveWorkout();
@@ -7188,24 +7188,6 @@ console.log('DEBUG:', isNowConfirmed, isLastSet, activeDraft.restTimerDisabled);
         });
         updateWorkoutProgress(totalWorkoutCompletedSets, totalWorkoutSets);
     }
-    renderCarouselCard();
-}
-
-    await persistActiveWorkout();
-
-    // NYHET: Uppdatera den globala mätaren i headern även när man klickar i enskilda set i karusellen
-    if (typeof updateWorkoutProgress === 'function' && activeDraft.data) {
-        let totalWorkoutCompletedSets = 0;
-        let totalWorkoutSets = 0;
-        activeDraft.data.forEach(exerciseData => {
-            if (exerciseData && exerciseData.sets_data) {
-                totalWorkoutSets += exerciseData.sets_data.length;
-                totalWorkoutCompletedSets += exerciseData.sets_data.filter(s => s.userConfirmed).length;
-            }
-        });
-        updateWorkoutProgress(totalWorkoutCompletedSets, totalWorkoutSets);
-    }
-
     renderCarouselCard();
 }
 
