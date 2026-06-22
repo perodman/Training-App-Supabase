@@ -7152,16 +7152,42 @@ async function carouselConfirmSet(exIdx, setIdx) {
     const isNowConfirmed = activeDraft.data[exIdx].sets_data[setIdx].userConfirmed;
     const isLastSet = setIdx === activeDraft.data[exIdx].sets_data.length - 1;
 
-   if (isNowConfirmed && !isLastSet) {
-        stopRestTimer();
-        carouselStopRest();
-        if (!activeDraft.restTimerDisabled) {
-            carouselStartRest(restVal);
+async function carouselConfirmSet(exIdx, setIdx) {
+    const allInputs = document.querySelectorAll(`[id^="w-${exIdx}-"], [id^="r-${exIdx}-"], [id^="v-${exIdx}-"]`);
+    allInputs.forEach(inp => {
+        const parts = inp.id.split('-');
+        const sIdx2 = parseInt(parts[parts.length - 1]);
+        const type = parts[0];
+        if (!isNaN(sIdx2) && activeDraft.data[exIdx]?.sets_data?.[sIdx2]) {
+            if (type === 'w') activeDraft.data[exIdx].sets_data[sIdx2].weight = inp.value;
+            if (type === 'r') activeDraft.data[exIdx].sets_data[sIdx2].reps = inp.value;
+            if (type === 'v') activeDraft.data[exIdx].sets_data[sIdx2].rest = inp.value;
         }
-    } else {
-        stopRestTimer();
-        carouselStopRest();
+    });
+    const restVal = parseInt(activeDraft.data[exIdx].sets_data[setIdx].rest) || 120;
+    const currentState = activeDraft.data[exIdx].sets_data[setIdx].userConfirmed;
+    activeDraft.data[exIdx].sets_data[setIdx].userConfirmed = !currentState;
+    const isNowConfirmed = activeDraft.data[exIdx].sets_data[setIdx].userConfirmed;
+    const isLastSet = setIdx === activeDraft.data[exIdx].sets_data.length - 1;
+    stopRestTimer();
+    carouselStopRest();
+    if (isNowConfirmed && !isLastSet && !activeDraft.restTimerDisabled) {
+        carouselStartRest(restVal);
     }
+    await persistActiveWorkout();
+    if (typeof updateWorkoutProgress === 'function' && activeDraft.data) {
+        let totalWorkoutCompletedSets = 0;
+        let totalWorkoutSets = 0;
+        activeDraft.data.forEach(exerciseData => {
+            if (exerciseData && exerciseData.sets_data) {
+                totalWorkoutSets += exerciseData.sets_data.length;
+                totalWorkoutCompletedSets += exerciseData.sets_data.filter(s => s.userConfirmed).length;
+            }
+        });
+        updateWorkoutProgress(totalWorkoutCompletedSets, totalWorkoutSets);
+    }
+    renderCarouselCard();
+}
 
     await persistActiveWorkout();
 
