@@ -7152,16 +7152,13 @@ async function carouselConfirmSet(exIdx, setIdx) {
     const isNowConfirmed = activeDraft.data[exIdx].sets_data[setIdx].userConfirmed;
     const isLastSet = setIdx === activeDraft.data[exIdx].sets_data.length - 1;
 
-    if (isNowConfirmed && !isLastSet) {
+   if (isNowConfirmed && !isLastSet) {
         stopRestTimer();
         carouselStopRest();
         if (!activeDraft.restTimerDisabled) {
             carouselStartRest(restVal);
         }
     } else {
-        stopRestTimer();
-        carouselStopRest();
-    } else if (!isNowConfirmed) {
         stopRestTimer();
         carouselStopRest();
     }
