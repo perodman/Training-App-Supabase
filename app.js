@@ -6671,6 +6671,14 @@ let carouselCurrentIndex = 0;
 let carouselRestActive = false;
 let carouselRestSeconds = 0;
 let carouselRestInterval = null;
+setInterval(() => {
+    const durationTextEl = document.getElementById("workout-duration-text");
+    if (durationTextEl && activeDraft?.isStarted && activeDraft?.startTime) {
+        const diffInMs = new Date() - new Date(activeDraft.startTime);
+        const diffInMinutes = Math.max(0, Math.floor(diffInMs / 1000 / 60));
+        durationTextEl.textContent = `${diffInMinutes} min`;
+    }
+}, 60000);
 
 function setWorkoutLayout(mode) {
     flushFocusedInputs();
@@ -7080,10 +7088,10 @@ let setsHtml = `<div style="margin-top:4px;">
                     </div>
                 </div>
 
-                <div style="display:flex; gap:5px; align-items:center;">
-                    <button onclick="carouselRestAdjust(-15)" style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:8px;padding:5px 8px;font-size:10px;color:#f59e0b;cursor:pointer;" ${isTimerDisabled ? 'disabled style="opacity:0.2;"' : ''}>−15s</button>
-                    <button onclick="carouselRestAdjust(30)" style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:8px;padding:5px 8px;font-size:10px;color:#f59e0b;cursor:pointer;" ${isTimerDisabled ? 'disabled style="opacity:0.2;"' : ''}>+30s</button>
-                    <button onclick="carouselRestStart()" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);border-radius:8px;padding:5px 8px;font-size:10px;font-weight:700;color:#22c55e;cursor:pointer;" ${isTimerDisabled ? 'disabled style="opacity:0.2;"' : ''}>${isCounting ? 'Restart' : 'Start'}</button>
+               <div style="display:flex; gap:4px; align-items:center;">
+                    <button onclick="carouselRestAdjust(-15)" style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:8px;padding:4px 6px;font-size:9px;color:#f59e0b;cursor:pointer;white-space:nowrap;" ${isTimerDisabled ? 'disabled' : ''}>−15s</button>
+                    <button onclick="carouselRestAdjust(30)" style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:8px;padding:4px 6px;font-size:9px;color:#f59e0b;cursor:pointer;white-space:nowrap;" ${isTimerDisabled ? 'disabled' : ''}>+30s</button>
+                    <button onclick="carouselRestStart()" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);border-radius:8px;padding:4px 6px;font-size:9px;font-weight:700;color:#22c55e;cursor:pointer;white-space:nowrap;" ${isTimerDisabled ? 'disabled' : ''}>${isCounting ? 'Restart' : 'Start'}</button>
                 </div>
             </div>
         </div>
@@ -7476,6 +7484,7 @@ function initCarouselDragAndDrop() {
                     carouselCurrentIndex = newIdx;
                     await persistActiveWorkout();
                     renderCarousel();
+                    setTimeout(() => carouselGoTo(newIdx), 50);
                 }
             }
         });
@@ -7756,10 +7765,10 @@ function renderFocusCard() {
                             style="padding:0 10px; height:100%; font-size:10px; font-weight:700; cursor:pointer; border:none; transition:all 0.15s; background:${isTimerDisabled ? 'rgba(245,158,11,0.25)' : 'transparent'}; color:${isTimerDisabled ? '#f59e0b' : 'rgba(255,255,255,0.2)'};">Off</button>
                     </div>
                 </div>
-                <div style="display:flex; gap:5px; align-items:center;">
-                    <button onclick="carouselRestAdjust(-15)" style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:8px;padding:5px 8px;font-size:10px;color:#f59e0b;cursor:pointer;" ${isTimerDisabled ? 'disabled style="opacity:0.2;"' : ''}>−15s</button>
-                    <button onclick="carouselRestAdjust(30)" style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:8px;padding:5px 8px;font-size:10px;color:#f59e0b;cursor:pointer;" ${isTimerDisabled ? 'disabled style="opacity:0.2;"' : ''}>+30s</button>
-                    <button onclick="carouselRestStart()" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);border-radius:8px;padding:5px 8px;font-size:10px;font-weight:700;color:#22c55e;cursor:pointer;" ${isTimerDisabled ? 'disabled style="opacity:0.2;"' : ''}>${isCounting ? 'Restart' : 'Start'}</button>
+                <div style="display:flex; gap:4px; align-items:center;">
+                    <button onclick="carouselRestAdjust(-15)" style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:8px;padding:4px 6px;font-size:9px;color:#f59e0b;cursor:pointer;white-space:nowrap;" ${isTimerDisabled ? 'disabled' : ''}>−15s</button>
+                    <button onclick="carouselRestAdjust(30)" style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:8px;padding:4px 6px;font-size:9px;color:#f59e0b;cursor:pointer;white-space:nowrap;" ${isTimerDisabled ? 'disabled' : ''}>+30s</button>
+                    <button onclick="carouselRestStart()" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);border-radius:8px;padding:4px 6px;font-size:9px;font-weight:700;color:#22c55e;cursor:pointer;white-space:nowrap;" ${isTimerDisabled ? 'disabled' : ''}>${isCounting ? 'Restart' : 'Start'}</button>
                 </div>
             </div>
         </div>
