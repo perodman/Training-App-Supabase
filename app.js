@@ -7270,24 +7270,6 @@ function carouselStartRest(seconds) {
             renderCarouselCard();
         }
     }, 1000);
-
-    // 2. SYNCHRONIZATION: Starta även list-vyns bakgrunds-loop så den tickar parallellt
-    if (typeof restTimerInterval !== 'undefined' || true) {
-        restTimerInterval = setInterval(() => {
-            // Om användaren har hunnit växla över till list-vyn, låt den sköta renderingen där
-            if (typeof workoutLayoutMode !== 'undefined' && workoutLayoutMode === 'list') {
-                restTimerSeconds--;
-                if (restTimerSeconds <= 0) {
-                    clearInterval(restTimerInterval);
-                    clearInterval(carouselRestInterval);
-                    restTimerActive = false;
-                    carouselRestActive = false;
-                    if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-                }
-                renderRestTimer();
-            }
-        }, 1000);
-    }
 }
 
 function carouselStopRest() {
