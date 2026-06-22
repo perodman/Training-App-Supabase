@@ -6870,8 +6870,11 @@ function renderCarousel() {
     renderCarouselNav();
     renderCarouselDots();
     renderCarouselCard();
-    initCarouselSwipe();
+initCarouselSwipe();
     initCarouselDragAndDrop();
+    const ft = document.getElementById('carousel-focus-toggle');
+    if (ft) ft.style.display = 'flex';
+    carouselFocusModeActive = false;
 
     if (typeof updateWorkoutProgress === 'function' && activeDraft.data) {
         let totalWorkoutCompletedSets = 0;
