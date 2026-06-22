@@ -6937,6 +6937,20 @@ function renderCarouselNav() {
         if (active) active.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
     }, 50);
 
+    const existingArrow = document.getElementById('carousel-nav-right-arrow');
+    if (!existingArrow) {
+        const arrow = document.createElement('div');
+        arrow.id = 'carousel-nav-right-arrow';
+        arrow.onclick = () => {
+            navBar.scrollTo({ left: navBar.scrollWidth, behavior: 'smooth' });
+        };
+        arrow.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>`;
+        arrow.style.cssText = `position:absolute; right:0; top:0; bottom:0; width:28px; display:flex; align-items:center; justify-content:center; background:linear-gradient(to right, transparent, rgba(10,16,24,0.95)); cursor:pointer; z-index:10; pointer-events:auto;`;
+        navBar.style.position = 'relative';
+        navBar.parentElement.style.position = 'relative';
+        navBar.parentElement.appendChild(arrow);
+    }
+
     initCarouselDragAndDrop();
 }
 
