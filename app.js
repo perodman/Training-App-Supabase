@@ -6910,6 +6910,8 @@ initCarouselSwipe();
     }, 50);
 }
 
+let carouselNavDragInProgress = false;
+
 function renderCarouselNav() {
     const navBar = document.getElementById('carousel-nav-bar-inner');
     if (!navBar || !activeDraft) return;
@@ -7344,12 +7346,12 @@ async function carouselToggleDone(exIdx) {
 
 function carouselGoTo(i) {
     if (i === carouselCurrentIndex) return;
+    if (carouselNavDragInProgress) return;
     const dir = i > carouselCurrentIndex ? 1 : -1;
 
     carouselStopRest();
     stopRestTimer();
 
-    // Animera rätt kort beroende på om focus-läget är aktivt
     const card = carouselFocusModeActive
         ? document.getElementById('focus-ex-card')
         : document.getElementById('carousel-ex-card');
@@ -7453,6 +7455,7 @@ function initCarouselDragAndDrop() {
             zIndexBoost: false,
             lockAxis: true,
             onDragStart: function () {
+                carouselNavDragInProgress = true;
                 gsap.to(thumb, { scale: 1.05, boxShadow: '0 8px 20px rgba(0,0,0,0.5)', duration: 0.2 });
                 gsap.set(thumb, { zIndex: 100 });
             },
@@ -7484,12 +7487,15 @@ function initCarouselDragAndDrop() {
                     gsap.set(t, { clearProps: 'transform,zIndex,scale,boxShadow' });
                 });
 
+                // Nollställ drag-flaggan efter en kort fördröjning
+                // så att onclick-händelsen hinner avbrytas av flaggan
+                setTimeout(() => { carouselNavDragInProgress = false; }, 300);
+
                 if (newIdx === draggedIdx) {
                     renderCarouselNav();
                     return;
                 }
 
-                // Spara NAMNET på den övning som visas just nu
                 const currentlyViewedName = activeDraft.workout.exercises[carouselCurrentIndex]?.name;
 
                 const exArr = activeDraft.workout.exercises;
@@ -7499,7 +7505,15 @@ function initCarouselDragAndDrop() {
                 exArr.splice(newIdx, 0, movedEx);
                 dataArr.splice(newIdx, 0, movedData);
 
-                // Hitta indexet för den visade övningen via namn — aldrig via räkning
+                if (activeDraft.ui_state?.openNotes) {
+                    activeDraft.ui_state.openNotes = activeDraft.ui_state.openNotes.map(idx => {
+                        if (idx === draggedIdx) return newIdx;
+                        if (draggedIdx < newIdx && idx > draggedIdx && idx <= newIdx) return idx - 1;
+                        if (draggedIdx > newIdx && idx < draggedIdx && idx >= newIdx) return idx + 1;
+                        return idx;
+                    });
+                }
+
                 const newViewedIdx = exArr.findIndex(ex => ex.name === currentlyViewedName);
                 carouselCurrentIndex = newViewedIdx !== -1 ? newViewedIdx : carouselCurrentIndex;
 
@@ -7508,10 +7522,14 @@ function initCarouselDragAndDrop() {
 
                 await persistActiveWorkout();
 
-                // Rendera direkt utan carouselGoTo — ingen slide-animation
+                // Göm nav-baren under omritningen för att undvika blinkning
+                navBar.style.visibility = 'hidden';
                 renderCarouselNav();
                 renderCarouselDots();
                 renderCarouselCard();
+                requestAnimationFrame(() => {
+                    navBar.style.visibility = 'visible';
+                });
 
                 setTimeout(() => {
                     const active = document.getElementById(`carousel-thumb-${carouselCurrentIndex}`);
@@ -7926,6 +7944,7 @@ async function focusToggleDone(exIdx) {
 
 function focusGoTo(i) {
     if (i === carouselCurrentIndex || i < 0 || i >= activeDraft.workout.exercises.length) return;
+    if (carouselNavDragInProgress) return;
     const card = document.getElementById('focus-ex-card');
     if (!card) return;
     const dir = i > carouselCurrentIndex ? 1 : -1;
@@ -8010,6 +8029,7 @@ function initFocusDragAndDrop() {
             zIndexBoost: false,
             lockAxis: true,
             onDragStart: function () {
+                carouselNavDragInProgress = true;
                 gsap.to(thumb, { scale: 1.05, boxShadow: '0 8px 20px rgba(0,0,0,0.5)', duration: 0.2 });
                 gsap.set(thumb, { zIndex: 100 });
             },
@@ -8041,6 +8061,8 @@ function initFocusDragAndDrop() {
                     gsap.set(t, { clearProps: 'transform,zIndex,scale,boxShadow' });
                 });
 
+                setTimeout(() => { carouselNavDragInProgress = false; }, 300);
+
                 if (newIdx === draggedIdx) {
                     renderFocusNav();
                     return;
@@ -8063,9 +8085,13 @@ function initFocusDragAndDrop() {
 
                 await persistActiveWorkout();
 
+                navBar.style.visibility = 'hidden';
                 renderFocusNav();
                 renderFocusCard();
                 updateFocusProgress();
+                requestAnimationFrame(() => {
+                    navBar.style.visibility = 'visible';
+                });
 
                 setTimeout(() => {
                     const active = document.getElementById(`focus-thumb-${carouselCurrentIndex}`);
