@@ -7080,7 +7080,7 @@ let setsHtml = `<div style="margin-top:4px;">
                             style="padding:0 10px; height:100%; font-size:10px; font-weight:700; cursor:pointer; border:none; transition:all 0.15s; 
                             background:${!isTimerDisabled ? 'rgba(245,158,11,0.25)' : 'transparent'}; 
                             color:${!isTimerDisabled ? '#f59e0b' : 'rgba(255,255,255,0.2)'};">On</button>
-                        <button onclick="clearInterval(restTimerInterval); restTimerActive=false; restTimerSeconds=0; restTimerExIdx=null; activeDraft.restTimerDisabled=true; persistActiveWorkout(); renderCarouselCard(); renderRestTimer();"
+                        <button onclick="clearInterval(restTimerInterval); clearInterval(carouselRestInterval); restTimerActive=false; carouselRestActive=false; restTimerSeconds=0; carouselRestSeconds=0; restTimerExIdx=null; activeDraft.restTimerDisabled=true; persistActiveWorkout(); renderCarouselCard(); renderRestTimer();"
                             style="padding:0 10px; height:100%; font-size:10px; font-weight:700; cursor:pointer; border:none; transition:all 0.15s; 
                             background:${isTimerDisabled ? 'rgba(245,158,11,0.25)' : 'transparent'}; 
                             color:${isTimerDisabled ? '#f59e0b' : 'rgba(255,255,255,0.2)'};">Off</button>
@@ -7183,6 +7183,7 @@ async function carouselConfirmSet(exIdx, setIdx) {
 }
 
 function carouselStartRest(seconds) {
+    if (activeDraft && activeDraft.restTimerDisabled) return; 
     clearInterval(carouselRestInterval);
     
     // SÄKERSTÄLL: Rensa även list-vyns gamla intervall om det fanns något
@@ -7838,9 +7839,10 @@ async function focusConfirmSet(exIdx, setIdx) {
     activeDraft.data[exIdx].sets_data[setIdx].userConfirmed = !currentState;
     const isNowConfirmed = activeDraft.data[exIdx].sets_data[setIdx].userConfirmed;
     const isLastSet = setIdx === activeDraft.data[exIdx].sets_data.length - 1;
-    if (isNowConfirmed && !isLastSet) {
+        if (isNowConfirmed && !isLastSet) {
         stopRestTimer();
-        startRestTimer(restVal, exIdx);
+        carouselStopRest();
+        carouselStartRest(restVal);
     } else {
         stopRestTimer();
     }
