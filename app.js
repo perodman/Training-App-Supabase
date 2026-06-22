@@ -6946,9 +6946,13 @@ function renderCarouselNav() {
         };
        arrow.innerHTML = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>`;
        arrow.style.cssText = `position:absolute; right:0; top:0; height:100%; width:36px; display:flex; align-items:center; justify-content:center; background:linear-gradient(to right, transparent, #0a1018 80%); cursor:pointer; z-index:10; pointer-events:auto;`;
-        const navWrapper = navBar.parentElement;
-        navWrapper.style.position = 'relative';
-        navWrapper.appendChild(arrow);
+navBar.style.position = 'relative';
+        navBar.style.overflow = 'visible';
+        navBar.appendChild(arrow);
+        arrow.style.position = 'sticky';
+        arrow.style.right = '0';
+        arrow.style.marginLeft = 'auto';
+        arrow.style.flexShrink = '0';
     }
 
     initCarouselDragAndDrop();
