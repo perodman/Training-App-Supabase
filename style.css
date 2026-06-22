@@ -1295,11 +1295,12 @@ body:has(.bottom-bar.hidden) { padding-bottom: 0; }
 .carousel-nav-bar {
     display: flex;
     gap: 7px;
-    padding: 0 0 10px;
+    padding: 0 15px 10px;
     overflow-x: auto;
     scrollbar-width: none;
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
+    box-sizing: border-box;
 }
 .carousel-nav-bar::-webkit-scrollbar { display: none; }
 
@@ -1339,7 +1340,7 @@ body:has(.bottom-bar.hidden) { padding-bottom: 0; }
 .carousel-ex-thumb.done .carousel-ex-thumb-name { color: #22c55e; }
 
 .carousel-card-area {
-    padding: 0 15px 8px;
+    padding: 0 0 8px;
     touch-action: pan-y;
 }
    .carousel-ex-card {
