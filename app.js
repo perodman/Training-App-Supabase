@@ -6920,8 +6920,7 @@ function renderCarouselNav() {
         const isDone = data[i]?.isCompleted;
         const isActive = i === carouselCurrentIndex;
         const svg = getExSVG(ex.target, 'small');
-        // ÄNDRING: onclick="carouselGoTo(${i})" är borttaget från rot-diven nedan
-        return `<div class="carousel-ex-thumb${isDone ? ' done' : isActive ? ' active' : ''}" id="carousel-thumb-${i}">
+        return `<div class="carousel-ex-thumb${isDone ? ' done' : isActive ? ' active' : ''}" id="carousel-thumb-${i}" onclick="carouselGoTo(${i})">
             <div class="carousel-drag-handle" style="font-size:14px; color:rgba(255,255,255,0.35); cursor:grab; line-height:1; margin-bottom:3px; padding:2px 8px; width:100%; text-align:center;" title="Drag to reorder">⠿</div>
             <div style="opacity:${isActive ? 1 : 0.5}">${svg}</div>
             <div class="carousel-ex-thumb-name">${ex.name}</div>
@@ -7433,15 +7432,6 @@ function initCarouselDragAndDrop() {
             trigger: handle,
             zIndexBoost: false,
             lockAxis: true,
-            dragClickables: false, // ÄNDRING: Tillåter vanliga klick att registreras på kortet
-            onClick: function () {
-                // ÄNDRING: Hanterar klicket här istället för via inline-HTML
-                const idParts = thumb.id.split('-');
-                const idx = parseInt(idParts[idParts.length - 1]);
-                if (!isNaN(idx)) {
-                    carouselGoTo(idx);
-                }
-            },
             onDragStart: function () {
                 currentOrder = Array.from(navBar.querySelectorAll('.carousel-ex-thumb'));
                 gsap.to(thumb, { scale: 1.05, boxShadow: '0 8px 20px rgba(0,0,0,0.5)', duration: 0.2 });
@@ -7653,7 +7643,8 @@ function renderFocusNav() {
         const isDone = data[i]?.isCompleted;
         const isActive = i === carouselCurrentIndex;
         const svg = getExSVG(ex.target, 'small');
-        return `<div class="carousel-ex-thumb${isDone ? ' done' : isActive ? ' active' : ''}" id="focus-thumb-${i}" onclick="focusGoTo(${i})">
+        // ÄNDRING: onclick="focusGoTo(${i})" är borttaget från rot-diven nedan
+        return `<div class="carousel-ex-thumb${isDone ? ' done' : isActive ? ' active' : ''}" id="focus-thumb-${i}">
             <div class="carousel-drag-handle" style="font-size:14px; color:rgba(255,255,255,0.35); cursor:grab; line-height:1; margin-bottom:3px; padding:2px 8px; width:100%; text-align:center;" title="Drag to reorder">⠿</div>
             <div style="opacity:${isActive ? 1 : 0.5}">${svg}</div>
             <div class="carousel-ex-thumb-name">${ex.name}</div>
@@ -7965,26 +7956,90 @@ function initFocusSwipe() {
 }
 
 function initFocusDragAndDrop() {
-    // Återanvänder samma logik som carousel-vyn om den finns tillgänglig
-    if (typeof initCarouselDragAndDrop === 'function') {
-        const navBar = document.getElementById('focus-nav-bar-inner');
-        if (navBar && typeof Draggable !== 'undefined') {
-            // Drag-and-drop kan kopplas på samma sätt som carousel-nav-bar vid behov
-        }
-    }
-}
+    const navBar = document.getElementById('focus-nav-bar-inner');
+    if (!navBar || typeof Draggable === 'undefined') return;
+    const thumbs = Array.from(navBar.querySelectorAll('.carousel-ex-thumb'));
+    if (thumbs.length === 0) return;
 
-document.addEventListener('click', function(e) {
-    if (localStorage.getItem('workoutLayoutMode') !== 'focus') return;
-    if (!activeDraft || typeof carouselCurrentIndex === 'undefined') return;
-    const i = carouselCurrentIndex;
-    if (!activeDraft.ui_state?.openNotes?.includes(i)) return;
-    const ta = document.getElementById('note-input-' + i);
-    if (!ta) return;
-    if (ta.contains(e.target)) return;
-    if (e.target.closest(`[onclick*="focusToggleNote(${i})"]`)) return;
-    focusToggleNote(i);
-});
+    thumbs.forEach((thumb) => {
+        const handle = thumb.querySelector('.carousel-drag-handle');
+        if (!handle) return;
+        handle.style.touchAction = 'none';
+
+        let currentOrder = [...thumbs];
+        const thumbWidth = () => thumb.offsetWidth + 7;
+
+        Draggable.create(thumb, {
+            type: 'x',
+            trigger: handle,
+            zIndexBoost: false,
+            lockAxis: true,
+            dragClickables: false, // Låter vanliga klick registreras på kortet
+            onClick: function () {
+                // Hanterar klicket här via GSAP istället för inline-HTML
+                const idParts = thumb.id.split('-');
+                const idx = parseInt(idParts[idParts.length - 1]);
+                if (!isNaN(idx)) {
+                    focusGoTo(idx); // Går till rätt övning i focus-vyn
+                }
+            },
+            onDragStart: function () {
+                currentOrder = Array.from(navBar.querySelectorAll('.carousel-ex-thumb'));
+                gsap.to(thumb, { scale: 1.05, boxShadow: '0 8px 20px rgba(0,0,0,0.5)', duration: 0.2 });
+                gsap.set(thumb, { zIndex: 100 });
+            },
+            onDrag: function () {
+                const draggedIdx = currentOrder.indexOf(thumb);
+                const movedSteps = Math.round(this.x / thumbWidth());
+                currentOrder.forEach((other, otherIdx) => {
+                    if (other === thumb) return;
+                    const diff = otherIdx - draggedIdx;
+                    if (movedSteps > 0 && diff > 0 && diff <= movedSteps) {
+                        gsap.to(other, { x: -thumbWidth(), duration: 0.2, ease: 'power2.out' });
+                    } else if (movedSteps < 0 && diff < 0 && diff >= movedSteps) {
+                        gsap.to(other, { x: thumbWidth(), duration: 0.2, ease: 'power2.out' });
+                    } else {
+                        gsap.to(other, { x: 0, duration: 0.2, ease: 'power2.out' });
+                    }
+                });
+            },
+            onDragEnd: async function () {
+                const draggedIdx = currentOrder.indexOf(thumb);
+                const movedSteps = Math.round(this.x / thumbWidth());
+                const newIdx = Math.max(0, Math.min(currentOrder.length - 1, draggedIdx + movedSteps));
+
+                gsap.killTweensOf(thumb);
+                currentOrder.forEach(t => {
+                    gsap.killTweensOf(t);
+                    gsap.set(t, { clearProps: 'transform,zIndex,scale,boxShadow' });
+                });
+
+                if (newIdx !== draggedIdx) {
+                    const exArr = activeDraft.workout.exercises;
+                    const dataArr = activeDraft.data;
+                    const [movedEx] = exArr.splice(draggedIdx, 1);
+                    const [movedData] = dataArr.splice(draggedIdx, 1);
+                    exArr.splice(newIdx, 0, movedEx);
+                    dataArr.splice(newIdx, 0, movedData);
+
+                    if (activeDraft.ui_state?.openNotes) {
+                        activeDraft.ui_state.openNotes = activeDraft.ui_state.openNotes.map(idx => {
+                            if (idx === draggedIdx) return newIdx;
+                            if (draggedIdx < newIdx && idx > draggedIdx && idx <= newIdx) return idx - 1;
+                            if (draggedIdx > newIdx && idx < draggedIdx && idx >= newIdx) return idx + 1;
+                            return idx;
+                        });
+                    }
+
+                    carouselCurrentIndex = newIdx;
+                    await persistActiveWorkout();
+                    renderFocus(); // Renderar om focus-vyn
+                    setTimeout(() => focusGoTo(newIdx), 50);
+                }
+            }
+        });
+    });
+}
 
 let focusTextScaleStep = parseInt(localStorage.getItem('focusTextScaleStep') || '0');
 
