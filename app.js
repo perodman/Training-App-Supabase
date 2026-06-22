@@ -7436,7 +7436,6 @@ function initCarouselDragAndDrop() {
     const thumbs = Array.from(navBar.querySelectorAll('.carousel-ex-thumb'));
     if (thumbs.length === 0) return;
 
-    // Döda alla gamla Draggable-instanser på dessa element innan nya skapas
     thumbs.forEach(t => {
         const existing = Draggable.get(t);
         if (existing) existing.kill();
@@ -7478,50 +7477,46 @@ function initCarouselDragAndDrop() {
                 const draggedIdx = currentOrder.indexOf(thumb);
                 const movedSteps = Math.round(this.x / thumbWidth());
                 const newIdx = Math.max(0, Math.min(currentOrder.length - 1, draggedIdx + movedSteps));
+
                 gsap.killTweensOf(thumb);
                 currentOrder.forEach(t => {
                     gsap.killTweensOf(t);
                     gsap.set(t, { clearProps: 'transform,zIndex,scale,boxShadow' });
                 });
-                if (newIdx !== draggedIdx) {
-                    const exArr = activeDraft.workout.exercises;
-                    const dataArr = activeDraft.data;
 
-                    const viewedExercise = exArr[carouselCurrentIndex];
-
-                    const [movedEx] = exArr.splice(draggedIdx, 1);
-                    const [movedData] = dataArr.splice(draggedIdx, 1);
-                    exArr.splice(newIdx, 0, movedEx);
-                    dataArr.splice(newIdx, 0, movedData);
-
-                    if (activeDraft.ui_state?.openNotes) {
-                        activeDraft.ui_state.openNotes = activeDraft.ui_state.openNotes.map(idx => {
-                            if (idx === draggedIdx) return newIdx;
-                            if (draggedIdx < newIdx && idx > draggedIdx && idx <= newIdx) return idx - 1;
-                            if (draggedIdx > newIdx && idx < draggedIdx && idx >= newIdx) return idx + 1;
-                            return idx;
-                        });
-                    }
-
-                    const newViewedIdx = exArr.indexOf(viewedExercise);
-                    carouselCurrentIndex = newViewedIdx !== -1 ? newViewedIdx : 0;
-
-                    if (!activeDraft.ui_state) activeDraft.ui_state = {};
-                    activeDraft.ui_state.currentExerciseIndex = carouselCurrentIndex;
-
-                    await persistActiveWorkout();
-
+                if (newIdx === draggedIdx) {
                     renderCarouselNav();
-                    renderCarouselDots();
-                    renderCarouselCard();
-
-                    setTimeout(() => {
-                        const active = document.getElementById(`carousel-thumb-${carouselCurrentIndex}`);
-                        if (active) active.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
-                    }, 50);
-                } else {
-                    renderCarouselNav();
+                    return;
                 }
+
+                // Spara NAMNET på den övning som visas just nu
+                const currentlyViewedName = activeDraft.workout.exercises[carouselCurrentIndex]?.name;
+
+                const exArr = activeDraft.workout.exercises;
+                const dataArr = activeDraft.data;
+                const [movedEx] = exArr.splice(draggedIdx, 1);
+                const [movedData] = dataArr.splice(draggedIdx, 1);
+                exArr.splice(newIdx, 0, movedEx);
+                dataArr.splice(newIdx, 0, movedData);
+
+                // Hitta indexet för den visade övningen via namn — aldrig via räkning
+                const newViewedIdx = exArr.findIndex(ex => ex.name === currentlyViewedName);
+                carouselCurrentIndex = newViewedIdx !== -1 ? newViewedIdx : carouselCurrentIndex;
+
+                if (!activeDraft.ui_state) activeDraft.ui_state = {};
+                activeDraft.ui_state.currentExerciseIndex = carouselCurrentIndex;
+
+                await persistActiveWorkout();
+
+                // Rendera direkt utan carouselGoTo — ingen slide-animation
+                renderCarouselNav();
+                renderCarouselDots();
+                renderCarouselCard();
+
+                setTimeout(() => {
+                    const active = document.getElementById(`carousel-thumb-${carouselCurrentIndex}`);
+                    if (active) active.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+                }, 50);
             }
         });
     });
@@ -7998,11 +7993,15 @@ function initFocusDragAndDrop() {
     const thumbs = Array.from(navBar.querySelectorAll('.carousel-ex-thumb'));
     if (thumbs.length === 0) return;
 
+    thumbs.forEach(t => {
+        const existing = Draggable.get(t);
+        if (existing) existing.kill();
+    });
+
     thumbs.forEach((thumb) => {
         const handle = thumb.querySelector('.carousel-drag-handle');
         if (!handle) return;
         handle.style.touchAction = 'none';
-        let currentOrder = [...thumbs];
         const thumbWidth = () => thumb.offsetWidth + 7;
 
         Draggable.create(thumb, {
@@ -8011,11 +8010,11 @@ function initFocusDragAndDrop() {
             zIndexBoost: false,
             lockAxis: true,
             onDragStart: function () {
-                currentOrder = Array.from(navBar.querySelectorAll('.carousel-ex-thumb'));
                 gsap.to(thumb, { scale: 1.05, boxShadow: '0 8px 20px rgba(0,0,0,0.5)', duration: 0.2 });
                 gsap.set(thumb, { zIndex: 100 });
             },
             onDrag: function () {
+                const currentOrder = Array.from(navBar.querySelectorAll('.carousel-ex-thumb'));
                 const draggedIdx = currentOrder.indexOf(thumb);
                 const movedSteps = Math.round(this.x / thumbWidth());
                 currentOrder.forEach((other, otherIdx) => {
@@ -8031,44 +8030,47 @@ function initFocusDragAndDrop() {
                 });
             },
             onDragEnd: async function () {
+                const currentOrder = Array.from(navBar.querySelectorAll('.carousel-ex-thumb'));
                 const draggedIdx = currentOrder.indexOf(thumb);
                 const movedSteps = Math.round(this.x / thumbWidth());
                 const newIdx = Math.max(0, Math.min(currentOrder.length - 1, draggedIdx + movedSteps));
+
                 gsap.killTweensOf(thumb);
                 currentOrder.forEach(t => {
                     gsap.killTweensOf(t);
                     gsap.set(t, { clearProps: 'transform,zIndex,scale,boxShadow' });
                 });
-                if (newIdx !== draggedIdx) {
-                    const exArr = activeDraft.workout.exercises;
-                    const dataArr = activeDraft.data;
 
-                    const viewedExercise = exArr[carouselCurrentIndex];
-
-                    const [movedEx] = exArr.splice(draggedIdx, 1);
-                    const [movedData] = dataArr.splice(draggedIdx, 1);
-                    exArr.splice(newIdx, 0, movedEx);
-                    dataArr.splice(newIdx, 0, movedData);
-
-                    const newViewedIdx = exArr.indexOf(viewedExercise);
-                    carouselCurrentIndex = newViewedIdx !== -1 ? newViewedIdx : 0;
-
-                    if (!activeDraft.ui_state) activeDraft.ui_state = {};
-                    activeDraft.ui_state.currentExerciseIndex = carouselCurrentIndex;
-
-                    await persistActiveWorkout();
-
+                if (newIdx === draggedIdx) {
                     renderFocusNav();
-                    renderFocusCard();
-                    updateFocusProgress();
-
-                    setTimeout(() => {
-                        const active = document.getElementById(`focus-thumb-${carouselCurrentIndex}`);
-                        if (active) active.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
-                    }, 50);
-                } else {
-                    renderFocusNav();
+                    return;
                 }
+
+                const currentlyViewedName = activeDraft.workout.exercises[carouselCurrentIndex]?.name;
+
+                const exArr = activeDraft.workout.exercises;
+                const dataArr = activeDraft.data;
+                const [movedEx] = exArr.splice(draggedIdx, 1);
+                const [movedData] = dataArr.splice(draggedIdx, 1);
+                exArr.splice(newIdx, 0, movedEx);
+                dataArr.splice(newIdx, 0, movedData);
+
+                const newViewedIdx = exArr.findIndex(ex => ex.name === currentlyViewedName);
+                carouselCurrentIndex = newViewedIdx !== -1 ? newViewedIdx : carouselCurrentIndex;
+
+                if (!activeDraft.ui_state) activeDraft.ui_state = {};
+                activeDraft.ui_state.currentExerciseIndex = carouselCurrentIndex;
+
+                await persistActiveWorkout();
+
+                renderFocusNav();
+                renderFocusCard();
+                updateFocusProgress();
+
+                setTimeout(() => {
+                    const active = document.getElementById(`focus-thumb-${carouselCurrentIndex}`);
+                    if (active) active.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+                }, 50);
             }
         });
     });
