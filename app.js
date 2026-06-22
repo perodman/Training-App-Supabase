@@ -6937,7 +6937,7 @@ function renderCarouselNav() {
         const active = document.getElementById(`carousel-thumb-${carouselCurrentIndex}`);
         if (active) active.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
     }, 50);
-    initCarouselDragAndDrop();
+    setTimeout(() => initCarouselDragAndDrop(), 0);
 }
 
 function renderCarouselDots() {
