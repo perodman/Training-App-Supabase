@@ -8051,4 +8051,5 @@ function toggleCarouselFocusMode() {
 
         renderCarouselCard();
     }
+    }
 }
