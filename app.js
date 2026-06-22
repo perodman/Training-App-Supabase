@@ -7984,13 +7984,15 @@ function toggleCarouselFocusMode() {
         if (header) { header.style.transition = 'opacity 0.4s ease, max-height 0.4s ease'; header.style.opacity = '0'; header.style.maxHeight = '0'; header.style.overflow = 'hidden'; }
         if (separator) { separator.style.transition = 'opacity 0.3s ease'; separator.style.opacity = '0'; }
         if (footer) { footer.style.transition = 'opacity 0.4s ease, max-height 0.4s ease'; footer.style.opacity = '0'; footer.style.maxHeight = '0'; footer.style.overflow = 'hidden'; }
-        if (arrow) { arrow.style.transform = 'rotate(180deg)'; }
-        if (toggle) { toggle.style.opacity = '0.6'; }
+       if (arrow) { arrow.style.transform = 'rotate(180deg)'; }
+        const label = document.getElementById('carousel-focus-label');
+        if (label) label.textContent = 'Exit focus';
     } else {
         if (header) { header.style.opacity = '1'; header.style.maxHeight = '500px'; }
         if (separator) { separator.style.opacity = '1'; }
         if (footer) { footer.style.opacity = '1'; footer.style.maxHeight = '500px'; }
-        if (arrow) { arrow.style.transform = 'rotate(0deg)'; }
-        if (toggle) { toggle.style.opacity = '0.4'; }
+       if (arrow) { arrow.style.transform = 'rotate(0deg)'; }
+        const label2 = document.getElementById('carousel-focus-label');
+        if (label2) label2.textContent = 'Focus view';
     }
 }
