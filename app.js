@@ -7639,22 +7639,37 @@ function renderFocusNav() {
     if (!navBar || !activeDraft) return;
     const exercises = activeDraft.workout.exercises;
     const data = activeDraft.data;
+
+    // Vi sätter data-index på korten istället för onclick
     navBar.innerHTML = exercises.map((ex, i) => {
         const isDone = data[i]?.isCompleted;
         const isActive = i === carouselCurrentIndex;
         const svg = getExSVG(ex.target, 'small');
-        // ÄNDRING: onclick="focusGoTo(${i})" är borttaget från rot-diven nedan
-        return `<div class="carousel-ex-thumb${isDone ? ' done' : isActive ? ' active' : ''}" id="focus-thumb-${i}">
+        return `<div class="carousel-ex-thumb${isDone ? ' done' : isActive ? ' active' : ''}" id="focus-thumb-${i}" data-idx="${i}">
             <div class="carousel-drag-handle" style="font-size:14px; color:rgba(255,255,255,0.35); cursor:grab; line-height:1; margin-bottom:3px; padding:2px 8px; width:100%; text-align:center;" title="Drag to reorder">⠿</div>
             <div style="opacity:${isActive ? 1 : 0.5}">${svg}</div>
             <div class="carousel-ex-thumb-name">${ex.name}</div>
             ${isDone ? `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>` : ''}
         </div>`;
     }).join('');
+
+    // ÄNDRING: En helt vanlig eventlistener som fångar upp klick på korten, men IGNORERAR klick på drag-handtaget!
+    navBar.onclick = function(e) {
+        if (e.target.closest('.carousel-drag-handle')) return; // Klicka inte om man drar i handtaget
+        const thumb = e.target.closest('[id^="focus-thumb-"]');
+        if (thumb) {
+            const idx = parseInt(thumb.getAttribute('data-idx'));
+            if (!isNaN(idx)) {
+                focusGoTo(idx);
+            }
+        }
+    };
+
     setTimeout(() => {
         const active = document.getElementById(`focus-thumb-${carouselCurrentIndex}`);
         if (active) active.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
     }, 50);
+    
     initFocusDragAndDrop();
 }
 
@@ -7958,7 +7973,9 @@ function initFocusSwipe() {
 function initFocusDragAndDrop() {
     const navBar = document.getElementById('focus-nav-bar-inner');
     if (!navBar || typeof Draggable === 'undefined') return;
-    const thumbs = Array.from(navBar.querySelectorAll('.carousel-ex-thumb'));
+    
+    // Vi letar efter alla element som har ett ID som börjar med focus-thumb-
+    const thumbs = Array.from(navBar.querySelectorAll('[id^="focus-thumb-"]'));
     if (thumbs.length === 0) return;
 
     thumbs.forEach((thumb) => {
@@ -7974,17 +7991,9 @@ function initFocusDragAndDrop() {
             trigger: handle,
             zIndexBoost: false,
             lockAxis: true,
-            dragClickables: false, // Låter vanliga klick registreras på kortet
-            onClick: function () {
-                // Hanterar klicket här via GSAP istället för inline-HTML
-                const idParts = thumb.id.split('-');
-                const idx = parseInt(idParts[idParts.length - 1]);
-                if (!isNaN(idx)) {
-                    focusGoTo(idx); // Går till rätt övning i focus-vyn
-                }
-            },
+            // Vi hanterar INTE klicket här i Draggable längre för att undvika buggar
             onDragStart: function () {
-                currentOrder = Array.from(navBar.querySelectorAll('.carousel-ex-thumb'));
+                currentOrder = Array.from(navBar.querySelectorAll('[id^="focus-thumb-"]'));
                 gsap.to(thumb, { scale: 1.05, boxShadow: '0 8px 20px rgba(0,0,0,0.5)', duration: 0.2 });
                 gsap.set(thumb, { zIndex: 100 });
             },
@@ -8033,7 +8042,7 @@ function initFocusDragAndDrop() {
 
                     carouselCurrentIndex = newIdx;
                     await persistActiveWorkout();
-                    renderFocus(); // Renderar om focus-vyn
+                    renderFocus(); 
                     setTimeout(() => focusGoTo(newIdx), 50);
                 }
             }
