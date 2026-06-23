@@ -3752,8 +3752,8 @@ function renderActiveWorkout() {
         });
     } else {
         const emptyNotice = document.createElement("p");
-        emptyNotice.style.cssText = "color: var(--text-light); text-align: center; padding: 30px 10px; font-size: 14px;";
-        emptyNotice.innerHTML = "This workout is empty. Click the button below to add your exercises!  👇 ";
+        emptyNotice.style.cssText = "color: var(--text-light); text-align: center; padding: 30px 10px; font-size: 14px; line-height: 2;";
+emptyNotice.innerHTML = "This workout is empty.<br>Click the button below to add your exercises!<br>👇";
         list.appendChild(emptyNotice);
     }
 
@@ -6864,10 +6864,9 @@ function renderCarousel() {
     if (!exercises || exercises.length === 0) {
         container.innerHTML = `
             <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:48px 24px; text-align:center; gap:16px;">
-                <div style="font-size:14px; font-weight:600; color:#94a3b8; line-height:1.6;">
-                    This workout is empty. Click the button below to add your exercises!
+            <div style="font-size:14px; color:var(--text-light); text-align:center; line-height:2;">
+                    This workout is empty.<br>Click the button below to add your exercises!<br>👇
                 </div>
-                <div style="font-size:24px;">👇</div>
                 <button onclick="openCustomAddExerciseModal()" style="width:100%; padding:16px; background:transparent; border:2px dashed rgba(34,211,238,0.4); border-radius:16px; color:#22d3ee; font-size:15px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                     Add Exercise
