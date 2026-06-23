@@ -4682,8 +4682,15 @@ async function confirmSet(exIdx, setIdx) {
 
     // Läs alltid REST-värdet direkt från DOM och spara till draft INNAN state ändras
     const vInp = document.getElementById(`v-${exIdx}-${setIdx}`);
-    const restVal = vInp ? (parseInt(vInp.value) || 120) : 120;
-    activeDraft.data[exIdx].sets_data[setIdx].rest = String(restVal);
+const restVal = vInp ? (parseInt(vInp.value) || 120) : 120;
+activeDraft.data[exIdx].sets_data[setIdx].rest = String(restVal);
+
+const cdmInp = document.getElementById(`cdm-${exIdx}-${setIdx}`);
+const cdsInp = document.getElementById(`cds-${exIdx}-${setIdx}`);
+const ckInp = document.getElementById(`ck-${exIdx}-${setIdx}`);
+if (cdmInp) activeDraft.data[exIdx].sets_data[setIdx].duration_min = cdmInp.value;
+if (cdsInp) activeDraft.data[exIdx].sets_data[setIdx].duration_sec = cdsInp.value;
+if (ckInp) activeDraft.data[exIdx].sets_data[setIdx].distance = ckInp.value;
 
     const currentState = activeDraft.data[exIdx].sets_data[setIdx].userConfirmed;
     activeDraft.data[exIdx].sets_data[setIdx].userConfirmed = !currentState;
