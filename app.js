@@ -1044,7 +1044,7 @@ const safeCompleted = Array.isArray(completed) ? completed : [];
                                 <div style="width: 160px; background: rgba(34,211,238,0.06); border: 1px solid rgba(34,211,238,0.2); padding: 6px 10px; border-radius: 10px; display: flex; align-items: center; gap: 10px;">
                                     <span style="color: rgba(255,255,255,0.5); font-size: 10px; font-weight: 800; min-width: 20px;">#${sIdx+1}</span>
                                     <span style="color: rgba(255,255,255,0.2); font-size: 10px;">|</span>
-                                    <span style="color: #fff; font-size: 11px; font-weight: 600;">${wVal} kg × ${rVal} reps</span>
+                                    <span style="color: #fff; font-size: 11px; font-weight: 600;">${s.duration_min !== undefined || s.duration_sec !== undefined ? `${s.duration_min || '0'}:${String(s.duration_sec || '0').padStart(2,'0')} min` : `${wVal} kg × ${rVal} reps`}${s.distance ? ` · ${s.distance} km` : ''}${s.duration_min !== undefined && s.distance ? ` · ${calcPace(`${s.duration_min || 0}:${String(s.duration_sec || 0).padStart(2,'0')}`, s.distance)}` : ''}</span>
                                 </div>
                                 ${!isLastSet && restVal ? `
                                 <span style="font-size: 10px; color: #f59e0b; font-weight: 600; margin-left: 12px; position: relative; top: 14px;">← ⏱️ ${restVal}s</span>` : ''}
@@ -3785,7 +3785,7 @@ function renderActiveWorkout() {
                     </div>
                     ${setsHtml}
                    <div style="display:flex; gap:8px; margin-top:12px;">
-                     <button style="flex:1; padding:10px; background:transparent; border:1.5px dashed rgba(34,211,238,0.3); color:#22d3ee; border-radius:10px; font-size:12px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; ${isDone ? 'opacity:0.3; pointer-events:none;' : ''}${isCardio ? 'display:none;' : ''}" onclick="addSetToExercise(${i})" ${isDone ? 'disabled' : ''} ${isCardio ? 'hidden' : ''}>
+                     <button style="flex:1; padding:10px; background:transparent; border:1.5px dashed rgba(34,211,238,0.3); color:#22d3ee; border-radius:10px; font-size:12px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; ${isDone ? 'opacity:0.3; pointer-events:none;' : ''}" onclick="addSetToExercise(${i})" ${isDone ? 'disabled' : ''} ${isCardio ? 'hidden' : ''}>
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                         Add set
                       </button>
