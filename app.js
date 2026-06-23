@@ -331,7 +331,7 @@ function openCreateExerciseModal(callback = null) {
             </div>
             <div style="width: 100%;">
                 <label style="font-size:11px; color:var(--text-light); text-transform: uppercase; letter-spacing: 1px; display:block; margin-bottom: 12px; text-align: center;">Select Category</label>
-                <div id="category-selector-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 0 10px; box-sizing: border-box;">
+                <div id="category-selector-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 0 10px; box-sizing: border-box;">
                     ${categories.map(cat => `
                     <div class="cat-select-item ${cat.id === selectedCategory ? 'active' : ''}"
                         onclick="window.selectModalCategory('${cat.id}')"
