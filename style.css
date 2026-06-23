@@ -1363,7 +1363,9 @@ body:has(.bottom-bar.hidden) { padding-bottom: 0; }
 }
 
 .carousel-ex-card:not(.is-done) {
-    border-color: rgba(34,211,238,0.15);
+    border-top-color: rgba(34,211,238,0.15);
+    border-right-color: rgba(34,211,238,0.15);
+    border-bottom-color: rgba(34,211,238,0.15);
 }
 
 
