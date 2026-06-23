@@ -25,8 +25,7 @@ const CATEGORY_DISPLAY = {
     "Armar": "Arms",
     "Bål": "Core",
     "Cardio": "Cardio",
-    "Mobility": "Mobility",
-    "Ländrygg": "Lower Back"
+    "Mobility": "Mobility"
 };
 
 const SUBCATEGORIES = {
