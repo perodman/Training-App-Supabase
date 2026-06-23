@@ -4507,6 +4507,7 @@ function handleInstantExerciseCreated(newEx, replaceIndex = null) {
 
 async function confirmAddExerciseToActive(exId, replaceIndex = null) {
     const ex = masterExercises.find(e => e.id == exId);
+    console.log("DEBUG confirmAdd:", ex.name, ex.target, isCardioExercise(ex));
     const newExObj = { name: ex.name, target: ex.target };
     let newDataEntry;
     const exHistory = getExerciseHistory(ex.name);
