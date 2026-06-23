@@ -4457,12 +4457,15 @@ async function confirmAndAddAllSelectedExercises() {
         let newDataEntry;
         const history = getExerciseHistory(ex.name);
         
-        if (history) {
-            let setsCopy = JSON.parse(JSON.stringify(history.sets_data));
+        const exHistory = getExerciseHistory(ex.name);
+        if (exHistory && !isCardioExercise(ex)) {
+            let setsCopy = JSON.parse(JSON.stringify(exHistory.sets_data));
             setsCopy.forEach(set => set.userConfirmed = false);
-            newDataEntry = { sets_data: setsCopy, isCompleted: false, note: history.note || null };
+            newDataEntry = { sets_data: setsCopy, isCompleted: false, note: exHistory.note || null };
         } else {
-            newDataEntry = { sets_data: [{ weight: "", reps: "" }, { weight: "", reps: "" }, { weight: "", reps: "" }], isCompleted: false };
+            const defaultSet = getDefaultSetData(ex);
+            const numSets = isCardioExercise(ex) ? 1 : 3;
+            newDataEntry = { sets_data: Array(numSets).fill(null).map(() => ({...defaultSet})), isCompleted: false };
         }
         
         activeDraft.workout.exercises.push(newExObj);
