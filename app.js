@@ -19,13 +19,13 @@ let isTimerRunning = false;
 
 const CATEGORY_DISPLAY = {
     "Ben": "Legs",
-    "Bröst": "Chest", 
+    "Bröst": "Chest",
     "Rygg": "Back",
     "Axlar": "Shoulders",
     "Armar": "Arms",
     "Bål": "Core",
-    "Biceps": "Biceps",
-    "Triceps": "Triceps",
+    "Cardio": "Cardio",
+    "Mobility": "Mobility",
     "Ländrygg": "Lower Back"
 };
 
@@ -35,7 +35,9 @@ const SUBCATEGORIES = {
     "Rygg": ["Compound", "Lats", "Upper Back", "Lower Back"],
     "Axlar": ["Compound", "Front Delts", "Side Delts", "Rear Delts"],
     "Armar": ["Biceps", "Triceps", "Forearms"],
-    "Bål": ["Compound", "Abs", "Obliques"]
+    "Bål": ["Compound", "Abs", "Obliques"],
+    "Cardio": ["Running", "Cycling", "Rowing", "Swimming", "Jump Rope", "Stairmaster"],
+    "Mobility": ["Stretching", "Yoga", "Foam Rolling", "Warm-up", "Cool-down"]
 };
 
 // --- INIT ---
@@ -315,7 +317,9 @@ function openCreateExerciseModal(callback = null) {
         { id: "Rygg", icon: "🪵" },
         { id: "Axlar", icon: "👐" },
         { id: "Armar", icon: "💪" },
-        { id: "Bål", icon: "🧘" }
+        { id: "Bål", icon: "🧘" },
+        { id: "Cardio", icon: "🏃" },
+        { id: "Mobility", icon: "🤸" }
     ];
 
     body.innerHTML = `
@@ -555,7 +559,9 @@ function openEditExerciseModal(id) {
         { id: "Rygg", icon: " 🪵 " },
         { id: "Axlar", icon: " 👐 " },
         { id: "Armar", icon: " 💪 " },
-        { id: "Bål", icon: " 🧘 " }
+        { id: "Bål", icon: " 🧘 " },
+        { id: "Cardio", icon: " 🏃 " },
+        { id: "Mobility", icon: " 🤸 " }
     ];
     body.innerHTML = `
         <h3 style="text-align:center; margin-bottom: 20px;">Edit Exercise</h3>
