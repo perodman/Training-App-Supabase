@@ -7206,7 +7206,11 @@ function carouselStartRest(seconds) {
         restTimerExIdx = carouselCurrentIndex;
     }
 
-    renderCarouselCard();
+       if (carouselFocusModeActive) {
+        renderFocusCard();
+    } else {
+        renderCarouselCard();
+    }
 
     // 1. Karusellens egna intervall-loop
     carouselRestInterval = setInterval(() => {
@@ -7716,7 +7720,8 @@ function renderFocusCard() {
     const wasDropdownOpen = dropdownEl ? (dropdownEl.style.display === 'block') : false;
     const isNoteOpen = activeDraft.ui_state?.openNotes?.includes(i) || false;
     const isDone = exData.isCompleted;
-    card.classList.toggle('is-done', isDone);
+    card.className = 'carousel-ex-card';
+    if (isDone) card.classList.add('is-done');
     const completedSets = exData.sets_data ? exData.sets_data.filter(s => s.userConfirmed).length : 0;
     const totalSets = exData.sets_data ? exData.sets_data.length : 0;
     const firstUnconfirmed = exData.sets_data ? exData.sets_data.findIndex(s => !s.userConfirmed) : -1;
