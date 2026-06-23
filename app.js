@@ -4509,10 +4509,11 @@ async function confirmAddExerciseToActive(exId, replaceIndex = null) {
     const ex = masterExercises.find(e => e.id == exId);
     const newExObj = { name: ex.name, target: ex.target };
     let newDataEntry;
-    if (history && !isCardioExercise(ex)) {
-        let setsCopy = JSON.parse(JSON.stringify(history.sets_data));
+    const exHistory = getExerciseHistory(ex.name);
+    if (exHistory && !isCardioExercise(ex)) {
+        let setsCopy = JSON.parse(JSON.stringify(exHistory.sets_data));
         setsCopy.forEach(set => set.userConfirmed = false);
-        newDataEntry = { sets_data: setsCopy, isCompleted: false, note: history.note || null };
+        newDataEntry = { sets_data: setsCopy, isCompleted: false, note: exHistory.note || null };
     } else {
         const defaultSet = getDefaultSetData(ex);
         const numSets = isCardioExercise(ex) ? 1 : 3;
