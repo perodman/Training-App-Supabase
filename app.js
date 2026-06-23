@@ -7737,7 +7737,6 @@ function renderFocus() {
     if (activeDraft.ui_state && typeof activeDraft.ui_state.currentExerciseIndex === 'number') {
         carouselCurrentIndex = activeDraft.ui_state.currentExerciseIndex;
     }
-
     if (inCarousel) {
         container.innerHTML = `
             <div id="focus-rest-timer-bar"></div>
@@ -7766,7 +7765,6 @@ function renderFocus() {
                 <div class="carousel-ex-card" id="focus-ex-card"></div>
             </div>`;
     }
-
     if (!inCarousel) {
         renderFocusNav();
     }
@@ -7775,7 +7773,6 @@ function renderFocus() {
     initFocusSwipe();
     updateFocusProgress();
 }
-
 function updateFocusProgress() {
     const el = document.getElementById('focus-progress-text');
     const bar = document.getElementById('focus-progress-bar');
@@ -7790,7 +7787,6 @@ function updateFocusProgress() {
     el.textContent = `${totalCompleted} / ${total} set`;
     if (bar) bar.style.width = total > 0 ? `${(totalCompleted / total) * 100}%` : '0%';
 }
-
 function renderFocusNav() {
     const navBar = document.getElementById('focus-nav-bar-inner');
     if (!navBar || !activeDraft) return;
@@ -7813,7 +7809,6 @@ function renderFocusNav() {
     }, 50);
     initFocusDragAndDrop();
 }
-
 function renderFocusCard() {
     const card = document.getElementById('focus-ex-card');
     if (!card || !activeDraft) return;
@@ -7845,7 +7840,7 @@ function renderFocusCard() {
     let setsHtml = `<div style="margin-top:4px;">
         <div style="display:grid; grid-template-columns: 40px 1fr 1fr 1fr 30px; gap:8px; margin-bottom:5px; align-items:center;">
             <small style="text-align:left; padding-left:5px; color:var(--text-light); font-size:9px; font-weight:700;">${isCardio ? '' : 'SET'}</small>
-            <small style="text-align:center; color:var(--text-light); font-size:9px;">${isCardio ? 'TIME (mm:ss)' : 'KG'}</small>
+            <small style="text-align:center; color:var(--text-light); font-size:9px;">${isCardio ? 'TID' : 'KG'}</small>
             <small style="text-align:center; color:var(--text-light); font-size:9px;">${isCardio ? 'DIST (km)' : 'REPS'}</small>
             <small style="text-align:center; color:var(--text-light); font-size:9px;">${isCardio ? 'PACE' : 'REST (S)'}</small>
             <span></span>
@@ -7864,9 +7859,17 @@ function renderFocusCard() {
                     style="width:32px; height:32px; border-radius:50%; border:2px solid ${circleColor}; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:10px; font-weight:800; background:${showSuccess ? 'rgba(34,197,94,0.2)' : isCurrent ? 'rgba(250,204,21,0.15)' : 'rgba(245,158,11,0.05)'}; color:${circleColor}; opacity:1;">
                     ${statusContent}
                 </div>
-              ${isCardio ? `<div style="display:flex; gap:2px; align-items:center;"><input type="text" inputmode="numeric" id="fcdm-${i}-${sIdx}" class="log-input" style="margin:0; padding:8px 4px; font-size:15px; opacity:${inputOpacity}; text-align:center; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.duration_min || ''}" placeholder="min" ${isLocked ? 'readonly' : ''} oninput="updateCardioTime(this, ${i}, ${sIdx}, 'min')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)"><span style="color:#64748b; font-size:14px; font-weight:700; flex-shrink:0;">:</span><input type="text" inputmode="numeric" id="fcds-${i}-${sIdx}" class="log-input" style="margin:0; padding:8px 4px; font-size:15px; opacity:${inputOpacity}; text-align:center; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.duration_sec || ''}" placeholder="sek" ${isLocked ? 'readonly' : ''} oninput="updateCardioTime(this, ${i}, ${sIdx}, 'sec')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)"></div>` ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'duration')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">` : `<input type="text" inputmode="decimal" id="fw-${i}-${sIdx}" class="log-input weight-input" data-ex="${i}" data-set="${sIdx}" style="margin:0; padding:12px; font-size:18px; opacity:${inputOpacity}; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.weight || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'weight')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`}
-                ${isCardio ? `<input type="text" inputmode="decimal" id="fck-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${inputOpacity}; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.distance || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'distance')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">` : `<input type="text" inputmode="decimal" id="fr-${i}-${sIdx}" class="log-input reps-input" data-ex="${i}" data-set="${sIdx}" style="margin:0; padding:12px; font-size:18px; opacity:${inputOpacity}; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.reps || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'reps')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`}
-                ${isCardio ? `<div id="pace-${i}-${sIdx}" style="display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:#22d3ee; font-family:monospace;">${calcPace(set.duration, set.distance)}</div>` : (sIdx < exData.sets_data.length - 1 ? `<input type="text" inputmode="decimal" id="fv-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${inputOpacity}; border-color:${isCurrent ? 'rgba(245,158,11,0.6)' : 'rgba(52,152,219,0.3)'};" value="${set.rest || '120'}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'rest')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">` : '<div></div>')}
+                ${isCardio
+                    ? `<div style="display:flex; gap:2px; align-items:center;"><input type="text" inputmode="numeric" id="fcdm-${i}-${sIdx}" class="log-input" style="margin:0; padding:8px 4px; font-size:15px; opacity:${inputOpacity}; text-align:center; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.duration_min || ''}" placeholder="min" ${isLocked ? 'readonly' : ''} oninput="updateCardioTime(this, ${i}, ${sIdx}, 'min')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)"><span style="color:#64748b; font-size:14px; font-weight:700; flex-shrink:0;">:</span><input type="text" inputmode="numeric" id="fcds-${i}-${sIdx}" class="log-input" style="margin:0; padding:8px 4px; font-size:15px; opacity:${inputOpacity}; text-align:center; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.duration_sec || ''}" placeholder="sek" ${isLocked ? 'readonly' : ''} oninput="updateCardioTime(this, ${i}, ${sIdx}, 'sec')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)"></div>`
+                    : `<input type="text" inputmode="decimal" id="fw-${i}-${sIdx}" class="log-input weight-input" data-ex="${i}" data-set="${sIdx}" style="margin:0; padding:12px; font-size:18px; opacity:${inputOpacity}; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.weight || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'weight')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`}
+                ${isCardio
+                    ? `<input type="text" inputmode="decimal" id="fck-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${inputOpacity}; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.distance || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'distance')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`
+                    : `<input type="text" inputmode="decimal" id="fr-${i}-${sIdx}" class="log-input reps-input" data-ex="${i}" data-set="${sIdx}" style="margin:0; padding:12px; font-size:18px; opacity:${inputOpacity}; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.reps || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'reps')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`}
+                ${isCardio
+                    ? `<div id="pace-${i}-${sIdx}" style="display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:800; color:#22d3ee; font-family:monospace;">${calcPace(set.duration, set.distance)}</div>`
+                    : (sIdx < exData.sets_data.length - 1
+                        ? `<input type="text" inputmode="decimal" id="fv-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${inputOpacity}; border-color:${isCurrent ? 'rgba(245,158,11,0.6)' : 'rgba(52,152,219,0.3)'};" value="${set.rest || '120'}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'rest')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`
+                        : '<div></div>')}
                 <button onclick="removeSetFromExercise(${i}, ${sIdx})" style="background:none; border:none; color:var(--danger); font-size:16px; opacity: ${showSuccess ? '0.1' : '0.8'};" ${showSuccess ? 'disabled' : ''}>×</button>
             </div>`;
             if (isCurrent && sIdx === firstUnconfirmed && !isCardio) {
@@ -7952,12 +7955,10 @@ function renderFocusCard() {
         </div>`;
     applyFocusTextScale();
 }
-
 function focusToggleRestBadge() {
     const dd = document.getElementById('focus-rest-dropdown');
     if (dd) dd.style.display = dd.style.display === 'block' ? 'none' : 'block';
 }
-
 function focusToggleNote(exIdx) {
     if (!activeDraft.ui_state.openNotes) activeDraft.ui_state.openNotes = [];
     const idx = activeDraft.ui_state.openNotes.indexOf(exIdx);
@@ -7972,7 +7973,6 @@ function focusToggleNote(exIdx) {
         if (ta && activeDraft.ui_state.openNotes.includes(exIdx)) ta.focus();
     }, 50);
 }
-
 async function focusConfirmSet(exIdx, setIdx) {
     const allInputs = document.querySelectorAll(`[id^="fw-${exIdx}-"], [id^="fr-${exIdx}-"], [id^="fv-${exIdx}-"], [id^="fcdm-${exIdx}-"], [id^="fcds-${exIdx}-"], [id^="fck-${exIdx}-"]`);
     allInputs.forEach(inp => {
@@ -7980,7 +7980,7 @@ async function focusConfirmSet(exIdx, setIdx) {
         const sIdx2 = parseInt(parts[parts.length - 1]);
         const type = parts[0];
         if (!isNaN(sIdx2) && activeDraft.data[exIdx]?.sets_data?.[sIdx2]) {
-if (type === 'fw') activeDraft.data[exIdx].sets_data[sIdx2].weight = inp.value;
+            if (type === 'fw') activeDraft.data[exIdx].sets_data[sIdx2].weight = inp.value;
             if (type === 'fr') activeDraft.data[exIdx].sets_data[sIdx2].reps = inp.value;
             if (type === 'fv') activeDraft.data[exIdx].sets_data[sIdx2].rest = inp.value;
             if (type === 'fck') activeDraft.data[exIdx].sets_data[sIdx2].distance = inp.value;
@@ -8013,7 +8013,6 @@ if (type === 'fw') activeDraft.data[exIdx].sets_data[sIdx2].weight = inp.value;
     renderFocusCard();
     updateFocusProgress();
 }
-
 async function focusToggleDone(exIdx) {
     const newCompletedState = !activeDraft.data[exIdx].isCompleted;
     activeDraft.data[exIdx].isCompleted = newCompletedState;
@@ -8045,7 +8044,6 @@ async function focusToggleDone(exIdx) {
         }
     }
 }
-
 function focusGoTo(i) {
     if (i === carouselCurrentIndex || i < 0 || i >= activeDraft.workout.exercises.length) return;
     if (carouselNavDragInProgress) return;
