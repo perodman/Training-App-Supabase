@@ -3732,12 +3732,12 @@ function renderActiveWorkout() {
                         ${isCardio ? '<div></div>' : (sIdx < exerciseData.sets_data.length - 1 ? `<input type="text" inputmode="decimal" id="v-${i}-${sIdx}" class="log-input rest-input" data-ex="${i}" data-set="${sIdx}" style="margin:0; padding:12px; font-size:18px; opacity:${isCurrent ? '1' : '0.3'}; border-color:${isCurrent ? 'rgba(245,158,11,0.6)' : 'rgba(52,152,219,0.3)'};" value="${set.rest || '120'}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'rest')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">` : '<div></div>')}
                         <button onclick="removeSetFromExercise(${i}, ${sIdx})" style="background:none; border:none; color:var(--danger); font-size:16px; opacity: ${showSuccess ? '0.1' : '0.8'};" ${showSuccess ? 'disabled' : ''}>×</button>
                     </div>`;
-                    if (isCurrent && sIdx === firstUnconfirmed) {
-                        setsHtml += `
-                        <div style="grid-column: 2 / span 3; margin:-4px 0 8px 0; padding-left:2px; opacity:0.8; font-size:10px; color:var(--primary); font-weight:600; letter-spacing:0.3px;">
-                            💡 Select ${statusContent} to lock & continue
-                        </div>`;
-                    }
+                   if (isCurrent && sIdx === firstUnconfirmed && !isCardio) {
+                setsHtml += `
+                <div style="grid-column: 2 / span 3; margin:-4px 0 8px 0; padding-left:2px; opacity:0.8; font-size:10px; color:var(--primary); font-weight:600; letter-spacing:0.3px;">
+                    💡 Select ${statusContent} to lock & continue
+                </div>`;
+            }
                 });
             }
             div.innerHTML = `
@@ -4615,6 +4615,10 @@ async function updateSetDataOnly(inputEl, exIdx, setIdx, fieldType) {
     if (fieldType === 'rest') setObj.rest = inputEl.value;
     if (fieldType === 'duration') setObj.duration = inputEl.value;
     if (fieldType === 'distance') setObj.distance = inputEl.value;
+    if (fieldType === 'distance') {
+        const paceEl = document.getElementById(`pace-${exIdx}-${setIdx}`);
+        if (paceEl) paceEl.textContent = calcPace(setObj.duration, inputEl.value);
+    }
     if (typeof setObj.userConfirmed === "undefined") setObj.userConfirmed = false;
 
     // Om ändringen sker i Set 1 (index 0), kör autofyll/spegling
@@ -4650,6 +4654,19 @@ const shouldCopyWeight = setsArray.slice(1).every(s => !s.userConfirmed && (!s.w
         }
     }
 
+    debouncedPersistActiveWorkout();
+}
+
+function updateCardioTime(inputEl, exIdx, setIdx, field) {
+    if (!activeDraft?.data?.[exIdx]?.sets_data?.[setIdx]) return;
+    const setObj = activeDraft.data[exIdx].sets_data[setIdx];
+    if (field === 'min') setObj.duration_min = inputEl.value;
+    if (field === 'sec') setObj.duration_sec = inputEl.value;
+    const mins = parseInt(setObj.duration_min || '0') || 0;
+    const secs = parseInt(setObj.duration_sec || '0') || 0;
+    setObj.duration = `${mins}:${String(secs).padStart(2, '0')}`;
+    const paceEl = document.getElementById(`pace-${exIdx}-${setIdx}`);
+    if (paceEl) paceEl.textContent = calcPace(setObj.duration, setObj.distance);
     debouncedPersistActiveWorkout();
 }
 
@@ -4751,11 +4768,11 @@ function updateSingleExerciseCard(exIdx) {
                 ${sIdx < exerciseData.sets_data.length - 1 ? `<input type="text" inputmode="decimal" id="v-${exIdx}-${sIdx}" class="log-input rest-input" data-ex="${exIdx}" data-set="${sIdx}" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'}; border-color: ${isCurrent ? 'rgba(245,158,11,0.6)' : 'rgba(52,152,219,0.3)'};" value="${set.rest || '120'}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${exIdx}, ${sIdx}, 'rest')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">` : `<div></div>`}
                 <button onclick="removeSetFromExercise(${exIdx}, ${sIdx})" style="background:none; border:none; color:var(--danger); font-size:16px; opacity: ${showSuccess ? '0.1' : '0.8'};" ${showSuccess ? 'disabled' : ''}>×</button>
             </div>`;
-            if (isCurrent && sIdx === firstUnconfirmed) {
+            if (isCurrent && sIdx === firstUnconfirmed && !isCardio) {
                 setsHtml += `
-                        <div style="grid-column: 2 / span 3; margin:-4px 0 8px 0; padding-left:2px; opacity:0.8; font-size:10px; color:var(--primary); font-weight:600; letter-spacing:0.3px;">
-                            💡 Select ${statusContent} to lock & continue
-                        </div>`;
+                <div style="grid-column: 2 / span 3; margin:-4px 0 8px 0; padding-left:2px; opacity:0.8; font-size:10px; color:var(--primary); font-weight:600; letter-spacing:0.3px;">
+                    💡 Select ${statusContent} to lock & continue
+                </div>`;
             }
         });
     }
@@ -7104,7 +7121,11 @@ function renderCarouselCard() {
                     ${statusContent}
                 </div>
                 ${isCardio
-                    ? `<input type="text" inputmode="decimal" id="cd-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${inputOpacity}; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.duration || ''}" placeholder="mm:ss" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'duration')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`
+                    ? `<div style="display:flex; gap:2px; align-items:center;">
+    <input type="text" inputmode="numeric" id="cdm-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px 4px; font-size:16px; opacity:${inputOpacity}; text-align:center; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.duration_min || ''}" placeholder="min" ${isLocked ? 'readonly' : ''} oninput="updateCardioTime(this, ${i}, ${sIdx}, 'min')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
+    <span style="color:#64748b; font-size:14px; font-weight:700;">:</span>
+    <input type="text" inputmode="numeric" id="cds-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px 4px; font-size:16px; opacity:${inputOpacity}; text-align:center; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.duration_sec || ''}" placeholder="sek" ${isLocked ? 'readonly' : ''} oninput="updateCardioTime(this, ${i}, ${sIdx}, 'sec')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
+</div>`
                     : `<input type="text" inputmode="decimal" id="w-${i}-${sIdx}" class="log-input weight-input" data-ex="${i}" data-set="${sIdx}" style="margin:0; padding:12px; font-size:18px; opacity:${inputOpacity}; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.weight || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'weight')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`}
                 ${isCardio
                     ? `<input type="text" inputmode="decimal" id="ck-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${inputOpacity}; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.distance || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'distance')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`
@@ -7116,7 +7137,7 @@ function renderCarouselCard() {
                         : '<div></div>')}
                 <button onclick="removeSetFromExercise(${i}, ${sIdx})" style="background:none; border:none; color:var(--danger); font-size:16px; opacity: ${showSuccess ? '0.1' : '0.8'};" ${showSuccess ? 'disabled' : ''}>×</button>
             </div>`;
-            if (isCurrent && sIdx === firstUnconfirmed) {
+            if (isCurrent && sIdx === firstUnconfirmed && !isCardio) {
                 setsHtml += `
                 <div style="grid-column: 2 / span 3; margin:-4px 0 8px 0; padding-left:2px; opacity:0.8; font-size:10px; color:var(--primary); font-weight:600; letter-spacing:0.3px;">
                     💡 Select ${statusContent} to lock & continue
@@ -7134,7 +7155,7 @@ function renderCarouselCard() {
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                     </div>
                 </div>
-                <div style="font-size:10px; color:${isDone ? '#22c55e' : 'var(--primary)'}; font-weight:800; margin-top:1px;">${isDone ? 'DONE ✅' : `${catDisplay}${catDisplay ? ' · ' : ''}${completedSets}/${totalSets} sets`}</div>
+               ${isDone ? 'DONE ✅' : isCardio ? catDisplay : `${catDisplay}${catDisplay ? ' · ' : ''}${completedSets}/${totalSets} sets`}
             </div>
             <div style="display:flex; align-items:center; gap:12px; flex-shrink:0;">
                 <div id="carousel-timer-header-zone" style="display:flex; flex-direction:column; align-items:flex-end; gap:2px; cursor:pointer; transition: opacity 0.2s ease; opacity: ${isDone ? '0.3' : isTimerDisabled ? '0.35' : '1'}; pointer-events:${isDone ? 'none' : 'auto'};" onclick="carouselToggleRestBadge();">
@@ -7841,7 +7862,7 @@ function renderFocusCard() {
                 ${isCardio ? `<div id="pace-${i}-${sIdx}" style="display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:#22d3ee; font-family:monospace;">${calcPace(set.duration, set.distance)}</div>` : (sIdx < exData.sets_data.length - 1 ? `<input type="text" inputmode="decimal" id="fv-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${inputOpacity}; border-color:${isCurrent ? 'rgba(245,158,11,0.6)' : 'rgba(52,152,219,0.3)'};" value="${set.rest || '120'}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'rest')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">` : '<div></div>')}
                 <button onclick="removeSetFromExercise(${i}, ${sIdx})" style="background:none; border:none; color:var(--danger); font-size:16px; opacity: ${showSuccess ? '0.1' : '0.8'};" ${showSuccess ? 'disabled' : ''}>×</button>
             </div>`;
-            if (isCurrent && sIdx === firstUnconfirmed) {
+            if (isCurrent && sIdx === firstUnconfirmed && !isCardio) {
                 setsHtml += `
                 <div style="grid-column: 2 / span 3; margin:-4px 0 8px 0; padding-left:2px; opacity:0.8; font-size:10px; color:var(--primary); font-weight:600; letter-spacing:0.3px;">
                     💡 Select ${statusContent} to lock & continue
@@ -7897,7 +7918,7 @@ function renderFocusCard() {
             </div>
         </div>
         <div class="carousel-card-body">
-            <div style="font-size:13px; color:${isDone ? '#22c55e' : 'var(--primary)'}; font-weight:800; margin-bottom:12px;">${isDone ? 'DONE ✅' : `${catDisplay}${catDisplay ? ' · ' : ''}${completedSets}/${totalSets} sets`}</div>
+            <div style="font-size:13px; color:${isDone ? '#22c55e' : 'var(--primary)'}; font-weight:800; margin-bottom:12px;">${isDone ? 'DONE ✅' : isCardio ? catDisplay : `${catDisplay}${catDisplay ? ' · ' : ''}${completedSets}/${totalSets} sets`}</div>
             ${isNoteOpen ? `<div style="margin-bottom:10px;">
                 <textarea id="note-input-${i}" class="carousel-note-input" data-ex="${i}" placeholder="Add a note for this exercise..."
                     oninput="updateExerciseNote(this, ${i})"
