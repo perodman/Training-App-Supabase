@@ -3785,7 +3785,7 @@ function renderActiveWorkout() {
                     </div>
                     ${setsHtml}
                    <div style="display:flex; gap:8px; margin-top:12px;">
-                     <button style="flex:1; padding:10px; background:transparent; border:1.5px dashed rgba(34,211,238,0.3); color:#22d3ee; border-radius:10px; font-size:12px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; ${isDone ? 'opacity:0.3; pointer-events:none;' : ''}" onclick="addSetToExercise(${i})" ${isDone ? 'disabled' : ''} ${isCardio ? 'hidden' : ''}>
+                    <button style="flex:1; padding:10px; background:transparent; border:1.5px dashed rgba(34,211,238,0.3); color:#22d3ee; border-radius:10px; font-size:12px; font-weight:700; cursor:pointer; display:${isCardio ? 'none' : 'flex'}; align-items:center; justify-content:center; gap:6px; ${isDone ? 'opacity:0.3; pointer-events:none;' : ''}" onclick="addSetToExercise(${i})" ${isDone ? 'disabled' : ''}>
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                         Add set
                       </button>
