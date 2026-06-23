@@ -3450,11 +3450,13 @@ async function startWorkout(workout, data = null, date = null, isImmediateStart 
 
     if(!data) {
         data = workout.exercises.map(ex => {
-            const history = getExerciseHistory(ex.name);
-            if (history) {
-                const setsCopy = JSON.parse(JSON.stringify(history.sets_data));
-                setsCopy.forEach(set => { set.userConfirmed = false; });
-                return { sets_data: setsCopy, isCompleted: false, note: history.note || null };
+            if (!isCardioExercise(ex)) {
+                const history = getExerciseHistory(ex.name);
+                if (history) {
+                    const setsCopy = JSON.parse(JSON.stringify(history.sets_data));
+                    setsCopy.forEach(set => { set.userConfirmed = false; });
+                    return { sets_data: setsCopy, isCompleted: false, note: history.note || null };
+                }
             }
             const defaultSet = getDefaultSetData(ex);
             const numSets = isCardioExercise(ex) ? 1 : 3;
@@ -4510,7 +4512,7 @@ async function confirmAddExerciseToActive(exId, replaceIndex = null) {
     let newDataEntry;
     const history = getExerciseHistory(ex.name);
     
-    if (history) {
+   if (history && !isCardioExercise(ex)) {
         let setsCopy = JSON.parse(JSON.stringify(history.sets_data));
         setsCopy.forEach(set => set.userConfirmed = false);
         newDataEntry = { sets_data: setsCopy, isCompleted: false, note: history.note || null };
