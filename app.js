@@ -7054,86 +7054,77 @@ function renderCarouselDots() {
 function renderCarouselCard() {
     const card = document.getElementById('carousel-ex-card');
     if (!card || !activeDraft) return;
-
     const i = carouselCurrentIndex;
     const ex = activeDraft.workout.exercises[i];
     const exData = activeDraft.data[i];
     if (!ex || !exData) return;
-
-    // Spara dropdownens tillstånd innan rendering
     const dropdownEl = document.getElementById('carousel-rest-dropdown');
     const wasDropdownOpen = dropdownEl ? (dropdownEl.style.display === 'block') : false;
-
-
     const isNoteOpen = activeDraft.ui_state?.openNotes?.includes(i) || false;
-
     const isDone = exData.isCompleted;
-
     card.style.borderLeftColor = isDone ? '#22c55e' : '#22d3ee';
     card.classList.toggle('is-done', isDone);
-card.style.outline = isDone ? '1.5px solid #22c55e' : 'none';
-card.style.boxShadow = isDone ? '0 0 25px rgba(34,197,94,0.25), inset 0 0 40px rgba(34,197,94,0.06)' : 'none';
-
+    card.style.outline = isDone ? '1.5px solid #22c55e' : 'none';
+    card.style.boxShadow = isDone ? '0 0 25px rgba(34,197,94,0.25), inset 0 0 40px rgba(34,197,94,0.06)' : 'none';
     const completedSets = exData.sets_data ? exData.sets_data.filter(s => s.userConfirmed).length : 0;
     const totalSets = exData.sets_data ? exData.sets_data.length : 0;
     const firstUnconfirmed = exData.sets_data ? exData.sets_data.findIndex(s => !s.userConfirmed) : -1;
-
     const catDisplay = CATEGORY_DISPLAY[ex.target] || ex.target || '';
     const isTimerDisabled = !!activeDraft.restTimerDisabled;
-
     const timerColor = restTimerSeconds <= 10 ? '#ef4444' : '#f59e0b';
     const currentMins = String(Math.floor(restTimerSeconds / 60)).padStart(1, '0');
     const currentSecs = String(restTimerSeconds % 60).padStart(2, '0');
     const liveTimeStr = `${currentMins}:${currentSecs}`;
-
     const nextRestSeconds = parseInt(exData.sets_data?.find(s => !s.userConfirmed)?.rest || 120);
     const defaultMins = String(Math.floor(nextRestSeconds / 60)).padStart(1, '0');
     const defaultSecs = String(nextRestSeconds % 60).padStart(2, '0');
     const defaultTimeStr = `${defaultMins}:${defaultSecs}`;
-
     const isCounting = restTimerActive && restTimerSeconds > 0;
-const isCardio = isCardioExercise(ex);
-let setsHtml = `<div style="margin-top:4px;">
+    const isCardio = isCardioExercise(ex);
+    let setsHtml = `<div style="margin-top:4px;">
         <div style="display:grid; grid-template-columns: 40px 1fr 1fr 1fr 30px; gap:8px; margin-bottom:5px; align-items:center;">
-            <small style="text-align:left; padding-left:5px; color:var(--text-light); font-size:9px; font-weight:700;">SET</small>
-<small style="text-align:center; color:var(--text-light); font-size:9px;">${isCardio ? 'TIME (mm:ss)' : 'KG'}</small>
-<small style="text-align:center; color:var(--text-light); font-size:9px;">${isCardio ? 'DIST (km)' : 'REPS'}</small>
-<small style="text-align:center; color:var(--text-light); font-size:9px;">${isCardio ? 'PACE' : 'REST (S)'}</small>
+            <small style="text-align:left; padding-left:5px; color:var(--text-light); font-size:9px; font-weight:700;">${isCardio ? '' : 'SET'}</small>
+            <small style="text-align:center; color:var(--text-light); font-size:9px;">${isCardio ? 'TIME (mm:ss)' : 'KG'}</small>
+            <small style="text-align:center; color:var(--text-light); font-size:9px;">${isCardio ? 'DIST (km)' : 'REPS'}</small>
+            <small style="text-align:center; color:var(--text-light); font-size:9px;">${isCardio ? 'PACE' : 'REST (S)'}</small>
             <span></span>
         </div>`;
-
     if (exData.sets_data) {
         exData.sets_data.forEach((set, sIdx) => {
             const isLocked = isDone;
             const isCurrent = !set.userConfirmed && !isDone && sIdx === firstUnconfirmed;
             const showSuccess = set.userConfirmed || isDone;
             const circleColor = showSuccess ? '#22c55e' : (isCurrent ? '#facc15' : '#f59e0b');
-            const statusContent = showSuccess ? '✅' : `#${sIdx + 1}`;
+            const statusContent = showSuccess ? '✅' : (isCardio ? '○' : `#${sIdx + 1}`);
             const inputOpacity = isCurrent ? '1' : '0.3';
-
             setsHtml += `
             <div style="display:grid; grid-template-columns: 40px 1fr 1fr 1fr 30px; gap:8px; margin-bottom:8px; align-items:center; transition:opacity 0.2s ease; position:relative; overflow:visible;">
                 <div class="${isCurrent ? 'pulse-ring' : ''}" onclick="${isLocked && !isDone ? '' : `carouselConfirmSet(${i}, ${sIdx})`}"
                     style="width:32px; height:32px; border-radius:50%; border:2px solid ${circleColor}; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:10px; font-weight:800; background:${showSuccess ? 'rgba(34,197,94,0.2)' : isCurrent ? 'rgba(250,204,21,0.15)' : 'rgba(245,158,11,0.05)'}; color:${circleColor}; opacity:1;">
                     ${statusContent}
                 </div>
-               <input type="text" inputmode="decimal" id="w-${i}-${sIdx}" class="log-input weight-input" data-ex="${i}" data-set="${sIdx}" style="margin:0; padding:12px; font-size:18px; opacity:${inputOpacity}; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.weight || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'weight')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
-                <input type="text" inputmode="decimal" id="r-${i}-${sIdx}" class="log-input reps-input" data-ex="${i}" data-set="${sIdx}" style="margin:0; padding:12px; font-size:18px; opacity:${inputOpacity}; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.reps || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'reps')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
-                ${sIdx < exData.sets_data.length - 1
-                    ? `<input type="text" inputmode="decimal" id="v-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${inputOpacity}; border-color:${isCurrent ? 'rgba(245,158,11,0.6)' : 'rgba(52,152,219,0.3)'};" value="${set.rest || '120'}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'rest')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`
-                    : '<div></div>'}
+                ${isCardio
+                    ? `<input type="text" inputmode="decimal" id="cd-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${inputOpacity}; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.duration || ''}" placeholder="mm:ss" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'duration')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`
+                    : `<input type="text" inputmode="decimal" id="w-${i}-${sIdx}" class="log-input weight-input" data-ex="${i}" data-set="${sIdx}" style="margin:0; padding:12px; font-size:18px; opacity:${inputOpacity}; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.weight || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'weight')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`}
+                ${isCardio
+                    ? `<input type="text" inputmode="decimal" id="ck-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${inputOpacity}; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.distance || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'distance')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`
+                    : `<input type="text" inputmode="decimal" id="r-${i}-${sIdx}" class="log-input reps-input" data-ex="${i}" data-set="${sIdx}" style="margin:0; padding:12px; font-size:18px; opacity:${inputOpacity}; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.reps || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'reps')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`}
+                ${isCardio
+                    ? `<div id="pace-${i}-${sIdx}" style="display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:#22d3ee; font-family:monospace;">${calcPace(set.duration, set.distance)}</div>`
+                    : (sIdx < exData.sets_data.length - 1
+                        ? `<input type="text" inputmode="decimal" id="v-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${inputOpacity}; border-color:${isCurrent ? 'rgba(245,158,11,0.6)' : 'rgba(52,152,219,0.3)'};" value="${set.rest || '120'}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'rest')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`
+                        : '<div></div>')}
                 <button onclick="removeSetFromExercise(${i}, ${sIdx})" style="background:none; border:none; color:var(--danger); font-size:16px; opacity: ${showSuccess ? '0.1' : '0.8'};" ${showSuccess ? 'disabled' : ''}>×</button>
             </div>`;
             if (isCurrent && sIdx === firstUnconfirmed) {
                 setsHtml += `
                 <div style="grid-column: 2 / span 3; margin:-4px 0 8px 0; padding-left:2px; opacity:0.8; font-size:10px; color:var(--primary); font-weight:600; letter-spacing:0.3px;">
-                            💡 Select ${statusContent} to lock & continue
-                        </div>`;
+                    💡 Select ${statusContent} to lock & continue
+                </div>`;
             }
         });
     }
- setsHtml += `</div>`;
-
+    setsHtml += `</div>`;
     card.innerHTML = `
         <div style="padding:10px 14px 8px; display:flex; align-items:center; justify-content:space-between; gap:8px; background:rgba(255,255,255,0.03); border-bottom:1px solid rgba(255,255,255,0.05);">
             <div style="min-width:0; flex:1;">
@@ -7145,7 +7136,6 @@ let setsHtml = `<div style="margin-top:4px;">
                 </div>
                 <div style="font-size:10px; color:${isDone ? '#22c55e' : 'var(--primary)'}; font-weight:800; margin-top:1px;">${isDone ? 'DONE ✅' : `${catDisplay}${catDisplay ? ' · ' : ''}${completedSets}/${totalSets} sets`}</div>
             </div>
-            
             <div style="display:flex; align-items:center; gap:12px; flex-shrink:0;">
                 <div id="carousel-timer-header-zone" style="display:flex; flex-direction:column; align-items:flex-end; gap:2px; cursor:pointer; transition: opacity 0.2s ease; opacity: ${isDone ? '0.3' : isTimerDisabled ? '0.35' : '1'}; pointer-events:${isDone ? 'none' : 'auto'};" onclick="carouselToggleRestBadge();">
                     <span id="carousel-rest-label-word" style="font-size:9px; color:${isTimerDisabled ? '#64748b' : '#92400e'}; font-weight:800; text-transform:uppercase; letter-spacing:1px; line-height:1;">
@@ -7158,8 +7148,7 @@ let setsHtml = `<div style="margin-top:4px;">
                         </span>
                     </div>
                 </div>
-
-              <div onclick="carouselToggleRestBadge();" 
+                <div onclick="carouselToggleRestBadge();"
                      style="width:28px; height:28px; display:flex; align-items:center; justify-content:center; border-radius:8px; border:1px solid rgba(245,158,11,0.2); background:rgba(245,158,11,0.08); cursor:pointer; transition:all 0.2s; ${isDone ? 'opacity:0.3;pointer-events:none;' : ''}">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
@@ -7167,7 +7156,6 @@ let setsHtml = `<div style="margin-top:4px;">
                 </div>
             </div>
         </div>
-        
         <div id="carousel-rest-dropdown" style="display:${wasDropdownOpen ? 'block' : 'none'}; margin:0 14px 6px; background:rgba(245,158,11,0.06); border:1px solid rgba(245,158,11,0.2); border-radius:12px; padding:10px 12px;">
             <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
                 <div style="display:flex; align-items:center; gap:12px;">
@@ -7177,27 +7165,21 @@ let setsHtml = `<div style="margin-top:4px;">
                             ${isTimerDisabled ? '--:--' : (isCounting ? liveTimeStr : defaultTimeStr)}
                         </div>
                     </div>
-                    
                     <div style="display:flex; background:rgba(0,0,0,0.4); border-radius:10px; border:1px solid rgba(255,255,255,0.08); overflow:hidden; height:26px; align-items:center; margin-left:4px;">
                         <button onclick="activeDraft.restTimerDisabled=false; persistActiveWorkout(); renderCarouselCard(); renderRestTimer();"
-                            style="padding:0 10px; height:100%; font-size:10px; font-weight:700; cursor:pointer; border:none; transition:all 0.15s; 
-                            background:${!isTimerDisabled ? 'rgba(245,158,11,0.25)' : 'transparent'}; 
-                            color:${!isTimerDisabled ? '#f59e0b' : 'rgba(255,255,255,0.2)'};">On</button>
+                            style="padding:0 10px; height:100%; font-size:10px; font-weight:700; cursor:pointer; border:none; transition:all 0.15s; background:${!isTimerDisabled ? 'rgba(245,158,11,0.25)' : 'transparent'}; color:${!isTimerDisabled ? '#f59e0b' : 'rgba(255,255,255,0.2)'};">On</button>
                         <button onclick="clearInterval(restTimerInterval); clearInterval(carouselRestInterval); restTimerActive=false; carouselRestActive=false; restTimerSeconds=0; carouselRestSeconds=0; restTimerExIdx=null; activeDraft.restTimerDisabled=true; persistActiveWorkout(); renderCarouselCard(); renderRestTimer();"
-                            style="padding:0 10px; height:100%; font-size:10px; font-weight:700; cursor:pointer; border:none; transition:all 0.15s; 
-                            background:${isTimerDisabled ? 'rgba(245,158,11,0.25)' : 'transparent'}; 
-                            color:${isTimerDisabled ? '#f59e0b' : 'rgba(255,255,255,0.2)'};">Off</button>
+                            style="padding:0 10px; height:100%; font-size:10px; font-weight:700; cursor:pointer; border:none; transition:all 0.15s; background:${isTimerDisabled ? 'rgba(245,158,11,0.25)' : 'transparent'}; color:${isTimerDisabled ? '#f59e0b' : 'rgba(255,255,255,0.2)'};">Off</button>
                     </div>
                 </div>
-
-               <div style="display:flex; gap:4px; align-items:center;">
+                <div style="display:flex; gap:4px; align-items:center;">
                     <button onclick="carouselRestAdjust(-15)" style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:8px;padding:4px 6px;font-size:9px;color:#f59e0b;cursor:pointer;white-space:nowrap;" ${isTimerDisabled ? 'disabled' : ''}>−15s</button>
                     <button onclick="carouselRestAdjust(30)" style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:8px;padding:4px 6px;font-size:9px;color:#f59e0b;cursor:pointer;white-space:nowrap;" ${isTimerDisabled ? 'disabled' : ''}>+30s</button>
                     <button onclick="carouselRestStart()" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);border-radius:8px;padding:4px 6px;font-size:9px;font-weight:700;color:#22c55e;cursor:pointer;white-space:nowrap;" ${isTimerDisabled ? 'disabled' : ''}>${isCounting ? 'Restart' : 'Start'}</button>
                 </div>
             </div>
         </div>
-        <div class="carousel-card-body" style="background:rgba(255,255,255,0.03); border-top:1px solid rgba(255,255,255,0.06);">    
+        <div class="carousel-card-body" style="background:rgba(255,255,255,0.03); border-top:1px solid rgba(255,255,255,0.06);">
             ${isNoteOpen ? `<div style="margin-bottom:10px;">
                 <textarea id="note-input-${i}" class="carousel-note-input" data-ex="${i}" placeholder="Add a note for this exercise..."
                     oninput="updateExerciseNote(this, ${i})"
