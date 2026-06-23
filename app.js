@@ -7771,6 +7771,10 @@ function renderFocusCard() {
     }
     setsHtml += `</div>`;
 
+    card.style.border = '1px solid rgba(255,255,255,0.08)';
+    card.style.borderRadius = '18px';
+    card.style.overflow = 'hidden';
+    card.style.background = 'rgba(255,255,255,0.03)';
     card.innerHTML = `
         <div style="padding:10px 14px 8px; display:flex; align-items:flex-start; justify-content:space-between; gap:8px; background:rgba(255,255,255,0.03); border-bottom:1px solid rgba(255,255,255,0.05);">
             <div style="display:flex; align-items:center; gap:6px; min-width:0;">
@@ -7829,14 +7833,24 @@ function renderFocusCard() {
             </div>` : ''}
             ${setsHtml}
             <div style="display:flex; gap:6px; align-items:center; margin-top:12px; margin-bottom:8px; width:100%;">
+
                 <button style="display:flex;align-items:center;gap:6px;padding:9px 14px;background:transparent;border:1.5px dashed rgba(34,211,238,0.3);color:#22d3ee;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0;${isDone ? 'opacity:0.3;pointer-events:none;' : ''}" onclick="addSetToExercise(${i})" ${isDone ? 'disabled' : ''}>
+
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+
                     Add set
+
                 </button>
+
+                <button style="display:flex;align-items:center;justify-content:center;gap:5px;padding:9px 14px;background:${isDone ? 'rgba(148,163,184,0.25)' : 'rgba(34,197,94,0.1)'};color:${isDone ? '#fff' : '#22c55e'};border-radius:10px;font-size:13px;font-weight:700;border:${isDone ? '1px solid rgba(148,163,184,0.2)' : '1px solid rgba(34,197,94,0.25)'};cursor:pointer;flex:1;" onclick="focusToggleDone(${i})">
+
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">${isDone ? '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>' : '<circle cx="12" cy="12" r="10"></circle><polyline points="9 12 11 14 15 10"></polyline>'}</svg>
+
+                    ${isDone ? 'Undo' : 'Finish exercise'}
+
+                </button>
+
             </div>
-            <button style="width:100%;padding:12px;background:${isDone ? 'rgba(148,163,184,0.25)' : 'rgba(34,197,94,0.1)'};color:${isDone ? '#fff' : '#22c55e'};border-radius:12px;font-size:14px;font-weight:800;border:${isDone ? '1px solid rgba(148,163,184,0.2)' : '1px solid rgba(34,197,94,0.25)'};cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;" onclick="focusToggleDone(${i})">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">${isDone ? '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>' : '<circle cx="12" cy="12" r="10"></circle><polyline points="9 12 11 14 15 10"></polyline>'}</svg>
-                ${isDone ? 'Undo' : 'Finish exercise'}
             </button>
         </div>
        <div id="focus-anim-modal-${i}" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:9999;align-items:center;justify-content:center;" onclick="this.style.display='none'">
@@ -7886,12 +7900,13 @@ async function focusConfirmSet(exIdx, setIdx) {
     activeDraft.data[exIdx].sets_data[setIdx].userConfirmed = !currentState;
     const isNowConfirmed = activeDraft.data[exIdx].sets_data[setIdx].userConfirmed;
     const isLastSet = setIdx === activeDraft.data[exIdx].sets_data.length - 1;
-        if (isNowConfirmed && !isLastSet) {
+    if (isNowConfirmed && !isLastSet) {
         stopRestTimer();
         carouselStopRest();
         carouselStartRest(restVal);
     } else {
         stopRestTimer();
+        carouselStopRest();
     }
     await persistActiveWorkout();
     if (typeof updateWorkoutProgress === 'function' && activeDraft.data) {
