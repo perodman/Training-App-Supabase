@@ -6860,9 +6860,22 @@ function renderCarousel() {
     if (!container || !activeDraft) return;
     const exercises = activeDraft.workout.exercises;
     const data = activeDraft.data;
-    if (!exercises || exercises.length === 0) return;
 
-    // SYNK: Läs av vilket index listvyn (eller tidigare karusellsession) lämnade efter sig
+    if (!exercises || exercises.length === 0) {
+        container.innerHTML = `
+            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:48px 24px; text-align:center; gap:16px;">
+                <div style="font-size:14px; font-weight:600; color:#94a3b8; line-height:1.6;">
+                    This workout is empty. Click the button below to add your exercises!
+                </div>
+                <div style="font-size:24px;">👇</div>
+                <button onclick="openCustomAddExerciseModal()" style="width:100%; padding:16px; background:transparent; border:2px dashed rgba(34,211,238,0.4); border-radius:16px; color:#22d3ee; font-size:15px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    Add Exercise
+                </button>
+            </div>`;
+        return;
+    }
+
     if (activeDraft.ui_state && typeof activeDraft.ui_state.currentExerciseIndex === 'number') {
         carouselCurrentIndex = activeDraft.ui_state.currentExerciseIndex;
     }
@@ -6870,6 +6883,7 @@ function renderCarousel() {
     const totalExercises = exercises.length;
     const completedExercises = data.filter(d => d?.isCompleted).length;
     const totalSets = data.reduce((acc, d) => acc + (d?.sets_data?.length || 0), 0);
+
     container.innerHTML = `
         <div class="carousel-nav-bar" id="carousel-nav-bar-inner"></div>
         <div style="display:flex; align-items:center; justify-content:space-between; padding:4px 2px 6px; font-size:10px; font-weight:700; color:#f0a020; letter-spacing:0.3px;">
@@ -6882,11 +6896,13 @@ function renderCarousel() {
         <div class="carousel-card-area" id="carousel-card-area">
             <div class="carousel-ex-card" id="carousel-ex-card"></div>
         </div>`;
+
     renderCarouselNav();
     renderCarouselDots();
     renderCarouselCard();
-initCarouselSwipe();
+    initCarouselSwipe();
     initCarouselDragAndDrop();
+
     const ft = document.getElementById('carousel-focus-toggle');
     if (ft) ft.style.display = 'flex';
     carouselFocusModeActive = false;
