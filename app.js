@@ -1030,15 +1030,11 @@ const safeCompleted = Array.isArray(completed) ? completed : [];
                         const isCardioEx = ex.sets_data.some(s => s.duration_min !== undefined || s.distance !== undefined);
 if (isCardioEx) {
     html += `
-    <div style="display: flex; align-items: center; padding: 0 4px; margin-bottom: 6px;">
-        <span style="font-size: 10px; color: rgba(255,255,255,0.3); font-weight: 700; min-width: 20px;"></span>
-        <span style="width: 8px;"></span>
-        <div style="display:flex; gap:12px; flex:1; justify-content:space-around; padding-left:10px;">
-            <span style="font-size:10px; color:rgba(34,211,238,0.6); font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">Time</span>
-            <span style="font-size:10px; color:rgba(34,211,238,0.6); font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">Dist</span>
-            <span style="font-size:10px; color:rgba(34,211,238,0.6); font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">Pace</span>
-        </div>
-    </div>`;
+    <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; padding: 0 10px; margin-bottom: 6px;">
+    <span style="font-size:10px; color:rgba(34,211,238,0.6); font-weight:700; text-transform:uppercase; letter-spacing:0.5px; text-align:center;">Time</span>
+    <span style="font-size:10px; color:rgba(34,211,238,0.6); font-weight:700; text-transform:uppercase; letter-spacing:0.5px; text-align:center;">Dist</span>
+    <span style="font-size:10px; color:rgba(34,211,238,0.6); font-weight:700; text-transform:uppercase; letter-spacing:0.5px; text-align:center;">Pace</span>
+</div>`;
 } else if (hasRest) {
     html += `
     <div style="display: flex; align-items: center; padding: 0 4px; margin-bottom: 2px;">
@@ -1060,7 +1056,7 @@ html += `
         <span style="color: rgba(255,255,255,0.5); font-size: 10px; font-weight: 800; min-width: 20px; flex-shrink:0;">#${sIdx+1}</span>
         <span style="color: rgba(255,255,255,0.2); font-size: 10px;">|</span>
         ${isCardioSet ? `
-       <div style="display:flex; gap:12px; flex:1; justify-content:space-around;">
+       <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; flex:1; text-align:center;">
     <span style="color:#fff; font-size:13px; font-weight:700;">${duration || '—'}</span>
     <span style="color:#fff; font-size:13px; font-weight:700;">${s.distance ? s.distance + ' km' : '—'}</span>
     <span style="color:#22d3ee; font-size:13px; font-weight:700;">${pace || '—'}</span>
