@@ -7237,7 +7237,7 @@ function carouselStartRest(seconds) {
             focusDropdownTime.textContent = formatted;
             focusDropdownTime.style.color = timerColor;
         }
-        if (localStorage.getItem('workoutLayoutMode') === 'focus') {
+        if (localStorage.getItem('workoutLayoutMode') === 'focus' || carouselFocusModeActive) {
             renderRestTimer();
         }
 
@@ -7771,10 +7771,6 @@ function renderFocusCard() {
     }
     setsHtml += `</div>`;
 
-    card.style.border = '1px solid rgba(255,255,255,0.08)';
-    card.style.borderRadius = '18px';
-    card.style.overflow = 'hidden';
-    card.style.background = 'rgba(255,255,255,0.03)';
     card.innerHTML = `
         <div style="padding:10px 14px 8px; display:flex; align-items:flex-start; justify-content:space-between; gap:8px; background:rgba(255,255,255,0.03); border-bottom:1px solid rgba(255,255,255,0.05);">
             <div style="display:flex; align-items:center; gap:6px; min-width:0;">
