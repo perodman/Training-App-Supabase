@@ -7206,11 +7206,7 @@ function carouselStartRest(seconds) {
         restTimerExIdx = carouselCurrentIndex;
     }
 
-       if (carouselFocusModeActive) {
-        renderFocusCard();
-    } else {
-        renderCarouselCard();
-    }
+       renderRestTimer();
 
     // 1. Karusellens egna intervall-loop
     carouselRestInterval = setInterval(() => {
