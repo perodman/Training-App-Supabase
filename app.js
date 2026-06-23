@@ -114,6 +114,23 @@ function getDefaultSetData(ex) {
     return { weight: '', reps: '', userConfirmed: false };
 }
 
+function calcPace(duration, distance) {
+    if (!duration || !distance) return '—';
+    const parts = String(duration).split(':');
+    let totalSeconds;
+    if (parts.length === 2) {
+        totalSeconds = parseInt(parts[0]) * 60 + parseInt(parts[1]);
+    } else {
+        totalSeconds = parseInt(duration) * 60;
+    }
+    const dist = parseFloat(distance);
+    if (!dist || dist <= 0 || !totalSeconds) return '—';
+    const paceSeconds = totalSeconds / dist;
+    const paceMins = Math.floor(paceSeconds / 60);
+    const paceSecs = String(Math.round(paceSeconds % 60)).padStart(2, '0');
+    return `${paceMins}:${paceSecs} /km`;
+}
+
 // Hjälpfunktion för att hantera masterExercises och hålla init-koden ren
 function setupMasterExercisesFallback(json) {
     if (masterExercises.length === 0 && json && json.routine) {
@@ -3688,9 +3705,9 @@ function renderActiveWorkout() {
             let setsHtml = `<div style="margin-top:10px;">
                 <div style="display:grid; grid-template-columns: 40px 1fr 1fr 1fr 30px; gap:8px; margin-bottom:5px; align-items:center;">
                     <small style="text-align:left; padding-left:5px; color:var(--text-light); font-size:9px; font-weight:700;">SET</small>
-                    <small style="text-align:center; color:var(--text-light); font-size:9px;">${isCardio ? 'TIME (min)' : 'KG'}</small>
-                    <small style="text-align:center; color:var(--text-light); font-size:9px;">${isCardio ? 'DIST (km)' : 'REPS'}</small>
-                    <small style="text-align:center; color:var(--text-light); font-size:9px;">${isCardio ? '' : 'REST (S)'}</small>
+                <small style="text-align:center; color:var(--text-light); font-size:9px;">${isCardio ? 'TIME (mm:ss)' : 'KG'}</small>
+                <small style="text-align:center; color:var(--text-light); font-size:9px;">${isCardio ? 'DIST (km)' : 'REPS'}</small>
+                <small style="text-align:center; color:var(--text-light); font-size:9px;">${isCardio ? 'PACE' : 'REST (S)'}</small>
                     <span></span>
                 </div>`;
             if (exerciseData.sets_data) {
@@ -7079,9 +7096,9 @@ const isCardio = isCardioExercise(ex);
 let setsHtml = `<div style="margin-top:4px;">
         <div style="display:grid; grid-template-columns: 40px 1fr 1fr 1fr 30px; gap:8px; margin-bottom:5px; align-items:center;">
             <small style="text-align:left; padding-left:5px; color:var(--text-light); font-size:9px; font-weight:700;">SET</small>
-            <small style="text-align:center; color:var(--text-light); font-size:9px;">${isCardio ? 'TIME (min)' : 'KG'}</small>
-            <small style="text-align:center; color:var(--text-light); font-size:9px;">${isCardio ? 'DIST (km)' : 'REPS'}</small>
-            <small style="text-align:center; color:var(--text-light); font-size:9px;">${isCardio ? '' : 'REST (S)'}</small>
+<small style="text-align:center; color:var(--text-light); font-size:9px;">${isCardio ? 'TIME (mm:ss)' : 'KG'}</small>
+<small style="text-align:center; color:var(--text-light); font-size:9px;">${isCardio ? 'DIST (km)' : 'REPS'}</small>
+<small style="text-align:center; color:var(--text-light); font-size:9px;">${isCardio ? 'PACE' : 'REST (S)'}</small>
             <span></span>
         </div>`;
 
@@ -7817,10 +7834,10 @@ function renderFocusCard() {
     const isCardio = isCardioExercise(ex);
     let setsHtml = `<div style="margin-top:4px;">
         <div style="display:grid; grid-template-columns: 40px 1fr 1fr 1fr 30px; gap:8px; margin-bottom:5px; align-items:center;">
-            <small style="text-align:left; padding-left:5px; color:var(--text-light); font-size:9px; font-weight:700;">SET</small>
-            <small style="text-align:center; color:var(--text-light); font-size:9px;">KG</small>
-            <small style="text-align:center; color:var(--text-light); font-size:9px;">REPS</small>
-            <small style="text-align:center; color:var(--text-light); font-size:9px;">REST (S)</small>
+            <small style="text-align:left; padding-left:5px; color:var(--text-light); font-size:9px; font-weight:700;">${isCardio ? '' : 'SET'}</small>
+            <small style="text-align:center; color:var(--text-light); font-size:9px;">${isCardio ? 'TIME (mm:ss)' : 'KG'}</small>
+            <small style="text-align:center; color:var(--text-light); font-size:9px;">${isCardio ? 'DIST (km)' : 'REPS'}</small>
+            <small style="text-align:center; color:var(--text-light); font-size:9px;">${isCardio ? 'PACE' : 'REST (S)'}</small>
             <span></span>
         </div>`;
     if (exData.sets_data) {
@@ -7829,7 +7846,7 @@ function renderFocusCard() {
             const isCurrent = !set.userConfirmed && !isDone && sIdx === firstUnconfirmed;
             const showSuccess = set.userConfirmed || isDone;
             const circleColor = showSuccess ? '#22c55e' : (isCurrent ? '#facc15' : '#f59e0b');
-            const statusContent = showSuccess ? '✅' : `#${sIdx + 1}`;
+            const statusContent = showSuccess ? '✅' : (isCardio ? '○' : `#${sIdx + 1}`);
             const inputOpacity = isCurrent ? '1' : '0.3';
             setsHtml += `
             <div style="display:grid; grid-template-columns: 40px 1fr 1fr 1fr 30px; gap:8px; margin-bottom:8px; align-items:center; transition:opacity 0.2s ease; position:relative; overflow:visible;">
@@ -7837,21 +7854,20 @@ function renderFocusCard() {
                     style="width:32px; height:32px; border-radius:50%; border:2px solid ${circleColor}; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:10px; font-weight:800; background:${showSuccess ? 'rgba(34,197,94,0.2)' : isCurrent ? 'rgba(250,204,21,0.15)' : 'rgba(245,158,11,0.05)'}; color:${circleColor}; opacity:1;">
                     ${statusContent}
                 </div>
-               ${isCardio ? `<input type="text" inputmode="decimal" id="fcd-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${inputOpacity}; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.duration || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'duration')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">` : `<input type="text" inputmode="decimal" id="fw-${i}-${sIdx}" class="log-input weight-input" data-ex="${i}" data-set="${sIdx}" style="margin:0; padding:12px; font-size:18px; opacity:${inputOpacity}; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.weight || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'weight')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`}
+               ${isCardio ? `<input type="text" inputmode="decimal" id="fcd-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${inputOpacity}; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.duration || ''}" placeholder="mm:ss" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'duration')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">` : `<input type="text" inputmode="decimal" id="fw-${i}-${sIdx}" class="log-input weight-input" data-ex="${i}" data-set="${sIdx}" style="margin:0; padding:12px; font-size:18px; opacity:${inputOpacity}; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.weight || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'weight')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`}
                 ${isCardio ? `<input type="text" inputmode="decimal" id="fck-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${inputOpacity}; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.distance || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'distance')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">` : `<input type="text" inputmode="decimal" id="fr-${i}-${sIdx}" class="log-input reps-input" data-ex="${i}" data-set="${sIdx}" style="margin:0; padding:12px; font-size:18px; opacity:${inputOpacity}; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.reps || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'reps')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`}
-                ${isCardio ? '<div></div>' : (sIdx < exData.sets_data.length - 1 ? `<input type="text" inputmode="decimal" id="fv-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${inputOpacity}; border-color:${isCurrent ? 'rgba(245,158,11,0.6)' : 'rgba(52,152,219,0.3)'};" value="${set.rest || '120'}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'rest')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">` : '<div></div>')}
+                ${isCardio ? `<div id="pace-${i}-${sIdx}" style="display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:#22d3ee; font-family:monospace;">${calcPace(set.duration, set.distance)}</div>` : (sIdx < exData.sets_data.length - 1 ? `<input type="text" inputmode="decimal" id="fv-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${inputOpacity}; border-color:${isCurrent ? 'rgba(245,158,11,0.6)' : 'rgba(52,152,219,0.3)'};" value="${set.rest || '120'}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'rest')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">` : '<div></div>')}
                 <button onclick="removeSetFromExercise(${i}, ${sIdx})" style="background:none; border:none; color:var(--danger); font-size:16px; opacity: ${showSuccess ? '0.1' : '0.8'};" ${showSuccess ? 'disabled' : ''}>×</button>
             </div>`;
             if (isCurrent && sIdx === firstUnconfirmed) {
                 setsHtml += `
                 <div style="grid-column: 2 / span 3; margin:-4px 0 8px 0; padding-left:2px; opacity:0.8; font-size:10px; color:var(--primary); font-weight:600; letter-spacing:0.3px;">
-                            💡 Select ${statusContent} to lock & continue
-                        </div>`;
+                    💡 Select ${statusContent} to lock & continue
+                </div>`;
             }
         });
     }
     setsHtml += `</div>`;
-
     card.innerHTML = `
         <div style="padding:10px 14px 8px; display:flex; align-items:flex-start; justify-content:space-between; gap:8px; background:rgba(255,255,255,0.03); border-bottom:1px solid rgba(255,255,255,0.05);">
             <div style="display:flex; align-items:center; gap:6px; min-width:0;">
@@ -7864,7 +7880,6 @@ function renderFocusCard() {
                 <div onclick="const z=document.getElementById('focus-menu-${i}'); z.style.display=z.style.display==='block'?'none':'block';" style="width:26px;height:26px;border-radius:8px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;cursor:pointer;color:#94a3b8;font-size:13px;letter-spacing:1px;flex-shrink:0;">⋯</div>
             </div>
         </div>
-
         <div id="focus-menu-${i}" style="display:none; position:absolute; top:54px; right:14px; background:#1e293b; border:1px solid rgba(255,255,255,0.1); border-radius:14px; padding:6px; z-index:50; min-width:160px; box-shadow:0 8px 24px rgba(0,0,0,0.5);">
             <div onclick="document.getElementById('focus-menu-${i}').style.display='none'; focusToggleNote(${i});" style="display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;position:relative;">
                 <span style="font-size:14px;">📝${exData.note ? '<span style="position:absolute;top:6px;left:18px;width:6px;height:6px;background:#fde047;border-radius:50%;"></span>' : ''}</span><span style="color:#f8fafc;">Note</span>
@@ -7876,7 +7891,6 @@ function renderFocusCard() {
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg><span style="color:#ef4444;">Remove</span>
             </div>
         </div>
-
         <div id="focus-rest-dropdown" style="display:${wasDropdownOpen ? 'block' : 'none'}; margin:0 14px 6px; background:rgba(245,158,11,0.06); border:1px solid rgba(245,158,11,0.2); border-radius:12px; padding:10px 12px;">
             <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
                 <div style="display:flex; align-items:center; gap:12px;">
@@ -7900,7 +7914,6 @@ function renderFocusCard() {
                 </div>
             </div>
         </div>
-
         <div class="carousel-card-body">
             <div style="font-size:13px; color:${isDone ? '#22c55e' : 'var(--primary)'}; font-weight:800; margin-bottom:12px;">${isDone ? 'DONE ✅' : `${catDisplay}${catDisplay ? ' · ' : ''}${completedSets}/${totalSets} sets`}</div>
             ${isNoteOpen ? `<div style="margin-bottom:10px;">
@@ -7910,27 +7923,17 @@ function renderFocusCard() {
             </div>` : ''}
             ${setsHtml}
             <div style="display:flex; gap:6px; align-items:center; margin-top:12px; margin-bottom:8px; width:100%;">
-
                 <button style="display:flex;align-items:center;gap:6px;padding:9px 14px;background:transparent;border:1.5px dashed rgba(34,211,238,0.3);color:#22d3ee;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0;${isDone ? 'opacity:0.3;pointer-events:none;' : ''}" onclick="addSetToExercise(${i})" ${isDone ? 'disabled' : ''} ${isCardio ? 'hidden' : ''}>
-
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-
                     Add set
-
                 </button>
-
                 <button style="display:flex;align-items:center;justify-content:center;gap:5px;padding:9px 14px;background:${isDone ? 'rgba(148,163,184,0.25)' : 'rgba(34,197,94,0.1)'};color:${isDone ? '#fff' : '#22c55e'};border-radius:10px;font-size:13px;font-weight:700;border:${isDone ? '1px solid rgba(148,163,184,0.2)' : '1px solid rgba(34,197,94,0.25)'};cursor:pointer;flex:1;" onclick="focusToggleDone(${i})">
-
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">${isDone ? '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>' : '<circle cx="12" cy="12" r="10"></circle><polyline points="9 12 11 14 15 10"></polyline>'}</svg>
-
                     ${isDone ? 'Undo' : 'Finish exercise'}
-
                 </button>
-
             </div>
-            </button>
         </div>
-       <div id="focus-anim-modal-${i}" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:9999;align-items:center;justify-content:center;" onclick="this.style.display='none'">
+        <div id="focus-anim-modal-${i}" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:9999;align-items:center;justify-content:center;" onclick="this.style.display='none'">
             <div style="background:#1e293b;border-radius:16px;padding:20px;width:90%;max-width:400px;">
                 <div style="font-size:12px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">Animation</div>
                 ${getExSVG(ex.target, 'large')}
