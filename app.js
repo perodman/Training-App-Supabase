@@ -5373,16 +5373,15 @@ async function deleteLoggedWorkout(date, idx) {
     } catch (error) {
         console.error('Error deleting workout from Supabase:', error);
     }
+isSyncingWithSupabase = false;
+    activeDraft = null;
     localStorage.removeItem("activeWorkoutDraft");
     if (typeof deleteActiveDraft === 'function') await deleteActiveDraft();
-
     if (currentUser) {
         try {
             await supabaseClient.from('active_draft').delete().eq('user_id', currentUser.id);
         } catch(e) { console.error(e); }
     }
-
-    activeDraft = null;
     await saveAll();
     closeModal();
     renderCalendar();
