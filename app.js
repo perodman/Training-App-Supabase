@@ -1044,11 +1044,11 @@ const duration = isCardioSet ? `${s.duration_min || '0'}:${String(s.duration_sec
 const pace = (isCardioSet && duration && s.distance) ? calcPace(duration, s.distance) : null;
 html += `
 <div style="display: flex; align-items: center;">
-    <div style="background: rgba(34,211,238,0.06); border: 1px solid rgba(34,211,238,0.2); padding: 6px 10px; border-radius: 10px; display: flex; align-items: center; gap: 8px; flex:1;">
+    <div style="width: 160px; background: rgba(34,211,238,0.06); border: 1px solid rgba(34,211,238,0.2); padding: 6px 10px; border-radius: 10px; display: flex; align-items: center; gap: 8px;">
         <span style="color: rgba(255,255,255,0.5); font-size: 10px; font-weight: 800; min-width: 20px; flex-shrink:0;">#${sIdx+1}</span>
         <span style="color: rgba(255,255,255,0.2); font-size: 10px;">|</span>
         ${isCardioSet ? `
-        <div style="display:flex; gap:12px; flex:1;">
+       <div style="display:flex; gap:12px; flex:1; justify-content:space-around;">
             <div style="display:flex; flex-direction:column; gap:1px;">
                 <span style="font-size:8px; color:rgba(34,211,238,0.6); font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">Time</span>
                 <span style="color:#fff; font-size:11px; font-weight:700;">${duration || '—'}</span>
