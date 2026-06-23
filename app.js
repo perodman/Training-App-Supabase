@@ -102,6 +102,18 @@ async function initApp() {
     if (typeof renderHome === 'function') renderHome();
 }
 
+function isCardioExercise(ex) {
+    if (!ex) return false;
+    return ex.target === 'Cardio';
+}
+
+function getDefaultSetData(ex) {
+    if (isCardioExercise(ex)) {
+        return { duration: '', distance: '', userConfirmed: false };
+    }
+    return { weight: '', reps: '', userConfirmed: false };
+}
+
 // Hjälpfunktion för att hantera masterExercises och hålla init-koden ren
 function setupMasterExercisesFallback(json) {
     if (masterExercises.length === 0 && json && json.routine) {
@@ -3444,7 +3456,7 @@ async function startWorkout(workout, data = null, date = null, isImmediateStart 
                 setsCopy.forEach(set => { set.userConfirmed = false; });
                 return { sets_data: setsCopy, isCompleted: false, note: history.note || null };
             }
-            return { sets_data: [{ weight: "", reps: "" }, { weight: "", reps: "" }, { weight: "", reps: "" }], isCompleted: false };
+            return { sets_data: [getDefaultSetData(ex), getDefaultSetData(ex), getDefaultSetData(ex)], isCompleted: false };
         });
     }
 
@@ -3668,12 +3680,13 @@ function renderActiveWorkout() {
             totalWorkoutSets += totalSets;
 
             const firstUnconfirmed = exerciseData.sets_data ? exerciseData.sets_data.findIndex(s => !s.userConfirmed) : -1;
+            const isCardio = isCardioExercise(ex);
             let setsHtml = `<div style="margin-top:10px;">
                 <div style="display:grid; grid-template-columns: 40px 1fr 1fr 1fr 30px; gap:8px; margin-bottom:5px; align-items:center;">
                     <small style="text-align:left; padding-left:5px; color:var(--text-light); font-size:9px; font-weight:700;">SET</small>
-                    <small style="text-align:center; color:var(--text-light); font-size:9px;">KG</small>
-                    <small style="text-align:center; color:var(--text-light); font-size:9px;">REPS</small>
-                    <small style="text-align:center; color:var(--text-light); font-size:9px;">REST (S)</small>
+                    <small style="text-align:center; color:var(--text-light); font-size:9px;">${isCardio ? 'TIME (min)' : 'KG'}</small>
+                    <small style="text-align:center; color:var(--text-light); font-size:9px;">${isCardio ? 'DIST (km)' : 'REPS'}</small>
+                    <small style="text-align:center; color:var(--text-light); font-size:9px;">${isCardio ? '' : 'REST (S)'}</small>
                     <span></span>
                 </div>`;
             if (exerciseData.sets_data) {
@@ -3689,9 +3702,13 @@ function renderActiveWorkout() {
                             style="width:32px; height:32px; border-radius:50%; border:2px solid ${circleColor}; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:10px; font-weight:800; background: ${showSuccess ? 'rgba(34, 197, 94, 0.2)' : (isCurrent ? 'rgba(250, 204, 21, 0.15)' : 'rgba(245, 158, 11, 0.05)')}; color: ${circleColor}; opacity: 1;">
                             ${statusContent}
                         </div>
-                        <input type="text" inputmode="decimal" id="w-${i}-${sIdx}" class="log-input weight-input" data-ex="${i}" data-set="${sIdx}" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'}; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.weight || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'weight')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
-                        <input type="text" inputmode="decimal" id="r-${i}-${sIdx}" class="log-input reps-input" data-ex="${i}" data-set="${sIdx}" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'}; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.reps || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'reps')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
-                        ${sIdx < exerciseData.sets_data.length - 1 ? `<input type="text" inputmode="decimal" id="v-${i}-${sIdx}" class="log-input rest-input" data-ex="${i}" data-set="${sIdx}" style="margin:0; padding:12px; font-size:18px; opacity: ${isCurrent ? '1' : '0.3'}; border-color: ${isCurrent ? 'rgba(245,158,11,0.6)' : 'rgba(52,152,219,0.3)'};" value="${set.rest || '120'}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'rest')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">` : `<div></div>`}
+                       ${isCardio
+                            ? `<input type="text" inputmode="decimal" id="cd-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${isCurrent ? '1' : '0.3'}; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.duration || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'duration')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`
+                            : `<input type="text" inputmode="decimal" id="w-${i}-${sIdx}" class="log-input weight-input" data-ex="${i}" data-set="${sIdx}" style="margin:0; padding:12px; font-size:18px; opacity:${isCurrent ? '1' : '0.3'}; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.weight || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'weight')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`}
+                        ${isCardio
+                            ? `<input type="text" inputmode="decimal" id="ck-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${isCurrent ? '1' : '0.3'}; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.distance || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'distance')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`
+                            : `<input type="text" inputmode="decimal" id="r-${i}-${sIdx}" class="log-input reps-input" data-ex="${i}" data-set="${sIdx}" style="margin:0; padding:12px; font-size:18px; opacity:${isCurrent ? '1' : '0.3'}; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.reps || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'reps')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`}
+                        ${isCardio ? '<div></div>' : (sIdx < exerciseData.sets_data.length - 1 ? `<input type="text" inputmode="decimal" id="v-${i}-${sIdx}" class="log-input rest-input" data-ex="${i}" data-set="${sIdx}" style="margin:0; padding:12px; font-size:18px; opacity:${isCurrent ? '1' : '0.3'}; border-color:${isCurrent ? 'rgba(245,158,11,0.6)' : 'rgba(52,152,219,0.3)'};" value="${set.rest || '120'}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'rest')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">` : '<div></div>')}
                         <button onclick="removeSetFromExercise(${i}, ${sIdx})" style="background:none; border:none; color:var(--danger); font-size:16px; opacity: ${showSuccess ? '0.1' : '0.8'};" ${showSuccess ? 'disabled' : ''}>×</button>
                     </div>`;
                     if (isCurrent && sIdx === firstUnconfirmed) {
@@ -4082,7 +4099,17 @@ async function addSetToExercise(exIdx) {
     const lastSet = activeDraft.data[exIdx].sets_data[activeDraft.data[exIdx].sets_data.length - 1];
     const newWeight = lastSet ? lastSet.weight : "";
     const newReps = lastSet ? lastSet.reps : "";
-    activeDraft.data[exIdx].sets_data.push({ weight: newWeight, reps: newReps });
+    const exObj = activeDraft.workout.exercises[exIdx];
+    if (isCardioExercise(exObj)) {
+        activeDraft.data[exIdx].sets_data.push({ duration: '', distance: '', userConfirmed: false });
+    } else {
+        const exObj = activeDraft.workout.exercises[exIdx];
+    if (isCardioExercise(exObj)) {
+        activeDraft.data[exIdx].sets_data.push({ duration: '', distance: '', userConfirmed: false });
+    } else {
+        activeDraft.data[exIdx].sets_data.push({ weight: newWeight, reps: newReps });
+    }
+    }
 const savedLayout = localStorage.getItem('workoutLayoutMode') || 'list';
     if (savedLayout === 'carousel' && carouselFocusModeActive) {
         renderFocusCard();
@@ -4486,7 +4513,7 @@ async function confirmAddExerciseToActive(exId, replaceIndex = null) {
         setsCopy.forEach(set => set.userConfirmed = false);
         newDataEntry = { sets_data: setsCopy, isCompleted: false, note: history.note || null };
     } else {
-        newDataEntry = { sets_data: [{ weight: "", reps: "" }, { weight: "", reps: "" }, { weight: "", reps: "" }], isCompleted: false };
+        newDataEntry = { sets_data: [getDefaultSetData(ex), getDefaultSetData(ex), getDefaultSetData(ex)], isCompleted: false };
     }
     
     if (replaceIndex !== null) {
@@ -4561,9 +4588,11 @@ async function updateSetDataOnly(inputEl, exIdx, setIdx, fieldType) {
     const setObj = setsArray[setIdx];
 
     // Spara det aktuella värdet som användaren skriver in
-    if (fieldType === 'weight') setObj.weight = inputEl.value;
+   if (fieldType === 'weight') setObj.weight = inputEl.value;
     if (fieldType === 'reps') setObj.reps = inputEl.value;
     if (fieldType === 'rest') setObj.rest = inputEl.value;
+    if (fieldType === 'duration') setObj.duration = inputEl.value;
+    if (fieldType === 'distance') setObj.distance = inputEl.value;
     if (typeof setObj.userConfirmed === "undefined") setObj.userConfirmed = false;
 
     // Om ändringen sker i Set 1 (index 0), kör autofyll/spegling
@@ -4673,6 +4702,7 @@ function updateSingleExerciseCard(exIdx) {
     const completedSets = exerciseData.sets_data ? exerciseData.sets_data.filter(s => s.userConfirmed).length : 0;
     const totalSets = exerciseData.sets_data ? exerciseData.sets_data.length : 0;
     const firstUnconfirmed = exerciseData.sets_data ? exerciseData.sets_data.findIndex(s => !s.userConfirmed) : -1;
+    const isCardio = isCardioExercise(ex);
     let setsHtml = `<div style="margin-top:10px;">
         <div style="display:grid; grid-template-columns: 40px 1fr 1fr 1fr 30px; gap:8px; margin-bottom:5px; align-items:center;">
             <small style="text-align:left; padding-left:5px; color:var(--text-light); font-size:9px; font-weight:700;">SET</small>
@@ -7040,13 +7070,13 @@ card.style.boxShadow = isDone ? '0 0 25px rgba(34,197,94,0.25), inset 0 0 40px r
     const defaultTimeStr = `${defaultMins}:${defaultSecs}`;
 
     const isCounting = restTimerActive && restTimerSeconds > 0;
-
+const isCardio = isCardioExercise(ex);
 let setsHtml = `<div style="margin-top:4px;">
         <div style="display:grid; grid-template-columns: 40px 1fr 1fr 1fr 30px; gap:8px; margin-bottom:5px; align-items:center;">
             <small style="text-align:left; padding-left:5px; color:var(--text-light); font-size:9px; font-weight:700;">SET</small>
-            <small style="text-align:center; color:var(--text-light); font-size:9px;">KG</small>
-            <small style="text-align:center; color:var(--text-light); font-size:9px;">REPS</small>
-            <small style="text-align:center; color:var(--text-light); font-size:9px;">REST (S)</small>
+            <small style="text-align:center; color:var(--text-light); font-size:9px;">${isCardio ? 'TIME (min)' : 'KG'}</small>
+            <small style="text-align:center; color:var(--text-light); font-size:9px;">${isCardio ? 'DIST (km)' : 'REPS'}</small>
+            <small style="text-align:center; color:var(--text-light); font-size:9px;">${isCardio ? '' : 'REST (S)'}</small>
             <span></span>
         </div>`;
 
@@ -7777,7 +7807,7 @@ function renderFocusCard() {
     const defaultSecs = String(nextRestSeconds % 60).padStart(2, '0');
     const defaultTimeStr = `${defaultMins}:${defaultSecs}`;
     const isCounting = restTimerActive && restTimerSeconds > 0;
-
+    const isCardio = isCardioExercise(ex);
     let setsHtml = `<div style="margin-top:4px;">
         <div style="display:grid; grid-template-columns: 40px 1fr 1fr 1fr 30px; gap:8px; margin-bottom:5px; align-items:center;">
             <small style="text-align:left; padding-left:5px; color:var(--text-light); font-size:9px; font-weight:700;">SET</small>
@@ -7800,11 +7830,9 @@ function renderFocusCard() {
                     style="width:32px; height:32px; border-radius:50%; border:2px solid ${circleColor}; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:10px; font-weight:800; background:${showSuccess ? 'rgba(34,197,94,0.2)' : isCurrent ? 'rgba(250,204,21,0.15)' : 'rgba(245,158,11,0.05)'}; color:${circleColor}; opacity:1;">
                     ${statusContent}
                 </div>
-                <input type="text" inputmode="decimal" id="fw-${i}-${sIdx}" class="log-input weight-input" data-ex="${i}" data-set="${sIdx}" style="margin:0; padding:12px; font-size:18px; opacity:${inputOpacity}; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.weight || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'weight')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
-                <input type="text" inputmode="decimal" id="fr-${i}-${sIdx}" class="log-input reps-input" data-ex="${i}" data-set="${sIdx}" style="margin:0; padding:12px; font-size:18px; opacity:${inputOpacity}; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.reps || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'reps')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
-                ${sIdx < exData.sets_data.length - 1
-                    ? `<input type="text" inputmode="decimal" id="fv-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${inputOpacity}; border-color:${isCurrent ? 'rgba(245,158,11,0.6)' : 'rgba(52,152,219,0.3)'};" value="${set.rest || '120'}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'rest')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`
-                    : '<div></div>'}
+               ${isCardio ? `<input type="text" inputmode="decimal" id="fcd-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${inputOpacity}; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.duration || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'duration')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">` : `<input type="text" inputmode="decimal" id="fw-${i}-${sIdx}" class="log-input weight-input" data-ex="${i}" data-set="${sIdx}" style="margin:0; padding:12px; font-size:18px; opacity:${inputOpacity}; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.weight || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'weight')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`}
+                ${isCardio ? `<input type="text" inputmode="decimal" id="fck-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${inputOpacity}; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.distance || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'distance')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">` : `<input type="text" inputmode="decimal" id="fr-${i}-${sIdx}" class="log-input reps-input" data-ex="${i}" data-set="${sIdx}" style="margin:0; padding:12px; font-size:18px; opacity:${inputOpacity}; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.reps || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'reps')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`}
+                ${isCardio ? '<div></div>' : (sIdx < exData.sets_data.length - 1 ? `<input type="text" inputmode="decimal" id="fv-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${inputOpacity}; border-color:${isCurrent ? 'rgba(245,158,11,0.6)' : 'rgba(52,152,219,0.3)'};" value="${set.rest || '120'}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'rest')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">` : '<div></div>')}
                 <button onclick="removeSetFromExercise(${i}, ${sIdx})" style="background:none; border:none; color:var(--danger); font-size:16px; opacity: ${showSuccess ? '0.1' : '0.8'};" ${showSuccess ? 'disabled' : ''}>×</button>
             </div>`;
             if (isCurrent && sIdx === firstUnconfirmed) {
