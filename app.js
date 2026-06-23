@@ -4614,7 +4614,10 @@ async function updateSetDataOnly(inputEl, exIdx, setIdx, fieldType) {
     if (fieldType === 'reps') setObj.reps = inputEl.value;
     if (fieldType === 'rest') setObj.rest = inputEl.value;
     if (fieldType === 'duration') setObj.duration = inputEl.value;
-    if (fieldType === 'distance') setObj.distance = inputEl.value;
+    if (fieldType === 'distance') {
+        const paceEl = document.getElementById(`pace-${exIdx}-${setIdx}`);
+        if (paceEl) paceEl.textContent = calcPace(setObj.duration, inputEl.value);
+    }
     if (fieldType === 'distance') {
         const paceEl = document.getElementById(`pace-${exIdx}-${setIdx}`);
         if (paceEl) paceEl.textContent = calcPace(setObj.duration, inputEl.value);
@@ -7101,7 +7104,7 @@ function renderCarouselCard() {
     let setsHtml = `<div style="margin-top:4px;">
         <div style="display:grid; grid-template-columns: 40px 1fr 1fr 1fr 30px; gap:8px; margin-bottom:5px; align-items:center;">
             <small style="text-align:left; padding-left:5px; color:var(--text-light); font-size:9px; font-weight:700;">${isCardio ? '' : 'SET'}</small>
-            <small style="text-align:center; color:var(--text-light); font-size:9px;">${isCardio ? 'TIME (mm:ss)' : 'KG'}</small>
+            <small style="text-align:center; color:var(--text-light); font-size:9px;">${isCardio ? 'TID' : 'KG'}</small>
             <small style="text-align:center; color:var(--text-light); font-size:9px;">${isCardio ? 'DIST (km)' : 'REPS'}</small>
             <small style="text-align:center; color:var(--text-light); font-size:9px;">${isCardio ? 'PACE' : 'REST (S)'}</small>
             <span></span>
@@ -7117,25 +7120,25 @@ function renderCarouselCard() {
             setsHtml += `
             <div style="display:grid; grid-template-columns: 40px 1fr 1fr 1fr 30px; gap:8px; margin-bottom:8px; align-items:center; transition:opacity 0.2s ease; position:relative; overflow:visible;">
                 <div class="${isCurrent ? 'pulse-ring' : ''}" onclick="${isLocked && !isDone ? '' : `carouselConfirmSet(${i}, ${sIdx})`}"
-                    style="width:32px; height:32px; border-radius:50%; border:2px solid ${circleColor}; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:10px; font-weight:800; background:${showSuccess ? 'rgba(34,197,94,0.2)' : isCurrent ? 'rgba(250,204,21,0.15)' : 'rgba(245,158,11,0.05)'}; color:${circleColor}; opacity:1;">
+                    style="width:32px; height:32px; border-radius:50%; border:2px solid ${circleColor}; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:${isCardio ? '14px' : '10px'}; font-weight:800; background:${showSuccess ? 'rgba(34,197,94,0.2)' : isCurrent ? 'rgba(250,204,21,0.15)' : 'rgba(245,158,11,0.05)'}; color:${circleColor}; opacity:1;">
                     ${statusContent}
                 </div>
                 ${isCardio
                     ? `<div style="display:flex; gap:2px; align-items:center;">
-    <input type="text" inputmode="numeric" id="cdm-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px 4px; font-size:16px; opacity:${inputOpacity}; text-align:center; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.duration_min || ''}" placeholder="min" ${isLocked ? 'readonly' : ''} oninput="updateCardioTime(this, ${i}, ${sIdx}, 'min')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
-    <span style="color:#64748b; font-size:14px; font-weight:700;">:</span>
-    <input type="text" inputmode="numeric" id="cds-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px 4px; font-size:16px; opacity:${inputOpacity}; text-align:center; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.duration_sec || ''}" placeholder="sek" ${isLocked ? 'readonly' : ''} oninput="updateCardioTime(this, ${i}, ${sIdx}, 'sec')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
-</div>`
+                        <input type="text" inputmode="numeric" id="cdm-${i}-${sIdx}" class="log-input" style="margin:0; padding:8px 4px; font-size:15px; opacity:${inputOpacity}; text-align:center; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.duration_min || ''}" placeholder="min" ${isLocked ? 'readonly' : ''} oninput="updateCardioTime(this, ${i}, ${sIdx}, 'min')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
+                        <span style="color:#64748b; font-size:14px; font-weight:700; flex-shrink:0;">:</span>
+                        <input type="text" inputmode="numeric" id="cds-${i}-${sIdx}" class="log-input" style="margin:0; padding:8px 4px; font-size:15px; opacity:${inputOpacity}; text-align:center; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.duration_sec || ''}" placeholder="sek" ${isLocked ? 'readonly' : ''} oninput="updateCardioTime(this, ${i}, ${sIdx}, 'sec')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
+                       </div>`
                     : `<input type="text" inputmode="decimal" id="w-${i}-${sIdx}" class="log-input weight-input" data-ex="${i}" data-set="${sIdx}" style="margin:0; padding:12px; font-size:18px; opacity:${inputOpacity}; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.weight || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'weight')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`}
                 ${isCardio
                     ? `<input type="text" inputmode="decimal" id="ck-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${inputOpacity}; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.distance || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'distance')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`
                     : `<input type="text" inputmode="decimal" id="r-${i}-${sIdx}" class="log-input reps-input" data-ex="${i}" data-set="${sIdx}" style="margin:0; padding:12px; font-size:18px; opacity:${inputOpacity}; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.reps || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'reps')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`}
                 ${isCardio
-                    ? `<div id="pace-${i}-${sIdx}" style="display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:#22d3ee; font-family:monospace;">${calcPace(set.duration, set.distance)}</div>`
+                    ? `<div id="pace-${i}-${sIdx}" style="display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:#22d3ee; font-family:monospace; text-align:center;">${calcPace(set.duration, set.distance)}</div>`
                     : (sIdx < exData.sets_data.length - 1
                         ? `<input type="text" inputmode="decimal" id="v-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${inputOpacity}; border-color:${isCurrent ? 'rgba(245,158,11,0.6)' : 'rgba(52,152,219,0.3)'};" value="${set.rest || '120'}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'rest')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`
                         : '<div></div>')}
-                <button onclick="removeSetFromExercise(${i}, ${sIdx})" style="background:none; border:none; color:var(--danger); font-size:16px; opacity: ${showSuccess ? '0.1' : '0.8'};" ${showSuccess ? 'disabled' : ''}>×</button>
+                <button onclick="removeSetFromExercise(${i}, ${sIdx})" style="background:none; border:none; color:var(--danger); font-size:16px; opacity:${showSuccess ? '0.1' : '0.8'};" ${showSuccess ? 'disabled' : ''}>×</button>
             </div>`;
             if (isCurrent && sIdx === firstUnconfirmed && !isCardio) {
                 setsHtml += `
@@ -7155,7 +7158,7 @@ function renderCarouselCard() {
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                     </div>
                 </div>
-               ${isDone ? 'DONE ✅' : isCardio ? catDisplay : `${catDisplay}${catDisplay ? ' · ' : ''}${completedSets}/${totalSets} sets`}
+                <div style="font-size:10px; color:${isDone ? '#22c55e' : 'var(--primary)'}; font-weight:800; margin-top:1px;">${isDone ? 'DONE ✅' : isCardio ? catDisplay : `${catDisplay}${catDisplay ? ' · ' : ''}${completedSets}/${totalSets} sets`}</div>
             </div>
             <div style="display:flex; align-items:center; gap:12px; flex-shrink:0;">
                 <div id="carousel-timer-header-zone" style="display:flex; flex-direction:column; align-items:flex-end; gap:2px; cursor:pointer; transition: opacity 0.2s ease; opacity: ${isDone ? '0.3' : isTimerDisabled ? '0.35' : '1'}; pointer-events:${isDone ? 'none' : 'auto'};" onclick="carouselToggleRestBadge();">
