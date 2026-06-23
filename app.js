@@ -4508,11 +4508,8 @@ function handleInstantExerciseCreated(newEx, replaceIndex = null) {
 async function confirmAddExerciseToActive(exId, replaceIndex = null) {
     const ex = masterExercises.find(e => e.id == exId);
     const newExObj = { name: ex.name, target: ex.target };
-
     let newDataEntry;
-    const history = getExerciseHistory(ex.name);
-    
-   if (history && !isCardioExercise(ex)) {
+    if (history && !isCardioExercise(ex)) {
         let setsCopy = JSON.parse(JSON.stringify(history.sets_data));
         setsCopy.forEach(set => set.userConfirmed = false);
         newDataEntry = { sets_data: setsCopy, isCompleted: false, note: history.note || null };
@@ -4521,20 +4518,17 @@ async function confirmAddExerciseToActive(exId, replaceIndex = null) {
         const numSets = isCardioExercise(ex) ? 1 : 3;
         newDataEntry = { sets_data: Array(numSets).fill(null).map(() => ({...defaultSet})), isCompleted: false };
     }
-    
     if (replaceIndex !== null) {
         activeDraft.workout.exercises[replaceIndex] = newExObj;
         activeDraft.data[replaceIndex] = newDataEntry;
     } else {
         activeDraft.workout.exercises.push(newExObj);
         activeDraft.data.push(newDataEntry);
-
         const newIdx = activeDraft.workout.exercises.length - 1;
         if (activeDraft.workout.name === "Free Workout" && !activeDraft.ui_state.openExercises.includes(newIdx)) {
             activeDraft.ui_state.openExercises.push(newIdx);
         }
     }
-    
     await persistActiveWorkout();
     closeModal();
     renderActiveWorkout();
