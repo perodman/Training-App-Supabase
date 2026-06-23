@@ -1027,13 +1027,25 @@ const safeCompleted = Array.isArray(completed) ? completed : [];
                     if (ex.sets_data) {
                         const hasRest = ex.sets_data.some((s, i) => s.rest && i < ex.sets_data.length - 1);
                         html += `<div style="display: flex; flex-direction: column; gap: 4px;">`;
-                        if (hasRest) {
-                            html += `
-                            <div style="display: flex; align-items: center; padding: 0 4px; margin-bottom: 2px;">
-                                <span style="font-size: 10px; color: rgba(34,211,238,0.6); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; width: 160px;">Set</span>
-                                <span style="font-size: 10px; color: rgba(245,158,11,0.6); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-left: 12px;">Rest</span>
-                            </div>`;
-                        }
+                        const isCardioEx = ex.sets_data.some(s => s.duration_min !== undefined || s.distance !== undefined);
+if (isCardioEx) {
+    html += `
+    <div style="display: flex; align-items: center; padding: 0 4px; margin-bottom: 6px;">
+        <span style="font-size: 10px; color: rgba(255,255,255,0.3); font-weight: 700; min-width: 20px;"></span>
+        <span style="width: 8px;"></span>
+        <div style="display:flex; gap:12px; flex:1; justify-content:space-around; padding-left:10px;">
+            <span style="font-size:10px; color:rgba(34,211,238,0.6); font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">Time</span>
+            <span style="font-size:10px; color:rgba(34,211,238,0.6); font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">Dist</span>
+            <span style="font-size:10px; color:rgba(34,211,238,0.6); font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">Pace</span>
+        </div>
+    </div>`;
+} else if (hasRest) {
+    html += `
+    <div style="display: flex; align-items: center; padding: 0 4px; margin-bottom: 2px;">
+        <span style="font-size: 10px; color: rgba(34,211,238,0.6); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; width: 160px;">Set</span>
+        <span style="font-size: 10px; color: rgba(245,158,11,0.6); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-left: 12px;">Rest</span>
+    </div>`;
+}
                         ex.sets_data.forEach((s, sIdx) => {
                            const wVal = s.weight || 0;
 const rVal = s.reps || 0;
@@ -1049,18 +1061,9 @@ html += `
         <span style="color: rgba(255,255,255,0.2); font-size: 10px;">|</span>
         ${isCardioSet ? `
        <div style="display:flex; gap:12px; flex:1; justify-content:space-around;">
-    <div style="display:flex; flex-direction:column; gap:2px;">
-        <span style="font-size:10px; color:rgba(34,211,238,0.6); font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">Time</span>
-        <span style="color:#fff; font-size:13px; font-weight:700;">${duration || '—'}</span>
-    </div>
-    <div style="display:flex; flex-direction:column; gap:2px;">
-        <span style="font-size:10px; color:rgba(34,211,238,0.6); font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">Dist</span>
-        <span style="color:#fff; font-size:13px; font-weight:700;">${s.distance ? s.distance + ' km' : '—'}</span>
-    </div>
-    <div style="display:flex; flex-direction:column; gap:2px;">
-        <span style="font-size:10px; color:rgba(34,211,238,0.6); font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">Pace</span>
-        <span style="color:#22d3ee; font-size:13px; font-weight:700;">${pace || '—'}</span>
-    </div>
+    <span style="color:#fff; font-size:13px; font-weight:700;">${duration || '—'}</span>
+    <span style="color:#fff; font-size:13px; font-weight:700;">${s.distance ? s.distance + ' km' : '—'}</span>
+    <span style="color:#22d3ee; font-size:13px; font-weight:700;">${pace || '—'}</span>
 </div>` : `<span style="color: #fff; font-size: 11px; font-weight: 600;">${wVal} kg × ${rVal} reps</span>`}
     </div>
     ${!isLastSet && restVal ? `
