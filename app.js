@@ -1056,7 +1056,7 @@ const duration = isCardioSet ? `${s.duration_min || '0'}:${String(s.duration_sec
 const pace = (isCardioSet && duration && s.distance) ? calcPace(duration, s.distance) : null;
 html += `
 <div style="display: flex; align-items: center;">
-    <div style="width: ${isCardioSet ? '100%' : '160px'}; background: rgba(34,211,238,0.06); border: 1px solid rgba(34,211,238,0.2); padding: 6px 10px; border-radius: 10px; display: flex; align-items: center; gap: 8px;">
+    <div style="width: ${isCardioSet ? '100%' : '160px'}; background: rgba(34,211,238,0.06); border: 1px solid rgba(34,211,238,0.2); padding: 10px; border-radius: 10px; display: flex; align-items: center; gap: 8px;">
         <span style="color: rgba(255,255,255,0.5); font-size: 10px; font-weight: 800; min-width: 20px; flex-shrink:0;">#${sIdx+1}</span>
         <span style="color: rgba(255,255,255,0.2); font-size: 10px;">|</span>
         ${isCardioSet ? `
