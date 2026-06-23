@@ -3456,7 +3456,9 @@ async function startWorkout(workout, data = null, date = null, isImmediateStart 
                 setsCopy.forEach(set => { set.userConfirmed = false; });
                 return { sets_data: setsCopy, isCompleted: false, note: history.note || null };
             }
-            return { sets_data: [getDefaultSetData(ex), getDefaultSetData(ex), getDefaultSetData(ex)], isCompleted: false };
+            const defaultSet = getDefaultSetData(ex);
+            const numSets = isCardioExercise(ex) ? 1 : 3;
+            return { sets_data: Array(numSets).fill(null).map(() => ({...defaultSet})), isCompleted: false };
         });
     }
 
@@ -3760,7 +3762,7 @@ function renderActiveWorkout() {
                     </div>
                     ${setsHtml}
                    <div style="display:flex; gap:8px; margin-top:12px;">
-                      <button style="flex:1; padding:10px; background:transparent; border:1.5px dashed rgba(34,211,238,0.3); color:#22d3ee; border-radius:10px; font-size:12px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; ${isDone ? 'opacity:0.3; pointer-events:none;' : ''}" onclick="addSetToExercise(${i})" ${isDone ? 'disabled' : ''}>
+                     <button style="flex:1; padding:10px; background:transparent; border:1.5px dashed rgba(34,211,238,0.3); color:#22d3ee; border-radius:10px; font-size:12px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; ${isDone ? 'opacity:0.3; pointer-events:none;' : ''}${isCardio ? 'display:none;' : ''}" onclick="addSetToExercise(${i})" ${isDone ? 'disabled' : ''} ${isCardio ? 'hidden' : ''}>
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                         Add set
                       </button>
@@ -4513,7 +4515,9 @@ async function confirmAddExerciseToActive(exId, replaceIndex = null) {
         setsCopy.forEach(set => set.userConfirmed = false);
         newDataEntry = { sets_data: setsCopy, isCompleted: false, note: history.note || null };
     } else {
-        newDataEntry = { sets_data: [getDefaultSetData(ex), getDefaultSetData(ex), getDefaultSetData(ex)], isCompleted: false };
+        const defaultSet = getDefaultSetData(ex);
+        const numSets = isCardioExercise(ex) ? 1 : 3;
+        newDataEntry = { sets_data: Array(numSets).fill(null).map(() => ({...defaultSet})), isCompleted: false };
     }
     
     if (replaceIndex !== null) {
@@ -7183,7 +7187,7 @@ let setsHtml = `<div style="margin-top:4px;">
             </div>` : ''}
             ${setsHtml}
             <div style="display:flex; gap:6px; align-items:center; margin-top:12px; margin-bottom:8px; width:100%;">
-                <button style="display:flex;align-items:center;gap:5px;padding:7px 10px;background:transparent;border:1.5px dashed rgba(34,211,238,0.3);color:#22d3ee;border-radius:10px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0;${isDone ? 'opacity:0.3;pointer-events:none;' : ''}" onclick="addSetToExercise(${i})" ${isDone ? 'disabled' : ''}>
+                <button style="display:flex;align-items:center;gap:5px;padding:7px 10px;background:transparent;border:1.5px dashed rgba(34,211,238,0.3);color:#22d3ee;border-radius:10px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0;${isDone ? 'opacity:0.3;pointer-events:none;' : ''}" onclick="addSetToExercise(${i})" ${isDone ? 'disabled' : ''} ${isCardio ? 'hidden' : ''}>
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                     Add set
                 </button>
@@ -7904,7 +7908,7 @@ function renderFocusCard() {
             ${setsHtml}
             <div style="display:flex; gap:6px; align-items:center; margin-top:12px; margin-bottom:8px; width:100%;">
 
-                <button style="display:flex;align-items:center;gap:6px;padding:9px 14px;background:transparent;border:1.5px dashed rgba(34,211,238,0.3);color:#22d3ee;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0;${isDone ? 'opacity:0.3;pointer-events:none;' : ''}" onclick="addSetToExercise(${i})" ${isDone ? 'disabled' : ''}>
+                <button style="display:flex;align-items:center;gap:6px;padding:9px 14px;background:transparent;border:1.5px dashed rgba(34,211,238,0.3);color:#22d3ee;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0;${isDone ? 'opacity:0.3;pointer-events:none;' : ''}" onclick="addSetToExercise(${i})" ${isDone ? 'disabled' : ''} ${isCardio ? 'hidden' : ''}>
 
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
 
