@@ -4236,71 +4236,97 @@ function openReplaceExerciseModal(index) {
 * APP.JS - DEL 4 AV 4 (MED KOMPLETT SUPABASE-SYNKRONISERING)
 * =========================================================================
 */
-function renderExercisePicker(category, replaceIndex = null) {
+function renderExercisePicker(category, replaceIndex = null, subtarget = null) {
     const body = document.getElementById("modal-body");
-
     const categories = [
-        { name: "Ben", icon: " 🦵 " },
-        { name: "Bröst", icon: " 🏋️ " },
-        { name: "Rygg", icon: " 🪵 " },
-        { name: "Axlar", icon: " 👐 " },
-        { name: "Armar", icon: " 💪 " },
-        { name: "Bål", icon: " 🧘 " }
+        { name: "Ben", icon: "🦵" },
+        { name: "Bröst", icon: "🏋️" },
+        { name: "Rygg", icon: "🪵" },
+        { name: "Axlar", icon: "👐" },
+        { name: "Armar", icon: "💪" },
+        { name: "Bål", icon: "🧘" },
+        { name: "Cardio", icon: "🏃" },
+        { name: "Mobility", icon: "🤸" }
     ];
 
     let html = `<h3>${replaceIndex !== null ? 'Change Exercise' : 'Select Exercise'}</h3>`;
     html += `<p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin-bottom:10px;">Select Category</p>`;
-
-    html += `<div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; margin-bottom:15px;">`;
+    html += `<div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:8px; margin-bottom:15px;">`;
     categories.forEach(cat => {
         const isActive = cat.name === category;
         html += `
-        <button onclick="renderExercisePicker('${cat.name}', ${replaceIndex})"
+        <button onclick="renderExercisePicker('${cat.name}', ${replaceIndex}, null)"
             style="padding:10px 5px; font-size:11px; border-radius:12px; border:1px solid ${isActive ? 'var(--primary)' : 'rgba(255,255,255,0.1)'};
-            background:${isActive ? 'rgba(34, 211, 238, 0.1)' : 'var(--card)'}; color:${isActive ? 'var(--primary)' : 'white'}; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:4px;">
-            <span style="font-size:16px;">${cat.icon}</span> ${CATEGORY_DISPLAY[cat.name] || cat.name}
+            background:${isActive ? 'rgba(34,211,238,0.1)' : 'var(--card)'}; color:${isActive ? 'var(--primary)' : 'white'}; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:4px;">
+            <span style="font-size:16px;">${cat.icon}</span>${CATEGORY_DISPLAY[cat.name] || cat.name}
         </button>`;
     });
     html += `</div>`;
 
+    // Filter by Muscle
+    const subs = SUBCATEGORIES[category] || [];
+    if (subs.length > 0) {
+        html += `<div style="margin-bottom:14px;">`;
+        html += `<div style="font-size:9px; color:rgba(255,255,255,0.8); text-transform:uppercase; letter-spacing:2px; text-align:center; margin-bottom:8px;">Filter by Muscle</div>`;
+        html += `<div style="display:flex; flex-wrap:wrap; gap:6px; justify-content:center;">`;
+        html += `<button onclick="renderExercisePicker('${category}', ${replaceIndex}, null)"
+            style="padding:5px 14px; border-radius:20px; border:1px solid ${!subtarget ? 'var(--primary)' : 'rgba(255,255,255,0.15)'};
+            background:${!subtarget ? 'rgba(34,211,238,0.15)' : 'rgba(255,255,255,0.05)'};
+            color:${!subtarget ? 'var(--primary)' : 'var(--text-light)'}; font-size:12px; font-weight:600; cursor:pointer;">All</button>`;
+        subs.forEach(sub => {
+            const isActiveSub = subtarget === sub;
+            html += `<button onclick="renderExercisePicker('${category}', ${replaceIndex}, '${sub}')"
+                style="padding:5px 14px; border-radius:20px; border:1px solid ${isActiveSub ? 'var(--primary)' : 'rgba(255,255,255,0.15)'};
+                background:${isActiveSub ? 'rgba(34,211,238,0.15)' : 'rgba(255,255,255,0.05)'};
+                color:${isActiveSub ? 'var(--primary)' : 'var(--text-light)'}; font-size:12px; font-weight:600; cursor:pointer;">${sub}</button>`;
+        });
+        html += `</div></div>`;
+    }
+
     html += `<p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin-bottom:10px;">Exercises (${CATEGORY_DISPLAY[category] || category}):</p>`;
     html += `<div style="max-height:280px; overflow-y:auto; padding-right:5px; background:rgba(0,0,0,0.2); border-radius:15px; padding:10px; margin-bottom:15px; display:flex; flex-direction:column; gap:8px;">`;
 
-const filtered = masterExercises.filter(ex => category === "Armar" ? (ex.target === "Biceps" || ex.target === "Triceps" || ex.target === "Armar") : ex.target === category);
+    const filtered = masterExercises.filter(ex => {
+        const matchCategory = category === "Armar"
+            ? (ex.target === "Biceps" || ex.target === "Triceps" || ex.target === "Armar")
+            : ex.target === category;
+        const matchSub = !subtarget || ex.subtarget === subtarget;
+        return matchCategory && matchSub;
+    });
 
     if (filtered.length === 0) {
-        html += `<p style="text-align:center; font-size:12px; color:var(--text-light); padding:10px;">Select category to view exercises.</p>`;
+        html += `<p style="text-align:center; font-size:12px; color:var(--text-light); padding:10px;">No exercises found.</p>`;
     }
+
     filtered.forEach(ex => {
         const isSelectedInBatch = replaceIndex === null && temporarySelectedExercises.includes(ex.id);
-        const currentBg = isSelectedInBatch ? 'rgba(34, 197, 94, 0.15)' : 'transparent';
+        const currentBg = isSelectedInBatch ? 'rgba(34,197,94,0.15)' : 'transparent';
         const currentBorder = isSelectedInBatch ? '1px solid #22c55e' : '1px solid rgba(255,255,255,0.08)';
-        const currentIcon = replaceIndex !== null ? ' 🔄 ' : (isSelectedInBatch ? ' ✅ ' : '+');
+        const currentIcon = replaceIndex !== null ? '🔄' : (isSelectedInBatch ? '✅' : '+');
         const clickHandler = replaceIndex !== null
             ? `confirmAddExerciseToActive(${ex.id}, ${replaceIndex})`
             : `toggleSelectExerciseInPicker(${ex.id}, '${category}')`;
         html += `
-        <div class="card glass" id="picker-ex-${ex.id}" style="padding:12px; margin:0; cursor:pointer; display:flex; justify-content:space-between; align-items:center; border-radius:12px; background: ${currentBg} !important; border: ${currentBorder} !important; transition: all 0.2s;"
+        <div class="card glass" id="picker-ex-${ex.id}" style="padding:12px; margin:0; cursor:pointer; display:flex; justify-content:space-between; align-items:center; border-radius:12px; background:${currentBg} !important; border:${currentBorder} !important; transition:all 0.2s;"
             onclick="${clickHandler}">
             <span style="font-size:13px; font-weight:600;">${ex.name}</span>
             <span id="picker-icon-${ex.id}" style="color:${isSelectedInBatch ? '#22c55e' : 'var(--primary)'}; font-size:18px; font-weight:bold;">${currentIcon}</span>
         </div>`;
     });
     html += `</div>`;
+
     if (replaceIndex === null) {
         html += `<div id="selected-summary-container" style="margin-bottom:15px;">`;
         html += generateSelectedExercisesSummaryHtml();
         html += `</div>`;
     }
-    // ÄNDRING: saveDraftState() gjord asynkron och anropas säkert innan modal öppnas
+
     html += `
-    <div class="separator" style="margin:15px 0;"></div>
-    <button class="mode-btn glass-border"
-        style="font-size:13px;"
+    <button style="width:100%; padding:14px; background:transparent; border:1.5px dashed rgba(34,211,238,0.4); border-radius:12px; color:#22d3ee; font-size:13px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;"
         onclick="(async () => { await saveDraftState(); openCreateExerciseModal((newEx) => handleInstantExerciseCreated(newEx, ${replaceIndex})); })()">
-        + Create new exercise to the library
-    </button>
-    `;
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Create new exercise to the library
+    </button>`;
 
     body.innerHTML = html;
 }
