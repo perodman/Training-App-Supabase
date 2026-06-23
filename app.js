@@ -7219,15 +7219,17 @@ function formatRestTime(seconds) {
 
 async function carouselConfirmSet(exIdx, setIdx) {
     // Spara ALLA inputs för denna övning till draft FÖRST (innan flush/omritning)
-    const allInputs = document.querySelectorAll(`[id^="w-${exIdx}-"], [id^="r-${exIdx}-"], [id^="v-${exIdx}-"]`);
+   const allInputs = document.querySelectorAll(`[id^="w-${exIdx}-"], [id^="r-${exIdx}-"], [id^="v-${exIdx}-"], [id^="cd-${exIdx}-"], [id^="ck-${exIdx}-"]`);
     allInputs.forEach(inp => {
         const parts = inp.id.split('-');
         const sIdx2 = parseInt(parts[parts.length - 1]);
         const type = parts[0];
         if (!isNaN(sIdx2) && activeDraft.data[exIdx]?.sets_data?.[sIdx2]) {
-            if (type === 'w') activeDraft.data[exIdx].sets_data[sIdx2].weight = inp.value;
+        if (type === 'w') activeDraft.data[exIdx].sets_data[sIdx2].weight = inp.value;
             if (type === 'r') activeDraft.data[exIdx].sets_data[sIdx2].reps = inp.value;
             if (type === 'v') activeDraft.data[exIdx].sets_data[sIdx2].rest = inp.value;
+            if (type === 'cd') activeDraft.data[exIdx].sets_data[sIdx2].duration = inp.value;
+            if (type === 'ck') activeDraft.data[exIdx].sets_data[sIdx2].distance = inp.value;
         }
     });
 
@@ -7959,15 +7961,17 @@ function focusToggleNote(exIdx) {
 }
 
 async function focusConfirmSet(exIdx, setIdx) {
-    const allInputs = document.querySelectorAll(`[id^="fw-${exIdx}-"], [id^="fr-${exIdx}-"], [id^="fv-${exIdx}-"]`);
+    const allInputs = document.querySelectorAll(`[id^="fw-${exIdx}-"], [id^="fr-${exIdx}-"], [id^="fv-${exIdx}-"], [id^="fcd-${exIdx}-"], [id^="fck-${exIdx}-"]`);
     allInputs.forEach(inp => {
         const parts = inp.id.split('-');
         const sIdx2 = parseInt(parts[parts.length - 1]);
         const type = parts[0];
         if (!isNaN(sIdx2) && activeDraft.data[exIdx]?.sets_data?.[sIdx2]) {
-            if (type === 'fw') activeDraft.data[exIdx].sets_data[sIdx2].weight = inp.value;
+if (type === 'fw') activeDraft.data[exIdx].sets_data[sIdx2].weight = inp.value;
             if (type === 'fr') activeDraft.data[exIdx].sets_data[sIdx2].reps = inp.value;
             if (type === 'fv') activeDraft.data[exIdx].sets_data[sIdx2].rest = inp.value;
+            if (type === 'fcd') activeDraft.data[exIdx].sets_data[sIdx2].duration = inp.value;
+            if (type === 'fck') activeDraft.data[exIdx].sets_data[sIdx2].distance = inp.value;
         }
     });
     const restVal = parseInt(activeDraft.data[exIdx].sets_data[setIdx].rest) || 120;
