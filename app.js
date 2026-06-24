@@ -4644,12 +4644,12 @@ async function updateSetDataOnly(inputEl, exIdx, setIdx, fieldType) {
     if (fieldType === 'rest') setObj.rest = inputEl.value;
     if (fieldType === 'duration') setObj.duration = inputEl.value;
     if (fieldType === 'distance') {
-        const paceEl = document.getElementById(`pace-${exIdx}-${setIdx}`);
-        if (paceEl) paceEl.textContent = calcPace(setObj.duration, inputEl.value);
-    }
-    if (fieldType === 'distance') {
-        const paceEl = document.getElementById(`pace-${exIdx}-${setIdx}`);
-        if (paceEl) paceEl.textContent = calcPace(setObj.duration, inputEl.value);
+        const normalized = inputEl.value.replace(',', '.');
+        inputEl.value = normalized;
+        setObj.distance = normalized;
+        document.querySelectorAll(`[id^="pace-${exIdx}-${setIdx}"]`).forEach(el => {
+            el.textContent = calcPace(setObj.duration, normalized);
+        });
     }
     if (typeof setObj.userConfirmed === "undefined") setObj.userConfirmed = false;
 
