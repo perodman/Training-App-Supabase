@@ -8370,10 +8370,10 @@ function toggleCarouselFocusMode() {
         const toggleEl = document.getElementById('carousel-focus-toggle');
         if (toggleEl) {
             toggleEl.innerHTML = `
-                <div style="display:flex; align-items:center; justify-content:center; width:100%; padding:0 4px;">
-                   <div onclick="event.stopPropagation(); toggleCarouselFocusMode();" style="display:flex; align-items:center; gap:7px; background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.12); border-radius:20px; padding:6px 18px; cursor:pointer;">
-                        <svg style="transform:rotate(180deg);" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>
-                        <span style="font-size:11px; font-weight:700; color:#64748b;">Exit Focus</span>
+                <div style="display:flex; align-items:center; justify-content:center; width:100%; padding:6px 4px 10px;">
+                   <div onclick="event.stopPropagation(); toggleCarouselFocusMode();" style="display:flex; align-items:center; gap:7px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.22); border-radius:20px; padding:7px 20px; cursor:pointer;">
+                        <svg style="transform:rotate(180deg);" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>
+                        <span style="font-size:11px; font-weight:700; color:#cbd5e1;">Exit Focus</span>
                     </div>
                 </div>`;
         }
