@@ -2600,7 +2600,7 @@ function renderPassesInGroup(groupId) {
                 div.id = listItemId;
                 div.innerHTML = `
                     <div style="position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg, rgba(255,255,255,0.2), transparent);"></div>
-                    <div style="display:flex; align-items:center; justify-content:space-between; width:100%; cursor:pointer;" onclick="toggleListPass('${listItemId}')">
+                    <div style="display:flex; align-items:center; justify-content:space-between; width:100%; cursor:pointer;" onclick="openProgramPreviewModal(${passIdx})">
                         <div style="display:flex; flex-direction:column; min-width:0; flex:1;">
                             <span style="font-size:14px; font-weight:800; color:#fff;">${pass.name}</span>
                             <span style="font-size:10px; color:var(--primary); font-weight:700; text-transform:uppercase; letter-spacing:0.5px; margin-top:2px;">${pass.exercises.length} ${pass.exercises.length === 1 ? 'exercise' : 'exercises'}${pass.duration ? ` · ⏱️ ~${pass.duration} min` : ''}</span>
@@ -2608,22 +2608,12 @@ function renderPassesInGroup(groupId) {
                         <div style="display:flex; gap:8px; flex-shrink:0; align-items:center;">
                             ${window._selectionModeDate ? `<button onclick="event.stopPropagation(); selectWorkoutForDate('${pass.id}')" style="padding:6px 14px; border-radius:8px; border:none; background:var(--primary); color:#0f172a; font-size:11px; font-weight:800; cursor:pointer;">Select</button>` : ''}
                             <div onclick="event.stopPropagation(); openEditProgramModal(${passIdx})" style="width:28px; height:28px; border-radius:8px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:12px;">✏️</div>
-                            <div id="${listItemId}-arrow" style="width:28px; height:28px; border-radius:8px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:center; transition:transform 0.3s ease;">
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+                            <div style="width:28px; height:28px; border-radius:8px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:center;">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
                             </div>
                         </div>
                     </div>
-                    <div id="${listItemId}-exercises" style="max-height:0; overflow:hidden; transition:max-height 0.4s ease, opacity 0.3s ease; opacity:0; width:100%;">
-                        <div style="padding-top:12px; margin-top:12px; border-top:1px solid rgba(255,255,255,0.06);">
-                            ${pass.exercises.map((e, i) => `
-                            <div style="display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid rgba(255,255,255,0.03);">
-                                <span style="display:flex; align-items:center; justify-content:center; width:20px; height:20px; border-radius:50%; border:1px solid rgba(34,211,238,0.4); color:var(--primary); font-size:10px; font-weight:700; flex-shrink:0;">${i + 1}</span>
-                                <span style="font-size:13px; font-weight:600; color:#fff; flex:1;">${e.name}</span>
-                                <span style="font-size:9px; font-weight:800; text-transform:uppercase; color:var(--primary);">${CATEGORY_DISPLAY[e.target] || e.target}</span>
-                                ${e.subtarget ? `<span style="font-size:9px; font-weight:700; text-transform:uppercase; color:var(--text-light); opacity:0.6;">${e.subtarget}</span>` : ''}
-                            </div>`).join('')}
-                        </div>
-                    </div>
+                    <div style="display:none;"></div>
                 `;
                 selector.appendChild(div);
             });
