@@ -958,6 +958,7 @@ function renderOverrideBtnContent(p, isSelected) {
 }
 
 function openDayManager(dateStr, planned, completed, isOngoing) {
+    window._isDayManager = true;
     if (typeof hideDefaultCloseButton === 'function') {
         hideDefaultCloseButton(false);
     }
@@ -1247,9 +1248,7 @@ if (isOngoing && typeof activeDraft !== 'undefined' && activeDraft) {
                                 display: none;
                 ">
                     <div style="padding: 6px 10px 10px 10px; background: rgba(0,0,0,0.2);">
-                        <div style="font-size:10px; color:var(--text-light); opacity:0.7; text-align:center; padding: 4px 0 6px 0; font-weight:600; letter-spacing:0.3px;">
-                            💡 Hold to preview exercises
-                        </div>
+                        ${window._isDayManager ? `<div style="font-size:10px; color:var(--text-light); opacity:0.7; text-align:center; padding: 4px 0 6px 0; font-weight:600; letter-spacing:0.3px;">💡 Hold to preview exercises</div>` : '<div style="padding-top:4px;"></div>'}
                         ${(() => {
                             const { visible, hasMore } = getVisiblePassesForGroup(g.id, passes);
                             const buttonsHtml = visible.map(p => {
@@ -2421,6 +2420,7 @@ function renderGroupsView() {
 }
 
 function renderPassesInGroup(groupId) {
+    window._isDayManager = false;
     const selector = document.getElementById("pass-selector-list");
     if (!selector) return;
     const customGroups = programData.customGroups || [];
