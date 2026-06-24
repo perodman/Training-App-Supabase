@@ -2246,7 +2246,8 @@ function openLayoutPickerModal() {
         ${'<div style="height:3px; border-radius:2px; background:var(--primary);"></div>'.repeat(5)}
     </div>`;
 
-    const options = [
+const options = [
+        { id: 'list', icon: iconList, title: 'List', desc: 'Simple top-to-bottom list' },
         { id: 'balanced', icon: iconGrid, title: 'Cards', desc: 'Best for a handful of workouts' },
         { id: 'compact', icon: iconList, title: 'Quick switch', desc: 'Best when you have many workouts' }
     ];
@@ -2487,6 +2488,11 @@ function renderPassesInGroup(groupId) {
         }
         layoutBar.style.cssText = "display:flex; align-items:center; gap:8px;";
         const segIcons = {
+            list: `<div style="display:flex; flex-direction:column; gap:2px; width:14px; height:14px; justify-content:center;">
+                <div style="height:2px; border-radius:2px; background:currentColor;"></div>
+                <div style="height:2px; border-radius:2px; background:currentColor;"></div>
+                <div style="height:2px; border-radius:2px; background:currentColor;"></div>
+            </div>`,
             balanced: `<div style="display:grid; grid-template-columns:repeat(2,1fr); gap:2px; width:14px; height:14px;">
                 <div style="background:currentColor; border-radius:2px;"></div><div style="background:currentColor; border-radius:2px;"></div>
                 <div style="background:currentColor; border-radius:2px;"></div><div style="background:currentColor; border-radius:2px;"></div>
@@ -2499,7 +2505,7 @@ function renderPassesInGroup(groupId) {
         };
         layoutBar.innerHTML = `
             <div style="display:flex; border:1px solid rgba(255,255,255,0.1); border-radius:10px; overflow:hidden;">
-                ${['balanced','compact'].map(id => `
+                ${['list','balanced','compact'].map(id => `
                     <div data-layout="${id}" style="padding:7px 11px; display:flex; align-items:center; justify-content:center; cursor:pointer;
                         color:${layoutMode===id ? 'var(--primary)' : 'var(--text-light)'};
                         background:${layoutMode===id ? 'rgba(34,211,238,0.1)' : 'transparent'};">
@@ -2574,6 +2580,33 @@ function renderPassesInGroup(groupId) {
         const icons = [' ⚡ ', ' 🔥 ', ' 🏆 ', ' 💎 '];
         if (layoutMode === 'compact') {
             renderChipsLayout(passesInGroup, selector, icons);
+        } else if (layoutMode === 'list') {
+            selector.style.gridTemplateColumns = '1fr';
+            passesInGroup.forEach(pass => {
+                const passIdx = programData.routine.indexOf(pass);
+                const div = document.createElement('div');
+                div.style.cssText = `
+                    display:flex; align-items:center; justify-content:space-between;
+                    padding:14px 16px; border-radius:14px; cursor:pointer;
+                    background: linear-gradient(135deg, #243044 0%, #152032 100%);
+                    border-left: 4px solid #f59e0b;
+                    position:relative; overflow:hidden;
+                `;
+                div.innerHTML = `
+                    <div style="position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg, rgba(255,255,255,0.2), transparent);"></div>
+                    <div style="display:flex; align-items:center; gap:12px; min-width:0;">
+                        <div style="display:flex; flex-direction:column; min-width:0;">
+                            <span style="font-size:14px; font-weight:800; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${pass.name}</span>
+                            <span style="font-size:10px; color:var(--primary); font-weight:700; text-transform:uppercase; letter-spacing:0.5px; margin-top:2px;">${pass.exercises.length} ${pass.exercises.length === 1 ? 'exercise' : 'exercises'}${pass.duration ? ` · ⏱️ ~${pass.duration} min` : ''}</span>
+                        </div>
+                    </div>
+                    <div style="display:flex; gap:8px; flex-shrink:0;">
+                        ${window._selectionModeDate ? `<button onclick="event.stopPropagation(); selectWorkoutForDate('${pass.id}')" style="padding:6px 14px; border-radius:8px; border:none; background:var(--primary); color:#0f172a; font-size:11px; font-weight:800; cursor:pointer;">Select</button>` : ''}
+                        <div onclick="event.stopPropagation(); openEditProgramModal(${passIdx})" style="width:30px; height:30px; border-radius:8px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:13px;">✏️</div>
+                    </div>
+                `;
+                selector.appendChild(div);
+            });
         } else {
             passesInGroup.forEach(pass => {
                 const passIdx = programData.routine.indexOf(pass);
