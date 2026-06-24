@@ -2612,9 +2612,7 @@ function renderPassesInGroup(groupId) {
                     </div>
                     <div id="list-pass-${passIdx}" style="height:0; overflow:hidden; opacity:0; display:none;">
                         <div style="padding:0 16px 14px; background:rgba(0,0,0,0.2);">
-                            <div style="font-size:10px; color:var(--text-light); opacity:0.7; text-align:center; padding:4px 0 10px; font-weight:600; letter-spacing:0.3px;">
-                                💡 Hold to preview exercises
-                            </div>
+                           <div style="padding-top:4px;"></div>
                             ${pass.exercises.map((e, i) => `
                             <div style="display:grid; grid-template-columns:1fr 70px 12px 70px; align-items:center; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.03);">
                                 <span style="display:flex; align-items:center; gap:10px; font-weight:600; font-size:13px; color:#fff;">
