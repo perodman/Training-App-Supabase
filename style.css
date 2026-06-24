@@ -1306,10 +1306,10 @@ body:has(.bottom-bar.hidden) { padding-bottom: 0; }
 
 .carousel-ex-thumb {
     flex-shrink: 0;
-    flex: 0 0 70px;
-    width: 70px;
-    min-width: 70px;
-    max-width: 70px;
+    flex: 0 0 80px;
+    width: 80px;
+    min-width: 80px;
+    max-width: 80px;
     border-radius: 14px;
     border: 1.5px solid rgba(255,255,255,0.08);
     background: rgba(255,255,255,0.04);
