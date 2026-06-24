@@ -4926,21 +4926,23 @@ function updateCardioTime(inputEl, exIdx, setIdx) {
 function initCardioTimeInput(inputId, exIdx, setIdx) {
     const input = document.getElementById(inputId);
     if (!input) return;
-    
+    if (input._cardioInitialized) return;
+    input._cardioInitialized = true;
+
     let digits = input.value.replace(':', '').replace(/\D/g, '').padEnd(4, '_');
-    
+
     function render() {
         const mm = digits.slice(0, 2);
         const ss = digits.slice(2, 4);
         input.value = `${mm}:${ss}`;
     }
-    
+
     function getCleanDigits() {
         return digits.replace(/_/g, '');
     }
-    
+
     render();
-    
+
     input.addEventListener('keydown', function(e) {
         if (e.key >= '0' && e.key <= '9') {
             e.preventDefault();
@@ -4972,17 +4974,19 @@ function initCardioTimeInput(inputId, exIdx, setIdx) {
             render();
         }
     });
-    
+
     input.addEventListener('click', function() {
         const firstUnderscore = digits.indexOf('_');
         const pos = firstUnderscore !== -1 ? firstUnderscore + (firstUnderscore >= 2 ? 1 : 0) : 5;
         this.setSelectionRange(pos, pos);
     });
-    
+
     input.addEventListener('focus', function() {
+        digits = input.value.replace(':', '').replace(/\D/g, '').padEnd(4, '_');
+        render();
         const firstUnderscore = digits.indexOf('_');
         const pos = firstUnderscore !== -1 ? firstUnderscore + (firstUnderscore >= 2 ? 1 : 0) : 5;
-        this.setSelectionRange(pos, pos);
+        setTimeout(() => this.setSelectionRange(pos, pos), 0);
     });
 }
 
