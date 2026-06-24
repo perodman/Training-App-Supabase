@@ -3749,7 +3749,7 @@ function renderActiveWorkout() {
                             ${statusContent}
                         </div>
                        ${isCardio
-                            ? `<input type="text" inputmode="numeric" id="cdm-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px 4px; font-size:15px; min-width:0; opacity:${isCurrent ? '1' : '0.3'}; text-align:center; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.duration || ''}" placeholder="mm:ss" ${isLocked ? 'readonly' : ''} oninput="updateCardioTime(this, ${i}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`
+                            ? `<input type="text" inputmode="numeric" id="cdm-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px 4px; font-size:15px; min-width:0; opacity:${isCurrent ? '1' : '0.3'}; text-align:center; font-family:monospace; letter-spacing:2px; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.duration || '__:__'}" ${isLocked ? 'readonly' : ''} onfocus="initCardioTimeInput('cdm-${i}-${sIdx}', ${i}, ${sIdx})">`
                             : `<input type="text" inputmode="decimal" id="w-${i}-${sIdx}" class="log-input weight-input" data-ex="${i}" data-set="${sIdx}" style="margin:0; padding:12px; font-size:18px; opacity:${isCurrent ? '1' : '0.3'}; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.weight || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'weight')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`}
                         ${isCardio
                             ? `<input type="text" inputmode="decimal" id="ck-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${isCurrent ? '1' : '0.3'}; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.distance || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'distance')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`
@@ -4699,6 +4699,69 @@ function updateCardioTime(inputEl, exIdx, setIdx) {
     debouncedPersistActiveWorkout();
 }
 
+function initCardioTimeInput(inputId, exIdx, setIdx) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    
+    let digits = input.value.replace(':', '').replace(/\D/g, '').padEnd(4, '_');
+    
+    function render() {
+        const mm = digits.slice(0, 2);
+        const ss = digits.slice(2, 4);
+        input.value = `${mm}:${ss}`;
+    }
+    
+    function getCleanDigits() {
+        return digits.replace(/_/g, '');
+    }
+    
+    render();
+    
+    input.addEventListener('keydown', function(e) {
+        if (e.key >= '0' && e.key <= '9') {
+            e.preventDefault();
+            const firstUnderscore = digits.indexOf('_');
+            if (firstUnderscore !== -1) {
+                digits = digits.substring(0, firstUnderscore) + e.key + digits.substring(firstUnderscore + 1);
+            }
+            render();
+            const clean = getCleanDigits();
+            const mm = clean.slice(0, 2) || '0';
+            const ss = clean.slice(2, 4) || '0';
+            const duration = `${mm}:${ss.padStart(2, '0')}`;
+            if (activeDraft?.data?.[exIdx]?.sets_data?.[setIdx]) {
+                const setObj = activeDraft.data[exIdx].sets_data[setIdx];
+                setObj.duration = duration;
+                setObj.duration_min = mm;
+                setObj.duration_sec = ss;
+                document.querySelectorAll(`[id^="pace-${exIdx}-${setIdx}"]`).forEach(el => {
+                    el.textContent = calcPace(duration, setObj.distance);
+                });
+                debouncedPersistActiveWorkout();
+            }
+        } else if (e.key === 'Backspace') {
+            e.preventDefault();
+            const lastDigit = digits.split('').reduce((last, c, i) => c !== '_' ? i : last, -1);
+            if (lastDigit !== -1) {
+                digits = digits.substring(0, lastDigit) + '_' + digits.substring(lastDigit + 1);
+            }
+            render();
+        }
+    });
+    
+    input.addEventListener('click', function() {
+        const firstUnderscore = digits.indexOf('_');
+        const pos = firstUnderscore !== -1 ? firstUnderscore + (firstUnderscore >= 2 ? 1 : 0) : 5;
+        this.setSelectionRange(pos, pos);
+    });
+    
+    input.addEventListener('focus', function() {
+        const firstUnderscore = digits.indexOf('_');
+        const pos = firstUnderscore !== -1 ? firstUnderscore + (firstUnderscore >= 2 ? 1 : 0) : 5;
+        this.setSelectionRange(pos, pos);
+    });
+}
+
 async function confirmSet(exIdx, setIdx) {
     flushFocusedInputs();
 
@@ -4800,7 +4863,7 @@ function updateSingleExerciseCard(exIdx) {
                     ${statusContent}
                 </div>
                 ${isCardio
-                    ? `<input type="text" inputmode="numeric" id="cdm-${exIdx}-${sIdx}" class="log-input" style="margin:0; padding:12px 4px; font-size:15px; min-width:0; opacity:${isCurrent ? '1' : '0.3'}; text-align:center; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.duration || ''}" placeholder="mm:ss" ${isLocked ? 'readonly' : ''} oninput="updateCardioTime(this, ${exIdx}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`
+                    ? `<input type="text" inputmode="numeric" id="cdm-${exIdx}-${sIdx}" class="log-input" style="margin:0; padding:12px 4px; font-size:15px; min-width:0; opacity:${isCurrent ? '1' : '0.3'}; text-align:center; font-family:monospace; letter-spacing:2px; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.duration || '__:__'}" ${isLocked ? 'readonly' : ''} onfocus="initCardioTimeInput('cdm-${exIdx}-${sIdx}', ${exIdx}, ${sIdx})">`
                     : `<input type="text" inputmode="decimal" id="w-${exIdx}-${sIdx}" class="log-input weight-input" data-ex="${exIdx}" data-set="${sIdx}" style="margin:0; padding:12px; font-size:18px; opacity:${isCurrent ? '1' : '0.3'}; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.weight || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${exIdx}, ${sIdx}, 'weight')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`}
                 ${isCardio
                     ? `<input type="text" inputmode="decimal" id="ck-${exIdx}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${isCurrent ? '1' : '0.3'}; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.distance || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${exIdx}, ${sIdx}, 'distance')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`
@@ -7165,7 +7228,7 @@ function renderCarouselCard() {
                     ${statusContent}
                 </div>
                 ${isCardio
-                    ? `<input type="text" inputmode="numeric" id="cdm-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px 4px; font-size:15px; min-width:0; opacity:${inputOpacity}; text-align:center; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.duration || ''}" placeholder="mm:ss" ${isLocked ? 'readonly' : ''} oninput="updateCardioTime(this, ${i}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`
+                    ? `<input type="text" inputmode="numeric" id="cdm-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px 4px; font-size:15px; min-width:0; opacity:${inputOpacity}; text-align:center; font-family:monospace; letter-spacing:2px; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.duration || '__:__'}" ${isLocked ? 'readonly' : ''} onfocus="initCardioTimeInput('cdm-${i}-${sIdx}', ${i}, ${sIdx})">`
                     : `<input type="text" inputmode="decimal" id="w-${i}-${sIdx}" class="log-input weight-input" data-ex="${i}" data-set="${sIdx}" style="margin:0; padding:12px; font-size:18px; opacity:${inputOpacity}; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.weight || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'weight')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`}
                 ${isCardio
                     ? `<input type="text" inputmode="decimal" id="ck-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${inputOpacity}; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.distance || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'distance')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`
@@ -7893,7 +7956,7 @@ function renderFocusCard() {
                     ${statusContent}
                 </div>
                 ${isCardio
-                    ? `<input type="text" inputmode="numeric" id="fcdm-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px 4px; font-size:15px; min-width:0; opacity:${inputOpacity}; text-align:center; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.duration || ''}" placeholder="mm:ss" ${isLocked ? 'readonly' : ''} oninput="updateCardioTime(this, ${i}, ${sIdx})" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`
+                    ? `<input type="text" inputmode="numeric" id="fcdm-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px 4px; font-size:15px; min-width:0; opacity:${inputOpacity}; text-align:center; font-family:monospace; letter-spacing:2px; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.duration || '__:__'}" ${isLocked ? 'readonly' : ''} onfocus="initCardioTimeInput('fcdm-${i}-${sIdx}', ${i}, ${sIdx})">`
                     : `<input type="text" inputmode="decimal" id="fw-${i}-${sIdx}" class="log-input weight-input" data-ex="${i}" data-set="${sIdx}" style="margin:0; padding:12px; font-size:18px; opacity:${inputOpacity}; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.weight || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'weight')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`}
                 ${isCardio
                     ? `<input type="text" inputmode="decimal" id="fck-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${inputOpacity}; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.distance || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'distance')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`
