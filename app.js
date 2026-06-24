@@ -7149,7 +7149,7 @@ function renderCarouselNav() {
         const isActive = i === carouselCurrentIndex && !activeDraft.data[i]?.isCompleted;
         const svg = getExSVG(ex.target, 'small');
       return `<div class="carousel-ex-thumb${isDone ? ' done' : isActive ? ' active' : ''}" id="carousel-thumb-${i}" onclick="carouselGoTo(${i})" style="position:relative; overflow:hidden; display:flex; flex-direction:column; align-items:center; justify-content:space-between; padding:6px 4px 6px;">
-            ${isDone ? `<div style="position:absolute; top:5px; right:5px; width:8px; height:8px; border-radius:50%; background:#22c55e;"></div>` : ''}
+            ${isDone ? `<div style="position:absolute; top:5px; right:5px; width:8px; height:8px; border-radius:50%; background:#22c55e; opacity:1; z-index:10;"></div>` : ''}
             <div class="carousel-drag-handle" style="display:flex; align-items:center; justify-content:center; cursor:grab; width:100%; opacity:${isDone ? 0.25 : isActive ? 1 : 0.3};">
                 <svg width="14" height="9" viewBox="0 0 14 9" fill="none">
                     <circle cx="3" cy="2" r="1.3" fill="${isDone ? '#22c55e' : isActive ? '#22d3ee' : '#94a3b8'}"/>
@@ -7907,7 +7907,7 @@ function renderFocusNav() {
         const isActive = i === carouselCurrentIndex && !activeDraft.data[i]?.isCompleted;
         const svg = getExSVG(ex.target, 'small');
        return `<div class="carousel-ex-thumb${isDone ? ' done' : isActive ? ' active' : ''}" id="focus-thumb-${i}" onclick="focusGoTo(${i})" style="position:relative; overflow:hidden; display:flex; flex-direction:column; align-items:center; justify-content:space-between; padding:6px 4px 6px;">
-            ${isDone ? `<div style="position:absolute; top:5px; right:5px; width:8px; height:8px; border-radius:50%; background:#22c55e;"></div>` : ''}
+            ${isDone ? `<div style="position:absolute; top:5px; right:5px; width:8px; height:8px; border-radius:50%; background:#22c55e; opacity:1; z-index:10;"></div>` : ''}
             <div class="carousel-drag-handle" style="display:flex; align-items:center; justify-content:center; cursor:grab; width:100%; opacity:${isDone ? 0.25 : isActive ? 1 : 0.3};">
                 <svg width="14" height="9" viewBox="0 0 14 9" fill="none">
                     <circle cx="3" cy="2" r="1.3" fill="${isDone ? '#22c55e' : isActive ? '#22d3ee' : '#94a3b8'}"/>
