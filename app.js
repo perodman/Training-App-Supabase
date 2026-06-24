@@ -8158,6 +8158,8 @@ function focusGoTo(i) {
         if (!activeDraft.ui_state) activeDraft.ui_state = {};
         activeDraft.ui_state.currentExerciseIndex = i;
         await persistActiveWorkout();
+        renderCarouselNav();
+        renderCarouselDots();
         const prevActive = document.querySelector('#focus-nav-bar-inner .carousel-ex-thumb.active');
         if (prevActive) prevActive.classList.remove('active');
         const newActive = document.getElementById(`focus-thumb-${i}`);
