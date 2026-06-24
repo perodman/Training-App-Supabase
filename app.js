@@ -39,6 +39,19 @@ const SUBCATEGORIES = {
     "Mobility": ["Stretching", "Yoga", "Foam Rolling", "Warm-up", "Cool-down"]
 };
 
+document.addEventListener('focus', function(e) {
+    const input = e.target;
+    if (!input || !input.id) return;
+    const match = input.id.match(/^cdm-(\d+)-(\d+)$/);
+    if (!match) return;
+    const exIdx = parseInt(match[1]);
+    const setIdx = parseInt(match[2]);
+    if (!input._cardioHandler) {
+        initCardioTimeInput(input.id, exIdx, setIdx);
+    }
+}, true);
+
+
 // --- INIT ---
 async function initApp() {
     const savedTheme = localStorage.getItem('theme') || 'dark';
@@ -3973,7 +3986,7 @@ function renderActiveWorkout() {
                             ${statusContent}
                         </div>
                        ${isCardio
-                            ? `<input type="text" inputmode="numeric" id="cdm-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px 4px; font-size:15px; min-width:0; opacity:${isCurrent ? '1' : '0.3'}; text-align:center; font-family:monospace; letter-spacing:2px; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.duration || '__:__'}" ${isLocked ? 'readonly' : ''} onfocus="initCardioTimeInput('cdm-${i}-${sIdx}', ${i}, ${sIdx})">`
+                            ? `<input type="text" inputmode="numeric" id="cdm-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px 4px; font-size:15px; min-width:0; opacity:${isCurrent ? '1' : '0.3'}; text-align:center; font-family:monospace; letter-spacing:2px; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.duration || '__:__'}" ${isLocked ? 'readonly' : ''} onfocus="">`
                             : `<input type="text" inputmode="decimal" id="w-${i}-${sIdx}" class="log-input weight-input" data-ex="${i}" data-set="${sIdx}" style="margin:0; padding:12px; font-size:18px; opacity:${isCurrent ? '1' : '0.3'}; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.weight || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'weight')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`}
                         ${isCardio
                             ? `<input type="text" inputmode="decimal" id="ck-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${isCurrent ? '1' : '0.3'}; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.distance || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'distance')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`
@@ -7599,15 +7612,6 @@ function renderCarouselCard() {
                 ${isDone ? 'Undo' : 'Finish exercise'}
             </button>
         </div>`;
-    if (isCardio && exData.sets_data) {
-        exData.sets_data.forEach((set, sIdx) => {
-            const el = document.getElementById(`cdm-${i}-${sIdx}`);
-            if (el) {
-                el._cardioHandler = null;
-                initCardioTimeInput(`cdm-${i}-${sIdx}`, i, sIdx);
-            }
-        });
-    }
 }
 
 function formatRestTime(seconds) {
