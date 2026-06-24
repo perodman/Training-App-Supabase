@@ -7739,13 +7739,7 @@ function initCarouselDragAndDrop() {
     activeDraft.ui_state.currentExerciseIndex = carouselCurrentIndex;
 
 await persistActiveWorkout();
-Array.from(navBar.querySelectorAll('.carousel-ex-thumb')).forEach((thumb, idx) => {
-    const ring = thumb.querySelector('div[style*="border-radius:50%"]');
-    if (ring) {
-        const span = ring.querySelector('span');
-        if (span) span.textContent = idx + 1;
-    }
-});
+renderCarouselNav();
 renderCarouselDots();
 renderCarouselCard();
 
@@ -8312,17 +8306,11 @@ function initFocusDragAndDrop() {
     if (!activeDraft.ui_state) activeDraft.ui_state = {};
     activeDraft.ui_state.currentExerciseIndex = carouselCurrentIndex;
 
-  await persistActiveWorkout();
-Array.from(navBar.querySelectorAll('.carousel-ex-thumb')).forEach((thumb, idx) => {
-    const ring = thumb.querySelector('div[style*="border-radius:50%"]');
-    if (ring) {
-        const span = ring.querySelector('span');
-        if (span) span.textContent = idx + 1;
-    }
-});
+await persistActiveWorkout();
+renderFocusNav();
 renderFocusCard();
 updateFocusProgress();
-
+                
 setTimeout(() => {
     const active = document.getElementById(`focus-thumb-${carouselCurrentIndex}`);
     if (active) active.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
