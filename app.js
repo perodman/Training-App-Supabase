@@ -7604,8 +7604,7 @@ function renderCarouselCard() {
         exData.sets_data.forEach((set, sIdx) => {
             const oldEl = document.getElementById(`cdm-${i}-${sIdx}`);
             if (oldEl) {
-                const newEl = oldEl.cloneNode(true);
-                oldEl.parentNode.replaceChild(newEl, oldEl);
+                oldEl.removeAttribute('onfocus');
                 initCardioTimeInput(`cdm-${i}-${sIdx}`, i, sIdx);
             }
         });
