@@ -7146,7 +7146,7 @@ function renderCarouselNav() {
 
     const thumbsHtml = exercises.map((ex, i) => {
         const isDone = data[i]?.isCompleted;
-        const isActive = i === carouselCurrentIndex;
+        const isActive = i === carouselCurrentIndex && !activeDraft.data[i]?.isCompleted;
         const svg = getExSVG(ex.target, 'small');
       return `<div class="carousel-ex-thumb${isDone ? ' done' : isActive ? ' active' : ''}" id="carousel-thumb-${i}" onclick="carouselGoTo(${i})" style="position:relative; overflow:hidden; display:flex; flex-direction:column; align-items:center; justify-content:space-between; padding:6px 4px 6px;">
             ${isDone ? `<div style="position:absolute; top:5px; right:5px; width:8px; height:8px; border-radius:50%; background:#22c55e;"></div>` : ''}
@@ -7904,7 +7904,7 @@ function renderFocusNav() {
     const data = activeDraft.data;
     navBar.innerHTML = exercises.map((ex, i) => {
         const isDone = data[i]?.isCompleted;
-        const isActive = i === carouselCurrentIndex;
+        const isActive = i === carouselCurrentIndex && !activeDraft.data[i]?.isCompleted;
         const svg = getExSVG(ex.target, 'small');
        return `<div class="carousel-ex-thumb${isDone ? ' done' : isActive ? ' active' : ''}" id="focus-thumb-${i}" onclick="focusGoTo(${i})" style="position:relative; overflow:hidden; display:flex; flex-direction:column; align-items:center; justify-content:space-between; padding:6px 4px 6px;">
             ${isDone ? `<div style="position:absolute; top:5px; right:5px; width:8px; height:8px; border-radius:50%; background:#22c55e;"></div>` : ''}
