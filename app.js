@@ -2584,23 +2584,20 @@ function renderPassesInGroup(groupId) {
         const icons = [' ⚡ ', ' 🔥 ', ' 🏆 ', ' 💎 '];
         if (layoutMode === 'compact') {
             renderChipsLayout(passesInGroup, selector, icons);
-        } else if (layoutMode === 'list') {
-            selector.style.gridTemplateColumns = '1fr';
+       } else if (layoutMode === 'list') {
+            selector.style.cssText = `display:flex; flex-direction:column; gap:8px; transition: transform 0.3s ease, opacity 0.3s ease; transform: translateX(30px); opacity: 0;`;
             passesInGroup.forEach(pass => {
                 const passIdx = programData.routine.indexOf(pass);
                 const div = document.createElement('div');
                 div.style.cssText = `
-                    display:flex; align-items:center; justify-content:space-between;
-                    padding:14px 16px; border-radius:14px; cursor:pointer;
+                    position:relative; overflow:hidden;
                     background: linear-gradient(135deg, #243044 0%, #152032 100%);
                     border-left: 4px solid #f59e0b;
-                    position:relative; overflow:hidden;
+                    border-radius: 14px;
                 `;
-                const listItemId = `list-pass-${passIdx}`;
-                div.id = listItemId;
                 div.innerHTML = `
                     <div style="position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg, rgba(255,255,255,0.2), transparent);"></div>
-                    <div style="display:flex; align-items:center; justify-content:space-between; width:100%; cursor:pointer;" onclick="openProgramPreviewModal(${passIdx})">
+                    <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 16px; cursor:pointer;" onclick="toggleListPass('list-pass-${passIdx}')">
                         <div style="display:flex; flex-direction:column; min-width:0; flex:1;">
                             <span style="font-size:14px; font-weight:800; color:#fff;">${pass.name}</span>
                             <span style="font-size:10px; color:var(--primary); font-weight:700; text-transform:uppercase; letter-spacing:0.5px; margin-top:2px;">${pass.exercises.length} ${pass.exercises.length === 1 ? 'exercise' : 'exercises'}${pass.duration ? ` · ⏱️ ~${pass.duration} min` : ''}</span>
@@ -2608,12 +2605,28 @@ function renderPassesInGroup(groupId) {
                         <div style="display:flex; gap:8px; flex-shrink:0; align-items:center;">
                             ${window._selectionModeDate ? `<button onclick="event.stopPropagation(); selectWorkoutForDate('${pass.id}')" style="padding:6px 14px; border-radius:8px; border:none; background:var(--primary); color:#0f172a; font-size:11px; font-weight:800; cursor:pointer;">Select</button>` : ''}
                             <div onclick="event.stopPropagation(); openEditProgramModal(${passIdx})" style="width:28px; height:28px; border-radius:8px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:12px;">✏️</div>
-                            <div style="width:28px; height:28px; border-radius:8px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:center;">
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>
+                            <div id="list-pass-${passIdx}-arrow" style="width:28px; height:28px; border-radius:8px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:center; transition:transform 0.3s ease;">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
                             </div>
                         </div>
                     </div>
-                    <div style="display:none;"></div>
+                    <div id="list-pass-${passIdx}" style="height:0; overflow:hidden; opacity:0; display:none;">
+                        <div style="padding:0 16px 14px; background:rgba(0,0,0,0.2);">
+                            <div style="font-size:10px; color:var(--text-light); opacity:0.7; text-align:center; padding:4px 0 10px; font-weight:600; letter-spacing:0.3px;">
+                                💡 Hold to preview exercises
+                            </div>
+                            ${pass.exercises.map((e, i) => `
+                            <div style="display:grid; grid-template-columns:1fr 70px 12px 70px; align-items:center; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.03);">
+                                <span style="display:flex; align-items:center; gap:10px; font-weight:600; font-size:13px; color:#fff;">
+                                    <span style="display:flex; align-items:center; justify-content:center; width:18px; height:18px; border-radius:50%; border:1px solid rgba(34,211,238,0.4); color:var(--primary); font-size:10px; font-weight:700; flex-shrink:0;">${i + 1}</span>
+                                    ${e.name}
+                                </span>
+                                <span style="font-weight:800; text-transform:uppercase; font-size:9px; color:var(--primary); text-align:right;">${CATEGORY_DISPLAY[e.target] || e.target}</span>
+                                <span style="align-self:stretch; display:flex; justify-content:center;">${e.subtarget ? '<span style="width:1px; align-self:stretch; min-height:14px; background:rgba(255,255,255,0.15);"></span>' : ''}</span>
+                                <span style="font-weight:800; text-transform:uppercase; font-size:9px; color:var(--text-light); opacity:0.6;">${e.subtarget || ''}</span>
+                            </div>`).join('')}
+                        </div>
+                    </div>
                 `;
                 selector.appendChild(div);
             });
@@ -2754,18 +2767,41 @@ async function togglePassGroup(passIdx, groupId) {
 }
 
 function toggleListPass(id) {
-    const exercisesEl = document.getElementById(`${id}-exercises`);
+    const exercisesEl = document.getElementById(id);
     const arrowEl = document.getElementById(`${id}-arrow`);
     if (!exercisesEl) return;
-    const isOpen = exercisesEl.style.maxHeight !== '0px' && exercisesEl.style.maxHeight !== '';
+    const isOpen = exercisesEl.classList.contains('is-open');
     if (isOpen) {
-        exercisesEl.style.maxHeight = '0px';
-        exercisesEl.style.opacity = '0';
-        if (arrowEl) arrowEl.style.transform = 'rotate(0deg)';
+        gsap.to(exercisesEl, {
+            height: 0,
+            opacity: 0,
+            duration: 0.3,
+            ease: 'power2.inOut',
+            onComplete: () => {
+                exercisesEl.style.display = 'none';
+                exercisesEl.classList.remove('is-open');
+            }
+        });
+        if (arrowEl) gsap.to(arrowEl, { rotation: 0, duration: 0.3 });
     } else {
-        exercisesEl.style.maxHeight = exercisesEl.scrollHeight + 'px';
-        exercisesEl.style.opacity = '1';
-        if (arrowEl) arrowEl.style.transform = 'rotate(180deg)';
+        exercisesEl.style.visibility = 'hidden';
+        exercisesEl.style.display = 'block';
+        exercisesEl.style.height = 'auto';
+        const targetHeight = exercisesEl.scrollHeight;
+        exercisesEl.style.height = '0px';
+        exercisesEl.style.opacity = '0';
+        exercisesEl.style.visibility = 'visible';
+        exercisesEl.classList.add('is-open');
+        gsap.to(exercisesEl, {
+            height: targetHeight,
+            opacity: 1,
+            duration: 0.3,
+            ease: 'power2.inOut',
+            onComplete: () => {
+                exercisesEl.style.height = 'auto';
+            }
+        });
+        if (arrowEl) gsap.to(arrowEl, { rotation: 180, duration: 0.3 });
     }
 }
 
