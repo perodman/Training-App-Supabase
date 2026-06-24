@@ -4926,6 +4926,7 @@ function updateCardioTime(inputEl, exIdx, setIdx) {
 function initCardioTimeInput(inputId, exIdx, setIdx) {
     const input = document.getElementById(inputId);
     if (!input) return;
+    console.log('initCardioTimeInput anropad för', inputId, new Error().stack);
 
     const existing = input._cardioHandler;
     if (existing) {
