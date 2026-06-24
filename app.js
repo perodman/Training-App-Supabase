@@ -7739,16 +7739,15 @@ function initCarouselDragAndDrop() {
     activeDraft.ui_state.currentExerciseIndex = carouselCurrentIndex;
 
 await persistActiveWorkout();
-
-navBar.style.opacity = '0';
-requestAnimationFrame(() => {
-    renderCarouselNav();
-    renderCarouselDots();
-    renderCarouselCard();
-    requestAnimationFrame(() => {
-        navBar.style.opacity = '1';
-    });
+Array.from(navBar.querySelectorAll('.carousel-ex-thumb')).forEach((thumb, idx) => {
+    const ring = thumb.querySelector('div[style*="border-radius:50%"]');
+    if (ring) {
+        const span = ring.querySelector('span');
+        if (span) span.textContent = idx + 1;
+    }
 });
+renderCarouselDots();
+renderCarouselCard();
 
 setTimeout(() => {
     const active = document.getElementById(`carousel-thumb-${carouselCurrentIndex}`);
@@ -8313,17 +8312,16 @@ function initFocusDragAndDrop() {
     if (!activeDraft.ui_state) activeDraft.ui_state = {};
     activeDraft.ui_state.currentExerciseIndex = carouselCurrentIndex;
 
-   await persistActiveWorkout();
-
-navBar.style.opacity = '0';
-requestAnimationFrame(() => {
-    renderFocusNav();
-    renderFocusCard();
-    updateFocusProgress();
-    requestAnimationFrame(() => {
-        navBar.style.opacity = '1';
-    });
+  await persistActiveWorkout();
+Array.from(navBar.querySelectorAll('.carousel-ex-thumb')).forEach((thumb, idx) => {
+    const ring = thumb.querySelector('div[style*="border-radius:50%"]');
+    if (ring) {
+        const span = ring.querySelector('span');
+        if (span) span.textContent = idx + 1;
+    }
 });
+renderFocusCard();
+updateFocusProgress();
 
 setTimeout(() => {
     const active = document.getElementById(`focus-thumb-${carouselCurrentIndex}`);
