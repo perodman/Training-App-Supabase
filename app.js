@@ -4697,8 +4697,9 @@ function updateCardioTime(inputEl, exIdx, setIdx, field) {
     const mins = parseInt(setObj.duration_min || '0') || 0;
     const secs = parseInt(setObj.duration_sec || '0') || 0;
     setObj.duration = `${mins}:${String(secs).padStart(2, '0')}`;
-    const paceEl = document.getElementById(`pace-${exIdx}-${setIdx}`);
-    if (paceEl) paceEl.textContent = calcPace(setObj.duration, setObj.distance);
+    document.querySelectorAll(`[id^="pace-${exIdx}-${setIdx}"]`).forEach(el => {
+        el.textContent = calcPace(setObj.duration, setObj.distance);
+    });
     debouncedPersistActiveWorkout();
 }
 
@@ -7169,9 +7170,9 @@ function renderCarouselCard() {
                 </div>
                 ${isCardio
                     ? `<div style="display:flex; gap:2px; align-items:center;">
-                        <input type="text" inputmode="numeric" id="cdm-${i}-${sIdx}" class="log-input" style="margin:0; padding:8px 4px; font-size:15px; opacity:${inputOpacity}; text-align:center; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.duration_min || ''}" placeholder="min" ${isLocked ? 'readonly' : ''} oninput="updateCardioTime(this, ${i}, ${sIdx}, 'min')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
+                        <input type="text" inputmode="numeric" id="cdm-${i}-${sIdx}" class="log-input" style="margin:0; padding:8px 4px; font-size:15px; opacity:${inputOpacity}; text-align:center; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.duration_min || ''}" placeholder="mm" ${isLocked ? 'readonly' : ''} oninput="updateCardioTime(this, ${i}, ${sIdx}, 'min')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
                         <span style="color:#64748b; font-size:14px; font-weight:700; flex-shrink:0;">:</span>
-                        <input type="text" inputmode="numeric" id="cds-${i}-${sIdx}" class="log-input" style="margin:0; padding:8px 4px; font-size:15px; opacity:${inputOpacity}; text-align:center; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.duration_sec || ''}" placeholder="sek" ${isLocked ? 'readonly' : ''} oninput="updateCardioTime(this, ${i}, ${sIdx}, 'sec')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
+                        <input type="text" inputmode="numeric" id="cds-${i}-${sIdx}" class="log-input" style="margin:0; padding:8px 4px; font-size:15px; opacity:${inputOpacity}; text-align:center; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.duration_sec || ''}" placeholder="ss" ${isLocked ? 'readonly' : ''} oninput="updateCardioTime(this, ${i}, ${sIdx}, 'sec')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">
                        </div>`
                     : `<input type="text" inputmode="decimal" id="w-${i}-${sIdx}" class="log-input weight-input" data-ex="${i}" data-set="${sIdx}" style="margin:0; padding:12px; font-size:18px; opacity:${inputOpacity}; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.weight || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'weight')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`}
                 ${isCardio
@@ -7255,7 +7256,7 @@ function renderCarouselCard() {
             </div>` : ''}
             ${setsHtml}
             <div style="display:flex; gap:6px; align-items:center; margin-top:12px; margin-bottom:8px; width:100%;">
-                <button style="display:flex;align-items:center;gap:5px;padding:7px 10px;background:transparent;border:1.5px dashed rgba(34,211,238,0.3);color:#22d3ee;border-radius:10px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0;${isDone ? 'opacity:0.3;pointer-events:none;' : ''}" onclick="addSetToExercise(${i})" ${isDone ? 'disabled' : ''} ${isCardio ? 'hidden' : ''}>
+                <button style="display:${isCardio ? 'none' : 'flex'};align-items:center;gap:5px;padding:7px 10px;background:transparent;border:1.5px dashed rgba(34,211,238,0.3);color:#22d3ee;border-radius:10px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0;${isDone ? 'opacity:0.3;pointer-events:none;' : ''}" onclick="addSetToExercise(${i})" ${isDone ? 'disabled' : ''}>
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                     Add set
                 </button>
@@ -7976,7 +7977,7 @@ function renderFocusCard() {
             </div>` : ''}
             ${setsHtml}
             <div style="display:flex; gap:6px; align-items:center; margin-top:12px; margin-bottom:8px; width:100%;">
-                <button style="display:flex;align-items:center;gap:6px;padding:9px 14px;background:transparent;border:1.5px dashed rgba(34,211,238,0.3);color:#22d3ee;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0;${isDone ? 'opacity:0.3;pointer-events:none;' : ''}" onclick="addSetToExercise(${i})" ${isDone ? 'disabled' : ''} ${isCardio ? 'hidden' : ''}>
+                <button style="display:${isCardio ? 'none' : 'flex'};align-items:center;gap:6px;padding:9px 14px;background:transparent;border:1.5px dashed rgba(34,211,238,0.3);color:#22d3ee;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0;${isDone ? 'opacity:0.3;pointer-events:none;' : ''}" onclick="addSetToExercise(${i})" ${isDone ? 'disabled' : ''}>
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                     Add set
                 </button>
