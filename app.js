@@ -7148,11 +7148,24 @@ function renderCarouselNav() {
         const isDone = data[i]?.isCompleted;
         const isActive = i === carouselCurrentIndex;
         const svg = getExSVG(ex.target, 'small');
-        return `<div class="carousel-ex-thumb${isDone ? ' done' : isActive ? ' active' : ''}" id="carousel-thumb-${i}" onclick="carouselGoTo(${i})">
-            <div class="carousel-drag-handle" style="font-size:14px; color:rgba(255,255,255,0.35); cursor:grab; line-height:1; margin-bottom:3px; padding:2px 8px; width:100%; text-align:center;" title="Drag to reorder">⠿</div>
-            <div style="opacity:${isActive ? 1 : 0.5}">${svg}</div>
-            <div class="carousel-ex-thumb-name">${ex.name}</div>
-            ${isDone ? `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>` : ''}
+       return `<div class="carousel-ex-thumb${isDone ? ' done' : isActive ? ' active' : ''}" id="carousel-thumb-${i}" onclick="carouselGoTo(${i})" style="position:relative;">
+            ${isDone ? `<div style="position:absolute; top:5px; right:5px; width:8px; height:8px; border-radius:50%; background:#22c55e;"></div>` : ''}
+            <div class="carousel-drag-handle" style="display:flex; align-items:center; justify-content:center; padding:5px 0 1px; cursor:grab; width:100%; opacity:${isDone ? 0.25 : isActive ? 1 : 0.3};">
+                <svg width="14" height="9" viewBox="0 0 14 9" fill="none">
+                    <circle cx="3" cy="2" r="1.3" fill="${isActive ? '#22d3ee' : isDone ? '#22c55e' : '#94a3b8'}"/>
+                    <circle cx="11" cy="2" r="1.3" fill="${isActive ? '#22d3ee' : isDone ? '#22c55e' : '#94a3b8'}"/>
+                    <circle cx="3" cy="7" r="1.3" fill="${isActive ? '#22d3ee' : isDone ? '#22c55e' : '#94a3b8'}"/>
+                    <circle cx="11" cy="7" r="1.3" fill="${isActive ? '#22d3ee' : isDone ? '#22c55e' : '#94a3b8'}"/>
+                    <circle cx="7" cy="2" r="1.3" fill="${isActive ? 'rgba(34,211,238,0.4)' : isDone ? '#22c55e' : '#94a3b8'}"/>
+                    <circle cx="7" cy="7" r="1.3" fill="${isActive ? 'rgba(34,211,238,0.4)' : isDone ? '#22c55e' : '#94a3b8'}"/>
+                </svg>
+            </div>
+            <div style="width:22px; height:22px; border-radius:50%; border:1.5px solid ${isActive ? '#22d3ee' : isDone ? '#22c55e' : 'rgba(255,255,255,0.25)'}; display:flex; align-items:center; justify-content:center;">
+                <span style="font-size:11px; font-weight:900; color:${isActive ? '#22d3ee' : isDone ? '#22c55e' : '#fff'};">${i + 1}</span>
+            </div>
+            <div style="width:100%; background:linear-gradient(to top, ${isActive ? 'rgba(34,211,238,0.28)' : isDone ? 'rgba(34,197,94,0.2)' : 'rgba(100,116,139,0.3)'} 0%, transparent 100%); padding:4px 5px 5px; text-align:center;">
+                <span style="font-size:8px; font-weight:800; display:block; line-height:1.2; color:${isActive ? '#22d3ee' : isDone ? '#22c55e' : '#e2e8f0'};">${ex.name}</span>
+            </div>
         </div>`;
     }).join('');
 
@@ -7892,11 +7905,24 @@ function renderFocusNav() {
         const isDone = data[i]?.isCompleted;
         const isActive = i === carouselCurrentIndex;
         const svg = getExSVG(ex.target, 'small');
-        return `<div class="carousel-ex-thumb${isDone ? ' done' : isActive ? ' active' : ''}" id="focus-thumb-${i}" onclick="focusGoTo(${i})">
-            <div class="carousel-drag-handle" style="font-size:14px; color:rgba(255,255,255,0.35); cursor:grab; line-height:1; margin-bottom:3px; padding:2px 8px; width:100%; text-align:center;" title="Drag to reorder">⠿</div>
-            <div style="opacity:${isActive ? 1 : 0.5}">${svg}</div>
-            <div class="carousel-ex-thumb-name">${ex.name}</div>
-            ${isDone ? `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>` : ''}
+       return `<div class="carousel-ex-thumb${isDone ? ' done' : isActive ? ' active' : ''}" id="focus-thumb-${i}" onclick="focusGoTo(${i})" style="position:relative;">
+            ${isDone ? `<div style="position:absolute; top:5px; right:5px; width:8px; height:8px; border-radius:50%; background:#22c55e;"></div>` : ''}
+            <div class="carousel-drag-handle" style="display:flex; align-items:center; justify-content:center; padding:5px 0 1px; cursor:grab; width:100%; opacity:${isDone ? 0.25 : isActive ? 1 : 0.3};">
+                <svg width="14" height="9" viewBox="0 0 14 9" fill="none">
+                    <circle cx="3" cy="2" r="1.3" fill="${isActive ? '#22d3ee' : isDone ? '#22c55e' : '#94a3b8'}"/>
+                    <circle cx="11" cy="2" r="1.3" fill="${isActive ? '#22d3ee' : isDone ? '#22c55e' : '#94a3b8'}"/>
+                    <circle cx="3" cy="7" r="1.3" fill="${isActive ? '#22d3ee' : isDone ? '#22c55e' : '#94a3b8'}"/>
+                    <circle cx="11" cy="7" r="1.3" fill="${isActive ? '#22d3ee' : isDone ? '#22c55e' : '#94a3b8'}"/>
+                    <circle cx="7" cy="2" r="1.3" fill="${isActive ? 'rgba(34,211,238,0.4)' : isDone ? '#22c55e' : '#94a3b8'}"/>
+                    <circle cx="7" cy="7" r="1.3" fill="${isActive ? 'rgba(34,211,238,0.4)' : isDone ? '#22c55e' : '#94a3b8'}"/>
+                </svg>
+            </div>
+            <div style="width:22px; height:22px; border-radius:50%; border:1.5px solid ${isActive ? '#22d3ee' : isDone ? '#22c55e' : 'rgba(255,255,255,0.25)'}; display:flex; align-items:center; justify-content:center;">
+                <span style="font-size:11px; font-weight:900; color:${isActive ? '#22d3ee' : isDone ? '#22c55e' : '#fff'};">${i + 1}</span>
+            </div>
+            <div style="width:100%; background:linear-gradient(to top, ${isActive ? 'rgba(34,211,238,0.28)' : isDone ? 'rgba(34,197,94,0.2)' : 'rgba(100,116,139,0.3)'} 0%, transparent 100%); padding:4px 5px 5px; text-align:center;">
+                <span style="font-size:8px; font-weight:800; display:block; line-height:1.2; color:${isActive ? '#22d3ee' : isDone ? '#22c55e' : '#e2e8f0'};">${ex.name}</span>
+            </div>
         </div>`;
     }).join('');
     setTimeout(() => {
