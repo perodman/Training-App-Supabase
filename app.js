@@ -600,7 +600,7 @@ function openEditExerciseModal(id) {
             </div>
             <div style="width: 100%;">
                 <label style="font-size:11px; color:var(--text-light); text-transform: uppercase; letter-spacing: 1px; display:block; margin-bottom: 12px; text-align: center;">Select Category</label>
-                <div id="edit-category-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 0 10px;">
+                <div id="edit-category-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 0 10px;">
                     ${categories.map(cat => `
                     <div class="cat-select-item ${cat.id === selectedCategory ? 'active' : ''}"
                         onclick="window.selectEditModalCategory('${cat.id}')"
@@ -3221,12 +3221,14 @@ function renderExercisePickerForEdit(idx, category = "Ben", subtarget = null) {
         { name: "Rygg", icon: "🪵" },
         { name: "Axlar", icon: "👐" },
         { name: "Armar", icon: "💪" },
-        { name: "Bål", icon: "🧘" }
+        { name: "Bål", icon: "🧘" },
+        { name: "Cardio", icon: "🏃" },
+        { name: "Mobility", icon: "🤸" }
     ];
     let html = `<div class="separator" style="margin: 12px 0 18px 0;"></div>`;
     html += `<h3 style="margin: 0 0 15px 0; color: var(--primary); font-size: 1.2rem; text-align: center; text-transform: uppercase; letter-spacing: 1px;">ADD EXERCISES</h3>`;
     html += `<p style="font-size:11px; text-transform:uppercase; color:var(--text-light); text-align:center; margin-bottom:10px;">Select Category</p>`;
-    html += `<div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; margin-bottom:15px;">`;
+    html += `<div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:8px; margin-bottom:15px;">`;
     categories.forEach(cat => {
         const isActive = cat.name === category;
         html += `
