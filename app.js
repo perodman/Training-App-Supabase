@@ -4926,8 +4926,13 @@ function updateCardioTime(inputEl, exIdx, setIdx) {
 function initCardioTimeInput(inputId, exIdx, setIdx) {
     const input = document.getElementById(inputId);
     if (!input) return;
-    if (input._cardioInitialized) return;
-    input._cardioInitialized = true;
+
+    const existing = input._cardioHandler;
+    if (existing) {
+        input.removeEventListener('keydown', existing.keydown);
+        input.removeEventListener('click', existing.click);
+        input.removeEventListener('focus', existing.focus);
+    }
 
     let digits = input.value.replace(':', '').replace(/\D/g, '').padEnd(4, '_');
 
@@ -4943,7 +4948,7 @@ function initCardioTimeInput(inputId, exIdx, setIdx) {
 
     render();
 
-    input.addEventListener('keydown', function(e) {
+    const keydownHandler = function(e) {
         if (e.key >= '0' && e.key <= '9') {
             e.preventDefault();
             const firstUnderscore = digits.indexOf('_');
@@ -4973,21 +4978,33 @@ function initCardioTimeInput(inputId, exIdx, setIdx) {
             }
             render();
         }
-    });
+    };
 
-    input.addEventListener('click', function() {
-        const firstUnderscore = digits.indexOf('_');
-        const pos = firstUnderscore !== -1 ? firstUnderscore + (firstUnderscore >= 2 ? 1 : 0) : 5;
-        this.setSelectionRange(pos, pos);
-    });
-
-    input.addEventListener('focus', function() {
+    const clickHandler = function() {
         digits = input.value.replace(':', '').replace(/\D/g, '').padEnd(4, '_');
         render();
         const firstUnderscore = digits.indexOf('_');
         const pos = firstUnderscore !== -1 ? firstUnderscore + (firstUnderscore >= 2 ? 1 : 0) : 5;
-        setTimeout(() => this.setSelectionRange(pos, pos), 0);
-    });
+        setTimeout(() => input.setSelectionRange(pos, pos), 0);
+    };
+
+    const focusHandler = function() {
+        digits = input.value.replace(':', '').replace(/\D/g, '').padEnd(4, '_');
+        render();
+        const firstUnderscore = digits.indexOf('_');
+        const pos = firstUnderscore !== -1 ? firstUnderscore + (firstUnderscore >= 2 ? 1 : 0) : 5;
+        setTimeout(() => input.setSelectionRange(pos, pos), 0);
+    };
+
+    input.addEventListener('keydown', keydownHandler);
+    input.addEventListener('click', clickHandler);
+    input.addEventListener('focus', focusHandler);
+
+    input._cardioHandler = {
+        keydown: keydownHandler,
+        click: clickHandler,
+        focus: focusHandler
+    };
 }
 
 async function confirmSet(exIdx, setIdx) {
