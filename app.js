@@ -7160,7 +7160,7 @@ function renderCarouselNav() {
                     <circle cx="7" cy="7" r="1.3" fill="${isActive ? 'rgba(34,211,238,0.4)' : isDone ? '#22c55e' : '#94a3b8'}"/>
                 </svg>
             </div>
-            <div style="width:22px; height:22px; border-radius:50%; border:1.5px solid ${isActive ? '#22d3ee' : isDone ? '#22c55e' : 'rgba(255,255,255,0.25)'}; display:flex; align-items:center; justify-content:center;">
+            <div style="width:22px; height:22px; border-radius:50%; border:1.5px solid ${isDone ? '#22c55e' : isActive ? '#22d3ee' : 'rgba(255,255,255,0.25)'}; display:flex; align-items:center; justify-content:center;">
                 <span style="font-size:11px; font-weight:900; color:${isActive ? '#22d3ee' : isDone ? '#22c55e' : '#fff'};">${i + 1}</span>
             </div>
             <span style="font-size:8px; font-weight:800; display:block; line-height:1.2; text-align:center; color:${isDone ? '#22c55e' : isActive ? '#22d3ee' : '#e2e8f0'}; padding:0 3px;">${ex.name}</span>
@@ -7915,7 +7915,7 @@ function renderFocusNav() {
                     <circle cx="7" cy="7" r="1.3" fill="${isActive ? 'rgba(34,211,238,0.4)' : isDone ? '#22c55e' : '#94a3b8'}"/>
                 </svg>
             </div>
-            <div style="width:22px; height:22px; border-radius:50%; border:1.5px solid ${isActive ? '#22d3ee' : isDone ? '#22c55e' : 'rgba(255,255,255,0.25)'}; display:flex; align-items:center; justify-content:center;">
+            <div style="width:22px; height:22px; border-radius:50%; border:1.5px solid ${isDone ? '#22c55e' : isActive ? '#22d3ee' : 'rgba(255,255,255,0.25)'}; display:flex; align-items:center; justify-content:center;">
                 <span style="font-size:11px; font-weight:900; color:${isActive ? '#22d3ee' : isDone ? '#22c55e' : '#fff'};">${i + 1}</span>
             </div>
             <span style="font-size:8px; font-weight:800; display:block; line-height:1.2; text-align:center; color:${isDone ? '#22c55e' : isActive ? '#22d3ee' : '#e2e8f0'}; padding:0 3px;">${ex.name}</span>
