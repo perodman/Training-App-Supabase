@@ -5850,10 +5850,19 @@ async function editLoggedWorkout(date, idx) {
 
     // Strukturera om övningsdatan korrekt till en matris som matchar activeDraft-strukturen
 const formattedDataArray = item.exercises.map(ex => {
+        const masterEx = masterExercises.find(m => m.name === ex.name);
+        const isCardio = masterEx ? isCardioExercise(masterEx) : false;
         if(ex.sets_data) {
             const setsCopy = JSON.parse(JSON.stringify(ex.sets_data));
             const allConfirmed = setsCopy.length > 0 && setsCopy.every(s => s.userConfirmed === true);
             return { sets_data: setsCopy, isCompleted: allConfirmed, note: ex.note || null };
+        }
+        if (isCardio) {
+            return {
+                sets_data: Array(parseInt(ex.sets || 1)).fill(null).map(() => ({ duration: '', distance: '', userConfirmed: false })),
+                isCompleted: false,
+                note: ex.note || null
+            };
         }
         return {
             sets_data: Array(parseInt(ex.sets || 1)).fill(null).map(() => ({ weight: ex.weight || "", reps: ex.reps || "" })),
