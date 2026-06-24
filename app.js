@@ -8133,6 +8133,8 @@ async function focusToggleDone(exIdx) {
     renderFocusNav();
     renderFocusCard();
     updateFocusProgress();
+    renderCarouselNav();
+    renderCarouselDots();
     if (newCompletedState) {
         const nextUndone = activeDraft.workout.exercises.findIndex((_, idx) => idx > exIdx && !activeDraft.data[idx]?.isCompleted);
         if (nextUndone !== -1) {
