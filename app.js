@@ -4927,6 +4927,10 @@ function initCardioTimeInput(inputId, exIdx, setIdx) {
     const input = document.getElementById(inputId);
     if (!input) return;
     
+    // Om detta specifika element redan har initierats under sitt fokus, avbryt för att inte dubbelbinda lyssnare
+    if (input._cardioInitialized) return;
+    input._cardioInitialized = true;
+    
     const existing = input._cardioHandler;
     if (existing) {
         input.removeEventListener('keydown', existing.keydown);
@@ -4934,10 +4938,9 @@ function initCardioTimeInput(inputId, exIdx, setIdx) {
         input.removeEventListener('focus', existing.focus);
     }
     
-    // Hämta det sparade värdet från activeDraft för att förhindra att maskningen nollställs vid omrendering
+    // Synka masken mot sparat data i activeDraft
     const savedDuration = activeDraft?.data?.[exIdx]?.sets_data?.[setIdx]?.duration;
     if (savedDuration && savedDuration !== '__:__') {
-        // Omvandlar t.ex. "21:43" till "2143" eller "05:__" till "05__"
         input._digits = savedDuration.replace(':', '').padEnd(4, '_');
     } else {
         input._digits = '____';
@@ -4996,7 +4999,7 @@ function initCardioTimeInput(inputId, exIdx, setIdx) {
     
     const focusHandler = function() {
         const firstUnderscore = input._digits.indexOf('_');
-        const pos = firstUnderscore !== -1 ? firstUnderscore + (firstUndersrate >= 2 ? 1 : 0) : 5;
+        const pos = firstUnderscore !== -1 ? firstUnderscore + (firstUnderscore >= 2 ? 1 : 0) : 5;
         setTimeout(() => input.setSelectionRange(pos, pos), 0);
     };
     
@@ -5009,6 +5012,9 @@ function initCardioTimeInput(inputId, exIdx, setIdx) {
         click: clickHandler,
         focus: focusHandler
     };
+
+    // Kör direkt för att placera markören rätt vid första klicket/fokusen
+    clickHandler();
 }
 
 function updateSingleExerciseCard(exIdx) {
@@ -7441,7 +7447,7 @@ function renderCarouselCard() {
                     ${statusContent}
                 </div>
                 ${isCardio
-                    ? `<input type="text" inputmode="numeric" id="cdm-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px 4px; font-size:15px; min-width:0; opacity:${inputOpacity}; text-align:center; font-family:monospace; letter-spacing:2px; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.duration || '__:__'}" ${isLocked ? 'readonly' : ''} onfocus="">`
+                    ? `<input type="text" inputmode="numeric" id="cdm-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px 4px; font-size:15px; min-width:0; opacity:${inputOpacity}; text-align:center; font-family:monospace; letter-spacing:2px; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.duration || '__:__'}" ${isLocked ? 'readonly' : ''} onfocus="if(!this.readOnly) initCardioTimeInput(this.id, ${i}, ${sIdx})">`
                     : `<input type="text" inputmode="decimal" id="w-${i}-${sIdx}" class="log-input weight-input" data-ex="${i}" data-set="${sIdx}" style="margin:0; padding:12px; font-size:18px; opacity:${inputOpacity}; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.weight || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'weight')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`}
                 ${isCardio
                     ? `<input type="text" inputmode="decimal" id="ck-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${inputOpacity}; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.distance || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'distance')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`
@@ -7543,17 +7549,8 @@ function renderCarouselCard() {
             <button style="width:100%;padding:12px;background:${isDone ? 'rgba(148,163,184,0.25)' : 'rgba(34,197,94,0.1)'};color:${isDone ? '#fff' : '#22c55e'};border-radius:12px;font-size:14px;font-weight:800;border:${isDone ? '1px solid rgba(148,163,184,0.2)' : '1px solid rgba(34,197,94,0.25)'};cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;" onclick="carouselToggleDone(${i})">
                 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">${isDone ? '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>' : '<circle cx="12" cy="12" r="10"></circle><polyline points="9 12 11 14 15 10"></polyline>'}</svg>
                 ${isDone ? 'Undo' : 'Finish exercise'}
- </button>
+            </button>
         </div>`;
-    if (isCardio && exData.sets_data) {
-        exData.sets_data.forEach((set, sIdx) => {
-            const oldEl = document.getElementById(`cdm-${i}-${sIdx}`);
-            if (oldEl) {
-                oldEl.removeAttribute('onfocus');
-                initCardioTimeInput(`cdm-${i}-${sIdx}`, i, sIdx);
-            }
-        });
-    }
 }
 
 function formatRestTime(seconds) {
