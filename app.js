@@ -7148,7 +7148,7 @@ function renderCarouselNav() {
         const isDone = data[i]?.isCompleted;
         const isActive = i === carouselCurrentIndex;
         const svg = getExSVG(ex.target, 'small');
-       return `<div class="carousel-ex-thumb${isDone ? ' done' : isActive ? ' active' : ''}" id="carousel-thumb-${i}" onclick="carouselGoTo(${i})" style="position:relative;">
+       return `<div class="carousel-ex-thumb${isDone ? ' done' : isActive ? ' active' : ''}" id="carousel-thumb-${i}" onclick="carouselGoTo(${i})" style="position:relative; overflow:hidden; justify-content:space-between;">
             ${isDone ? `<div style="position:absolute; top:5px; right:5px; width:8px; height:8px; border-radius:50%; background:#22c55e;"></div>` : ''}
             <div class="carousel-drag-handle" style="display:flex; align-items:center; justify-content:center; padding:5px 0 1px; cursor:grab; width:100%; opacity:${isDone ? 0.25 : isActive ? 1 : 0.3};">
                 <svg width="14" height="9" viewBox="0 0 14 9" fill="none">
@@ -7905,7 +7905,7 @@ function renderFocusNav() {
         const isDone = data[i]?.isCompleted;
         const isActive = i === carouselCurrentIndex;
         const svg = getExSVG(ex.target, 'small');
-       return `<div class="carousel-ex-thumb${isDone ? ' done' : isActive ? ' active' : ''}" id="focus-thumb-${i}" onclick="focusGoTo(${i})" style="position:relative;">
+       return `<div class="carousel-ex-thumb${isDone ? ' done' : isActive ? ' active' : ''}" id="focus-thumb-${i}" onclick="focusGoTo(${i})" style="position:relative; overflow:hidden; justify-content:space-between;">
             ${isDone ? `<div style="position:absolute; top:5px; right:5px; width:8px; height:8px; border-radius:50%; background:#22c55e;"></div>` : ''}
             <div class="carousel-drag-handle" style="display:flex; align-items:center; justify-content:center; padding:5px 0 1px; cursor:grab; width:100%; opacity:${isDone ? 0.25 : isActive ? 1 : 0.3};">
                 <svg width="14" height="9" viewBox="0 0 14 9" fill="none">
