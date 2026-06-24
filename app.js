@@ -2413,6 +2413,8 @@ function renderGroupsView() {
 
     const layoutBar = document.getElementById("layout-picker-bar");
     if (layoutBar) layoutBar.style.display = 'none';
+    renderGroupsLayoutToggle();
+    renderGroupsContent();
     showView("programs-view");
 }
 
@@ -2592,17 +2594,34 @@ function renderPassesInGroup(groupId) {
                     border-left: 4px solid #f59e0b;
                     position:relative; overflow:hidden;
                 `;
+                const listItemId = `list-pass-${passIdx}`;
+                div.id = listItemId;
                 div.innerHTML = `
                     <div style="position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg, rgba(255,255,255,0.2), transparent);"></div>
-                    <div style="display:flex; align-items:center; gap:12px; min-width:0;">
-                        <div style="display:flex; flex-direction:column; min-width:0;">
-                            <span style="font-size:14px; font-weight:800; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${pass.name}</span>
+                    <div style="display:flex; align-items:center; justify-content:space-between; width:100%;" onclick="toggleListPass('${listItemId}')">
+                        <div style="display:flex; flex-direction:column; min-width:0; flex:1;">
+                            <span style="font-size:14px; font-weight:800; color:#fff;">${pass.name}</span>
                             <span style="font-size:10px; color:var(--primary); font-weight:700; text-transform:uppercase; letter-spacing:0.5px; margin-top:2px;">${pass.exercises.length} ${pass.exercises.length === 1 ? 'exercise' : 'exercises'}${pass.duration ? ` · ⏱️ ~${pass.duration} min` : ''}</span>
                         </div>
+                        <div style="display:flex; gap:8px; flex-shrink:0; align-items:center;">
+                            ${window._selectionModeDate ? `<button onclick="event.stopPropagation(); selectWorkoutForDate('${pass.id}')" style="padding:6px 14px; border-radius:8px; border:none; background:var(--primary); color:#0f172a; font-size:11px; font-weight:800; cursor:pointer;">Select</button>` : ''}
+                            <div onclick="event.stopPropagation(); openEditProgramModal(${passIdx})" style="width:30px; height:30px; border-radius:8px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:13px;">✏️</div>
+                            <span id="${listItemId}-arrow" style="color:rgba(255,255,255,0.3); font-size:11px; transition:transform 0.3s ease;">▼</span>
+                        </div>
                     </div>
-                    <div style="display:flex; gap:8px; flex-shrink:0;">
-                        ${window._selectionModeDate ? `<button onclick="event.stopPropagation(); selectWorkoutForDate('${pass.id}')" style="padding:6px 14px; border-radius:8px; border:none; background:var(--primary); color:#0f172a; font-size:11px; font-weight:800; cursor:pointer;">Select</button>` : ''}
-                        <div onclick="event.stopPropagation(); openEditProgramModal(${passIdx})" style="width:30px; height:30px; border-radius:8px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:13px;">✏️</div>
+                    <div id="${listItemId}-exercises" style="max-height:0; overflow:hidden; transition:max-height 0.35s ease, opacity 0.3s ease; opacity:0; width:100%;">
+                        <div style="padding-top:12px; margin-top:12px; border-top:1px solid rgba(255,255,255,0.06);">
+                            ${pass.exercises.map((e, i) => `
+                            <div style="display:grid; grid-template-columns:1fr 70px 12px 70px; align-items:center; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.03);">
+                                <span style="display:flex; align-items:center; gap:10px; font-weight:600; font-size:13px;">
+                                    <span style="display:flex; align-items:center; justify-content:center; width:18px; height:18px; border-radius:50%; border:1px solid rgba(34,211,238,0.4); color:var(--primary); font-size:10px; font-weight:700; flex-shrink:0;">${i + 1}</span>
+                                    ${e.name}
+                                </span>
+                                <span style="font-weight:800; text-transform:uppercase; font-size:9px; color:var(--primary); text-align:right;">${CATEGORY_DISPLAY[e.target] || e.target}</span>
+                                <span style="align-self:stretch; display:flex; justify-content:center;">${e.subtarget ? '<span style="width:1px; align-self:stretch; min-height:14px; background:rgba(255,255,255,0.15);"></span>' : ''}</span>
+                                <span style="font-weight:800; text-transform:uppercase; font-size:9px; color:var(--text-light); opacity:0.6;">${e.subtarget || ''}</span>
+                            </div>`).join('')}
+                        </div>
                     </div>
                 `;
                 selector.appendChild(div);
@@ -2739,6 +2758,151 @@ async function togglePassGroup(passIdx, groupId) {
 
     // Spara till Supabase i bakgrunden utan att blockera UI
     saveCustomProgramToSupabase();
+}
+
+function toggleListPass(id) {
+    const exercisesEl = document.getElementById(`${id}-exercises`);
+    const arrowEl = document.getElementById(`${id}-arrow`);
+    if (!exercisesEl) return;
+    const isOpen = exercisesEl.style.maxHeight !== '0px' && exercisesEl.style.maxHeight !== '';
+    if (isOpen) {
+        exercisesEl.style.maxHeight = '0px';
+        exercisesEl.style.opacity = '0';
+        if (arrowEl) arrowEl.style.transform = 'rotate(0deg)';
+    } else {
+        exercisesEl.style.maxHeight = exercisesEl.scrollHeight + 'px';
+        exercisesEl.style.opacity = '1';
+        if (arrowEl) arrowEl.style.transform = 'rotate(180deg)';
+    }
+}
+
+function renderGroupsLayoutToggle() {
+    const programsView = document.getElementById("programs-view");
+    const selector = document.getElementById("pass-selector-list");
+    let toggleBar = document.getElementById("groups-layout-toggle-bar");
+    if (!toggleBar) {
+        toggleBar = document.createElement("div");
+        toggleBar.id = "groups-layout-toggle-bar";
+        toggleBar.style.cssText = "display:flex; justify-content:flex-end; margin-bottom:12px;";
+        programsView.insertBefore(toggleBar, selector);
+    }
+    const groupLayoutMode = programData.groupLayoutPreference || 'cards';
+    const segIcons = {
+        list: `<div style="display:flex; flex-direction:column; gap:2px; width:14px; height:14px; justify-content:center;">
+            <div style="height:2px; border-radius:2px; background:currentColor;"></div>
+            <div style="height:2px; border-radius:2px; background:currentColor;"></div>
+            <div style="height:2px; border-radius:2px; background:currentColor;"></div>
+        </div>`,
+        cards: `<div style="display:grid; grid-template-columns:repeat(3,1fr); gap:2px; width:14px; height:14px;">
+            ${Array(6).fill('<div style="background:currentColor; border-radius:1px;"></div>').join('')}
+        </div>`,
+        compact: `<div style="display:flex; gap:2px; width:14px; height:14px; align-items:flex-end;">
+            <div style="width:3px; height:14px; border-radius:2px; background:currentColor;"></div>
+            <div style="width:3px; height:9px; border-radius:2px; background:currentColor;"></div>
+            <div style="width:3px; height:14px; border-radius:2px; background:currentColor;"></div>
+        </div>`
+    };
+    toggleBar.innerHTML = `
+        <div style="display:flex; border:1px solid rgba(255,255,255,0.1); border-radius:10px; overflow:hidden;">
+            ${['list','cards','compact'].map(id => `
+                <div onclick="selectGroupLayoutPreference('${id}')" style="padding:7px 11px; display:flex; align-items:center; justify-content:center; cursor:pointer;
+                    color:${groupLayoutMode === id ? 'var(--primary)' : 'var(--text-light)'};
+                    background:${groupLayoutMode === id ? 'rgba(34,211,238,0.1)' : 'transparent'};">
+                    ${segIcons[id]}
+                </div>
+            `).join('')}
+        </div>
+    `;
+}
+
+function renderGroupsContent() {
+    const selector = document.getElementById("pass-selector-list");
+    if (!selector) return;
+    const groupLayoutMode = programData.groupLayoutPreference || 'cards';
+    const usedGroupIds = new Set();
+    programData.routine.forEach(pass => {
+        if (Array.isArray(pass.groups)) pass.groups.forEach(g => usedGroupIds.add(g));
+    });
+    const customGroups = programData.customGroups || [];
+    const ALL_GROUPS = [...PREDEFINED_GROUPS, ...customGroups];
+    const allGroupIds = [...new Set([...ALL_GROUPS.map(g => g.id), ...usedGroupIds])];
+    const ungroupedPasses = programData.routine.filter(p => (!Array.isArray(p.groups) || p.groups.length === 0) && !p._isFreeCopy);
+
+    const groupsToRender = allGroupIds.map(groupId => {
+        const groupDef = ALL_GROUPS.find(g => g.id === groupId) || { id: groupId, name: groupId, icon: "⚠️" };
+        const passesInGroup = programData.routine.filter(p => Array.isArray(p.groups) && p.groups.includes(groupId));
+        const isKnownGroup = ALL_GROUPS.find(g => g.id === groupId);
+        if (passesInGroup.length === 0 && !isKnownGroup) return null;
+        return { groupId, groupDef, passesInGroup };
+    }).filter(Boolean);
+
+    if (groupLayoutMode === 'list') {
+        selector.style.cssText = "display:flex; flex-direction:column; gap:8px;";
+        selector.innerHTML = '';
+        [...groupsToRender, { groupId: '__ungrouped__', groupDef: { id: '__ungrouped__', name: 'Other', icon: '📁' }, passesInGroup: ungroupedPasses }].forEach(({ groupId, groupDef, passesInGroup }) => {
+            const isEmpty = passesInGroup.length === 0;
+            const row = document.createElement('div');
+            row.style.cssText = `
+                display:flex; align-items:center; justify-content:space-between;
+                padding:14px 16px; border-radius:14px; cursor:pointer;
+                background: linear-gradient(135deg, #243044 0%, #152032 100%);
+                border-left: 4px solid #f59e0b;
+                position:relative; overflow:hidden;
+            `;
+            row.innerHTML = `
+                <div style="position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg, rgba(255,255,255,0.2), transparent);"></div>
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <span style="font-size:22px;">${groupDef.icon}</span>
+                    <div>
+                        <div style="font-size:14px; font-weight:800; color:#fff;">${groupDef.name}</div>
+                        <div style="font-size:10px; color:${isEmpty ? 'rgba(255,255,255,0.3)' : 'var(--primary)'}; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; margin-top:2px;">
+                            ${isEmpty ? 'No workouts yet' : `${passesInGroup.length} ${passesInGroup.length === 1 ? 'workout' : 'workouts'}`}
+                        </div>
+                    </div>
+                </div>
+                <div style="display:flex; gap:8px; align-items:center;">
+                    <div onclick="event.stopPropagation(); openEditGroupModal('${groupId}', ${JSON.stringify(groupDef).replace(/"/g, '&quot;')})" style="width:30px; height:30px; border-radius:8px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:13px;">⚙️</div>
+                    <span style="color:rgba(255,255,255,0.3); font-size:11px;">›</span>
+                </div>
+            `;
+            row.onclick = () => renderPassesInGroup(groupId);
+            selector.appendChild(row);
+        });
+    } else if (groupLayoutMode === 'compact') {
+        selector.style.cssText = "display:flex; flex-wrap:wrap; gap:8px;";
+        selector.innerHTML = '';
+        [...groupsToRender, { groupId: '__ungrouped__', groupDef: { id: '__ungrouped__', name: 'Other', icon: '📁' }, passesInGroup: ungroupedPasses }].forEach(({ groupId, groupDef, passesInGroup }) => {
+            const isEmpty = passesInGroup.length === 0;
+            const chip = document.createElement('div');
+            chip.style.cssText = `
+                padding:10px 16px; border-radius:20px; cursor:pointer;
+                border:1px solid rgba(245,158,11,0.3);
+                background:rgba(245,158,11,0.06);
+                display:flex; align-items:center; gap:8px;
+            `;
+            chip.innerHTML = `
+                <span style="font-size:16px;">${groupDef.icon}</span>
+                <div>
+                    <div style="font-size:12px; font-weight:800; color:#fff;">${groupDef.name}</div>
+                    <div style="font-size:9px; color:${isEmpty ? 'rgba(255,255,255,0.3)' : 'var(--primary)'}; font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">
+                        ${isEmpty ? 'Empty' : `${passesInGroup.length} workouts`}
+                    </div>
+                </div>
+            `;
+            chip.onclick = () => renderPassesInGroup(groupId);
+            selector.appendChild(chip);
+        });
+    } else {
+        selector.style.cssText = "display:grid; grid-template-columns:repeat(3, 1fr); gap:10px;";
+    }
+}
+
+async function selectGroupLayoutPreference(id) {
+    programData.groupLayoutPreference = id;
+    window.programData = programData;
+    localStorage.setItem("myCustomProgram", JSON.stringify(programData));
+    if (typeof saveCustomProgram === 'function') await saveCustomProgram();
+    renderGroupsView();
 }
 
 function showProgramDetails(idx) {
