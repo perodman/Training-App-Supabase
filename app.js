@@ -4926,29 +4926,22 @@ function updateCardioTime(inputEl, exIdx, setIdx) {
 function initCardioTimeInput(inputId, exIdx, setIdx) {
     const input = document.getElementById(inputId);
     if (!input) return;
-    console.log('initCardioTimeInput anropad för', inputId, new Error().stack);
-
     const existing = input._cardioHandler;
     if (existing) {
         input.removeEventListener('keydown', existing.keydown);
         input.removeEventListener('click', existing.click);
         input.removeEventListener('focus', existing.focus);
     }
-
-    let digits = input.value.replace(':', '').replace(/\D/g, '').padEnd(4, '_');
-
+    let digits = '____';
     function render() {
         const mm = digits.slice(0, 2);
         const ss = digits.slice(2, 4);
         input.value = `${mm}:${ss}`;
     }
-
     function getCleanDigits() {
         return digits.replace(/_/g, '');
     }
-
     render();
-
     const keydownHandler = function(e) {
         if (e.key >= '0' && e.key <= '9') {
             e.preventDefault();
@@ -4980,89 +4973,24 @@ function initCardioTimeInput(inputId, exIdx, setIdx) {
             render();
         }
     };
-
     const clickHandler = function() {
-        digits = input.value.replace(':', '').replace(/\D/g, '').padEnd(4, '_');
-        render();
         const firstUnderscore = digits.indexOf('_');
         const pos = firstUnderscore !== -1 ? firstUnderscore + (firstUnderscore >= 2 ? 1 : 0) : 5;
         setTimeout(() => input.setSelectionRange(pos, pos), 0);
     };
-
     const focusHandler = function() {
-        digits = input.value.replace(':', '').replace(/\D/g, '').padEnd(4, '_');
-        render();
         const firstUnderscore = digits.indexOf('_');
         const pos = firstUnderscore !== -1 ? firstUnderscore + (firstUnderscore >= 2 ? 1 : 0) : 5;
         setTimeout(() => input.setSelectionRange(pos, pos), 0);
     };
-
     input.addEventListener('keydown', keydownHandler);
     input.addEventListener('click', clickHandler);
     input.addEventListener('focus', focusHandler);
-
     input._cardioHandler = {
         keydown: keydownHandler,
         click: clickHandler,
         focus: focusHandler
     };
-}
-
-async function confirmSet(exIdx, setIdx) {
-    flushFocusedInputs();
-
-    // Läs alltid REST-värdet direkt från DOM och spara till draft INNAN state ändras
-    const vInp = document.getElementById(`v-${exIdx}-${setIdx}`);
-const restVal = vInp ? (parseInt(vInp.value) || 120) : 120;
-activeDraft.data[exIdx].sets_data[setIdx].rest = String(restVal);
-
-const cdmInp = document.getElementById(`cdm-${exIdx}-${setIdx}`);
-const cdsInp = document.getElementById(`cds-${exIdx}-${setIdx}`);
-const ckInp = document.getElementById(`ck-${exIdx}-${setIdx}`);
-if (cdmInp) activeDraft.data[exIdx].sets_data[setIdx].duration_min = cdmInp.value;
-if (cdsInp) activeDraft.data[exIdx].sets_data[setIdx].duration_sec = cdsInp.value;
-if (ckInp) activeDraft.data[exIdx].sets_data[setIdx].distance = ckInp.value;
-
-    const currentState = activeDraft.data[exIdx].sets_data[setIdx].userConfirmed;
-    activeDraft.data[exIdx].sets_data[setIdx].userConfirmed = !currentState;
-
-    const isNowConfirmed = activeDraft.data[exIdx].sets_data[setIdx].userConfirmed;
-    const isLastSet = setIdx === activeDraft.data[exIdx].sets_data.length - 1;
-
-    if (isNowConfirmed && !isLastSet) {
-        stopRestTimer();
-        startRestTimer(restVal, exIdx);
-    } else {
-        // Sista set, avbekräftning — stoppa alltid
-        stopRestTimer();
-    }
-
-    await persistActiveWorkout();
-
-    const targetCard = document.getElementById(`exercise-card-${exIdx}`);
-    const existingHandle = targetCard ? targetCard.querySelector('.drag-handle') : null;
-
-    updateSingleExerciseCard(exIdx);
-
-    if (existingHandle) {
-        const updatedHeader = targetCard.querySelector('div[onclick^="toggleExercise"]');
-        if (updatedHeader && !updatedHeader.querySelector('.drag-handle')) {
-            updatedHeader.insertBefore(existingHandle, updatedHeader.firstChild);
-        }
-    }
-
-    // Uppdatera den globala mätaren i headern
-    if (typeof updateWorkoutProgress === 'function' && activeDraft.data) {
-        let totalWorkoutCompletedSets = 0;
-        let totalWorkoutSets = 0;
-        activeDraft.data.forEach(exerciseData => {
-            if (exerciseData && exerciseData.sets_data) {
-                totalWorkoutSets += exerciseData.sets_data.length;
-                totalWorkoutCompletedSets += exerciseData.sets_data.filter(s => s.userConfirmed).length;
-            }
-        });
-        updateWorkoutProgress(totalWorkoutCompletedSets, totalWorkoutSets);
-    }
 }
 
 
