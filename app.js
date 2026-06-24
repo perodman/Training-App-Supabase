@@ -4932,22 +4932,22 @@ function initCardioTimeInput(inputId, exIdx, setIdx) {
         input.removeEventListener('click', existing.click);
         input.removeEventListener('focus', existing.focus);
     }
-   let digits = input.value.replace(':', '').replace(/\D/g, '').padEnd(4, '_');
+    input._digits = '____';
     function render() {
-        const mm = digits.slice(0, 2);
-        const ss = digits.slice(2, 4);
+        const mm = input._digits.slice(0, 2);
+        const ss = input._digits.slice(2, 4);
         input.value = `${mm}:${ss}`;
     }
     function getCleanDigits() {
-        return digits.replace(/_/g, '');
+        return input._digits.replace(/_/g, '');
     }
     render();
     const keydownHandler = function(e) {
         if (e.key >= '0' && e.key <= '9') {
             e.preventDefault();
-            const firstUnderscore = digits.indexOf('_');
+            const firstUnderscore = input._digits.indexOf('_');
             if (firstUnderscore !== -1) {
-                digits = digits.substring(0, firstUnderscore) + e.key + digits.substring(firstUnderscore + 1);
+                input._digits = input._digits.substring(0, firstUnderscore) + e.key + input._digits.substring(firstUnderscore + 1);
             }
             render();
             const clean = getCleanDigits();
@@ -4966,20 +4966,20 @@ function initCardioTimeInput(inputId, exIdx, setIdx) {
             }
         } else if (e.key === 'Backspace') {
             e.preventDefault();
-            const lastDigit = digits.split('').reduce((last, c, i) => c !== '_' ? i : last, -1);
+            const lastDigit = input._digits.split('').reduce((last, c, i) => c !== '_' ? i : last, -1);
             if (lastDigit !== -1) {
-                digits = digits.substring(0, lastDigit) + '_' + digits.substring(lastDigit + 1);
+                input._digits = input._digits.substring(0, lastDigit) + '_' + input._digits.substring(lastDigit + 1);
             }
             render();
         }
     };
     const clickHandler = function() {
-        const firstUnderscore = digits.indexOf('_');
+        const firstUnderscore = input._digits.indexOf('_');
         const pos = firstUnderscore !== -1 ? firstUnderscore + (firstUnderscore >= 2 ? 1 : 0) : 5;
         setTimeout(() => input.setSelectionRange(pos, pos), 0);
     };
     const focusHandler = function() {
-        const firstUnderscore = digits.indexOf('_');
+        const firstUnderscore = input._digits.indexOf('_');
         const pos = firstUnderscore !== -1 ? firstUnderscore + (firstUnderscore >= 2 ? 1 : 0) : 5;
         setTimeout(() => input.setSelectionRange(pos, pos), 0);
     };
@@ -4992,7 +4992,6 @@ function initCardioTimeInput(inputId, exIdx, setIdx) {
         focus: focusHandler
     };
 }
-
 
 function updateSingleExerciseCard(exIdx) {
     const savedLayout = localStorage.getItem('workoutLayoutMode') || 'list';
