@@ -1310,6 +1310,7 @@ body:has(.bottom-bar.hidden) { padding-bottom: 0; }
     width: 80px;
     min-width: 80px;
     max-width: 80px;
+    height: 95px;
     border-radius: 14px;
     border: 1.5px solid rgba(255,255,255,0.08);
     background: rgba(255,255,255,0.04);
