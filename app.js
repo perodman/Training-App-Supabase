@@ -4932,7 +4932,7 @@ function initCardioTimeInput(inputId, exIdx, setIdx) {
         input.removeEventListener('click', existing.click);
         input.removeEventListener('focus', existing.focus);
     }
-    let digits = '____';
+   let digits = input.value.replace(':', '').replace(/\D/g, '').padEnd(4, '_');
     function render() {
         const mm = digits.slice(0, 2);
         const ss = digits.slice(2, 4);
