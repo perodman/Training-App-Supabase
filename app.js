@@ -7514,7 +7514,12 @@ function renderCarouselCard() {
                 </div>`;
             }
         });
+     if (isCardio && exData.sets_data) {
+        exData.sets_data.forEach((set, sIdx) => {
+            initCardioTimeInput(`cdm-${i}-${sIdx}`, i, sIdx);
+        });
     }
+ }
     setsHtml += `</div>`;
     card.innerHTML = `
         <div style="padding:10px 14px 8px; display:flex; align-items:center; justify-content:space-between; gap:8px; background:rgba(255,255,255,0.03); border-bottom:1px solid rgba(255,255,255,0.05);">
