@@ -8163,7 +8163,10 @@ async function focusToggleDone(exIdx) {
     if (newCompletedState) {
         const nextUndone = activeDraft.workout.exercises.findIndex((_, idx) => idx > exIdx && !activeDraft.data[idx]?.isCompleted);
         if (nextUndone !== -1) {
-            setTimeout(() => focusGoTo(nextUndone), 350);
+            setTimeout(() => {
+                focusGoTo(nextUndone);
+                setTimeout(() => renderCarouselNav(), 50);
+            }, 350);
         }
     }
 }
