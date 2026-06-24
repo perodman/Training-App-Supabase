@@ -7163,7 +7163,7 @@ function renderCarouselNav() {
             <div style="width:22px; height:22px; border-radius:50%; border:1.5px solid ${isDone ? '#22c55e' : isActive ? '#22d3ee' : 'rgba(255,255,255,0.25)'}; display:flex; align-items:center; justify-content:center;">
                 <span style="font-size:11px; font-weight:900; color:${isActive ? '#22d3ee' : isDone ? '#22c55e' : '#fff'};">${i + 1}</span>
             </div>
-            <span style="font-size:8px; font-weight:800; display:block; line-height:1.2; text-align:center; color:${isDone ? '#22c55e' : isActive ? '#22d3ee' : '#e2e8f0'}; padding:0 3px;">${ex.name}</span>
+            <span style="font-size:8px; font-weight:800; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; line-height:1.2; text-align:center; color:${isDone ? '#22c55e' : isActive ? '#22d3ee' : '#e2e8f0'}; padding:0 3px; max-height:2.4em;">${ex.name}</span>
         </div>`;
     }).join('');
 
@@ -7922,7 +7922,7 @@ function renderFocusNav() {
             <div style="width:22px; height:22px; border-radius:50%; border:1.5px solid ${isDone ? '#22c55e' : isActive ? '#22d3ee' : 'rgba(255,255,255,0.25)'}; display:flex; align-items:center; justify-content:center;">
                 <span style="font-size:11px; font-weight:900; color:${isActive ? '#22d3ee' : isDone ? '#22c55e' : '#fff'};">${i + 1}</span>
             </div>
-            <span style="font-size:8px; font-weight:800; display:block; line-height:1.2; text-align:center; color:${isDone ? '#22c55e' : isActive ? '#22d3ee' : '#e2e8f0'}; padding:0 3px;">${ex.name}</span>
+            <span style="font-size:8px; font-weight:800; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; line-height:1.2; text-align:center; color:${isDone ? '#22c55e' : isActive ? '#22d3ee' : '#e2e8f0'}; padding:0 3px; max-height:2.4em;">${ex.name}</span>
         </div>`;
     }).join('');
     setTimeout(() => {
