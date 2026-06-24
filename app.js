@@ -7152,10 +7152,10 @@ function renderCarouselNav() {
             ${isDone ? `<div style="position:absolute; top:5px; right:5px; width:8px; height:8px; border-radius:50%; background:#22c55e;"></div>` : ''}
             <div class="carousel-drag-handle" style="display:flex; align-items:center; justify-content:center; cursor:grab; width:100%; opacity:${isDone ? 0.25 : isActive ? 1 : 0.3};">
                 <svg width="14" height="9" viewBox="0 0 14 9" fill="none">
-                    <circle cx="3" cy="2" r="1.3" fill="${isActive ? '#22d3ee' : isDone ? '#22c55e' : '#94a3b8'}"/>
-                    <circle cx="11" cy="2" r="1.3" fill="${isActive ? '#22d3ee' : isDone ? '#22c55e' : '#94a3b8'}"/>
-                    <circle cx="3" cy="7" r="1.3" fill="${isActive ? '#22d3ee' : isDone ? '#22c55e' : '#94a3b8'}"/>
-                    <circle cx="11" cy="7" r="1.3" fill="${isActive ? '#22d3ee' : isDone ? '#22c55e' : '#94a3b8'}"/>
+                    <circle cx="3" cy="2" r="1.3" fill="${isDone ? '#22c55e' : isActive ? '#22d3ee' : '#94a3b8'}"/>
+                    <circle cx="11" cy="2" r="1.3" fill="${isDone ? '#22c55e' : isActive ? '#22d3ee' : '#94a3b8'}"/>
+                    <circle cx="3" cy="7" r="1.3" fill="${isDone ? '#22c55e' : isActive ? '#22d3ee' : '#94a3b8'}"/>
+                    <circle cx="11" cy="7" r="1.3" fill="${isDone ? '#22c55e' : isActive ? '#22d3ee' : '#94a3b8'}"/>
                     <circle cx="7" cy="2" r="1.3" fill="${isActive ? 'rgba(34,211,238,0.4)' : isDone ? '#22c55e' : '#94a3b8'}"/>
                     <circle cx="7" cy="7" r="1.3" fill="${isActive ? 'rgba(34,211,238,0.4)' : isDone ? '#22c55e' : '#94a3b8'}"/>
                 </svg>
@@ -7163,7 +7163,7 @@ function renderCarouselNav() {
             <div style="width:22px; height:22px; border-radius:50%; border:1.5px solid ${isActive ? '#22d3ee' : isDone ? '#22c55e' : 'rgba(255,255,255,0.25)'}; display:flex; align-items:center; justify-content:center;">
                 <span style="font-size:11px; font-weight:900; color:${isActive ? '#22d3ee' : isDone ? '#22c55e' : '#fff'};">${i + 1}</span>
             </div>
-            <span style="font-size:8px; font-weight:800; display:block; line-height:1.2; text-align:center; color:${isActive ? '#22d3ee' : isDone ? '#22c55e' : '#e2e8f0'}; padding:0 3px;">${ex.name}</span>
+            <span style="font-size:8px; font-weight:800; display:block; line-height:1.2; text-align:center; color:${isDone ? '#22c55e' : isActive ? '#22d3ee' : '#e2e8f0'}; padding:0 3px;">${ex.name}</span>
         </div>`;
     }).join('');
 
@@ -7907,10 +7907,10 @@ function renderFocusNav() {
             ${isDone ? `<div style="position:absolute; top:5px; right:5px; width:8px; height:8px; border-radius:50%; background:#22c55e;"></div>` : ''}
             <div class="carousel-drag-handle" style="display:flex; align-items:center; justify-content:center; cursor:grab; width:100%; opacity:${isDone ? 0.25 : isActive ? 1 : 0.3};">
                 <svg width="14" height="9" viewBox="0 0 14 9" fill="none">
-                    <circle cx="3" cy="2" r="1.3" fill="${isActive ? '#22d3ee' : isDone ? '#22c55e' : '#94a3b8'}"/>
-                    <circle cx="11" cy="2" r="1.3" fill="${isActive ? '#22d3ee' : isDone ? '#22c55e' : '#94a3b8'}"/>
-                    <circle cx="3" cy="7" r="1.3" fill="${isActive ? '#22d3ee' : isDone ? '#22c55e' : '#94a3b8'}"/>
-                    <circle cx="11" cy="7" r="1.3" fill="${isActive ? '#22d3ee' : isDone ? '#22c55e' : '#94a3b8'}"/>
+                    <circle cx="3" cy="2" r="1.3" fill="${isDone ? '#22c55e' : isActive ? '#22d3ee' : '#94a3b8'}"/>
+                    <circle cx="11" cy="2" r="1.3" fill="${isDone ? '#22c55e' : isActive ? '#22d3ee' : '#94a3b8'}"/>
+                    <circle cx="3" cy="7" r="1.3" fill="${isDone ? '#22c55e' : isActive ? '#22d3ee' : '#94a3b8'}"/>
+                    <circle cx="11" cy="7" r="1.3" fill="${isDone ? '#22c55e' : isActive ? '#22d3ee' : '#94a3b8'}"/>
                     <circle cx="7" cy="2" r="1.3" fill="${isActive ? 'rgba(34,211,238,0.4)' : isDone ? '#22c55e' : '#94a3b8'}"/>
                     <circle cx="7" cy="7" r="1.3" fill="${isActive ? 'rgba(34,211,238,0.4)' : isDone ? '#22c55e' : '#94a3b8'}"/>
                 </svg>
@@ -7918,7 +7918,7 @@ function renderFocusNav() {
             <div style="width:22px; height:22px; border-radius:50%; border:1.5px solid ${isActive ? '#22d3ee' : isDone ? '#22c55e' : 'rgba(255,255,255,0.25)'}; display:flex; align-items:center; justify-content:center;">
                 <span style="font-size:11px; font-weight:900; color:${isActive ? '#22d3ee' : isDone ? '#22c55e' : '#fff'};">${i + 1}</span>
             </div>
-            <span style="font-size:8px; font-weight:800; display:block; line-height:1.2; text-align:center; color:${isActive ? '#22d3ee' : isDone ? '#22c55e' : '#e2e8f0'}; padding:0 3px;">${ex.name}</span>
+            <span style="font-size:8px; font-weight:800; display:block; line-height:1.2; text-align:center; color:${isDone ? '#22c55e' : isActive ? '#22d3ee' : '#e2e8f0'}; padding:0 3px;">${ex.name}</span>
         </div>`;
     }).join('');
     setTimeout(() => {
