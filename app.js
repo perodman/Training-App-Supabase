@@ -7545,7 +7545,7 @@ async function carouselToggleDone(exIdx) {
         updateWorkoutProgress(totalWorkoutCompletedSets, totalWorkoutSets);
     }
 
-   if (newCompletedState) {
+if (newCompletedState) {
         renderCarouselNav();
         renderCarouselDots();
         renderCarouselCard();
@@ -7556,7 +7556,6 @@ async function carouselToggleDone(exIdx) {
                 setTimeout(() => renderCarouselNav(), 50);
             }, 350);
         }
-    }
     } else {
         renderCarouselNav();
         renderCarouselDots();
