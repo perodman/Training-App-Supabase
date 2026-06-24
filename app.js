@@ -4926,22 +4926,35 @@ function updateCardioTime(inputEl, exIdx, setIdx) {
 function initCardioTimeInput(inputId, exIdx, setIdx) {
     const input = document.getElementById(inputId);
     if (!input) return;
+    
     const existing = input._cardioHandler;
     if (existing) {
         input.removeEventListener('keydown', existing.keydown);
         input.removeEventListener('click', existing.click);
         input.removeEventListener('focus', existing.focus);
     }
-    input._digits = '____';
+    
+    // Hämta det sparade värdet från activeDraft för att förhindra att maskningen nollställs vid omrendering
+    const savedDuration = activeDraft?.data?.[exIdx]?.sets_data?.[setIdx]?.duration;
+    if (savedDuration && savedDuration !== '__:__') {
+        // Omvandlar t.ex. "21:43" till "2143" eller "05:__" till "05__"
+        input._digits = savedDuration.replace(':', '').padEnd(4, '_');
+    } else {
+        input._digits = '____';
+    }
+    
     function render() {
         const mm = input._digits.slice(0, 2);
         const ss = input._digits.slice(2, 4);
         input.value = `${mm}:${ss}`;
     }
+    
     function getCleanDigits() {
         return input._digits.replace(/_/g, '');
     }
+    
     render();
+    
     const keydownHandler = function(e) {
         if (e.key >= '0' && e.key <= '9') {
             e.preventDefault();
@@ -4954,6 +4967,7 @@ function initCardioTimeInput(inputId, exIdx, setIdx) {
             const mm = clean.slice(0, 2) || '0';
             const ss = clean.slice(2, 4) || '0';
             const duration = `${mm}:${ss.padStart(2, '0')}`;
+            
             if (activeDraft?.data?.[exIdx]?.sets_data?.[setIdx]) {
                 const setObj = activeDraft.data[exIdx].sets_data[setIdx];
                 setObj.duration = duration;
@@ -4973,19 +4987,23 @@ function initCardioTimeInput(inputId, exIdx, setIdx) {
             render();
         }
     };
+    
     const clickHandler = function() {
         const firstUnderscore = input._digits.indexOf('_');
         const pos = firstUnderscore !== -1 ? firstUnderscore + (firstUnderscore >= 2 ? 1 : 0) : 5;
         setTimeout(() => input.setSelectionRange(pos, pos), 0);
     };
+    
     const focusHandler = function() {
         const firstUnderscore = input._digits.indexOf('_');
-        const pos = firstUnderscore !== -1 ? firstUnderscore + (firstUnderscore >= 2 ? 1 : 0) : 5;
+        const pos = firstUnderscore !== -1 ? firstUnderscore + (firstUndersrate >= 2 ? 1 : 0) : 5;
         setTimeout(() => input.setSelectionRange(pos, pos), 0);
     };
+    
     input.addEventListener('keydown', keydownHandler);
     input.addEventListener('click', clickHandler);
     input.addEventListener('focus', focusHandler);
+    
     input._cardioHandler = {
         keydown: keydownHandler,
         click: clickHandler,
