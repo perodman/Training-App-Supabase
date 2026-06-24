@@ -7148,7 +7148,7 @@ function renderCarouselNav() {
         const isDone = data[i]?.isCompleted;
         const isActive = i === carouselCurrentIndex && !activeDraft.data[i]?.isCompleted;
         const svg = getExSVG(ex.target, 'small');
-      return `<div class="carousel-ex-thumb${isDone ? ' done' : isActive ? ' active' : ''}" id="carousel-thumb-${i}" onclick="carouselGoTo(${i})" style="position:relative; overflow:hidden; display:flex; flex-direction:column; align-items:center; justify-content:space-between; padding:6px 4px 6px;">
+      return `<div class="carousel-ex-thumb${isDone ? ' done' : isActive ? ' active' : ''}" id="carousel-thumb-${i}" onclick="carouselGoTo(${i})" style="position:relative; overflow:hidden; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; padding:6px 4px 0;">
             ${isDone ? `<div style="position:absolute; top:5px; right:5px; width:8px; height:8px; border-radius:50%; background:#22c55e; opacity:1; z-index:10;"></div>` : ''}
             <div class="carousel-drag-handle" style="display:flex; align-items:center; justify-content:center; cursor:grab; width:100%; opacity:${isDone ? 0.25 : isActive ? 1 : 0.3};">
                 <svg width="14" height="9" viewBox="0 0 14 9" fill="none">
@@ -7160,10 +7160,10 @@ function renderCarouselNav() {
                     <circle cx="7" cy="7" r="1.3" fill="${isActive ? 'rgba(34,211,238,0.4)' : isDone ? '#22c55e' : '#94a3b8'}"/>
                 </svg>
             </div>
-            <div style="width:22px; height:22px; border-radius:50%; border:1.5px solid ${isDone ? '#22c55e' : isActive ? '#22d3ee' : 'rgba(255,255,255,0.25)'}; display:flex; align-items:center; justify-content:center;">
-                <span style="font-size:11px; font-weight:900; color:${isActive ? '#22d3ee' : isDone ? '#22c55e' : '#fff'};">${i + 1}</span>
-            </div>
-            <span style="font-size:8px; font-weight:800; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; line-height:1.2; text-align:center; color:${isDone ? '#22c55e' : isActive ? '#22d3ee' : '#e2e8f0'}; padding:0 3px; max-height:2.4em;">${ex.name}</span>
+            <div style="width:22px; height:22px; border-radius:50%; border:1.5px solid ${isDone ? '#22c55e' : isActive ? '#22d3ee' : 'rgba(255,255,255,0.25)'}; display:flex; align-items:center; justify-content:center; margin:4px 0;">
+    <span style="font-size:11px; font-weight:900; color:${isDone ? '#22c55e' : isActive ? '#22d3ee' : '#fff'};">${i + 1}</span>
+</div>
+            <span style="font-size:8px; font-weight:800; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; line-height:1.2; text-align:center; color:${isDone ? '#22c55e' : isActive ? '#22d3ee' : '#e2e8f0'}; padding:0 3px; max-height:2.4em; position:absolute; bottom:5px; left:0; right:0;">${ex.name}</span>
         </div>`;
     }).join('');
 
@@ -7906,7 +7906,7 @@ function renderFocusNav() {
         const isDone = data[i]?.isCompleted;
         const isActive = i === carouselCurrentIndex && !activeDraft.data[i]?.isCompleted;
         const svg = getExSVG(ex.target, 'small');
-       return `<div class="carousel-ex-thumb${isDone ? ' done' : isActive ? ' active' : ''}" id="focus-thumb-${i}" onclick="focusGoTo(${i})" style="position:relative; overflow:hidden; display:flex; flex-direction:column; align-items:center; justify-content:space-between; padding:6px 4px 6px;">
+       return `<div class="carousel-ex-thumb${isDone ? ' done' : isActive ? ' active' : ''}" id="focus-thumb-${i}" onclick="focusGoTo(${i})" style="position:relative; overflow:hidden; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; padding:6px 4px 0;">
             ${isDone ? `<div style="position:absolute; top:5px; right:5px; width:8px; height:8px; border-radius:50%; background:#22c55e; opacity:1; z-index:10;"></div>` : ''}
             <div class="carousel-drag-handle" style="display:flex; align-items:center; justify-content:center; cursor:grab; width:100%; opacity:${isDone ? 0.25 : isActive ? 1 : 0.3};">
                 <svg width="14" height="9" viewBox="0 0 14 9" fill="none">
@@ -7918,10 +7918,10 @@ function renderFocusNav() {
                     <circle cx="7" cy="7" r="1.3" fill="${isActive ? 'rgba(34,211,238,0.4)' : isDone ? '#22c55e' : '#94a3b8'}"/>
                 </svg>
             </div>
-            <div style="width:22px; height:22px; border-radius:50%; border:1.5px solid ${isDone ? '#22c55e' : isActive ? '#22d3ee' : 'rgba(255,255,255,0.25)'}; display:flex; align-items:center; justify-content:center;">
-                <span style="font-size:11px; font-weight:900; color:${isActive ? '#22d3ee' : isDone ? '#22c55e' : '#fff'};">${i + 1}</span>
-            </div>
-            <span style="font-size:8px; font-weight:800; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; line-height:1.2; text-align:center; color:${isDone ? '#22c55e' : isActive ? '#22d3ee' : '#e2e8f0'}; padding:0 3px; max-height:2.4em;">${ex.name}</span>
+           <div style="width:22px; height:22px; border-radius:50%; border:1.5px solid ${isDone ? '#22c55e' : isActive ? '#22d3ee' : 'rgba(255,255,255,0.25)'}; display:flex; align-items:center; justify-content:center; margin:4px 0;">
+    <span style="font-size:11px; font-weight:900; color:${isDone ? '#22c55e' : isActive ? '#22d3ee' : '#fff'};">${i + 1}</span>
+</div>
+            <span style="font-size:8px; font-weight:800; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; line-height:1.2; text-align:center; color:${isDone ? '#22c55e' : isActive ? '#22d3ee' : '#e2e8f0'}; padding:0 3px; max-height:2.4em; position:absolute; bottom:5px; left:0; right:0;">${ex.name}</span>
         </div>`;
     }).join('');
     setTimeout(() => {
