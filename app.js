@@ -7545,14 +7545,18 @@ async function carouselToggleDone(exIdx) {
         updateWorkoutProgress(totalWorkoutCompletedSets, totalWorkoutSets);
     }
 
-    if (newCompletedState) {
+   if (newCompletedState) {
         renderCarouselNav();
         renderCarouselDots();
         renderCarouselCard();
         const nextUndone = activeDraft.workout.exercises.findIndex((_, i) => i > exIdx && !activeDraft.data[i]?.isCompleted);
         if (nextUndone !== -1) {
-            setTimeout(() => carouselGoTo(nextUndone), 350);
+            setTimeout(() => {
+                carouselGoTo(nextUndone);
+                setTimeout(() => renderCarouselNav(), 50);
+            }, 350);
         }
+    }
     } else {
         renderCarouselNav();
         renderCarouselDots();
