@@ -1328,7 +1328,7 @@ body:has(.bottom-bar.hidden) { padding-bottom: 0; }
 }
 .carousel-ex-thumb.done {
     border-color: rgba(34,197,94,0.5);
-    background: rgba(34,197,94,0.08);
+    background: rgba(255,255,255,0.03);
 }
 .carousel-ex-thumb-name {
     font-size: 8px;
