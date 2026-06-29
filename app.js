@@ -5556,7 +5556,7 @@ async function finishWorkout(e) {
                 });
                 return {
                     name: ex.name,
-                    sets_data: setsWithRest,
+                    target: ex.target, sets_data: setsWithRest,
                     note: (activeDraft.data[i] && activeDraft.data[i].note) || null
                 };
             })
@@ -5818,7 +5818,7 @@ async function editLoggedWorkout(date, idx) {
         id: item.id,
         name: item.programName,
         programName: item.programName,  // ← LÄGG TILL DENNA RAD
-        exercises: item.exercises.map(ex => ({ name: ex.name, target: ex.target || "" }))
+        exercises: item.exercises.map(ex => ({ name: ex.name, target: ex.target || (masterExercises.find(m => m.name === ex.name) || {}).target || "" }))
     };
 
     // Strukturera om övningsdatan korrekt till en matris som matchar activeDraft-strukturen
