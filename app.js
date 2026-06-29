@@ -752,14 +752,15 @@ function renderCalendar(isFromStartBtn = false) {
         if (override && override !== "none") displayPass = programData.routine.find(p => p.id === override);
         else if (isAutoDay && override !== "none" && programData && programData.routine.length > 0) displayPass = programData.routine[d % programData.routine.length];
 
+        const isPast = dateStr < todayStr;
         let info = "";
       if (hasWorkouts.length > 0) { cell.classList.add("cell-completed"); info = "✓"; }
         else if (isOngoing) { cell.classList.add("cell-ongoing"); info = displayPass ? displayPass.name.split(" ").pop() : "🔥"; }
-        else if (displayPass) { cell.classList.add("cell-planned"); info = displayPass.name.split(" ").pop(); }
+        else if (displayPass && !isPast) { cell.classList.add("cell-planned"); info = displayPass.name.split(" ").pop(); }
 
         cell.innerHTML = `<span>${d}</span><div class="cell-info">${info}</div>`;
         cell.onclick = () => {
-            if (typeof openDayManager === 'function') openDayManager(dateStr, displayPass, hasWorkouts, isOngoing);
+            if (typeof openDayManager === 'function') openDayManager(dateStr, isPast ? null : displayPass, hasWorkouts, isOngoing);
         };
         grid.appendChild(cell);
     }
@@ -1716,7 +1717,9 @@ function reopenDayManagerForDate(dateStr) {
             displayPass = programData.routine[d % programData.routine.length];
         }
     }
-    openDayManager(dateStr, displayPass, hasWorkouts, isOngoing);
+   const _t = new Date();
+    const _todayStr = `${_t.getFullYear()}-${String(_t.getMonth() + 1).padStart(2, '0')}-${String(_t.getDate()).padStart(2, '0')}`;
+    openDayManager(dateStr, dateStr < _todayStr ? null : displayPass, hasWorkouts, isOngoing);
 }
 
 window.enterWorkoutSelectionMode = (dateStr, groupId) => {
