@@ -7559,6 +7559,46 @@ function formatRestTime(seconds) {
     return `${mins}:${secs}`;
 }
 
+async function confirmSet(exIdx, setIdx) {
+    if (!activeDraft || !activeDraft.data[exIdx] || !activeDraft.data[exIdx].sets_data || !activeDraft.data[exIdx].sets_data[setIdx]) return;
+    // Spara alla inputs för denna övning till draft FÖRST
+    const allInputs = document.querySelectorAll(`[id^="w-${exIdx}-"], [id^="r-${exIdx}-"], [id^="v-${exIdx}-"], [id^="cdm-${exIdx}-"], [id^="ck-${exIdx}-"]`);
+    allInputs.forEach(inp => {
+        const parts = inp.id.split('-');
+        const sIdx2 = parseInt(parts[parts.length - 1]);
+        const type = parts[0];
+        if (!isNaN(sIdx2) && activeDraft.data[exIdx]?.sets_data?.[sIdx2]) {
+            if (type === 'w') activeDraft.data[exIdx].sets_data[sIdx2].weight = inp.value;
+            if (type === 'r') activeDraft.data[exIdx].sets_data[sIdx2].reps = inp.value;
+            if (type === 'v') activeDraft.data[exIdx].sets_data[sIdx2].rest = inp.value;
+            if (type === 'cdm') activeDraft.data[exIdx].sets_data[sIdx2].duration = inp.value;
+            if (type === 'ck') activeDraft.data[exIdx].sets_data[sIdx2].distance = inp.value;
+        }
+    });
+    const restVal = parseInt(activeDraft.data[exIdx].sets_data[setIdx].rest) || 120;
+    const currentState = activeDraft.data[exIdx].sets_data[setIdx].userConfirmed;
+    activeDraft.data[exIdx].sets_data[setIdx].userConfirmed = !currentState;
+    const isNowConfirmed = activeDraft.data[exIdx].sets_data[setIdx].userConfirmed;
+    const isLastSet = setIdx === activeDraft.data[exIdx].sets_data.length - 1;
+    stopRestTimer();
+    if (isNowConfirmed && !isLastSet) {
+        startRestTimer(restVal, exIdx);
+    }
+    await persistActiveWorkout();
+    if (typeof updateWorkoutProgress === 'function' && activeDraft.data) {
+        let totalWorkoutCompletedSets = 0;
+        let totalWorkoutSets = 0;
+        activeDraft.data.forEach(exerciseData => {
+            if (exerciseData && exerciseData.sets_data) {
+                totalWorkoutSets += exerciseData.sets_data.length;
+                totalWorkoutCompletedSets += exerciseData.sets_data.filter(s => s.userConfirmed).length;
+            }
+        });
+        updateWorkoutProgress(totalWorkoutCompletedSets, totalWorkoutSets);
+    }
+    updateSingleExerciseCard(exIdx);
+}
+
 async function carouselConfirmSet(exIdx, setIdx) {
     // Spara ALLA inputs för denna övning till draft FÖRST (innan flush/omritning)
    const allInputs = document.querySelectorAll(`[id^="w-${exIdx}-"], [id^="r-${exIdx}-"], [id^="v-${exIdx}-"], [id^="cd-${exIdx}-"], [id^="ck-${exIdx}-"]`);
