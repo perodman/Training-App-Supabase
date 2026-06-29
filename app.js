@@ -341,7 +341,7 @@ function openCreateExerciseModal(callback = null) {
     let selectedSubcategory = null;
     const categories = [
         { id: "Ben", icon: "🦵" },
-        { id: "Bröst", icon: "🏋️" },
+        { id: "Bröst", icon: `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 7h11"/><circle cx="4.5" cy="7" r="1.8"/><circle cx="19.5" cy="7" r="1.8"/><path d="M3 5.5v3M21 5.5v3"/><path d="M12 9v8M8 17h8"/></svg>` },
         { id: "Rygg", icon: "🪵" },
         { id: "Axlar", icon: "👐" },
         { id: "Armar", icon: "💪" },
@@ -3955,7 +3955,7 @@ function renderActiveWorkout() {
             const firstUnconfirmed = exerciseData.sets_data ? exerciseData.sets_data.findIndex(s => !s.userConfirmed) : -1;
             const isCardio = isCardioExercise(ex);
             let setsHtml = `<div style="margin-top:10px;">
-                <div style="display:grid; grid-template-columns: 40px 1.5fr 1fr 1fr 30px; gap:8px; margin-bottom:5px; align-items:center;">
+                <div style="display:grid; grid-template-columns: 40px ${isCardio ? '1.5fr' : '1fr'} 1fr 1fr 30px; gap:8px; margin-bottom:5px; align-items:center;">
                 <small style="text-align:left; padding-left:5px; color:var(--text-light); font-size:9px; font-weight:700;">${isCardio ? '' : 'SET'}</small>
                 <small style="text-align:center; color:var(--text-light); font-size:9px;">${isCardio ? 'TIME (mm:ss)' : 'KG'}</small>
                 <small style="text-align:center; color:var(--text-light); font-size:9px;">${isCardio ? 'DIST (km)' : 'REPS'}</small>
@@ -3970,7 +3970,7 @@ function renderActiveWorkout() {
                     const circleColor = showSuccess ? '#22c55e' : (isCurrent ? '#facc15' : '#f59e0b');
                     const statusContent = showSuccess ? ' ✅ ' : (isCardio ? '✓' : `#${sIdx + 1}`);
                     setsHtml += `
-                    <div style="display:grid; grid-template-columns: 40px 1.5fr 1fr 1fr 30px; gap:8px; margin-bottom:8px; align-items:center; transition: opacity 0.2s ease; position:relative; overflow:visible;">
+                    <div style="display:grid; grid-template-columns: 40px ${isCardio ? '1.5fr' : '1fr'} 1fr 1fr 30px; gap:8px; margin-bottom:8px; align-items:center; transition: opacity 0.2s ease; position:relative; overflow:visible;">
                        <div class="${isCurrent ? 'pulse-ring' : ''}" onclick="${isLocked && !isDone ? '' : `confirmSet(${i}, ${sIdx})`}"
                             style="width:32px; height:32px; border-radius:50%; border:2px solid ${circleColor}; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:10px; font-weight:800; background: ${showSuccess ? 'rgba(34, 197, 94, 0.2)' : (isCurrent ? 'rgba(250, 204, 21, 0.15)' : 'rgba(245, 158, 11, 0.05)')}; color: ${circleColor}; opacity: 1;">
                             ${statusContent}
@@ -5042,7 +5042,7 @@ function updateSingleExerciseCard(exIdx) {
     const firstUnconfirmed = exerciseData.sets_data ? exerciseData.sets_data.findIndex(s => !s.userConfirmed) : -1;
     const isCardio = isCardioExercise(ex);
     let setsHtml = `<div style="margin-top:10px;">
-        <div style="display:grid; grid-template-columns: 40px 1.5fr 1fr 1fr 30px; gap:8px; margin-bottom:5px; align-items:center;">
+        <div style="display:grid; grid-template-columns: 40px ${isCardio ? '1.5fr' : '1fr'} 1fr 1fr 30px; gap:8px; margin-bottom:5px; align-items:center;">
             <small style="text-align:left; padding-left:5px; color:var(--text-light); font-size:9px; font-weight:700;">${isCardio ? '' : 'SET'}</small>
             <small style="text-align:center; color:var(--text-light); font-size:9px;">${isCardio ? 'TID' : 'KG'}</small>
             <small style="text-align:center; color:var(--text-light); font-size:9px;">${isCardio ? 'DIST (km)' : 'REPS'}</small>
@@ -5057,7 +5057,7 @@ function updateSingleExerciseCard(exIdx) {
             const circleColor = showSuccess ? '#22c55e' : (isCurrent ? '#facc15' : '#f59e0b');
             const statusContent = showSuccess ? ' ✅ ' : (isCardio ? '✓' : `#${sIdx + 1}`);
             setsHtml += `
-            <div style="display:grid; grid-template-columns: 40px 1.5fr 1fr 1fr 30px; gap:8px; margin-bottom:8px; align-items:center; transition: opacity 0.2s ease; position:relative; overflow:visible;">
+            <div style="display:grid; grid-template-columns: 40px ${isCardio ? '1.5fr' : '1fr'} 1fr 1fr 30px; gap:8px; margin-bottom:8px; align-items:center; transition: opacity 0.2s ease; position:relative; overflow:visible;">
                 <div class="${isCurrent ? 'pulse-ring' : ''}" onclick="${isLocked && !isDone ? '' : `confirmSet(${exIdx}, ${sIdx})`}"
                     style="width:32px; height:32px; border-radius:50%; border:2px solid ${circleColor}; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:10px; font-weight:800; background: ${showSuccess ? 'rgba(34, 197, 94, 0.2)' : (isCurrent ? 'rgba(250, 204, 21, 0.15)' : 'rgba(245, 158, 11, 0.05)')}; color: ${circleColor}; opacity: 1;">
                     ${statusContent}
@@ -7428,7 +7428,7 @@ function renderCarouselCard() {
     const isCounting = restTimerActive && restTimerSeconds > 0;
     const isCardio = isCardioExercise(ex);
     let setsHtml = `<div style="margin-top:4px;">
-        <div style="display:grid; grid-template-columns: 40px 1.5fr 1fr 1fr 30px; gap:8px; margin-bottom:5px; align-items:center;">
+        <div style="display:grid; grid-template-columns: 40px ${isCardio ? '1.5fr' : '1fr'} 1fr 1fr 30px; gap:8px; margin-bottom:5px; align-items:center;">
             <small style="text-align:left; padding-left:5px; color:var(--text-light); font-size:9px; font-weight:700;">${isCardio ? '' : 'SET'}</small>
             <small style="text-align:center; color:var(--text-light); font-size:9px;">${isCardio ? 'TID' : 'KG'}</small>
             <small style="text-align:center; color:var(--text-light); font-size:9px;">${isCardio ? 'DIST (km)' : 'REPS'}</small>
@@ -7444,7 +7444,7 @@ function renderCarouselCard() {
             const statusContent = showSuccess ? '✅' : (isCardio ? '✓' : `#${sIdx + 1}`);
             const inputOpacity = isCurrent ? '1' : '0.3';
             setsHtml += `
-            <div style="display:grid; grid-template-columns: 40px 1.5fr 1fr 1fr 30px; gap:8px; margin-bottom:8px; align-items:center; transition:opacity 0.2s ease; position:relative; overflow:visible;">
+            <div style="display:grid; grid-template-columns: 40px ${isCardio ? '1.5fr' : '1fr'} 1fr 1fr 30px; gap:8px; margin-bottom:8px; align-items:center; transition:opacity 0.2s ease; position:relative; overflow:visible;">
                 <div class="${isCurrent ? 'pulse-ring' : ''}" onclick="${isLocked && !isDone ? '' : `carouselConfirmSet(${i}, ${sIdx})`}"
                     style="width:32px; height:32px; border-radius:50%; border:2px solid ${circleColor}; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:${isCardio ? '14px' : '10px'}; font-weight:800; background:${showSuccess ? 'rgba(34,197,94,0.2)' : isCurrent ? 'rgba(250,204,21,0.15)' : 'rgba(245,158,11,0.05)'}; color:${circleColor}; opacity:1;">
                     ${statusContent}
@@ -7565,7 +7565,8 @@ function formatRestTime(seconds) {
 async function confirmSet(exIdx, setIdx) {
     if (!activeDraft || !activeDraft.data[exIdx] || !activeDraft.data[exIdx].sets_data || !activeDraft.data[exIdx].sets_data[setIdx]) return;
     // Spara alla inputs för denna övning till draft FÖRST
-    const allInputs = document.querySelectorAll(`[id^="w-${exIdx}-"], [id^="r-${exIdx}-"], [id^="v-${exIdx}-"], [id^="cdm-${exIdx}-"], [id^="ck-${exIdx}-"]`);
+    const listScope = document.getElementById('exercise-list') || document;
+    const allInputs = listScope.querySelectorAll(`[id^="w-${exIdx}-"], [id^="r-${exIdx}-"], [id^="v-${exIdx}-"], [id^="cdm-${exIdx}-"], [id^="ck-${exIdx}-"]`);
     allInputs.forEach(inp => {
         const parts = inp.id.split('-');
         const sIdx2 = parseInt(parts[parts.length - 1]);
@@ -8225,7 +8226,7 @@ function renderFocusCard() {
     const isCounting = restTimerActive && restTimerSeconds > 0;
     const isCardio = isCardioExercise(ex);
     let setsHtml = `<div style="margin-top:4px;">
-        <div style="display:grid; grid-template-columns: 40px 1.5fr 1fr 1fr 30px; gap:8px; margin-bottom:5px; align-items:center;">
+        <div style="display:grid; grid-template-columns: 40px ${isCardio ? '1.5fr' : '1fr'} 1fr 1fr 30px; gap:8px; margin-bottom:5px; align-items:center;">
             <small style="text-align:left; padding-left:5px; color:var(--text-light); font-size:9px; font-weight:700;">${isCardio ? '' : 'SET'}</small>
             <small style="text-align:center; color:var(--text-light); font-size:9px;">${isCardio ? 'TID' : 'KG'}</small>
             <small style="text-align:center; color:var(--text-light); font-size:9px;">${isCardio ? 'DIST (km)' : 'REPS'}</small>
@@ -8241,7 +8242,7 @@ function renderFocusCard() {
             const statusContent = showSuccess ? '✅' : (isCardio ? '✓' : `#${sIdx + 1}`);
             const inputOpacity = isCurrent ? '1' : '0.3';
             setsHtml += `
-            <div style="display:grid; grid-template-columns: 40px 1.5fr 1fr 1fr 30px; gap:8px; margin-bottom:8px; align-items:center; transition:opacity 0.2s ease; position:relative; overflow:visible;">
+            <div style="display:grid; grid-template-columns: 40px ${isCardio ? '1.5fr' : '1fr'} 1fr 1fr 30px; gap:8px; margin-bottom:8px; align-items:center; transition:opacity 0.2s ease; position:relative; overflow:visible;">
                 <div class="${isCurrent ? 'pulse-ring' : ''}" onclick="${isLocked && !isDone ? '' : `focusConfirmSet(${i}, ${sIdx})`}"
                     style="width:32px; height:32px; border-radius:50%; border:2px solid ${circleColor}; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:10px; font-weight:800; background:${showSuccess ? 'rgba(34,197,94,0.2)' : isCurrent ? 'rgba(250,204,21,0.15)' : 'rgba(245,158,11,0.05)'}; color:${circleColor}; opacity:1;">
                     ${statusContent}
