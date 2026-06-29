@@ -278,7 +278,7 @@ async function saveWorkoutHistory(workoutInput) {
                 name: ex.name,
                 target: ex.target,
                 sets_data: (activeDraft.data[i]?.sets_data || []).map(s => ({
-                    weight: s.weight || 0,
+                    ...s, weight: s.weight || 0,
                     reps: s.reps || 0,
                     rest: s.rest || null,
                     userConfirmed: s.userConfirmed || false
