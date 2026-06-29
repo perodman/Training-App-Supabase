@@ -4924,7 +4924,7 @@ function updateCardioTime(inputEl, exIdx, setIdx) {
 }
 
 function initCardioTimeInput(inputId, exIdx, setIdx) {
-    const input = document.getElementById(inputId);
+    const input = (typeof inputId === 'string') ? document.getElementById(inputId) : inputId;
     if (!input) return;
     
     // Om detta specifika element redan har initierats under sitt fokus, avbryt för att inte dubbelbinda lyssnare
@@ -7447,7 +7447,7 @@ function renderCarouselCard() {
                     ${statusContent}
                 </div>
                 ${isCardio
-                    ? `<input type="text" inputmode="numeric" id="ccdm-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px 4px; font-size:15px; min-width:0; opacity:${inputOpacity}; text-align:center; font-family:monospace; letter-spacing:2px; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.duration || '__:__'}" ${isLocked ? 'readonly' : ''} onfocus="if(!this.readOnly) initCardioTimeInput('ccdm-${i}-${sIdx}', ${i}, ${sIdx})">`
+                    ? `<input type="text" inputmode="numeric" id="ccdm-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px 4px; font-size:15px; min-width:0; opacity:${inputOpacity}; text-align:center; font-family:monospace; letter-spacing:2px; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.duration || '__:__'}" ${isLocked ? 'readonly' : ''} onfocus="if(!this.readOnly) initCardioTimeInput(this, ${i}, ${sIdx})">`
                     : `<input type="text" inputmode="decimal" id="w-${i}-${sIdx}" class="log-input weight-input" data-ex="${i}" data-set="${sIdx}" style="margin:0; padding:12px; font-size:18px; opacity:${inputOpacity}; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.weight || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'weight')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`}
                 ${isCardio
                     ? `<input type="text" inputmode="decimal" id="ck-${i}-${sIdx}" class="log-input" style="margin:0; padding:12px; font-size:18px; opacity:${inputOpacity}; ${isCurrent ? 'border-color:rgba(245,158,11,0.6);' : ''}" value="${set.distance || ''}" placeholder="" ${isLocked ? 'readonly' : ''} oninput="updateSetDataOnly(this, ${i}, ${sIdx}, 'distance')" onfocus="if(!this.readOnly) handleInputFocus(this)" onblur="if(!this.readOnly) handleInputBlur(this)">`
