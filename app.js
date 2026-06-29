@@ -8105,8 +8105,11 @@ function renderFocus() {
     if (activeDraft.ui_state && typeof activeDraft.ui_state.currentExerciseIndex === 'number') {
         carouselCurrentIndex = activeDraft.ui_state.currentExerciseIndex;
     }
-    if (inCarousel) {
+if (inCarousel) {
         container.innerHTML = `
+            <div style="height:3px; background:rgba(255,255,255,0.05); border-radius:3px; overflow:hidden; margin:0 2px 10px;">
+                <div id="focus-progress-bar" style="width:0%; height:100%; background:#22d3ee; transition:width 0.3s ease;"></div>
+            </div>
             <div id="focus-rest-timer-bar"></div>
             <div class="carousel-ex-card" id="focus-ex-card"></div>`;
     } else {
@@ -8144,7 +8147,7 @@ function renderFocus() {
 function updateFocusProgress() {
     const el = document.getElementById('focus-progress-text');
     const bar = document.getElementById('focus-progress-bar');
-    if (!el || !activeDraft.data) return;
+    if (!activeDraft || !activeDraft.data) return;
     let totalCompleted = 0, total = 0;
     activeDraft.data.forEach(d => {
         if (d && d.sets_data) {
@@ -8152,7 +8155,7 @@ function updateFocusProgress() {
             totalCompleted += d.sets_data.filter(s => s.userConfirmed).length;
         }
     });
-    el.textContent = `${totalCompleted} / ${total} set`;
+   if (el) el.textContent = `${totalCompleted} / ${total} set`;
     if (bar) bar.style.width = total > 0 ? `${(totalCompleted / total) * 100}%` : '0%';
 }
 function renderFocusNav() {
@@ -8632,6 +8635,10 @@ function toggleCarouselFocusMode() {
         if (cardArea) {
             const existingCard = document.getElementById('carousel-ex-card');
             if (existingCard) { existingCard.id = 'carousel-ex-card-hidden'; existingCard.style.display = 'none'; }
+        const progWrap = document.createElement('div');
+            progWrap.style.cssText = 'height:3px; background:rgba(255,255,255,0.05); border-radius:3px; overflow:hidden; margin:0 2px 10px;';
+            progWrap.innerHTML = '<div id="focus-progress-bar" style="width:0%; height:100%; background:#22d3ee; transition:width 0.3s ease;"></div>';
+            cardArea.appendChild(progWrap);
             const restBar = document.createElement('div');
             restBar.id = 'focus-rest-timer-bar';
             const focusCard = document.createElement('div');
