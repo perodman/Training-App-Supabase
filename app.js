@@ -1633,7 +1633,7 @@ const PREDEFINED_GROUPS = [
     { id: "lowerbody", name: "Lower Body", icon: "🦵" },
     { id: "pushbody", name: "Push", icon: "👐" },
     { id: "pullbody", name: "Pull", icon: "🫳" },
-    { id: "superset", name: "Superset", icon: "🔥" }
+    { id: "superset", name: "Superset", icon: "🔁" }
 ];
 
 const EXERCISE_SVG_MAP = {
