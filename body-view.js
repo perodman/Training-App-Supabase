@@ -227,6 +227,20 @@ const COMPOSITE={"fullbody": "<svg viewBox=\"-10.1 251.4 748.2 748.2\" style=\"h
     b.setAttribute('style', baseS + (v==='body'?on:off));
   }
   window.getSubIcon = function(cat, sub){ return subIcon(cat, sub||'All'); };
+  window.exerciseSearch = function(q){
+    q=(q||'').trim().toLowerCase();
+    const grid=document.getElementById('category-menu');
+    const results=document.getElementById('exercise-results');
+    const sub=document.getElementById('subcategory-filter-container');
+    if(!results) return;
+    if(!q){ if(grid) grid.style.display=''; if(sub) sub.innerHTML=''; results.innerHTML=''; return; }
+    if(grid) grid.style.display='none'; if(sub) sub.innerHTML='';
+    const all=(typeof masterExercises!=='undefined'?masterExercises:[]);
+    const matches=all.filter(function(ex){ return (ex.name||'').toLowerCase().indexOf(q)!==-1; });
+    results.innerHTML = matches.length
+      ? matches.map(function(ex,i){return rowHtml(ex,i);}).join('')
+      : '<div class="bv-caption" style="padding:20px 0;">No exercises match \u201c'+q+'\u201d.</div>';
+  };
   window.getWorkoutTypeIcon = function(id){ return (typeof COMPOSITE!=='undefined' && COMPOSITE[id]) ? COMPOSITE[id] : null; };
   try{ if(typeof PREDEFINED_GROUPS!=='undefined'){ PREDEFINED_GROUPS.forEach(function(g){ if(typeof COMPOSITE!=='undefined' && COMPOSITE[g.id]) g.icon=COMPOSITE[g.id]; }); } }catch(e){}
   window.setExerciseView = function(v){
