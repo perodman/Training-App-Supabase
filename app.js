@@ -942,7 +942,7 @@ function renderOverrideBtnContent(p, isSelected) {
             <span style="font-size:12px; font-weight:700; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1; min-width:0;">${p.name}</span>
         </span>
         <span style="display:flex; gap:10px; width:100%; font-size:9px; font-weight:800; flex-wrap:nowrap; overflow:hidden;">
-            <span style="color:#22d3ee; flex-shrink:0;">${p.exercises.length} EXERCISES</span>
+            <span style="color:#22d3ee; flex-shrink:0;">${p.exercises.length} ${p.exercises.length === 1 ? 'EXERCISE' : 'EXERCISES'}</span>
             ${p.duration ? `<span style="color:#f59e0b; flex-shrink:0; white-space:nowrap;">⏱️ ~${p.duration} MIN</span>` : ''}
         </span>
     `;
@@ -1336,7 +1336,7 @@ function renderOverrideBtnContentCompact(p, isSelected) {
             <span style="font-size:12px; font-weight:700; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1; min-width:0;">${p.name}</span>
         </span>
         <span style="display:flex; gap:6px; flex-shrink:0; font-size:9px; font-weight:800; white-space:nowrap;">
-            <span style="color:#22d3ee;">${p.exercises.length} EXERCISES</span>
+            <span style="color:#22d3ee;">${p.exercises.length} ${p.exercises.length === 1 ? 'EXERCISE' : 'EXERCISES'}</span>
             ${p.duration ? `<span style="color:#f59e0b;">⏱️ ~${p.duration} MIN</span>` : ''}
         </span>
     `;
