@@ -365,7 +365,7 @@ function openCreateExerciseModal(callback = null) {
                         onclick="window.selectModalCategory('${cat.id}')"
                         id="modal-cat-${cat.id}"
                         style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 12px 5px; border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.2s ease;">
-                        <div style="font-size: 20px; margin-bottom: 4px;">${cat.icon}</div>
+                        <div style="height: 34px; margin-bottom: 4px; display:flex; align-items:center; justify-content:center;"><span class="cat-pick-ic">${window.getCategoryIcon ? getCategoryIcon(cat.id) : cat.icon}</span></div>
                         <div style="font-size: 10px; font-weight: 700; color: var(--text-light);">${CATEGORY_DISPLAY[cat.id] || cat.id}</div>
                     </div>
                     `).join('')}
@@ -476,33 +476,23 @@ function filterExercises(category, subtarget = null) {
                 <div style="font-size:9px; color:rgba(255,255,255,0.8); text-transform:uppercase; letter-spacing:2px; text-align:center; margin-bottom:6px;">Filter by Muscle</div>
                 <div style="display:flex; justify-content:center; align-items:center; margin-bottom:4px;">
                     <button onclick="filterExercises('${category}', null)"
-                        style="padding:5px 14px; border-radius:20px; border:1px solid ${!subtarget ? 'var(--primary)' : 'rgba(255,255,255,0.15)'}; 
+                        style="display:inline-flex; align-items:center; gap:6px; padding:5px 14px 5px 10px; border-radius:20px; border:1px solid ${!subtarget ? 'var(--primary)' : 'rgba(255,255,255,0.15)'}; 
                         background:${!subtarget ? 'rgba(34,211,238,0.15)' : 'rgba(255,255,255,0.05)'}; 
                         color:${!subtarget ? 'var(--primary)' : 'var(--text-light)'}; font-size:12px; font-weight:600; cursor:pointer;">
-                        All
+                        <span class="bv-pill-ic">${window.getSubIcon ? getSubIcon(category, 'All') : ''}</span>All
                     </button>
                 </div>
                 <div style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center;">
                     ${subs.map(sub => `
                     <button onclick="filterExercises('${category}', '${sub}')"
-                        style="padding:5px 14px; border-radius:20px; border:1px solid ${subtarget === sub ? 'var(--primary)' : 'rgba(255,255,255,0.15)'}; 
+                        style="display:inline-flex; align-items:center; gap:6px; padding:5px 14px 5px 10px; border-radius:20px; border:1px solid ${subtarget === sub ? 'var(--primary)' : 'rgba(255,255,255,0.15)'}; 
                         background:${subtarget === sub ? 'rgba(34,211,238,0.15)' : 'rgba(255,255,255,0.05)'}; 
                         color:${subtarget === sub ? 'var(--primary)' : 'var(--text-light)'}; font-size:12px; font-weight:600; cursor:pointer;">
-                        ${sub}
+                        <span class="bv-pill-ic">${window.getSubIcon ? getSubIcon(category, sub) : ''}</span>${sub}
                     </button>`).join('')}
                 </div>
             </div>
         `;
-    }
-
-    const plusArea = document.getElementById('plus-area');
-    if (plusArea && !document.getElementById('plus-hint-bubble')) {
-        const hint = document.createElement('div');
-        hint.id = 'plus-hint-bubble';
-        hint.className = 'hint-bubble';
-        hint.style.cssText = 'position:relative; margin-right:-25px;';
-        hint.innerHTML = '<span style="font-size:12px; font-weight:700; color:#fff; letter-spacing:0.3px;">Create new exercise</span><div onclick="document.getElementById(\'plus-hint-bubble\').remove()" style="position:absolute; top:-6px; right:-6px; width:16px; height:16px; border-radius:50%; background:#ef4444; border:2px solid #0f172a; display:flex; align-items:center; justify-content:center; font-size:9px; color:#fff; cursor:pointer; font-weight:900;">✕</div>';
-        plusArea.insertBefore(hint, plusArea.firstChild);
     }
 
     const filtered = masterExercises.filter(ex => {
@@ -606,7 +596,7 @@ function openEditExerciseModal(id) {
                         onclick="window.selectEditModalCategory('${cat.id}')"
                         id="edit-modal-cat-${cat.id}"
                         style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 12px 5px; border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.2s ease;">
-                        <div style="font-size: 20px; margin-bottom: 4px;">${cat.icon}</div>
+                        <div style="height: 34px; margin-bottom: 4px; display:flex; align-items:center; justify-content:center;"><span class="cat-pick-ic">${window.getCategoryIcon ? getCategoryIcon(cat.id) : cat.icon}</span></div>
                         <div style="font-size: 10px; font-weight: 700; color: var(--text-light);">${CATEGORY_DISPLAY[cat.id] || cat.id}</div>
                     </div>
                     `).join('')}
