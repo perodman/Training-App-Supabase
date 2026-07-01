@@ -96,6 +96,7 @@ const COMPOSITE={"fullbody": "<svg viewBox=\"-10.1 251.4 748.2 748.2\" style=\"h
   .cat-pick-ic svg{height:34px !important;width:auto !important;}
   .bv-pill-ic{display:inline-flex;width:18px;height:18px;}
   .bv-pill-ic svg{width:18px;height:18px;display:block;}
+  .bv-count{position:absolute;top:6px;right:8px;min-width:18px;height:18px;padding:0 4px;border-radius:9px;background:rgba(34,211,238,0.18);border:1px solid rgba(34,211,238,0.4);color:var(--primary);font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;line-height:1;}
   `;
   function injectCSS(){ const s=document.createElement('style'); s.id='bv-style'; s.textContent=BV_CSS; document.head.appendChild(s); }
 
@@ -134,10 +135,13 @@ const COMPOSITE={"fullbody": "<svg viewBox=\"-10.1 251.4 748.2 748.2\" style=\"h
   function rowHtml(ex, i){
     const tagColor = ex.subtarget==='Compound' ? '#f59e0b' : 'var(--primary)';
     const tag = ex.subtarget ? ex.subtarget : (CATEGORY_DISPLAY[ex.target]||ex.target);
-    return '<div class="card glass" id="ex-lib-row-'+i+'" data-ex-id="'+ex.id+'" style="padding:15px;display:flex;align-items:center;gap:10px;margin-bottom:10px;overflow:visible;">'
+    const meta = (window.exMetaLine ? window.exMetaLine(ex) : '');
+    const star = (window.favStarHtml ? window.favStarHtml(ex) : '');
+    return '<div class="card glass" id="ex-lib-row-'+i+'" data-ex-id="'+ex.id+'" style="padding:15px;display:flex;align-items:center;gap:8px;margin-bottom:10px;overflow:visible;">'
       +'<div class="ex-lib-drag-handle" style="width:28px;height:28px;border-radius:8px;flex-shrink:0;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:14px;color:rgba(255,255,255,0.4);cursor:grab;touch-action:none;">&#10303;</div>'
-      +'<div style="flex-grow:1;cursor:pointer;" onclick="showExerciseAnimation('+ex.id+')"><strong style="font-size:16px;">'+ex.name+'</strong><br>'
+      +'<div style="flex-grow:1;cursor:pointer;" onclick="showExerciseAnimation('+ex.id+')"><strong style="font-size:16px;">'+ex.name+'</strong>'+meta+'<br>'
       +'<small style="color:'+tagColor+';font-weight:800;text-transform:uppercase;font-size:10px;">'+tag+'</small></div>'
+      +star
       +'<button style="background:none;border:none;font-size:18px;cursor:pointer;" onclick="openEditExerciseModal('+ex.id+')">&#9881;&#65039;</button></div>';
   }
   function renderList(){
@@ -241,6 +245,90 @@ const COMPOSITE={"fullbody": "<svg viewBox=\"-10.1 251.4 748.2 748.2\" style=\"h
       ? matches.map(function(ex,i){return rowHtml(ex,i);}).join('')
       : '<div class="bv-caption" style="padding:20px 0;">No exercises match \u201c'+q+'\u201d.</div>';
   };
+
+  // ===== Stats / PR / Favorites / Counts =====
+  function _wh(){ return (typeof workoutHistory!=='undefined' && Array.isArray(workoutHistory)) ? workoutHistory : []; }
+  function findEx(id){ return (typeof masterExercises!=='undefined'?masterExercises:[]).find(function(e){return e.id==id;}); }
+  function statsFor(name){
+    var lastDate=null,lastSets=null,maxW=0; var allSets=[];
+    _wh().forEach(function(w){ (w.exercises||[]).forEach(function(ex){ if(ex.name===name){
+      (ex.sets_data||[]).forEach(function(s){ var wt=parseFloat(s.weight)||0, rp=parseInt(s.reps)||0; if(rp>0){ allSets.push({w:wt,r:rp}); if(wt>maxW)maxW=wt; } });
+      if(!lastDate || (w.date && w.date>lastDate)){ lastDate=w.date; lastSets=ex.sets_data||[]; }
+    }}); });
+    return {lastDate:lastDate,lastSets:lastSets,maxW:maxW,allSets:allSets};
+  }
+  function bestRepsAt(allSets,weight){ var b=0; allSets.forEach(function(s){ if(Math.abs(s.w-weight)<0.0001 && s.r>b) b=s.r; }); return b; }
+  function topSet(sets){ if(!sets||!sets.length) return null; var best=null; sets.forEach(function(s){ var wt=parseFloat(s.weight)||0; if(!best||wt>(parseFloat(best.weight)||0)) best=s; }); return best; }
+  function agoStr(d){ if(!d) return ''; var dt=new Date(d+'T00:00:00'), now=new Date(); var days=Math.round((now-dt)/86400000); if(days<=0)return 'today'; if(days===1)return 'yesterday'; if(days<7)return days+'d ago'; if(days<30)return Math.round(days/7)+'w ago'; return Math.round(days/30)+'mo ago'; }
+  window.exerciseStats = statsFor;
+
+  window.exMetaLine = function(ex){
+    var st=statsFor(ex.name); if(!st.lastDate) return '';
+    var ts=topSet(st.lastSets), bits=[];
+    if(ts){ var wt=parseFloat(ts.weight)||0, rp=parseInt(ts.reps)||0; if(wt||rp) bits.push((wt?wt+'kg':'')+(rp?' \u00d7 '+rp:'')); }
+    bits.push(agoStr(st.lastDate));
+    return '<span style="color:var(--text-light);font-size:10px;font-weight:600;"> \u00b7 '+bits.join(' \u00b7 ')+'</span>';
+  };
+  window.favStarHtml = function(ex){
+    var fav=!!ex.favorite;
+    return '<button onclick="event.stopPropagation(); toggleFavorite('+ex.id+', this)" title="Favorite" style="background:none;border:none;cursor:pointer;font-size:17px;line-height:1;padding:0 4px;color:'+(fav?'#f59e0b':'rgba(255,255,255,0.35)')+';">'+(fav?'\u2605':'\u2606')+'</button>';
+  };
+  window.toggleFavorite = function(id, el){
+    var e=findEx(id); if(!e) return; e.favorite=!e.favorite;
+    if(typeof saveAll==='function'){ try{saveAll();}catch(_){} }
+    if(el){ el.textContent=e.favorite?'\u2605':'\u2606'; el.style.color=e.favorite?'#f59e0b':'rgba(255,255,255,0.35)'; }
+  };
+
+  // PR-kort i forhandsvisningen (wrappar showExerciseAnimation)
+  function injectStats(id){
+    var ex=findEx(id); if(!ex) return; var body=document.getElementById('modal-body'); if(!body) return;
+    if(document.getElementById('bv-stats-card')) return;
+    var st=statsFor(ex.name);
+    var repW = (ex.prRepWeight!=null && ex.prRepWeight!=='') ? ex.prRepWeight : (st.maxW||0);
+    var bReps = bestRepsAt(st.allSets, parseFloat(repW)||0);
+    var lastHtml='No history yet';
+    if(st.lastDate){ var ts=topSet(st.lastSets); var wt=ts?(parseFloat(ts.weight)||0):0, rp=ts?(parseInt(ts.reps)||0):0; lastHtml=(wt?wt+' kg':'')+(rp?' \u00d7 '+rp+' reps':'')+' \u00b7 '+agoStr(st.lastDate); }
+    var dash='\u2013';
+    var html='<div id="bv-stats-card" style="margin-top:14px;text-align:left;display:flex;flex-direction:column;gap:10px;">'
+      +'<div style="display:flex;gap:10px;">'
+      +'<div style="flex:1;background:rgba(255,255,255,0.05);border:1px solid var(--glass-border);border-radius:14px;padding:12px;">'
+      +'<div style="font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text-light);">Max weight (1 rep)</div>'
+      +'<div style="font-size:22px;font-weight:800;color:var(--primary);">'+(st.maxW?st.maxW+' kg':dash)+'</div></div>'
+      +'<div style="flex:1;background:rgba(255,255,255,0.05);border:1px solid var(--glass-border);border-radius:14px;padding:12px;">'
+      +'<div style="font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text-light);">Max reps @ '+(repW?repW+' kg':dash)+'</div>'
+      +'<div style="font-size:22px;font-weight:800;color:#f59e0b;">'+(bReps?bReps+' reps':dash)+'</div></div>'
+      +'</div>'
+      +'<div style="display:flex;align-items:center;gap:8px;">'
+      +'<span style="font-size:11px;color:var(--text-light);">Track reps at:</span>'
+      +'<input id="bv-pr-weight" type="number" inputmode="decimal" value="'+(repW||'')+'" placeholder="kg" style="width:84px;padding:8px;border-radius:10px;border:1px solid var(--glass-border);background:var(--card);color:var(--text);font-size:14px;">'
+      +'<button onclick="bvSetRepWeight('+id+')" style="padding:8px 14px;border:none;border-radius:10px;background:var(--primary);color:#04222b;font-weight:800;cursor:pointer;font-size:13px;">Set</button>'
+      +'</div>'
+      +'<div style="font-size:11px;color:var(--text-light);">Last performed: '+lastHtml+'</div>'
+      +'</div>';
+    body.insertAdjacentHTML('beforeend', html);
+  }
+  window.bvSetRepWeight = function(id){
+    var ex=findEx(id); if(!ex) return; var inp=document.getElementById('bv-pr-weight'); if(!inp) return;
+    var v=parseFloat(inp.value); ex.prRepWeight = isNaN(v) ? '' : v;
+    if(typeof saveAll==='function'){ try{saveAll();}catch(_){} }
+    var card=document.getElementById('bv-stats-card'); if(card) card.remove(); injectStats(id);
+  };
+  if (typeof window.showExerciseAnimation === 'function' && !window.__bvWrapShow){
+    window.__bvWrapShow = true;
+    var _origShow = window.showExerciseAnimation;
+    window.showExerciseAnimation = function(id){ try{ _origShow(id); }catch(e){} setTimeout(function(){ injectStats(id); }, 0); };
+  }
+
+  // antal per muskelgrupp (badge pa kategori-knapparna)
+  function catCount(cat){ var all=(typeof masterExercises!=='undefined'?masterExercises:[]);
+    return all.filter(function(ex){ return cat==='Armar' ? (ex.target==='Biceps'||ex.target==='Triceps'||ex.target==='Armar') : ex.target===cat; }).length; }
+  window.refreshExerciseCounts = function(){
+    document.querySelectorAll('#category-menu .cat-btn').forEach(function(btn){
+      var c=btn.getAttribute('data-cat'); var n=catCount(c); var b=btn.querySelector('.bv-count');
+      if(!b){ b=document.createElement('span'); b.className='bv-count'; btn.style.position='relative'; btn.appendChild(b); }
+      b.textContent=n; b.style.display = n ? 'flex' : 'none';
+    });
+  };
   window.getWorkoutTypeIcon = function(id){ return (typeof COMPOSITE!=='undefined' && COMPOSITE[id]) ? COMPOSITE[id] : null; };
   try{ if(typeof PREDEFINED_GROUPS!=='undefined'){ PREDEFINED_GROUPS.forEach(function(g){ if(typeof COMPOSITE!=='undefined' && COMPOSITE[g.id]) g.icon=COMPOSITE[g.id]; }); } }catch(e){}
   window.setExerciseView = function(v){
@@ -251,6 +339,6 @@ const COMPOSITE={"fullbody": "<svg viewBox=\"-10.1 251.4 748.2 748.2\" style=\"h
     styleToggle(v);
   };
 
-  function start(){ injectCSS(); styleToggle('filter'); }
+  function start(){ injectCSS(); styleToggle('filter'); try{ window.refreshExerciseCounts(); }catch(e){} }
   if (document.readyState==='loading') document.addEventListener('DOMContentLoaded', start); else start();
 })();
