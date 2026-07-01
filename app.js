@@ -558,10 +558,6 @@ function showExerciseAnimation(id) {
     }
     body.innerHTML = `
         <h3>${ex.name}</h3>
-        ${videoHtml}
-        <div style="text-align:center; color:var(--text-light); font-size:14px; padding:10px;">
-            <p><strong>Muscle Group:</strong> ${CATEGORY_DISPLAY[ex.target] || ex.target}</p>
-        </div>
     `;
     openModal();
 }
