@@ -98,6 +98,11 @@ const COMPOSITE={"fullbody": "<svg viewBox=\"-10.1 251.4 748.2 748.2\" style=\"h
   .bv-pill-ic{display:inline-flex;width:18px;height:18px;}
   .bv-pill-ic svg{width:18px;height:18px;display:block;}
   .bv-controls{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;align-items:center;}
+  .bv-flame{vertical-align:-2px;margin-right:5px;}
+  #bv-mode-heat.active{color:#f59e0b !important;background:rgba(245,158,11,0.12) !important;}
+  .bv-tabbar{display:flex;gap:6px;background:rgba(255,255,255,0.04);border-radius:12px;padding:4px;}
+  .bv-tab{flex:1;padding:8px;border:none;background:transparent;color:var(--text-light);font-weight:700;font-size:12px;border-radius:9px;cursor:pointer;}
+  .bv-tab.active{background:rgba(34,211,238,0.15);color:var(--primary);}
   `;
   function injectCSS(){ const s=document.createElement('style'); s.id='bv-style'; s.textContent=BV_CSS; document.head.appendChild(s); }
 
@@ -138,7 +143,7 @@ const COMPOSITE={"fullbody": "<svg viewBox=\"-10.1 251.4 748.2 748.2\" style=\"h
     const tag = ex.subtarget ? ex.subtarget : (CATEGORY_DISPLAY[ex.target]||ex.target);
     const star = (window.favStarHtml ? window.favStarHtml(ex) : '');
     return '<div class="card glass" id="ex-lib-row-'+i+'" data-ex-id="'+ex.id+'" style="padding:15px;display:flex;align-items:center;gap:8px;margin-bottom:10px;overflow:visible;">'
-      +'<div class="ex-lib-drag-handle" style="width:28px;height:28px;border-radius:8px;flex-shrink:0;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:14px;color:rgba(255,255,255,0.4);cursor:grab;touch-action:none;">&#10303;</div>'
+      +'<div class="ex-lib-drag-handle" style="width:28px;height:28px;border-radius:8px;flex-shrink:0;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);display:'+((window.exSortMode==='manual')?'flex':'none')+';align-items:center;justify-content:center;font-size:14px;color:rgba(255,255,255,0.4);cursor:grab;touch-action:none;">&#10303;</div>'
       +'<div style="flex-grow:1;cursor:pointer;" onclick="showExerciseAnimation('+ex.id+')"><strong style="font-size:16px;">'+ex.name+'</strong><br>'
       +'<small style="color:'+tagColor+';font-weight:800;text-transform:uppercase;font-size:10px;">'+tag+'</small></div>'
       +star
@@ -151,7 +156,7 @@ const COMPOSITE={"fullbody": "<svg viewBox=\"-10.1 251.4 748.2 748.2\" style=\"h
       const matchSub = !curSub || ex.subtarget===curSub || (curCat==='Armar' && !ex.subtarget && ex.target===curSub);
       return matchCat && matchSub;
     });
-    list.sort(favSort);
+    list.sort(function(a,b){ return window.exSort?window.exSort(a,b):favSort(a,b); });
     document.getElementById('bv-count').textContent = list.length+(list.length===1?' exercise':' exercises');
     document.getElementById('bv-list').innerHTML = list.length ? list.map(function(ex,i){return rowHtml(ex,i);}).join('')
       : '<div class="bv-caption" style="padding:14px 0;">No exercises in this filter.</div>';
@@ -208,7 +213,7 @@ const COMPOSITE={"fullbody": "<svg viewBox=\"-10.1 251.4 748.2 748.2\" style=\"h
     var cutoff=new Date(); cutoff.setDate(cutoff.getDate()-days); var vol={};
     _wh().forEach(function(w){ if(!w.date) return; var d=new Date(w.date+'T00:00:00'); if(d<cutoff) return;
       (w.exercises||[]).forEach(function(ex){ var m=findByName(ex.name); if(!m) return; var cat=bodyCat(m.target); if(!cat) return;
-        (ex.sets_data||[]).forEach(function(s){ var wt=parseFloat(s.weight)||0, rp=parseInt(s.reps)||0; if(rp>0){ vol[cat]=(vol[cat]||0)+(wt>0?wt*rp:rp); } });
+        (ex.sets_data||[]).forEach(function(s){ var rp=parseInt(s.reps)||0; if(rp>0){ vol[cat]=(vol[cat]||0)+1; } });
       });
     });
     return vol;
@@ -240,11 +245,11 @@ const COMPOSITE={"fullbody": "<svg viewBox=\"-10.1 251.4 748.2 748.2\" style=\"h
     host.innerHTML =
       '<div class="bv-controls">'+
         '<div class="bv-fbtoggle"><button id="bv-front-btn" class="active">Front</button><button id="bv-back-btn">Back</button></div>'+
-        '<div class="bv-fbtoggle"><button id="bv-mode-pick" class="active">Muscles</button><button id="bv-mode-heat">Heat map</button></div>'+
+        '<div class="bv-fbtoggle"><button id="bv-mode-pick" class="active">Muscles</button><button id="bv-mode-heat"><svg class="bv-flame" width="14" height="14" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="bvfl" x1="12" y1="22" x2="12" y2="2" gradientUnits="userSpaceOnUse"><stop stop-color="#ef4444"/><stop offset=".55" stop-color="#f59e0b"/><stop offset="1" stop-color="#fde68a"/></linearGradient></defs><path d="M12.5 2c.6 3-1.4 4.3-2.4 6-.8 1.4-.4 2.7.8 3.2 1 .4 1.9-.4 1.9-1.6 1.3 1.1 2.2 2.7 2.2 4.4a5 5 0 0 1-10 .2c0-2.6 1.7-4 2.7-6C8.9 10.4 10 10 10 8.4c0-2 .9-4.6 2.5-6.4Z" fill="url(#bvfl)"/></svg>Heat map</button></div>'+
       '</div>'+
       '<div id="bv-hm-period" style="display:none;justify-content:center;align-items:center;gap:10px;margin-top:8px;">'+
         '<div class="bv-fbtoggle"><button id="bv-hm-7" class="active">7 days</button><button id="bv-hm-30">30 days</button></div>'+
-        '<span style="font-size:10px;color:var(--text-light);white-space:nowrap;">warmer = more volume</span>'+
+        '<span style="font-size:10px;color:var(--text-light);white-space:nowrap;">warmer = more sets</span>'+
       '</div>'+
       '<div class="bv-card">'+ mainBody('front') + mainBody('back') +
       '<div class="bv-caption">Tap a muscle group to see its exercises</div></div>'+
@@ -280,6 +285,24 @@ const COMPOSITE={"fullbody": "<svg viewBox=\"-10.1 251.4 748.2 748.2\" style=\"h
     b.setAttribute('style', baseS + (v==='body'?on:off));
   }
   window.getSubIcon = function(cat, sub){ return subIcon(cat, sub||'All'); };
+  window.exSortMode = (function(){ try{ return localStorage.getItem('exSortMode')||'az'; }catch(e){ return 'az'; } })();
+  window.exSort = function(a,b){ var fd=(b.favorite?1:0)-(a.favorite?1:0); if(fd) return fd; if(window.exSortMode==='manual') return 0; return (a.name||'').localeCompare(b.name||'','sv'); };
+  if (typeof window.filterExercises==='function' && !window.__bvWrapFilter){ window.__bvWrapFilter=true; var _origFilter=window.filterExercises; window.filterExercises=function(c,s){ window._lastFilter={c:c,s:s}; return _origFilter(c,s); }; }
+  function updateSortToggle(){ var az=document.getElementById('bv-sort-az'), mn=document.getElementById('bv-sort-manual'); if(az) az.classList.toggle('active',window.exSortMode!=='manual'); if(mn) mn.classList.toggle('active',window.exSortMode==='manual'); }
+  window.setExSort = function(m){ window.exSortMode=m; try{localStorage.setItem('exSortMode',m);}catch(e){} updateSortToggle();
+    if(window._lastFilter && typeof window.filterExercises==='function'){ window.filterExercises(window._lastFilter.c, window._lastFilter.s); }
+    var si=document.getElementById('exercise-search'); if(si && si.value.trim()) window.exerciseSearch(si.value);
+    var sh=document.getElementById('bv-sheet'); if(sh && sh.classList.contains('show')) renderList();
+  };
+  function ensureSortToggle(){ var fv=document.getElementById('exercise-filter-view'); if(!fv || document.getElementById('bv-sort')) return;
+    var menu=document.getElementById('category-menu');
+    var wrap=document.createElement('div'); wrap.id='bv-sort'; wrap.style.cssText='display:flex;justify-content:flex-end;margin-bottom:12px;';
+    wrap.innerHTML='<div class="bv-fbtoggle"><button id="bv-sort-az" class="active">A\u2013Z</button><button id="bv-sort-manual">Manual</button></div>';
+    if(menu) fv.insertBefore(wrap, menu); else fv.appendChild(wrap);
+    document.getElementById('bv-sort-az').addEventListener('click',function(){ setExSort('az'); });
+    document.getElementById('bv-sort-manual').addEventListener('click',function(){ setExSort('manual'); });
+    updateSortToggle();
+  }
   window.exerciseSearch = function(q){
     q=(q||'').trim().toLowerCase();
     const grid=document.getElementById('category-menu');
@@ -289,7 +312,7 @@ const COMPOSITE={"fullbody": "<svg viewBox=\"-10.1 251.4 748.2 748.2\" style=\"h
     if(!q){ if(grid) grid.style.display=''; if(sub) sub.innerHTML=''; results.innerHTML=''; return; }
     if(grid) grid.style.display='none'; if(sub) sub.innerHTML='';
     const all=(typeof masterExercises!=='undefined'?masterExercises:[]);
-    const matches=all.filter(function(ex){ return (ex.name||'').toLowerCase().indexOf(q)!==-1; }).sort(function(a,b){return (b.favorite?1:0)-(a.favorite?1:0);});
+    const matches=all.filter(function(ex){ return (ex.name||'').toLowerCase().indexOf(q)!==-1; }).sort(function(a,b){ return window.exSort?window.exSort(a,b):((b.favorite?1:0)-(a.favorite?1:0)); });
     results.innerHTML = matches.length
       ? matches.map(function(ex,i){return rowHtml(ex,i);}).join('')
       : '<div class="bv-caption" style="padding:20px 0;">No exercises match \u201c'+q+'\u201d.</div>';
@@ -347,31 +370,64 @@ const COMPOSITE={"fullbody": "<svg viewBox=\"-10.1 251.4 748.2 748.2\" style=\"h
 
   // PR-kort i forhandsvisningen (wrappar showExerciseAnimation)
   function topSetStr(sets){ var ts=topSet(sets); if(!ts) return ''; var wt=parseFloat(ts.weight)||0, rp=parseInt(ts.reps)||0; return (wt?wt+' kg':'')+(rp?' \u00d7 '+rp+' reps':''); }
-  function injectStats(id){
-    var ex=findEx(id); if(!ex) return; var body=document.getElementById('modal-body'); if(!body) return;
-    if(document.getElementById('bv-stats-card')) return;
-    var st=statsFor(ex.name);
-    var repW=(ex.prRepWeight!=null && ex.prRepWeight!=='')?ex.prRepWeight:'';
-    var bReps=repW!==''?bestRepsAt(st.allSets, parseFloat(repW)||0):0;
-    var dash='\u2013';
-    var oneRM=st.max1?st.max1+' kg':dash;
-    var lastHtml=st.lastDate?(topSetStr(st.lastSets)+' \u00b7 '+agoStr(st.lastDate)):'No history yet';
+  function sessionsFor(name){
+    var out=[];
+    _wh().forEach(function(w){ (w.exercises||[]).forEach(function(ex){ if(ex.name===name){
+      var tw=0,tr=0,ns=0; (ex.sets_data||[]).forEach(function(s){ var wt=parseFloat(s.weight)||0, rp=parseInt(s.reps)||0; if(rp>0){ ns++; if(wt>tw){tw=wt;tr=rp;} else if(wt===tw && rp>tr) tr=rp; } });
+      if(ns>0) out.push({date:w.date, w:tw, r:tr, sets:ns});
+    }}); });
+    out.sort(function(a,b){ return (a.date||'')<(b.date||'')?-1:1; });
+    return out;
+  }
+  function chartSvg(sess){
+    if(sess.length<2) return '<div style="font-size:11px;color:var(--text-light);padding:10px 0;">Train this at least twice to see a graph.</div>';
+    var W=280,H=120,pad=26; var ws=sess.map(function(s){return s.w;}); var mx=Math.max.apply(null,ws), mn=Math.min.apply(null,ws); if(mx===mn){mx=mx+1;mn=Math.max(0,mn-1);} var n=sess.length;
+    function X(i){ return pad+(n===1?0:(i/(n-1))*(W-pad*2)); } function Y(v){ return H-pad-((v-mn)/(mx-mn))*(H-pad*2); }
+    var pts=sess.map(function(s,i){return X(i)+','+Y(s.w);}).join(' ');
+    var area='M'+X(0)+','+(H-pad)+' L'+sess.map(function(s,i){return X(i)+','+Y(s.w);}).join(' L')+' L'+X(n-1)+','+(H-pad)+' Z';
+    var dots=sess.map(function(s,i){return '<circle cx="'+X(i)+'" cy="'+Y(s.w)+'" r="3" fill="#22d3ee"/>';}).join('');
+    return '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block;">'
+      +'<path d="'+area+'" fill="rgba(34,211,238,0.10)"/>'
+      +'<text x="0" y="'+(Y(mx)+3)+'" font-size="9" fill="#64748b">'+mx+'</text>'
+      +'<text x="0" y="'+(Y(mn)+3)+'" font-size="9" fill="#64748b">'+mn+'</text>'
+      +'<polyline points="'+pts+'" fill="none" stroke="#22d3ee" stroke-width="2" stroke-linejoin="round"/>'+dots+'</svg>';
+  }
+  function prCardHtml(id, ex, st){
+    var repW=(ex.prRepWeight!=null&&ex.prRepWeight!=='')?ex.prRepWeight:''; var bReps=repW!==''?bestRepsAt(st.allSets, parseFloat(repW)||0):0; var dash='\u2013';
     var tile='background:rgba(255,255,255,0.05);border:1px solid var(--glass-border);border-radius:16px;padding:14px 12px;flex:1;min-width:0;';
     var lab='font-size:9px;letter-spacing:0.5px;text-transform:uppercase;color:var(--text-light);margin-bottom:6px;';
-    var html='<div id="bv-stats-card" style="margin-top:16px;text-align:left;">'
-      +'<div style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--text-light);margin-bottom:8px;font-weight:700;">Personal records</div>'
-      +'<div style="display:flex;gap:10px;">'
-      +'<div style="'+tile+'"><div style="'+lab+'">Heaviest single</div>'
-      +'<div style="font-size:22px;font-weight:800;color:var(--primary);">'+oneRM+'</div>'
-      +(st.max1?'':'<div style="font-size:9px;color:var(--text-light);margin-top:3px;">log a 1-rep set</div>')+'</div>'
-      +'<div style="'+tile+'"><div style="'+lab+'">Best reps at '
-      +'<input id="bv-pr-weight" type="number" inputmode="decimal" value="'+repW+'" placeholder="?" oninput="bvRepInput('+id+')" onchange="bvRepSave('+id+')" style="width:42px;padding:2px 3px;border-radius:6px;border:1px solid var(--glass-border);background:var(--card);color:var(--text);font-size:11px;text-align:center;"> kg</div>'
-      +'<div id="bv-pr-reps" style="font-size:22px;font-weight:800;color:#f59e0b;">'+(bReps?bReps+' reps':dash)+'</div></div>'
-      +'</div>'
-      +'<div style="font-size:11px;color:var(--text-light);margin-top:12px;">Last performed: '+lastHtml+'</div>'
+    return '<div style="display:flex;gap:10px;">'
+      +'<div style="'+tile+'"><div style="'+lab+'">Heaviest single</div><div style="font-size:22px;font-weight:800;color:var(--primary);">'+(st.max1?st.max1+' kg':dash)+'</div>'+(st.max1?'':'<div style="font-size:9px;color:var(--text-light);margin-top:3px;">log a 1-rep set</div>')+'</div>'
+      +'<div style="'+tile+'"><div style="'+lab+'">Best reps at <input id="bv-pr-weight" type="number" inputmode="decimal" value="'+repW+'" placeholder="?" oninput="bvRepInput('+id+')" onchange="bvRepSave('+id+')" style="width:42px;padding:2px 3px;border-radius:6px;border:1px solid var(--glass-border);background:var(--card);color:var(--text);font-size:11px;text-align:center;"> kg</div><div id="bv-pr-reps" style="font-size:22px;font-weight:800;color:#f59e0b;">'+(bReps?bReps+' reps':dash)+'</div></div>'
       +'</div>';
-    body.insertAdjacentHTML('beforeend', html);
   }
+  function injectStats(id){
+    var ex=findEx(id); if(!ex) return; var body=document.getElementById('modal-body'); if(!body) return;
+    if(document.getElementById('bv-tabs')) return;
+    var wrap=document.createElement('div'); wrap.id='bv-tabs'; wrap.style.marginTop='16px';
+    wrap.innerHTML='<div class="bv-tabbar"><button class="bv-tab active" onclick="bvTab('+id+',&#39;info&#39;)">Info</button><button class="bv-tab" onclick="bvTab('+id+',&#39;hist&#39;)">History</button><button class="bv-tab" onclick="bvTab('+id+',&#39;pr&#39;)">PR</button></div><div id="bv-tab-body" style="margin-top:12px;text-align:left;"></div>';
+    body.appendChild(wrap); bvTab(id,'info');
+  }
+  window.bvTab=function(id,which){
+    var ex=findEx(id); if(!ex) return; var tb=document.getElementById('bv-tab-body'); if(!tb) return;
+    var idx={info:0,hist:1,pr:2}[which];
+    Array.prototype.forEach.call(document.querySelectorAll('#bv-tabs .bv-tab'),function(b,i){ b.classList.toggle('active', i===idx); });
+    var st=statsFor(ex.name);
+    if(which==='info'){
+      var sess=sessionsFor(ex.name);
+      tb.innerHTML='<div style="font-size:13px;line-height:1.8;">'
+        +'<div><span style="color:var(--text-light);">Muscle group:</span> '+(CATEGORY_DISPLAY[ex.target]||ex.target)+'</div>'
+        +(ex.subtarget?'<div><span style="color:var(--text-light);">Focus:</span> '+ex.subtarget+'</div>':'')
+        +'<div><span style="color:var(--text-light);">Times performed:</span> '+sess.length+'</div>'
+        +(sess.length?'<div><span style="color:var(--text-light);">Last performed:</span> '+agoStr(sess[sess.length-1].date)+'</div>':'')
+        +'</div>';
+    } else if(which==='hist'){
+      var sess=sessionsFor(ex.name);
+      if(!sess.length){ tb.innerHTML='<div style="font-size:12px;color:var(--text-light);padding:10px 0;">No history yet.</div>'; return; }
+      var rows=sess.slice().reverse().slice(0,10).map(function(s){ return '<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:12px;"><span style="color:var(--text-light);">'+s.date+'</span><span>'+(s.w?s.w+' kg':'BW')+' \u00d7 '+s.r+' \u00b7 '+s.sets+' set'+(s.sets===1?'':'s')+'</span></div>'; }).join('');
+      tb.innerHTML='<div style="font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text-light);margin-bottom:6px;">Top-set weight over time</div>'+chartSvg(sess)+'<div style="margin-top:10px;">'+rows+'</div>';
+    } else { tb.innerHTML=prCardHtml(id, ex, st); }
+  };
   window.bvRepInput=function(id){ var ex=findEx(id); if(!ex) return; var inp=document.getElementById('bv-pr-weight'), out=document.getElementById('bv-pr-reps'); if(!inp||!out) return; var st=statsFor(ex.name); var v=parseFloat(inp.value); var r=isNaN(v)?0:bestRepsAt(st.allSets,v); out.textContent=r?r+' reps':'\u2013'; };
   window.bvRepSave=function(id){ var ex=findEx(id); if(!ex) return; var inp=document.getElementById('bv-pr-weight'); if(!inp) return; var v=parseFloat(inp.value); ex.prRepWeight=isNaN(v)?'':v; if(typeof saveAll==='function'){try{saveAll();}catch(_){}} };
   if (typeof window.showExerciseAnimation === 'function' && !window.__bvWrapShow){
@@ -400,6 +456,6 @@ const COMPOSITE={"fullbody": "<svg viewBox=\"-10.1 251.4 748.2 748.2\" style=\"h
     styleToggle(v);
   };
 
-  function start(){ injectCSS(); styleToggle('filter'); }
+  function start(){ injectCSS(); styleToggle('filter'); ensureSortToggle(); }
   if (document.readyState==='loading') document.addEventListener('DOMContentLoaded', start); else start();
 })();
