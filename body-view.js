@@ -107,6 +107,8 @@ const COMPOSITE={"fullbody": "<svg viewBox=\"-10.1 251.4 748.2 748.2\" style=\"h
   .bv-tabbar{display:flex;gap:6px;background:rgba(255,255,255,0.04);border-radius:12px;padding:4px;}
   .bv-tab{flex:1;padding:8px;border:none;background:transparent;color:var(--text-light);font-weight:700;font-size:12px;border-radius:9px;cursor:pointer;}
   .bv-tab.active{background:rgba(34,211,238,0.15);color:var(--primary);}
+  .bv-info-ic{display:inline-flex;width:58px;height:58px;flex-shrink:0;align-items:center;justify-content:center;}
+  .bv-info-ic svg{width:58px;height:58px;display:block;}
   `;
   function injectCSS(){ const s=document.createElement('style'); s.id='bv-style'; s.textContent=BV_CSS; document.head.appendChild(s); }
 
@@ -436,9 +438,16 @@ const COMPOSITE={"fullbody": "<svg viewBox=\"-10.1 251.4 748.2 748.2\" style=\"h
     var st=statsFor(ex.name); var html='';
     if(which==='info'){
       var sess=sessionsFor(ex.name);
-      html='<div style="font-size:13px;line-height:1.8;">'
-        +'<div><span style="color:var(--text-light);">Muscle group:</span> '+(CATEGORY_DISPLAY[ex.target]||ex.target)+'</div>'
-        +(ex.subtarget?'<div><span style="color:var(--text-light);">Focus:</span> '+ex.subtarget+'</div>':'')
+      var vid = ex.animation
+        ? '<div style="border-radius:16px;overflow:hidden;background:#000;margin:12px 0;border:1px solid var(--glass-border);"><video src="'+ex.animation+'" autoplay loop muted playsinline style="width:100%;display:block;"></video></div>'
+        : '<div style="padding:34px 20px;text-align:center;background:rgba(255,255,255,0.05);border-radius:16px;margin:12px 0;color:var(--text-light);font-size:14px;">No video available 🎥</div>';
+      html='<div style="display:flex;align-items:center;gap:12px;">'
+        +'<span class="bv-info-ic">'+(window.getSubIcon?getSubIcon(ex.target, ex.subtarget):'')+'</span>'
+        +'<div><div style="font-size:17px;font-weight:800;">'+(CATEGORY_DISPLAY[ex.target]||ex.target)+'</div>'
+        +(ex.subtarget?'<div style="font-size:11px;color:'+(ex.subtarget==='Compound'?'#f59e0b':'var(--primary)')+';font-weight:800;text-transform:uppercase;letter-spacing:0.5px;">'+ex.subtarget+'</div>':'')
+        +'</div></div>'
+        +vid
+        +'<div style="font-size:13px;line-height:1.8;">'
         +'<div><span style="color:var(--text-light);">Times performed:</span> '+sess.length+'</div>'
         +(sess.length?'<div><span style="color:var(--text-light);">Last performed:</span> '+agoStr(sess[sess.length-1].date)+'</div>':'')
         +'</div>';
