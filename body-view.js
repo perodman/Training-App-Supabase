@@ -87,7 +87,7 @@ const COMPOSITE={"fullbody": "<svg viewBox=\"-10.1 251.4 748.2 748.2\" style=\"h
   .bv-close{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.06);border:1px solid var(--glass-border);color:var(--text);font-size:15px;cursor:pointer;}
   .bv-tiles{display:flex;align-items:flex-start;gap:7px;overflow-x:auto;padding-bottom:8px;margin-bottom:2px;-webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none;}
   .bv-tiles::-webkit-scrollbar{display:none;height:0;}
-  .bv-tile{flex:0 0 auto;width:78px;height:88px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:6px;padding:11px 6px 12px;border-radius:16px;border:1px solid rgba(255,255,255,0.18);background:rgba(255,255,255,0.07);color:var(--text-light);cursor:pointer;transition:all .2s ease;}
+  .bv-tile{flex:0 0 auto;width:78px;height:82px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:6px;padding:11px 6px 12px;border-radius:16px;border:1px solid rgba(255,255,255,0.18);background:rgba(255,255,255,0.07);color:var(--text-light);cursor:pointer;transition:all .2s ease;}
   .bv-tile:active{transform:scale(.94);}
   .bv-tile.active{border-color:var(--primary);background:rgba(34,211,238,0.15);color:var(--primary);box-shadow:0 0 0 1px rgba(34,211,238,.3);}
   .bv-tile .bv-tic{width:30px;height:30px;display:flex;align-items:center;justify-content:center;flex:0 0 auto;}
