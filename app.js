@@ -503,7 +503,7 @@ function filterExercises(category, subtarget = null) {
             (category === "Armar" && !ex.subtarget && (ex.target === subtarget));
 return matchCategory && matchSubtarget;
     });
-    filtered.sort((a, b) => (b.favorite ? 1 : 0) - (a.favorite ? 1 : 0));
+    filtered.sort((a, b) => window.exSort ? window.exSort(a, b) : (b.favorite ? 1 : 0) - (a.favorite ? 1 : 0));
     filtered.forEach(ex => {
         const div = document.createElement("div");
         div.className = "card glass";
@@ -514,7 +514,7 @@ return matchCategory && matchSubtarget;
             <div class="ex-lib-drag-handle" style="
                 width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0;
                 background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
-                display: flex; align-items: center; justify-content: center;
+            display: ${window.exSortMode === 'manual' ? 'flex' : 'none'}; align-items: center; justify-content: center;
                 cursor: grab; font-size: 14px; color: rgba(255,255,255,0.4);
                 touch-action: none !important;">⠿</div>
             <div style="flex-grow:1; cursor:pointer;" onclick="showExerciseAnimation(${ex.id})">
