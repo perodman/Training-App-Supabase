@@ -518,11 +518,12 @@ function filterExercises(category, subtarget = null) {
                 cursor: grab; font-size: 14px; color: rgba(255,255,255,0.4);
                 touch-action: none !important;">⠿</div>
             <div style="flex-grow:1; cursor:pointer;" onclick="showExerciseAnimation(${ex.id})">
-                <strong style="font-size:16px;">${ex.name}</strong><br>
+                <strong style="font-size:16px;">${ex.name}</strong>${window.exMetaLine ? exMetaLine(ex) : ''}<br>
                 <small style="color:${ex.subtarget === 'Compound' ? '#f59e0b' : 'var(--primary)'}; font-weight:800; text-transform:uppercase; font-size:10px;">
                     ${ex.subtarget ? ex.subtarget : (CATEGORY_DISPLAY[ex.target] || ex.target)}
                 </small>
             </div>
+            ${window.favStarHtml ? favStarHtml(ex) : ''}
             <button style="background:none; border:none; font-size:18px; cursor:pointer;" onclick="openEditExerciseModal(${ex.id})">⚙️</button>`;
         results.appendChild(div);
     });
