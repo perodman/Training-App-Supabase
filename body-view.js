@@ -101,6 +101,12 @@ const COMPOSITE={"fullbody": "<svg viewBox=\"-10.1 251.4 748.2 748.2\" style=\"h
   .bv-flame{vertical-align:-2px;margin-right:5px;}
   .bv-heatbtn{padding:7px 16px;border-radius:20px;border:1px solid var(--glass-border);background:rgba(255,255,255,0.05);color:var(--text-light);font-weight:700;font-size:12px;cursor:pointer;display:inline-flex;align-items:center;}
   .bv-heatbtn.active{border-color:#22d3ee;color:#f59e0b;background:rgba(34,211,238,0.08);}
+  .bv-topbar{position:relative;display:flex;justify-content:center;align-items:flex-start;min-height:38px;margin-bottom:8px;}
+  .bv-heatwrap{position:absolute;top:0;right:0;display:flex;flex-direction:column;align-items:flex-end;gap:8px;}
+  .bv-flipbtn{display:inline-flex;align-items:center;gap:7px;font-size:12px;padding:8px 15px;border-radius:20px;border:1px solid var(--glass-border);background:rgba(255,255,255,0.05);color:var(--text);font-weight:700;cursor:pointer;}
+  .bv-flipic{display:inline-flex;color:var(--primary);}
+  .bv-daybtn{font-size:11px;padding:5px 12px;border-radius:13px;border:1px solid rgba(245,158,11,0.55);background:transparent;color:#f59e0b;font-weight:700;cursor:pointer;}
+  .bv-daybtn.active{background:rgba(245,158,11,0.18);border-color:transparent;}
   .bv-range{display:flex;gap:6px;margin-bottom:4px;}
   .bv-rbtn{flex:1;padding:6px;border:1px solid var(--glass-border);background:rgba(255,255,255,0.04);color:var(--text-light);font-size:11px;font-weight:700;border-radius:9px;cursor:pointer;}
   .bv-rbtn.active{background:rgba(34,211,238,0.15);color:var(--primary);border-color:rgba(34,211,238,0.4);}
@@ -212,7 +218,7 @@ const COMPOSITE={"fullbody": "<svg viewBox=\"-10.1 251.4 748.2 748.2\" style=\"h
   // ---- haptik (#8) ----
   function haptic(ms){ try{ if(navigator.vibrate) navigator.vibrate(ms||8); }catch(e){} }
   // ---- muskel-varmekarta (#7) ----
-  var hmMode=false, hmDays=7;
+  var hmMode=false, hmDays=7, bvSide='front';
   function findByName(n){ return (typeof masterExercises!=='undefined'?masterExercises:[]).find(function(e){return e.name===n;}); }
   function bodyCat(tg){ if(tg==='Biceps'||tg==='Triceps') return 'Armar'; if(tg==='Cardio'||tg==='Mobility') return null; return tg; }
   function volumeByCategory(days){
@@ -249,19 +255,20 @@ const COMPOSITE={"fullbody": "<svg viewBox=\"-10.1 251.4 748.2 748.2\" style=\"h
     if (built) return; built=true;
     const host=document.getElementById('exercise-body-view'); if(!host) return;
     host.innerHTML =
-      '<div class="bv-controls">'+
-        '<div class="bv-fbtoggle"><button id="bv-front-btn" class="active">Front</button><button id="bv-back-btn">Back</button></div>'+
-        '<button id="bv-mode-heat" class="bv-heatbtn"><svg class="bv-flame" width="14" height="14" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="bvfl" x1="12" y1="22" x2="12" y2="2" gradientUnits="userSpaceOnUse"><stop stop-color="#ef4444"/><stop offset=".55" stop-color="#f59e0b"/><stop offset="1" stop-color="#fde68a"/></linearGradient></defs><path d="M12.5 2c.6 3-1.4 4.3-2.4 6-.8 1.4-.4 2.7.8 3.2 1 .4 1.9-.4 1.9-1.6 1.3 1.1 2.2 2.7 2.2 4.4a5 5 0 0 1-10 .2c0-2.6 1.7-4 2.7-6C8.9 10.4 10 10 10 8.4c0-2 .9-4.6 2.5-6.4Z" fill="url(#bvfl)"/></svg>Heat map</button>'+
-      '</div>'+
-      '<div id="bv-hm-period" style="display:none;justify-content:center;align-items:center;gap:10px;margin-top:8px;">'+
-        '<div class="bv-fbtoggle"><button id="bv-hm-7" class="active">7 days</button><button id="bv-hm-30">30 days</button></div>'+
-        '<span style="font-size:10px;color:var(--text-light);white-space:nowrap;">warmer = more sets</span>'+
+      '<div class="bv-topbar">'+
+        '<button id="bv-flip" class="bv-flipbtn"><span class="bv-flipic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/></svg></span><span id="bv-flip-label">Front</span></button>'+
+        '<div class="bv-heatwrap">'+
+          '<button id="bv-mode-heat" class="bv-heatbtn"><svg class="bv-flame" width="14" height="14" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="bvfl" x1="12" y1="22" x2="12" y2="2" gradientUnits="userSpaceOnUse"><stop stop-color="#ef4444"/><stop offset=".55" stop-color="#f59e0b"/><stop offset="1" stop-color="#fde68a"/></linearGradient></defs><path d="M12.5 2c.6 3-1.4 4.3-2.4 6-.8 1.4-.4 2.7.8 3.2 1 .4 1.9-.4 1.9-1.6 1.3 1.1 2.2 2.7 2.2 4.4a5 5 0 0 1-10 .2c0-2.6 1.7-4 2.7-6C8.9 10.4 10 10 10 8.4c0-2 .9-4.6 2.5-6.4Z" fill="url(#bvfl)"/></svg>Heat map</button>'+
+          '<div id="bv-hm-period" style="display:none;flex-direction:column;align-items:flex-end;gap:6px;">'+
+            '<div style="display:flex;gap:6px;"><button id="bv-hm-7" class="bv-daybtn active">7 days</button><button id="bv-hm-30" class="bv-daybtn">30 days</button></div>'+
+            '<span style="font-size:9px;color:var(--text-light);white-space:nowrap;">warmer = more sets</span>'+
+          '</div>'+
+        '</div>'+
       '</div>'+
       '<div class="bv-card">'+ mainBody('front') + mainBody('back') +
       '<div class="bv-caption">Tap a muscle group to see its exercises</div></div>'+
       '<div class="bv-extra"><button id="bv-cardio">'+HEART+'Cardio</button><button id="bv-mobility">'+STRETCH+'Mobility</button></div>';
-    document.getElementById('bv-front-btn').addEventListener('click',()=>setSide('front'));
-    document.getElementById('bv-back-btn').addEventListener('click',()=>setSide('back'));
+    document.getElementById('bv-flip').addEventListener('click',function(){ haptic(6); setSide(bvSide==='front'?'back':'front'); });
     document.getElementById('bv-mode-heat').addEventListener('click',()=>setHeat(!hmMode));
     document.getElementById('bv-hm-7').addEventListener('click',()=>setDays(7));
     document.getElementById('bv-hm-30').addEventListener('click',()=>setDays(30));
@@ -274,18 +281,23 @@ const COMPOSITE={"fullbody": "<svg viewBox=\"-10.1 251.4 748.2 748.2\" style=\"h
       svg.addEventListener('mouseout',function(e){ const c=e.target.getAttribute&&e.target.getAttribute('data-cat'); if(c) document.querySelectorAll('.bv-c-'+CSS_esc(c)).forEach(x=>x.classList.remove('bv-hover')); });
     });
   }
-  function setSide(s){
+  function setSide(s){ bvSide=s;
     document.getElementById('bv-svg-front').style.display = s==='front'?'block':'none';
     document.getElementById('bv-svg-back').style.display  = s==='back'?'block':'none';
-    document.getElementById('bv-front-btn').classList.toggle('active',s==='front');
-    document.getElementById('bv-back-btn').classList.toggle('active',s==='back');
+    var lbl=document.getElementById('bv-flip-label'); if(lbl) lbl.textContent = s==='front'?'Front':'Back';
   }
 
   // ---- toggle mellan Filter / Body ----
+  function ensureToggleIcons(){
+    var f=document.getElementById('exvt-filter'), b=document.getElementById('exvt-body');
+    if(f && !f.querySelector('svg')) f.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:5px;"><path d="M4 5h16l-6 8v6l-4-2v-4z"/></svg>Filter';
+    if(b && !b.querySelector('svg')) b.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-2px;margin-right:5px;"><circle cx="12" cy="4.5" r="2.4"/><path d="M8.6 9h6.8l-.7 6h-1.4l.35 6h-1.85l-.3-5h-.4l-.3 5H8.95l.35-6H8.05z"/></svg>Body';
+  }
   function styleToggle(v){
+    ensureToggleIcons();
     const f=document.getElementById('exvt-filter'), b=document.getElementById('exvt-body'); if(!f||!b) return;
     const on='color:#22d3ee;background:rgba(34,211,238,0.1);', off='color:#64748b;background:transparent;';
-    const baseS='padding:7px 18px;border:none;cursor:pointer;font-weight:700;font-size:12px;';
+    const baseS='display:inline-flex;align-items:center;padding:7px 16px;border:none;cursor:pointer;font-weight:700;font-size:12px;';
     f.setAttribute('style', baseS + (v==='filter'?on:off));
     b.setAttribute('style', baseS + (v==='body'?on:off));
   }
@@ -492,6 +504,7 @@ const COMPOSITE={"fullbody": "<svg viewBox=\"-10.1 251.4 748.2 748.2\" style=\"h
     if(v==='body'){ buildBodyView(); fv.style.display='none'; bvv.style.display='block'; try{window.scrollTo({top:0});}catch(e){window.scrollTo(0,0);} }
     else { fv.style.display='block'; bvv.style.display='none'; }
     styleToggle(v);
+    ensureToggleIcons();
   };
 
   function start(){ injectCSS(); styleToggle('filter'); }
