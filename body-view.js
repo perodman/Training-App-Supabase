@@ -85,7 +85,8 @@ const COMPOSITE={"fullbody": "<svg viewBox=\"-10.1 251.4 748.2 748.2\" style=\"h
   .bv-shead h3{margin:0;font-size:18px;color:var(--text);}
   .bv-shead .bv-cnt{color:var(--text-light);font-size:11px;text-transform:uppercase;letter-spacing:1px;}
   .bv-close{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.06);border:1px solid var(--glass-border);color:var(--text);font-size:15px;cursor:pointer;}
-  .bv-tiles{display:flex;gap:7px;overflow-x:auto;padding-bottom:8px;margin-bottom:2px;-webkit-overflow-scrolling:touch;}
+  .bv-tiles{display:flex;gap:7px;overflow-x:auto;padding-bottom:8px;margin-bottom:2px;-webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none;}
+  .bv-tiles::-webkit-scrollbar{display:none;height:0;}
   .bv-tile{flex:0 0 auto;width:74px;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 5px;border-radius:16px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.05);color:var(--text-light);cursor:pointer;transition:all .2s ease;}
   .bv-tile:active{transform:scale(.94);}
   .bv-tile.active{border-color:var(--primary);background:rgba(34,211,238,0.15);color:var(--primary);box-shadow:0 0 0 1px rgba(34,211,238,.3);}
@@ -96,7 +97,6 @@ const COMPOSITE={"fullbody": "<svg viewBox=\"-10.1 251.4 748.2 748.2\" style=\"h
   .cat-pick-ic svg{height:34px !important;width:auto !important;}
   .bv-pill-ic{display:inline-flex;width:18px;height:18px;}
   .bv-pill-ic svg{width:18px;height:18px;display:block;}
-  .bv-count{position:absolute;top:6px;right:8px;min-width:18px;height:18px;padding:0 4px;border-radius:9px;background:rgba(34,211,238,0.18);border:1px solid rgba(34,211,238,0.4);color:var(--primary);font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;line-height:1;}
   `;
   function injectCSS(){ const s=document.createElement('style'); s.id='bv-style'; s.textContent=BV_CSS; document.head.appendChild(s); }
 
@@ -126,7 +126,7 @@ const COMPOSITE={"fullbody": "<svg viewBox=\"-10.1 251.4 748.2 748.2\" style=\"h
       return '<div class="bv-tile" data-sub="'+val+'"><span class="bv-tic">'+subIcon(curCat,label)+'</span><span class="bv-tlab">'+label+'</span></div>';
     }).join('');
     document.querySelectorAll('#bv-tiles .bv-tile').forEach(function(t){
-      t.addEventListener('click',function(){ setSub(t.dataset.sub||null); });
+      t.addEventListener('click',function(){ haptic(6); setSub(t.dataset.sub||null); });
     });
   }
   function updateTileActive(){
@@ -135,21 +135,22 @@ const COMPOSITE={"fullbody": "<svg viewBox=\"-10.1 251.4 748.2 748.2\" style=\"h
   function rowHtml(ex, i){
     const tagColor = ex.subtarget==='Compound' ? '#f59e0b' : 'var(--primary)';
     const tag = ex.subtarget ? ex.subtarget : (CATEGORY_DISPLAY[ex.target]||ex.target);
-    const meta = (window.exMetaLine ? window.exMetaLine(ex) : '');
     const star = (window.favStarHtml ? window.favStarHtml(ex) : '');
     return '<div class="card glass" id="ex-lib-row-'+i+'" data-ex-id="'+ex.id+'" style="padding:15px;display:flex;align-items:center;gap:8px;margin-bottom:10px;overflow:visible;">'
       +'<div class="ex-lib-drag-handle" style="width:28px;height:28px;border-radius:8px;flex-shrink:0;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:14px;color:rgba(255,255,255,0.4);cursor:grab;touch-action:none;">&#10303;</div>'
-      +'<div style="flex-grow:1;cursor:pointer;" onclick="showExerciseAnimation('+ex.id+')"><strong style="font-size:16px;">'+ex.name+'</strong>'+meta+'<br>'
+      +'<div style="flex-grow:1;cursor:pointer;" onclick="showExerciseAnimation('+ex.id+')"><strong style="font-size:16px;">'+ex.name+'</strong><br>'
       +'<small style="color:'+tagColor+';font-weight:800;text-transform:uppercase;font-size:10px;">'+tag+'</small></div>'
       +star
       +'<button style="background:none;border:none;font-size:18px;cursor:pointer;" onclick="openEditExerciseModal('+ex.id+')">&#9881;&#65039;</button></div>';
   }
+  function favSort(a,b){ return (b.favorite?1:0)-(a.favorite?1:0); }
   function renderList(){
     const list = (typeof masterExercises!=='undefined'?masterExercises:[]).filter(function(ex){
       const matchCat = curCat==='Armar' ? (ex.target==='Biceps'||ex.target==='Triceps'||ex.target==='Armar') : ex.target===curCat;
       const matchSub = !curSub || ex.subtarget===curSub || (curCat==='Armar' && !ex.subtarget && ex.target===curSub);
       return matchCat && matchSub;
     });
+    list.sort(favSort);
     document.getElementById('bv-count').textContent = list.length+(list.length===1?' exercise':' exercises');
     document.getElementById('bv-list').innerHTML = list.length ? list.map(function(ex,i){return rowHtml(ex,i);}).join('')
       : '<div class="bv-caption" style="padding:14px 0;">No exercises in this filter.</div>';
@@ -196,21 +197,64 @@ const COMPOSITE={"fullbody": "<svg viewBox=\"-10.1 251.4 748.2 748.2\" style=\"h
     if(bd) bd.classList.remove('show'); if(sh) sh.classList.remove('show'); document.body.style.overflow=''; setTimeout(()=>setSelected(null),250); }
 
   // ---- bygg body-vyn ----
+  // ---- haptik (#8) ----
+  function haptic(ms){ try{ if(navigator.vibrate) navigator.vibrate(ms||8); }catch(e){} }
+  // ---- muskel-varmekarta (#7) ----
+  var hmMode=false, hmDays=7;
+  function findByName(n){ return (typeof masterExercises!=='undefined'?masterExercises:[]).find(function(e){return e.name===n;}); }
+  function bodyCat(tg){ if(tg==='Biceps'||tg==='Triceps') return 'Armar'; if(tg==='Cardio'||tg==='Mobility') return null; return tg; }
+  function volumeByCategory(days){
+    var cutoff=new Date(); cutoff.setDate(cutoff.getDate()-days); var vol={};
+    _wh().forEach(function(w){ if(!w.date) return; var d=new Date(w.date+'T00:00:00'); if(d<cutoff) return;
+      (w.exercises||[]).forEach(function(ex){ var m=findByName(ex.name); if(!m) return; var cat=bodyCat(m.target); if(!cat) return;
+        (ex.sets_data||[]).forEach(function(s){ var wt=parseFloat(s.weight)||0, rp=parseInt(s.reps)||0; if(rp>0){ vol[cat]=(vol[cat]||0)+(wt>0?wt*rp:rp); } });
+      });
+    });
+    return vol;
+  }
+  function heatColor(x){ if(x<=0) return '#3a4658';
+    var st=[[58,70,88],[45,120,150],[240,180,60],[239,68,68]]; var seg=x*(st.length-1); var i=Math.floor(seg); if(i>=st.length-1)i=st.length-2; var f=seg-i; var a=st[i], b=st[i+1];
+    return 'rgb('+Math.round(a[0]+(b[0]-a[0])*f)+','+Math.round(a[1]+(b[1]-a[1])*f)+','+Math.round(a[2]+(b[2]-a[2])*f)+')';
+  }
+  function applyHeatmap(){ var vol=volumeByCategory(hmDays), max=0; for(var k in vol){ if(vol[k]>max) max=vol[k]; }
+    ['Ben','Bröst','Rygg','Axlar','Armar','Bål'].forEach(function(cat){ var t=max>0?((vol[cat]||0)/max):0; var col=heatColor(t);
+      document.querySelectorAll('.bv-c-'+CSS_esc(cat)).forEach(function(p){ p.style.fill=col; });
+    });
+  }
+  function clearHeatmap(){ document.querySelectorAll('.bv-m').forEach(function(p){ p.style.fill=''; }); }
+  function setHeat(on){ hmMode=on;
+    var mp=document.getElementById('bv-mode-pick'), mh=document.getElementById('bv-mode-heat'), pe=document.getElementById('bv-hm-period'), lg=document.getElementById('bv-hm-legend');
+    if(mp) mp.classList.toggle('active',!on); if(mh) mh.classList.toggle('active',on);
+    if(pe) pe.style.display=on?'':'none'; if(lg) lg.style.display=on?'':'none';
+    if(on) applyHeatmap(); else clearHeatmap();
+  }
+  function setDays(d){ hmDays=d;
+    var b7=document.getElementById('bv-hm-7'), b30=document.getElementById('bv-hm-30');
+    if(b7) b7.classList.toggle('active',d===7); if(b30) b30.classList.toggle('active',d===30);
+    applyHeatmap();
+  }
   function buildBodyView(){
     if (built) return; built=true;
     const host=document.getElementById('exercise-body-view'); if(!host) return;
     host.innerHTML =
       '<div class="bv-fbtoggle"><button id="bv-front-btn" class="active">Front</button><button id="bv-back-btn">Back</button></div>'+
+      '<div class="bv-fbtoggle" id="bv-mode" style="margin-top:6px;"><button id="bv-mode-pick" class="active">Muscles</button><button id="bv-mode-heat">Heat map</button></div>'+
+      '<div class="bv-fbtoggle" id="bv-hm-period" style="margin-top:6px;display:none;"><button id="bv-hm-7" class="active">7 days</button><button id="bv-hm-30">30 days</button></div>'+
+      '<div id="bv-hm-legend" style="display:none;font-size:10px;color:var(--text-light);text-align:center;margin-top:6px;">Training volume · brighter = more</div>'+
       '<div class="bv-card">'+ mainBody('front') + mainBody('back') +
       '<div class="bv-caption">Tap a muscle group to see its exercises</div></div>'+
       '<div class="bv-extra"><button id="bv-cardio">'+HEART+'Cardio</button><button id="bv-mobility">'+STRETCH+'Mobility</button></div>';
     document.getElementById('bv-front-btn').addEventListener('click',()=>setSide('front'));
     document.getElementById('bv-back-btn').addEventListener('click',()=>setSide('back'));
+    document.getElementById('bv-mode-pick').addEventListener('click',()=>setHeat(false));
+    document.getElementById('bv-mode-heat').addEventListener('click',()=>setHeat(true));
+    document.getElementById('bv-hm-7').addEventListener('click',()=>setDays(7));
+    document.getElementById('bv-hm-30').addEventListener('click',()=>setDays(30));
     document.getElementById('bv-cardio').addEventListener('click',()=>openSheet('Cardio'));
     document.getElementById('bv-mobility').addEventListener('click',()=>openSheet('Mobility'));
     ['front','back'].forEach(function(side){
       const svg=document.getElementById('bv-svg-'+side);
-      svg.addEventListener('click',function(e){ const c=e.target.getAttribute&&e.target.getAttribute('data-cat'); if(c) selectThenOpen(c); });
+      svg.addEventListener('click',function(e){ const c=e.target.getAttribute&&e.target.getAttribute('data-cat'); if(c){ haptic(10); selectThenOpen(c); } });
       svg.addEventListener('mouseover',function(e){ const c=e.target.getAttribute&&e.target.getAttribute('data-cat'); if(c) document.querySelectorAll('.bv-c-'+CSS_esc(c)).forEach(x=>x.classList.add('bv-hover')); });
       svg.addEventListener('mouseout',function(e){ const c=e.target.getAttribute&&e.target.getAttribute('data-cat'); if(c) document.querySelectorAll('.bv-c-'+CSS_esc(c)).forEach(x=>x.classList.remove('bv-hover')); });
     });
@@ -240,7 +284,7 @@ const COMPOSITE={"fullbody": "<svg viewBox=\"-10.1 251.4 748.2 748.2\" style=\"h
     if(!q){ if(grid) grid.style.display=''; if(sub) sub.innerHTML=''; results.innerHTML=''; return; }
     if(grid) grid.style.display='none'; if(sub) sub.innerHTML='';
     const all=(typeof masterExercises!=='undefined'?masterExercises:[]);
-    const matches=all.filter(function(ex){ return (ex.name||'').toLowerCase().indexOf(q)!==-1; });
+    const matches=all.filter(function(ex){ return (ex.name||'').toLowerCase().indexOf(q)!==-1; }).sort(function(a,b){return (b.favorite?1:0)-(a.favorite?1:0);});
     results.innerHTML = matches.length
       ? matches.map(function(ex,i){return rowHtml(ex,i);}).join('')
       : '<div class="bv-caption" style="padding:20px 0;">No exercises match \u201c'+q+'\u201d.</div>';
@@ -250,12 +294,12 @@ const COMPOSITE={"fullbody": "<svg viewBox=\"-10.1 251.4 748.2 748.2\" style=\"h
   function _wh(){ return (typeof workoutHistory!=='undefined' && Array.isArray(workoutHistory)) ? workoutHistory : []; }
   function findEx(id){ return (typeof masterExercises!=='undefined'?masterExercises:[]).find(function(e){return e.id==id;}); }
   function statsFor(name){
-    var lastDate=null,lastSets=null,maxW=0; var allSets=[];
+    var lastDate=null,lastSets=null,maxW=0,max1=0; var allSets=[];
     _wh().forEach(function(w){ (w.exercises||[]).forEach(function(ex){ if(ex.name===name){
-      (ex.sets_data||[]).forEach(function(s){ var wt=parseFloat(s.weight)||0, rp=parseInt(s.reps)||0; if(rp>0){ allSets.push({w:wt,r:rp}); if(wt>maxW)maxW=wt; } });
+      (ex.sets_data||[]).forEach(function(s){ var wt=parseFloat(s.weight)||0, rp=parseInt(s.reps)||0; if(rp>0){ allSets.push({w:wt,r:rp}); if(wt>maxW)maxW=wt; if(rp===1 && wt>max1) max1=wt; } });
       if(!lastDate || (w.date && w.date>lastDate)){ lastDate=w.date; lastSets=ex.sets_data||[]; }
     }}); });
-    return {lastDate:lastDate,lastSets:lastSets,maxW:maxW,allSets:allSets};
+    return {lastDate:lastDate,lastSets:lastSets,maxW:maxW,max1:max1,allSets:allSets};
   }
   function bestRepsAt(allSets,weight){ var b=0; allSets.forEach(function(s){ if(Math.abs(s.w-weight)<0.0001 && s.r>b) b=s.r; }); return b; }
   function topSet(sets){ if(!sets||!sets.length) return null; var best=null; sets.forEach(function(s){ var wt=parseFloat(s.weight)||0; if(!best||wt>(parseFloat(best.weight)||0)) best=s; }); return best; }
@@ -274,45 +318,40 @@ const COMPOSITE={"fullbody": "<svg viewBox=\"-10.1 251.4 748.2 748.2\" style=\"h
     return '<button onclick="event.stopPropagation(); toggleFavorite('+ex.id+', this)" title="Favorite" style="background:none;border:none;cursor:pointer;font-size:17px;line-height:1;padding:0 4px;color:'+(fav?'#f59e0b':'rgba(255,255,255,0.35)')+';">'+(fav?'\u2605':'\u2606')+'</button>';
   };
   window.toggleFavorite = function(id, el){
-    var e=findEx(id); if(!e) return; e.favorite=!e.favorite;
+    var e=findEx(id); if(!e) return; e.favorite=!e.favorite; haptic(8);
     if(typeof saveAll==='function'){ try{saveAll();}catch(_){} }
     if(el){ el.textContent=e.favorite?'\u2605':'\u2606'; el.style.color=e.favorite?'#f59e0b':'rgba(255,255,255,0.35)'; }
   };
 
   // PR-kort i forhandsvisningen (wrappar showExerciseAnimation)
+  function topSetStr(sets){ var ts=topSet(sets); if(!ts) return ''; var wt=parseFloat(ts.weight)||0, rp=parseInt(ts.reps)||0; return (wt?wt+' kg':'')+(rp?' \u00d7 '+rp+' reps':''); }
   function injectStats(id){
     var ex=findEx(id); if(!ex) return; var body=document.getElementById('modal-body'); if(!body) return;
     if(document.getElementById('bv-stats-card')) return;
     var st=statsFor(ex.name);
-    var repW = (ex.prRepWeight!=null && ex.prRepWeight!=='') ? ex.prRepWeight : (st.maxW||0);
-    var bReps = bestRepsAt(st.allSets, parseFloat(repW)||0);
-    var lastHtml='No history yet';
-    if(st.lastDate){ var ts=topSet(st.lastSets); var wt=ts?(parseFloat(ts.weight)||0):0, rp=ts?(parseInt(ts.reps)||0):0; lastHtml=(wt?wt+' kg':'')+(rp?' \u00d7 '+rp+' reps':'')+' \u00b7 '+agoStr(st.lastDate); }
+    var repW=(ex.prRepWeight!=null && ex.prRepWeight!=='')?ex.prRepWeight:'';
+    var bReps=repW!==''?bestRepsAt(st.allSets, parseFloat(repW)||0):0;
     var dash='\u2013';
-    var html='<div id="bv-stats-card" style="margin-top:14px;text-align:left;display:flex;flex-direction:column;gap:10px;">'
+    var oneRM=st.max1?st.max1+' kg':dash;
+    var lastHtml=st.lastDate?(topSetStr(st.lastSets)+' \u00b7 '+agoStr(st.lastDate)):'No history yet';
+    var tile='background:rgba(255,255,255,0.05);border:1px solid var(--glass-border);border-radius:16px;padding:14px 12px;flex:1;min-width:0;';
+    var lab='font-size:9px;letter-spacing:0.5px;text-transform:uppercase;color:var(--text-light);margin-bottom:6px;';
+    var html='<div id="bv-stats-card" style="margin-top:16px;text-align:left;">'
+      +'<div style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--text-light);margin-bottom:8px;font-weight:700;">Personal records</div>'
       +'<div style="display:flex;gap:10px;">'
-      +'<div style="flex:1;background:rgba(255,255,255,0.05);border:1px solid var(--glass-border);border-radius:14px;padding:12px;">'
-      +'<div style="font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text-light);">Max weight (1 rep)</div>'
-      +'<div style="font-size:22px;font-weight:800;color:var(--primary);">'+(st.maxW?st.maxW+' kg':dash)+'</div></div>'
-      +'<div style="flex:1;background:rgba(255,255,255,0.05);border:1px solid var(--glass-border);border-radius:14px;padding:12px;">'
-      +'<div style="font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text-light);">Max reps @ '+(repW?repW+' kg':dash)+'</div>'
-      +'<div style="font-size:22px;font-weight:800;color:#f59e0b;">'+(bReps?bReps+' reps':dash)+'</div></div>'
+      +'<div style="'+tile+'"><div style="'+lab+'">Heaviest single</div>'
+      +'<div style="font-size:22px;font-weight:800;color:var(--primary);">'+oneRM+'</div>'
+      +(st.max1?'':'<div style="font-size:9px;color:var(--text-light);margin-top:3px;">log a 1-rep set</div>')+'</div>'
+      +'<div style="'+tile+'"><div style="'+lab+'">Best reps at '
+      +'<input id="bv-pr-weight" type="number" inputmode="decimal" value="'+repW+'" placeholder="?" oninput="bvRepInput('+id+')" onchange="bvRepSave('+id+')" style="width:42px;padding:2px 3px;border-radius:6px;border:1px solid var(--glass-border);background:var(--card);color:var(--text);font-size:11px;text-align:center;"> kg</div>'
+      +'<div id="bv-pr-reps" style="font-size:22px;font-weight:800;color:#f59e0b;">'+(bReps?bReps+' reps':dash)+'</div></div>'
       +'</div>'
-      +'<div style="display:flex;align-items:center;gap:8px;">'
-      +'<span style="font-size:11px;color:var(--text-light);">Track reps at:</span>'
-      +'<input id="bv-pr-weight" type="number" inputmode="decimal" value="'+(repW||'')+'" placeholder="kg" style="width:84px;padding:8px;border-radius:10px;border:1px solid var(--glass-border);background:var(--card);color:var(--text);font-size:14px;">'
-      +'<button onclick="bvSetRepWeight('+id+')" style="padding:8px 14px;border:none;border-radius:10px;background:var(--primary);color:#04222b;font-weight:800;cursor:pointer;font-size:13px;">Set</button>'
-      +'</div>'
-      +'<div style="font-size:11px;color:var(--text-light);">Last performed: '+lastHtml+'</div>'
+      +'<div style="font-size:11px;color:var(--text-light);margin-top:12px;">Last performed: '+lastHtml+'</div>'
       +'</div>';
     body.insertAdjacentHTML('beforeend', html);
   }
-  window.bvSetRepWeight = function(id){
-    var ex=findEx(id); if(!ex) return; var inp=document.getElementById('bv-pr-weight'); if(!inp) return;
-    var v=parseFloat(inp.value); ex.prRepWeight = isNaN(v) ? '' : v;
-    if(typeof saveAll==='function'){ try{saveAll();}catch(_){} }
-    var card=document.getElementById('bv-stats-card'); if(card) card.remove(); injectStats(id);
-  };
+  window.bvRepInput=function(id){ var ex=findEx(id); if(!ex) return; var inp=document.getElementById('bv-pr-weight'), out=document.getElementById('bv-pr-reps'); if(!inp||!out) return; var st=statsFor(ex.name); var v=parseFloat(inp.value); var r=isNaN(v)?0:bestRepsAt(st.allSets,v); out.textContent=r?r+' reps':'\u2013'; };
+  window.bvRepSave=function(id){ var ex=findEx(id); if(!ex) return; var inp=document.getElementById('bv-pr-weight'); if(!inp) return; var v=parseFloat(inp.value); ex.prRepWeight=isNaN(v)?'':v; if(typeof saveAll==='function'){try{saveAll();}catch(_){}} };
   if (typeof window.showExerciseAnimation === 'function' && !window.__bvWrapShow){
     window.__bvWrapShow = true;
     var _origShow = window.showExerciseAnimation;
@@ -339,6 +378,6 @@ const COMPOSITE={"fullbody": "<svg viewBox=\"-10.1 251.4 748.2 748.2\" style=\"h
     styleToggle(v);
   };
 
-  function start(){ injectCSS(); styleToggle('filter'); try{ window.refreshExerciseCounts(); }catch(e){} }
+  function start(){ injectCSS(); styleToggle('filter'); }
   if (document.readyState==='loading') document.addEventListener('DOMContentLoaded', start); else start();
 })();
