@@ -87,16 +87,17 @@ const COMPOSITE={"fullbody": "<svg viewBox=\"-10.1 251.4 748.2 748.2\" style=\"h
   .bv-close{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.06);border:1px solid var(--glass-border);color:var(--text);font-size:15px;cursor:pointer;}
   .bv-tiles{display:flex;gap:7px;overflow-x:auto;padding-bottom:8px;margin-bottom:2px;-webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none;}
   .bv-tiles::-webkit-scrollbar{display:none;height:0;}
-  .bv-tile{flex:0 0 auto;width:74px;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 5px;border-radius:16px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.05);color:var(--text-light);cursor:pointer;transition:all .2s ease;}
+  .bv-tile{flex:0 0 auto;width:72px;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px 9px;border-radius:16px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.05);color:var(--text-light);cursor:pointer;transition:all .2s ease;}
   .bv-tile:active{transform:scale(.94);}
   .bv-tile.active{border-color:var(--primary);background:rgba(34,211,238,0.15);color:var(--primary);box-shadow:0 0 0 1px rgba(34,211,238,.3);}
   .bv-tile .bv-tic{width:28px;height:28px;display:flex;align-items:center;justify-content:center;}
   .bv-tile .bv-tic svg{width:28px;height:28px;display:block;}
-  .bv-tile .bv-tlab{font-size:9px;font-weight:700;text-align:center;line-height:1.1;white-space:normal;width:100%;}
+  .bv-tile .bv-tlab{font-size:8.5px;font-weight:700;text-align:center;line-height:1.12;white-space:normal;overflow-wrap:anywhere;width:100%;min-height:20px;display:flex;align-items:center;justify-content:center;}
   .bv-list{overflow-y:auto;margin-top:4px;transition:opacity .2s ease, transform .2s ease;}
   .cat-pick-ic svg{height:34px !important;width:auto !important;}
   .bv-pill-ic{display:inline-flex;width:18px;height:18px;}
   .bv-pill-ic svg{width:18px;height:18px;display:block;}
+  .bv-controls{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;align-items:center;}
   `;
   function injectCSS(){ const s=document.createElement('style'); s.id='bv-style'; s.textContent=BV_CSS; document.head.appendChild(s); }
 
@@ -213,7 +214,7 @@ const COMPOSITE={"fullbody": "<svg viewBox=\"-10.1 251.4 748.2 748.2\" style=\"h
     return vol;
   }
   function heatColor(x){ if(x<=0) return '#3a4658';
-    var st=[[58,70,88],[45,120,150],[240,180,60],[239,68,68]]; var seg=x*(st.length-1); var i=Math.floor(seg); if(i>=st.length-1)i=st.length-2; var f=seg-i; var a=st[i], b=st[i+1];
+    var st=[[95,110,132],[234,179,8],[239,68,68]]; var seg=x*(st.length-1); var i=Math.floor(seg); if(i>=st.length-1)i=st.length-2; var f=seg-i; var a=st[i], b=st[i+1];
     return 'rgb('+Math.round(a[0]+(b[0]-a[0])*f)+','+Math.round(a[1]+(b[1]-a[1])*f)+','+Math.round(a[2]+(b[2]-a[2])*f)+')';
   }
   function applyHeatmap(){ var vol=volumeByCategory(hmDays), max=0; for(var k in vol){ if(vol[k]>max) max=vol[k]; }
@@ -223,9 +224,9 @@ const COMPOSITE={"fullbody": "<svg viewBox=\"-10.1 251.4 748.2 748.2\" style=\"h
   }
   function clearHeatmap(){ document.querySelectorAll('.bv-m').forEach(function(p){ p.style.fill=''; }); }
   function setHeat(on){ hmMode=on;
-    var mp=document.getElementById('bv-mode-pick'), mh=document.getElementById('bv-mode-heat'), pe=document.getElementById('bv-hm-period'), lg=document.getElementById('bv-hm-legend');
+    var mp=document.getElementById('bv-mode-pick'), mh=document.getElementById('bv-mode-heat'), pe=document.getElementById('bv-hm-period');
     if(mp) mp.classList.toggle('active',!on); if(mh) mh.classList.toggle('active',on);
-    if(pe) pe.style.display=on?'':'none'; if(lg) lg.style.display=on?'':'none';
+    if(pe) pe.style.display=on?'flex':'none';
     if(on) applyHeatmap(); else clearHeatmap();
   }
   function setDays(d){ hmDays=d;
@@ -237,10 +238,14 @@ const COMPOSITE={"fullbody": "<svg viewBox=\"-10.1 251.4 748.2 748.2\" style=\"h
     if (built) return; built=true;
     const host=document.getElementById('exercise-body-view'); if(!host) return;
     host.innerHTML =
-      '<div class="bv-fbtoggle"><button id="bv-front-btn" class="active">Front</button><button id="bv-back-btn">Back</button></div>'+
-      '<div class="bv-fbtoggle" id="bv-mode" style="margin-top:6px;"><button id="bv-mode-pick" class="active">Muscles</button><button id="bv-mode-heat">Heat map</button></div>'+
-      '<div class="bv-fbtoggle" id="bv-hm-period" style="margin-top:6px;display:none;"><button id="bv-hm-7" class="active">7 days</button><button id="bv-hm-30">30 days</button></div>'+
-      '<div id="bv-hm-legend" style="display:none;font-size:10px;color:var(--text-light);text-align:center;margin-top:6px;">Training volume · brighter = more</div>'+
+      '<div class="bv-controls">'+
+        '<div class="bv-fbtoggle"><button id="bv-front-btn" class="active">Front</button><button id="bv-back-btn">Back</button></div>'+
+        '<div class="bv-fbtoggle"><button id="bv-mode-pick" class="active">Muscles</button><button id="bv-mode-heat">Heat map</button></div>'+
+      '</div>'+
+      '<div id="bv-hm-period" style="display:none;justify-content:center;align-items:center;gap:10px;margin-top:8px;">'+
+        '<div class="bv-fbtoggle"><button id="bv-hm-7" class="active">7 days</button><button id="bv-hm-30">30 days</button></div>'+
+        '<span style="font-size:10px;color:var(--text-light);white-space:nowrap;">warmer = more volume</span>'+
+      '</div>'+
       '<div class="bv-card">'+ mainBody('front') + mainBody('back') +
       '<div class="bv-caption">Tap a muscle group to see its exercises</div></div>'+
       '<div class="bv-extra"><button id="bv-cardio">'+HEART+'Cardio</button><button id="bv-mobility">'+STRETCH+'Mobility</button></div>';
@@ -317,10 +322,27 @@ const COMPOSITE={"fullbody": "<svg viewBox=\"-10.1 251.4 748.2 748.2\" style=\"h
     var fav=!!ex.favorite;
     return '<button onclick="event.stopPropagation(); toggleFavorite('+ex.id+', this)" title="Favorite" style="background:none;border:none;cursor:pointer;font-size:17px;line-height:1;padding:0 4px;color:'+(fav?'#f59e0b':'rgba(255,255,255,0.35)')+';">'+(fav?'\u2605':'\u2606')+'</button>';
   };
+  function isFavId(id){ var e=findEx(id); return !!(e&&e.favorite); }
+  function reflowFavorites(container){
+    if(!container) return;
+    var rows=Array.prototype.slice.call(container.children).filter(function(c){ return c.getAttribute && c.getAttribute('data-ex-id')!=null; });
+    if(rows.length<2) return;
+    var first={}; rows.forEach(function(r){ first[r.getAttribute('data-ex-id')]=r.getBoundingClientRect().top; });
+    var sorted=rows.slice().sort(function(a,b){ return (isFavId(b.getAttribute('data-ex-id'))?1:0)-(isFavId(a.getAttribute('data-ex-id'))?1:0); });
+    sorted.forEach(function(r){ container.appendChild(r); });
+    sorted.forEach(function(r){
+      var id=r.getAttribute('data-ex-id'); var dy=(first[id]||0)-r.getBoundingClientRect().top;
+      if(dy){ r.style.transition='none'; r.style.transform='translateY('+dy+'px)';
+        requestAnimationFrame(function(){ r.style.transition='transform .34s cubic-bezier(.2,.7,.2,1)'; r.style.transform='';
+          setTimeout(function(){ r.style.transition=''; },380); });
+      }
+    });
+  }
   window.toggleFavorite = function(id, el){
     var e=findEx(id); if(!e) return; e.favorite=!e.favorite; haptic(8);
     if(typeof saveAll==='function'){ try{saveAll();}catch(_){} }
-    if(el){ el.textContent=e.favorite?'\u2605':'\u2606'; el.style.color=e.favorite?'#f59e0b':'rgba(255,255,255,0.35)'; }
+    if(el){ el.textContent=e.favorite?'\u2605':'\u2606'; el.style.color=e.favorite?'#f59e0b':'rgba(255,255,255,0.35)';
+      var row=el.closest('[data-ex-id]'); if(row && row.parentElement) reflowFavorites(row.parentElement); }
   };
 
   // PR-kort i forhandsvisningen (wrappar showExerciseAnimation)
