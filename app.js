@@ -501,9 +501,9 @@ function filterExercises(category, subtarget = null) {
             : ex.target === category;
         const matchSubtarget = !subtarget || ex.subtarget === subtarget || 
             (category === "Armar" && !ex.subtarget && (ex.target === subtarget));
-        return matchCategory && matchSubtarget;
+return matchCategory && matchSubtarget;
     });
-
+    filtered.sort((a, b) => (b.favorite ? 1 : 0) - (a.favorite ? 1 : 0));
     filtered.forEach(ex => {
         const div = document.createElement("div");
         div.className = "card glass";
@@ -518,7 +518,7 @@ function filterExercises(category, subtarget = null) {
                 cursor: grab; font-size: 14px; color: rgba(255,255,255,0.4);
                 touch-action: none !important;">⠿</div>
             <div style="flex-grow:1; cursor:pointer;" onclick="showExerciseAnimation(${ex.id})">
-                <strong style="font-size:16px;">${ex.name}</strong>${window.exMetaLine ? exMetaLine(ex) : ''}<br>
+                <strong style="font-size:16px;">${ex.name}</strong><br>
                 <small style="color:${ex.subtarget === 'Compound' ? '#f59e0b' : 'var(--primary)'}; font-weight:800; text-transform:uppercase; font-size:10px;">
                     ${ex.subtarget ? ex.subtarget : (CATEGORY_DISPLAY[ex.target] || ex.target)}
                 </small>
